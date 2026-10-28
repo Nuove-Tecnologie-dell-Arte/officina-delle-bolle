@@ -406,6 +406,60 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
   .sechead { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } canvas#view { animation: none; } .progress div, #net, .meter .bar div { transition: none; } }
+
+/* ---------- un passo alla volta ---------- */
+.wrap > section { display: none; }
+.wrap > section.step-on { display: grid; }
+body:not([data-step="forma"]) .heroband { display: none; }
+.shapeline { display: none; flex-wrap: wrap; gap: 4px 14px; align-items: center; font-size: .95rem; color: var(--muted); margin-bottom: -40px; }
+.shapeline strong { color: var(--ink); }
+body:not([data-step="forma"]) .shapeline { display: flex; }
+.steps-nav a.seen:not(.on) i { border-color: var(--green); color: var(--green); }
+.stepfoot { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; border-top: 1px solid var(--rule); padding-top: 22px; }
+.stepfoot .next { margin-left: auto; }
+a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.btn.big { font-size: 1.05rem; padding: 14px 22px; min-height: 54px; }
+.stepfoot .back { color: var(--muted); }
+
+/* riquadri che si aprono: le spiegazioni lunghe stanno chiuse finché servono */
+details.more { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); }
+details.more > summary { cursor: pointer; list-style: none; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; font: 700 1rem var(--display); min-height: 44px; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "›"; display: inline-block; width: 12px; color: var(--green); font-weight: 800; transition: transform .15s; }
+details.more[open] > summary::before { transform: rotate(90deg); }
+details.more > summary .hint, details.more > summary .tag { font-family: var(--body); font-weight: 400; }
+details.more > :not(summary) { margin: 0 18px 18px; }
+details.ctl.more > summary, details.box.more > summary { padding: 0; }
+details.ctl.more > :not(summary), details.box.more > :not(summary) { margin: 4px 0 0; }
+.more-body { display: grid; gap: 14px; }
+.more .tablewrap, .more .scrollbox { box-shadow: none; }
+.more .box { box-shadow: none; background: var(--paper); }
+
+/* menu "Altro" */
+details.menu { position: relative; }
+details.menu > summary { list-style: none; display: inline-flex; align-items: center; }
+details.menu > summary::-webkit-details-marker { display: none; }
+.menu-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 8; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 8px; display: grid; gap: 6px; min-width: 210px; }
+.menu-list .btn { text-align: left; }
+
+/* modellino: si vede solo il modo scelto */
+.build { display: grid; }
+#modellino[data-build="pieces"] .b-net, #modellino[data-build="net"] .b-pieces { display: none; }
+
+/* montaggio: la prossima giunzione in grande */
+.nextseam { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.nextseam .seamview { position: static; }
+.nextseam canvas#seamCanvas { aspect-ratio: 4 / 3; max-height: 420px; }
+.ns-actions .btn:not(.big) { min-width: 48px; font-size: 1.2rem; }
+.ns-card { gap: 14px; }
+.ns-card h3 { font-size: clamp(1.3rem, 4vw, 1.7rem); }
+.ns-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ns-card.alldone { box-shadow: var(--shadow), inset 0 0 0 2px var(--green); }
+@media (max-width: 900px) {
+  .nextseam { grid-template-columns: 1fr; }
+  .nextseam .seamview { order: 0; grid-template-columns: 1fr; }
+  .nextseam canvas#seamCanvas { aspect-ratio: 4 / 3; max-height: 46vh; }
+}
 </style>
 
 <nav class="stepsbar" aria-label="Passi della guida">
@@ -447,8 +501,10 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
 <div class="gutter">
 <div class="wrap">
 
+<p class="shapeline" id="shapeLine"></p>
+
 <section id="forma">
-  <div class="sechead"><div class="stepno">01</div><div class="txt"><div class="eyebrow">Passo 1 · Tavola 1</div><h2>Scegli la forma</h2><p>Cliccate una forma, poi scrivete le misure della bolla vera in metri. Tutta la pagina si aggiorna da sola: misure, pezzi, sviluppo e montaggio.</p></div></div>
+  <div class="sechead"><div class="stepno">01</div><div class="txt"><h2>Scegli la forma</h2><p>Cliccate una forma e scrivete le misure della bolla vera, in metri.</p></div></div>
   <div class="gallery" id="gallery"></div>
   <div class="mat">
     <div class="bench2">
@@ -464,18 +520,23 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
           <div class="fields" id="params"></div>
         </div>
         <div class="ctl">
-          <div class="ctl-h"><i>2</i>Base</div>
-          <div id="baseCtl" style="display:grid;gap:10px"></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-h"><i>3</i>Pavimento e scala</div>
-          <label class="check"><input type="checkbox" id="fit"> <span>Ingrandisci o riduci tutta la forma per avere un pavimento di questa area</span></label>
+          <div class="ctl-h"><i>2</i>Pavimento</div>
+          <label class="check"><input type="checkbox" id="fit"> <span>Adatta la forma a un pavimento di questa area</span></label>
           <div class="fields">
             <div class="field"><label for="fitArea">Area del pavimento (m²)</label><input id="fitArea" type="number" step="0.01" min="0.1" value="6.25"></div>
-            <div class="field"><label for="scale">Scala del modellino (1 : …)</label><input id="scale" type="number" step="any" min="1" value="20"></div>
           </div>
           <p class="hint" id="fitNote"></p>
         </div>
+        <details class="ctl more" id="moreOpts">
+          <summary><span class="ctl-h"><i>3</i>Altre opzioni</span><span class="hint" id="moreSum"></span></summary>
+          <div class="more-body">
+            <div id="baseCtl" style="display:grid;gap:10px"></div>
+            <p class="hint" id="baseNote"></p>
+            <div class="fields">
+              <div class="field"><label for="scale">Scala del modellino (1 : …)</label><input id="scale" type="number" step="any" min="1" value="20"></div>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   </div>
@@ -498,9 +559,9 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
     </div>
   </div>
   <div class="about" id="about"></div>
-  <div class="box" id="projects">
-    <span class="tag">Progetti del gruppo</span>
-    <p class="hint">Salvate forma e misure con un nome: chi apre questa pagina online vede gli stessi progetti e può riaprirli con un clic.</p>
+  <details class="box more" id="projects">
+    <summary><span class="tag">Progetti del gruppo</span><span class="hint">Salvate e riaprite forma e misure</span></summary>
+    <p class="hint">Chi apre questa pagina online vede gli stessi progetti e può riaprirli con un clic.</p>
     <div class="projform" id="projForm" hidden>
       <div class="field"><label for="projName">Nome del progetto</label><input id="projName" type="text" maxlength="60" placeholder="Per esempio: Cupola gruppo 3" autocomplete="off"></div>
       <div class="btnrow">
@@ -510,11 +571,11 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
     </div>
     <p class="hint" id="projStatus">Caricamento dei progetti…</p>
     <ul class="projlist" id="projList"></ul>
-  </div>
+  </details>
 </section>
 
 <section id="misure">
-  <div class="sechead"><div class="stepno">02</div><div class="txt"><div class="eyebrow">Passo 2</div><h2>Controlla i numeri</h2><p>Prima di comprare il materiale, guardate se la bolla ha le misure che volevate. Se è troppo bassa o troppo grande, tornate al banco di lavoro e cambiate i valori.</p></div></div>
+  <div class="sechead"><div class="stepno">02</div><div class="txt"><h2>Controlla i numeri</h2><p>È grande come la volevate? Se no, tornate al Passo 1 e cambiate le misure.</p></div></div>
   <div class="toolbar">
     <div class="field">
       <span class="flabel">Mostra le misure</span>
@@ -526,18 +587,23 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
     </div>
   </div>
   <div class="keycards" id="keyCards"></div>
-  <div class="card tablewrap wide">
-    <table>
-      <thead><tr><th>Grandezza</th><th class="cr">Bolla reale</th><th class="cm">Modellino</th><th>A cosa serve</th></tr></thead>
-      <tbody id="tbl"></tbody>
-    </table>
-  </div>
-  <h3>Note per la bolla vera</h3>
-  <ul class="notes" id="realNotes"></ul>
+  <details class="more">
+    <summary>Tutte le misure <span class="hint" id="tblCount"></span></summary>
+    <div class="card tablewrap wide">
+      <table>
+        <thead><tr><th>Grandezza</th><th class="cr">Bolla reale</th><th class="cm">Modellino</th><th>A cosa serve</th></tr></thead>
+        <tbody id="tbl"></tbody>
+      </table>
+    </div>
+  </details>
+  <details class="more">
+    <summary>Consigli per la bolla vera <span class="hint">stabilità, angoli, aperture</span></summary>
+    <ul class="notes" id="realNotes"></ul>
+  </details>
 </section>
 
 <section id="prepara">
-  <div class="sechead"><div class="stepno">03</div><div class="txt"><div class="eyebrow">Passo 3</div><h2>Prepara il materiale</h2><p>Lavorate in due tempi: prima il modellino, che costa poco e mostra subito se qualcosa non torna, poi la bolla vera con gli stessi passaggi e le misure grandi.</p></div></div>
+  <div class="sechead"><div class="stepno">03</div><div class="txt"><h2>Prepara il materiale</h2><p>Prima il modellino, che costa poco e mostra subito gli errori, poi la bolla vera.</p></div></div>
   <div class="twocol">
     <div class="box"><span class="tag">Per il modellino</span><ul class="plain" id="matModel"></ul></div>
     <div class="box"><span class="tag">Per la bolla vera</span><ul class="plain" id="matReal"></ul></div>
@@ -552,7 +618,7 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
 </section>
 
 <section id="pezzi">
-  <div class="sechead"><div class="stepno">04</div><div class="txt"><div class="eyebrow">Passo 4 · Tavola 2</div><h2 id="piecesTitle">Traccia i pezzi</h2><p>Ogni pezzo si traccia con metro e squadra, senza compasso. Spuntate i passi mentre lavorate: le spunte restano salvate in questo browser.</p></div></div>
+  <div class="sechead"><div class="stepno">04</div><div class="txt"><h2 id="piecesTitle">Traccia i pezzi</h2><p>Aprite un pezzo e seguite i passi con metro e squadra. Le spunte restano salvate.</p></div></div>
   <div class="toolbar">
     <div class="field">
       <span class="flabel">Misure per</span>
@@ -564,17 +630,24 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
     <div class="field" id="scaleF"><label for="scale2">Scala del modellino (1 : …)</label><input id="scale2" type="number" step="any" min="1" value="20"></div>
     <div class="field" id="rollF" hidden><label for="roll">Larghezza del rotolo (cm)</label><input id="roll" type="number" min="20" step="5" value="150"></div>
     <div class="field" id="marginF" hidden><label for="margin">Margine per saldare o cucire (cm)</label><input id="margin" type="number" min="0" step="0.5" value="3"></div>
-    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
-      <button type="button" class="btn" id="openAll">Apri tutte</button>
-      <button type="button" class="btn" id="closeAll">Chiudi tutte</button>
-      <button type="button" class="btn" id="resetSteps">Azzera le spunte</button>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center">
+      <details class="menu">
+        <summary class="btn">Altro ▾</summary>
+        <div class="menu-list">
+          <button type="button" class="btn" id="openAll">Apri tutti i pezzi</button>
+          <button type="button" class="btn" id="closeAll">Chiudi tutti i pezzi</button>
+          <button type="button" class="btn" id="resetSteps">Azzera le spunte</button>
+        </div>
+      </details>
       <button type="button" class="btn primary" id="sitePieces">Modalità cantiere</button>
     </div>
   </div>
   <div class="overview" id="overview"></div>
   <div class="pieces" id="pieces"></div>
 
-  <h3>Il metodo, spiegato una volta per tutte</h3>
+  <details class="more">
+  <summary>Come si traccia un pezzo senza compasso? <span class="hint">il metodo, la regola 3-4-5, i pezzi speculari</span></summary>
+  <div class="more-body">
   <div class="method">
     <ol class="steps">
       <li><strong>Linea di base.</strong> Tracciate una linea dritta: per la plastica con un filo teso o una stadia, per il cartoncino con il righello. Segnate A e B.</li>
@@ -593,13 +666,24 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
     <div class="box"><span class="tag">Metodo alternativo · due metri a nastro</span><p>In tre persone potete trovare ogni punto senza perpendicolari. Due tengono lo zero di due metri a nastro su due punti già segnati, la terza incrocia i nastri e segna dove le letture sono quelle giuste. Usate i lati e le diagonali del passo "Controllate".</p></div>
     <div class="box"><span class="tag">Pezzi speculari</span><p>Alcuni pezzi hanno una versione "allo specchio", segnata con ↺. Si tracciano con la stessa dima girata sottosopra, e le lettere si scrivono dopo averla girata.</p></div>
   </div>
+  </div>
+  </details>
 </section>
 
 <section id="modellino">
-  <div class="sechead"><div class="stepno">05</div><div class="txt"><div class="eyebrow">Passo 5 · Tavola 3</div><h2>Costruisci il modellino</h2><p id="modelIntro"></p></div></div>
-  <div class="twocol">
-    <div class="box pick">
-      <span class="tag">Modo 1 · consigliato come prova generale</span>
+  <div class="sechead"><div class="stepno">05</div><div class="txt"><h2>Costruisci il modellino</h2><p id="modelIntro"></p></div></div>
+  <div class="toolbar">
+    <div class="field">
+      <span class="flabel">Come lo costruite?</span>
+      <div class="seg" role="group" aria-label="Come costruire il modellino" id="buildSeg">
+        <button type="button" data-b="pieces" aria-pressed="true">A pezzi separati</button>
+        <button type="button" data-b="net" aria-pressed="false">Con lo sviluppo</button>
+      </div>
+    </div>
+  </div>
+  <div class="build">
+    <div class="box pick b-pieces">
+      <span class="tag">Consigliato: è la prova generale della bolla vera</span>
       <h4>A pezzi separati, come la bolla vera</h4>
       <ol class="steps">
         <li>Tracciate le dime del modellino (Passo 4, "Misure per: Modellino") e ritagliatele.</li>
@@ -608,8 +692,8 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
         <li>Unite i pezzi con lo scotch seguendo l'elenco delle giunzioni del Passo 6, nello stesso ordine.</li>
       </ol>
     </div>
-    <div class="box">
-      <span class="tag">Modo 2 · più veloce</span>
+    <div class="box b-net">
+      <span class="tag">Più veloce</span>
       <h4>Con lo sviluppo da ritagliare</h4>
       <ol class="steps">
         <li>Ritagliate una dima per ogni tipo di pezzo.</li>
@@ -619,7 +703,7 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
       </ol>
     </div>
   </div>
-  <figure class="mat">
+  <figure class="mat b-net">
     <div class="seambar">
       <div class="legend">
         <span><i class="sw"></i> taglio</span>
@@ -635,8 +719,30 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
 </section>
 
 <section id="montaggio">
-  <div class="sechead"><div class="stepno">06</div><div class="txt"><div class="eyebrow">Passo 6 · Tavola 4</div><h2>Monta la bolla vera</h2><p id="montIntro"></p></div></div>
-  <div class="twocol">
+  <div class="sechead"><div class="stepno">06</div><div class="txt"><h2>Monta la bolla vera</h2><p id="montIntro"></p></div></div>
+  <div class="seambar">
+    <div class="meter"><span class="flabel" id="seamCount"></span><div class="bar"><div id="seamBar"></div></div></div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="siteSeams">Modalità cantiere</button>
+    </div>
+  </div>
+  <div class="nextseam">
+    <div class="box ns-card" id="nextSeam"></div>
+    <figure class="seamview">
+      <canvas id="seamCanvas" class="pickable" aria-label="Vista 3D che mostra dove va la giunzione scelta: in rosso quella scelta, in verde quelle già fatte."></canvas>
+      <figcaption class="seaminfo" id="seamInfo"></figcaption>
+    </figure>
+  </div>
+  <details class="more">
+    <summary>Elenco di tutte le giunzioni <span class="hint" id="seamListSum"></span></summary>
+    <div class="more-body">
+      <div class="scrollbox"><table id="seams"></table></div>
+      <div class="btnrow"><button type="button" class="btn" id="resetSeams">Azzera le giunzioni</button></div>
+    </div>
+  </details>
+  <details class="more">
+  <summary>Come si monta? <span class="hint">ordine, lettere, come unire la plastica</span></summary>
+  <div class="twocol more-body">
     <div class="box">
       <span class="tag">Come procedere</span>
       <ol class="steps">
@@ -657,20 +763,7 @@ footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
       </ul>
     </div>
   </div>
-  <div class="seambar">
-    <div class="meter"><span class="flabel" id="seamCount"></span><div class="bar"><div id="seamBar"></div></div></div>
-    <div class="btnrow">
-      <button type="button" class="btn" id="resetSeams">Azzera le giunzioni</button>
-      <button type="button" class="btn primary" id="siteSeams">Modalità cantiere</button>
-    </div>
-  </div>
-  <div class="seamgrid">
-    <div class="scrollbox"><table id="seams"></table></div>
-    <figure class="seamview">
-      <canvas id="seamCanvas" class="pickable" aria-label="Vista 3D che mostra dove va la giunzione scelta: in rosso quella scelta, in verde quelle già fatte."></canvas>
-      <figcaption class="seaminfo" id="seamInfo"></figcaption>
-    </figure>
-  </div>
+  </details>
 </section>
 
 <hr>
@@ -1458,10 +1551,12 @@ function analyze(V, F, floor) {
   const tvar = (t) => `var(--t${(t % 8) + 1})`;
   const tcol = (t) => css(`--t${(t % 8) + 1}`);
 
+  // se il browser non lascia salvare, le spunte restano almeno finché la pagina è aperta
+  const memo = new Map();
   const store = {
-    get(k) { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } },
-    set(k, v) { try { if (v) localStorage.setItem(k, "1"); else localStorage.removeItem(k); } catch (e) { /* spunte solo per questa visita */ } },
-    clear(prefix) { try { Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k)); } catch (e) { /* niente */ } },
+    get(k) { try { return localStorage.getItem(k) === "1"; } catch (e) { return memo.get(k) === true; } },
+    set(k, v) { memo.set(k, !!v); try { if (v) localStorage.setItem(k, "1"); else localStorage.removeItem(k); } catch (e) { /* spunte solo per questa visita */ } },
+    clear(prefix) { [...memo.keys()].forEach(k => { if (k.startsWith(prefix)) memo.delete(k); }); try { Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k)); } catch (e) { /* niente */ } },
   };
 
   const state = { shape: "d20", params: {}, opt: { cut: true, fit: true, fitArea: 6.25, orient: null, level: null }, scale: 20, mode: "model", roll: 150, margin: 3, person: true, colors: true };
@@ -1742,7 +1837,18 @@ function analyze(V, F, floor) {
     try { localStorage.setItem("bolle|vista", v); } catch (e) { /* solo per questa visita */ }
   }
   $("viewSeg").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (b) setView(b.dataset.v); });
-  try { const v = localStorage.getItem("bolle|vista"); if (v) setView(v); } catch (e) { /* vista predefinita */ }
+  // di base solo la bolla vera: un numero per scheda è più facile da leggere
+  { let v = null; try { v = localStorage.getItem("bolle|vista"); } catch (e) { /* vista predefinita */ } setView(v || "real"); }
+  // modellino: a pezzi separati o con lo sviluppo (ricordato in questo browser)
+  function setBuild(b) {
+    $("modellino").dataset.build = b;
+    $("buildSeg").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.b === b)));
+    try { localStorage.setItem("bolle|modellino", b); } catch (e) { /* solo per questa visita */ }
+  }
+  $("buildSeg").addEventListener("click", e => { const b = e.target.closest("button[data-b]"); if (b) setBuild(b.dataset.b); });
+  { let b = null; try { b = localStorage.getItem("bolle|modellino"); } catch (e) { /* modo predefinito */ } setBuild(b === "net" ? "net" : "pieces"); }
+  // il menu "Altro" si chiude dopo la scelta
+  document.querySelectorAll("details.menu").forEach(m => m.addEventListener("click", e => { if (e.target.closest(".menu-list button")) m.open = false; }));
   $("openAll").addEventListener("click", () => document.querySelectorAll("#pieces details.piece").forEach(d => { d.open = true; }));
   $("closeAll").addEventListener("click", () => document.querySelectorAll("#pieces details.piece").forEach(d => { d.open = false; }));
   $("overview").addEventListener("click", e => { const a = e.target.closest("a.ov"); if (!a) return; e.preventDefault(); goToPiece(+a.dataset.t); });
@@ -1751,15 +1857,15 @@ function analyze(V, F, floor) {
   }, true);
   const seamsTbl = $("seams");
   const rowNo = (e) => { const tr = e.target.closest && e.target.closest("tr[data-no]"); return tr ? +tr.dataset.no : null; };
-  seamsTbl.addEventListener("mouseover", e => { const n = rowNo(e); if (n) selectSeam(n); });
-  seamsTbl.addEventListener("click", e => { const n = rowNo(e); if (n) selectSeam(n); });
+  // un clic su una riga la porta nella scheda in alto
+  seamsTbl.addEventListener("click", e => { const n = rowNo(e); if (n && !e.target.matches("input")) { selectSeam(n); $("nextSeam").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "nearest" }); } });
   seamsTbl.addEventListener("focusin", e => { const n = rowNo(e); if (n) selectSeam(n); });
   $("zoomNet").addEventListener("click", () => { const z = $("netwrap").classList.toggle("zoom"); $("zoomNet").textContent = z ? "Rimpicciolisci" : "Ingrandisci"; });
   document.addEventListener("change", (e) => {
     const t = e.target;
     if (!t.matches || !t.matches("input[data-k]")) return;
     store.set(t.dataset.k, t.checked);
-    if (t.closest("#seams")) { t.closest("tr").classList.toggle("done", t.checked); seamMeter(); drawView("seam"); }
+    if (t.closest("#seams")) { t.closest("tr").classList.toggle("done", t.checked); seamMeter(); renderNextSeam(); drawView("seam"); }
     const card = t.closest("details.piece");
     if (card) updateProg(card);
   });
@@ -1861,7 +1967,18 @@ function analyze(V, F, floor) {
       base = cur.floorArea > 0 ? `Il tubo appoggia su un lato piatto: il pavimento è una striscia di <span class="num">${plural(an.types.filter(t => t.floors > 0).reduce((a, t) => a + t.floors, 0), "pezzo", "pezzi")}</span>, in tutto <span class="num">${fmt(cur.floorArea, 2)} m²</span>.` : `Il tubo appoggia su uno spigolo: non c'è un pavimento piatto.`;
     }
     const legend = an.types.map((t, i) => `<span class="chip soft" style="--c:${tvar(i)}"><i class="sw-dot" style="--c:${tvar(i)}"></i>Pezzo ${i + 1} × ${t.faces.length}</span>`).join(" ");
-    $("about").innerHTML = `<div class="eyebrow">La forma scelta</div><h3>${esc(d.name)}</h3><p>${ABOUT[d.id] || ""}</p><p>${base}</p><p>In tutto servono <strong>${plural(cur.F.length, "pezzo", "pezzi")}</strong> di <strong>${plural(an.types.length, "tipo", "tipi")}</strong> e <strong>${plural(an.seams.length, "giunzione", "giunzioni")}</strong>.</p><div style="display:flex;flex-wrap:wrap;gap:6px">${legend}</div>`;
+    $("about").innerHTML = `<h3>${esc(d.name)}</h3><p>${ABOUT[d.id] || ""}</p><p>Servono <strong>${plural(cur.F.length, "pezzo", "pezzi")}</strong> di <strong>${plural(an.types.length, "tipo", "tipi")}</strong> e <strong>${plural(an.seams.length, "giunzione", "giunzioni")}</strong>.</p><div style="display:flex;flex-wrap:wrap;gap:6px">${legend}</div>`;
+    // come appoggia: la spiegazione sta dentro "Altre opzioni", il riassunto sul suo titolo
+    $("baseNote").innerHTML = base;
+    const bits = [];
+    if (d.kind === "convex") {
+      const o = cur.orients && cur.orients.find(x => x.id === state.opt.orient);
+      if (o && cur.orients.length > 1) bits.push(o.label.replace(/\s*\(.*\)$/, ""));
+      if (cur.cutUsed) bits.push("tagliata in basso");
+    } else bits.push(cur.open ? "senza pavimento" : (cur.floorArea > 0 ? "con pavimento" : "senza fondo piatto"));
+    bits.push("modellino 1:" + fmt(state.scale, state.scale % 1 ? 1 : 0));
+    $("moreSum").textContent = bits.join(" · ");
+    $("shapeLine").innerHTML = `<strong>${esc(d.name)}</strong><span>altezza ${mR(cur.H)}</span><span>${cur.floorArea > 0 ? "pavimento " + fmt(cur.floorArea, 2) + " m²" : "senza pavimento"}</span><span>${plural(cur.F.length, "pezzo", "pezzi")}</span><a href="#forma">Cambia forma o misure</a>`;
   }
 
   /* tabella delle misure, divisa come nella guida del D20: lato, pavimento, pezzi, bolla intera */
@@ -1945,6 +2062,7 @@ function analyze(V, F, floor) {
       body.push(`<tr><td>${r.name}</td><td class="v cr">${r.real}</td><td class="v cm">${r.model}</td><td class="muted">${r.use}</td></tr>`);
     });
     $("tbl").innerHTML = body.join("");
+    $("tblCount").textContent = `altre ${rows.filter(r => !r.key && !r.head).length}, per tracciare e comprare`;
   }
 
   function renderNotes() {
@@ -2027,6 +2145,7 @@ function analyze(V, F, floor) {
   function goToPiece(t) {
     const d = $("pezzo" + (t + 1));
     if (!d) return;
+    if (document.body.dataset.step !== "pezzi") goStep("pezzi");
     d.open = true;
     d.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
     d.classList.remove("flash"); void d.offsetWidth; d.classList.add("flash");
@@ -2213,7 +2332,7 @@ function analyze(V, F, floor) {
     svg.setAttribute("viewBox", `${-pad} ${-(Htot + pad)} ${W + 2 * pad} ${Htot + 2 * pad}`);
     svg.innerHTML = s + lines + labels;
     const nIs = islands.length, cutSeams = an.seams.filter(sm => !tree.has(sm.key)).length;
-    $("modelIntro").textContent = `Il modellino è in scala 1:${fmt(sc, 0)}: ogni misura è ${fmt(sc, 0)} volte più piccola di quella vera. Si può costruire in due modi: il primo è più lungo ma è una vera prova della bolla. ${nIs === 1 ? "Con lo sviluppo tutti i pezzi stanno in un unico foglio." : `Con lo sviluppo i pezzi sono divisi in ${nIs} gruppi, perché in un unico foglio si sovrapporrebbero.`}`;
+    $("modelIntro").textContent = `Scala 1:${fmt(sc, 0)}: ogni misura è ${fmt(sc, 0)} volte più piccola di quella vera.${nIs === 1 ? "" : ` Lo sviluppo è diviso in ${nIs} gruppi, perché in un unico foglio si sovrapporrebbe.`}`;
     $("netCap").innerHTML = `Ingombro di tutti i gruppi affiancati: circa <span class="num">${fmt(W * U, 0)} × ${fmt(Htot * U, 0)} cm</span>. Il disegno non è in scala 1:1: le misure giuste sono nel Passo 4. ${plural(cutSeams, "bordo da chiudere", "bordi da chiudere")} con lo scotch, con gli stessi numeri delle giunzioni del Passo 6. Le lettere piccole sono quelle degli angoli; i colori sono i tipi di pezzo.`;
   }
 
@@ -2227,20 +2346,21 @@ function analyze(V, F, floor) {
     const an = cur.an;
     const side = (fi, a, b) => { const f = cur.F[fi], inf = an.faceInfo[fi]; return `<span class="chip" style="--c:${tvar(inf.type)}">${inf.id}</span> <b class="num">${letter(inf.letters[f.indexOf(a)])}–${letter(inf.letters[f.indexOf(b)])}</b>`; };
     const nf = an.seams.filter(s => s.floor).length;
-    $("montIntro").textContent = `Qui sotto ci sono tutte le ${an.seams.length} giunzioni, nell'ordine in cui farle${nf ? `: le prime ${nf} uniscono il pavimento alle pareti` : ""}. Per ognuna trovate i due pezzi da unire con le lettere del lato, la lunghezza e l'angolo fra i pannelli. Spuntatele man mano.`;
+    $("montIntro").textContent = `${plural(an.seams.length, "giunzione", "giunzioni")}, una alla volta, dal pavimento verso l'alto. Unite i due pezzi indicati sul lato con le lettere giuste.`;
+    $("seamListSum").textContent = `${an.seams.length}, con lunghezze e angoli`;
     const key = shapeKey() + "|seam|";
     let rows = "", phase = null;
     an.seams.forEach(s => {
       const ph = s.floor ? "Fase 1 · pavimento e pareti basse" : "Fase 2 · pareti, dal basso verso l'alto";
-      if (ph !== phase) { rows += `<tr class="phase"><td colspan="7">${ph}</td></tr>`; phase = ph; }
+      if (ph !== phase) { rows += `<tr class="phase"><td colspan="6">${ph}</td></tr>`; phase = ph; }
       const k = key + s.no, on = store.get(k);
-      rows += `<tr data-no="${s.no}"${on ? ' class="done"' : ""}><td class="ck"><input type="checkbox" aria-label="Giunzione ${s.no} fatta" data-k="${esc(k)}"${on ? " checked" : ""}></td><td class="v" data-l="N°"><strong>${s.no}</strong></td><td data-l="Pezzo e lato">${side(s.p.fi, s.p.a, s.p.b)}</td><td data-l="con">${side(s.q.fi, s.p.a, s.p.b)}</td><td class="v" data-l="Lunghezza">${cmR(s.len)} <span class="muted">(${cmM(s.len)})</span></td><td class="v" data-l="Angolo">${fmt(s.dih, 1)}°</td><td class="v" data-l="Da terra">${cmR(s.zmid)}</td></tr>`;
+      rows += `<tr data-no="${s.no}"${on ? ' class="done"' : ""}><td class="ck"><input type="checkbox" aria-label="Giunzione ${s.no} fatta" data-k="${esc(k)}"${on ? " checked" : ""}></td><td class="v" data-l="N°"><strong>${s.no}</strong></td><td data-l="Pezzo e lato">${side(s.p.fi, s.p.a, s.p.b)}</td><td data-l="con">${side(s.q.fi, s.p.a, s.p.b)}</td><td class="v" data-l="Lunghezza">${cmR(s.len)} <span class="muted">(${cmM(s.len)})</span></td><td class="v" data-l="Angolo">${fmt(s.dih, 1)}°</td></tr>`;
     });
     if (an.rims.length) {
-      rows += `<tr class="phase"><td colspan="7">Bordi liberi (restano aperti)</td></tr>`;
-      an.rims.forEach(r => { rows += `<tr><td></td><td class="v">—</td><td colspan="2">${side(r.side.fi, r.side.a, r.side.b)}</td><td class="v" data-l="Lunghezza">${cmR(r.len)}</td><td></td><td></td></tr>`; });
+      rows += `<tr class="phase"><td colspan="6">Bordi liberi (restano aperti)</td></tr>`;
+      an.rims.forEach(r => { rows += `<tr><td></td><td class="v">—</td><td colspan="2">${side(r.side.fi, r.side.a, r.side.b)}</td><td class="v" data-l="Lunghezza">${cmR(r.len)}</td><td></td></tr>`; });
     }
-    $("seams").innerHTML = `<thead><tr><th></th><th>N°</th><th>Pezzo e lato</th><th>con pezzo e lato</th><th>Lunghezza bolla (modellino)</th><th>Angolo</th><th>Da terra</th></tr></thead><tbody>${rows}</tbody>`;
+    $("seams").innerHTML = `<thead><tr><th></th><th>N°</th><th>Pezzo e lato</th><th>con pezzo e lato</th><th>Lunghezza bolla (modellino)</th><th>Angolo</th></tr></thead><tbody>${rows}</tbody>`;
     seamMeter();
     // giunzione mostrata nel 3D: la stessa di prima se c'è ancora, altrimenti la prima da fare
     const done = doneSeams();
@@ -2268,8 +2388,39 @@ function analyze(V, F, floor) {
     views.seam.target = -Math.PI / 2 - ang;
     if (instant || reduced) { views.seam.rot.yaw = views.seam.target; views.seam.target = null; }
     const an = cur.an, plain = (fi) => { const f = cur.F[fi], inf = an.faceInfo[fi]; return `<strong class="pid">${inf.id}</strong> ${letter(inf.letters[f.indexOf(s.p.a)])}–${letter(inf.letters[f.indexOf(s.p.b)])}`; };
-    $("seamInfo").innerHTML = `<strong>Giunzione ${s.no}</strong>: ${plain(s.p.fi)} con ${plain(s.q.fi)} · <span class="num">${cmR(s.len)}</span> · angolo <span class="num">${fmt(s.dih, 1)}°</span><br><span class="muted">In rosso la giunzione scelta, in verde quelle già fatte.</span>`;
+    $("seamInfo").innerHTML = `<span class="muted">In rosso la giunzione ${s.no}, in verde quelle già fatte. Trascinate per girare.</span>`;
+    renderNextSeam();
     drawView("seam");
+  }
+  // la giunzione scelta in grande, con "Fatta" che passa alla prossima ancora da fare
+  function renderNextSeam() {
+    const s = seamSel, an = cur.an, box = $("nextSeam");
+    if (!s) { box.innerHTML = ""; return; }
+    const done = doneSeams(), all = an.seams.length, on = done.has(s.no);
+    const side = (fi) => { const f = cur.F[fi], inf = an.faceInfo[fi]; return `<span class="chip" style="--c:${tvar(inf.type)}">${inf.id}</span> <b class="num">${letter(inf.letters[f.indexOf(s.p.a)])}–${letter(inf.letters[f.indexOf(s.p.b)])}</b>`; };
+    const first = an.seams.find(x => !done.has(x.no));
+    const label = done.size === all ? "Tutte fatte ✓" : on ? "Già fatta" : first && first.no === s.no ? "Prossima da fare" : "Giunzione scelta";
+    box.classList.toggle("alldone", done.size === all);
+    box.innerHTML = `<span class="tag">${label} · ${s.floor ? "fase 1, pavimento" : "fase 2, pareti"}</span>
+      <h3>Giunzione ${s.no} di ${all}</h3>
+      <div class="site-pair">${side(s.p.fi)} <span class="muted">con</span> ${side(s.q.fi)}</div>
+      <p class="hint">Le lettere si corrispondono nell'ordine scritto: la prima va sulla prima.</p>
+      <div class="site-big"><div><small>Lunghezza</small><b>${cmR(s.len)}</b></div><div><small>Modellino</small><b>${cmM(s.len)}</b></div><div><small>Angolo</small><b>${fmt(s.dih, 1)}°</b></div></div>
+      <div class="ns-actions">
+        <button type="button" class="btn big${on ? "" : " primary"}" id="nsDone">${on ? "Da rifare" : "Fatta ✓"}</button>
+        <button type="button" class="btn" id="nsPrev"${s.no > 1 ? "" : " disabled"} aria-label="Giunzione precedente">‹</button>
+        <button type="button" class="btn" id="nsNext"${s.no < all ? "" : " disabled"} aria-label="Giunzione seguente">›</button>
+      </div>`;
+    $("nsDone").addEventListener("click", () => {
+      store.set(shapeKey() + "|seam|" + s.no, !on);
+      const d2 = doneSeams(), next = an.seams.find(x => x.no > s.no && !d2.has(x.no)) || an.seams.find(x => !d2.has(x.no));
+      seamSel = null;
+      renderSeams();
+      if (!on && next) selectSeam(next.no);
+      else selectSeam(s.no, true);
+    });
+    $("nsPrev").addEventListener("click", () => selectSeam(s.no - 1));
+    $("nsNext").addEventListener("click", () => selectSeam(s.no + 1));
   }
 
   /* ---------- viste 3D: un solo disegnatore per apertura, anteprima, miniature e giunzioni ---------- */
@@ -2689,20 +2840,56 @@ function analyze(V, F, floor) {
   $("projUpdate").addEventListener("click", () => saveProject(true));
   $("projName").addEventListener("keydown", e => { if (e.key === "Enter") saveProject(false); });
 
-  /* ---------- barra dei passi ---------- */
+  /* ---------- un passo alla volta: si vede una sezione sola, il passo sta nell'indirizzo (#misure…) ---------- */
   const navLinks = [...document.querySelectorAll("#stepsNav a")];
   const secs = navLinks.map(a => document.querySelector(a.getAttribute("href")));
-  function onScroll() {
-    const y = window.scrollY + 120;
-    let idx = 0;
-    secs.forEach((s, i) => { if (s && s.offsetTop <= y) idx = i; });
-    navLinks.forEach((a, i) => a.classList.toggle("on", i === idx));
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    $("progress").style.width = (max > 0 ? Math.min(1, window.scrollY / max) * 100 : 0) + "%";
-    const on = navLinks[idx];
-    if (on && on.scrollIntoView && document.activeElement !== on) { const nav = $("stepsNav"); const r = on.offsetLeft - nav.offsetLeft - nav.clientWidth / 2 + on.clientWidth / 2; nav.scrollLeft = r; }
+  const stepIds = secs.map(s => s.id);
+  let seen = new Set();
+  try { seen = new Set(JSON.parse(localStorage.getItem("bolle|visti") || "[]")); } catch (e) { /* nessun passo ricordato */ }
+  // in fondo a ogni passo: Indietro e Avanti con il nome del passo seguente
+  secs.forEach((s, i) => {
+    const prev = secs[i - 1], next = secs[i + 1], title = (x) => x.querySelector("h2").textContent;
+    const foot = document.createElement("div");
+    foot.className = "stepfoot";
+    foot.innerHTML = (prev ? `<a class="btn back" href="#${prev.id}">‹ Indietro</a>` : "") +
+      (next ? `<a class="btn big primary next" href="#${next.id}">Avanti: ${esc(title(next))} ›</a>` : `<a class="btn big next" href="#forma">Fatto! Ricominciate con un'altra forma</a>`);
+    s.appendChild(foot);
+  });
+  function showStep(id) {
+    const idx = Math.max(0, stepIds.indexOf(id)), sid = stepIds[idx];
+    secs.forEach((s, i) => s.classList.toggle("step-on", i === idx));
+    document.body.dataset.step = sid;
+    seen.add(sid);
+    try { localStorage.setItem("bolle|passo", sid); localStorage.setItem("bolle|visti", JSON.stringify([...seen])); } catch (e) { /* solo per questa visita */ }
+    navLinks.forEach((a, i) => { a.classList.toggle("on", i === idx); a.classList.toggle("seen", seen.has(stepIds[i])); if (i === idx) a.setAttribute("aria-current", "step"); else a.removeAttribute("aria-current"); });
+    $("progress").style.width = (idx + 1) / secs.length * 100 + "%";
+    const on = navLinks[idx], nav = $("stepsNav");
+    nav.scrollLeft = on.offsetLeft - nav.offsetLeft - nav.clientWidth / 2 + on.clientWidth / 2;
+    window.scrollTo({ top: 0, behavior: "instant" });
+    // i disegni dei passi nascosti avevano misura zero: si ridisegnano ora che si vedono
+    requestAnimationFrame(() => { if (!cur) return; drawAll(); if (sid === "forma") SHAPES.forEach(s => drawThumb(s.id)); });
   }
-  window.addEventListener("scroll", onScroll, { passive: true });
+  const hashStep = () => { const h = decodeURIComponent(location.hash.slice(1)); return stepIds.includes(h) ? h : null; };
+  // ogni cambio di passo entra nella cronologia, così il tasto Indietro del browser torna al passo prima
+  function goStep(id) {
+    if (location.hash !== "#" + id) { try { history.pushState(null, "", "#" + id); } catch (e) { /* indirizzo fisso: si cambia solo il passo */ } }
+    showStep(id);
+  }
+  window.addEventListener("hashchange", () => { const h = hashStep(); if (h) showStep(h); });
+  window.addEventListener("popstate", () => { const h = hashStep(); showStep(h || "forma"); });
+  document.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute("href").slice(1);
+    if (!stepIds.includes(id)) return;
+    e.preventDefault();
+    goStep(id);
+  });
+  function initStep() {
+    let last = null;
+    try { last = localStorage.getItem("bolle|passo"); } catch (e) { /* si parte dal primo */ }
+    showStep(hashStep() || last || "forma");
+  }
 
   /* ---------- regola 3-4-5 ---------- */
   function rule345() {
@@ -2732,7 +2919,7 @@ function analyze(V, F, floor) {
   buildGallery();
   renderParams();
   state.opt.cut = true; state.opt.fit = true;
-  rule345(); update(); onScroll(); loop();
+  rule345(); update(); initStep(); loop();
   setTimeout(buildThumbs, 60);
   initProjects();
 })();
