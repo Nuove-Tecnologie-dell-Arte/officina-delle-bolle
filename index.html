@@ -1097,7 +1097,59 @@ const SHAPES = [
       }
       return { V, F };
     } },
+  { id: "banana", group: "Forme speciali", name: "Banana", kind: "sweep",
+    params: [num("L", "Lunghezza del corpo curvo (m)", 5, 1), num("d", "Spessore del corpo (m)", 1.8, 0.3), num("a", "Quanto è curva, da un capo all'altro (gradi)", 110, 10, 5),
+      int("N", "Spicchi del corpo (dispari)", 5, 3, 15), int("m", "Facce del tubo (5 = come una banana vera)", 5, 4, 12),
+      num("tl", "Lunghezza della punta (m)", 0.9, 0.2), num("sl", "Lunghezza del picciolo (m)", 1.1, 0.2), int("ps", "Spessore del picciolo (% del corpo)", 30, 10, 70),
+      pick("pose", "Appoggio", [["giu", "Sdraiata, curva a terra"], ["su", "Con le punte all'insù"]], "giu")],
+    build: (p, flat) => bananaMesh(p, flat) },
 ];
+
+/* banana: corpo curvo a spicchi (giunti a metà angolo), da un capo il picciolo stretto e lungo, dall'altro una punta corta e tozza.
+   Picciolo e punta sono tronchi di piramide dritti: i pannelli restano piani. */
+function bananaMesh(p, flat) {
+  const N = p.N % 2 ? p.N : p.N + 1;   // dispari: lo spicchio centrale è dritto
+  const up = p.pose === "su";
+  if (up && p.a > 300) throw new Error("Con le punte all'insù una curva così forte fa toccare le punte: scendete sotto i 300 gradi.");
+  const s = p.L / N, dl = (p.a * Math.PI / 180) / (N - 1);
+  const path = [[0, 0]];
+  let hd = -dl * (N - 1) / 2;
+  for (let j = 0; j < N; j++) { const q = path[path.length - 1]; path.push([q[0] + s * Math.cos(hd), q[1] + s * Math.sin(hd)]); hd += dl; }
+  // sezione: sdraiata come il serpente; all'insù col lato piatto (o lo spigolo) sul fianco esterno della curva, che dopo la rotazione va a terra
+  let sec;
+  if (!up) sec = tubeSection(p.m, p.d, flat);
+  else {
+    const r = p.d / 2, off = Math.PI + (flat ? Math.PI / p.m : 0);
+    sec = []; for (let j = 0; j < p.m; j++) { const a = off + 2 * Math.PI * j / p.m; sec.push([r * Math.cos(a), r * Math.sin(a)]); }
+  }
+  const P = path.length, m = sec.length;
+  const { V, F, cluster } = sweep(path, false, sec);
+  F.length -= 2; cluster.length -= 2;   // via i tappi piatti: al loro posto picciolo e punta
+  const cx = sec.reduce((t, q) => t + q[0], 0) / m, cy = sec.reduce((t, q) => t + q[1], 0) / m;
+  // allunga un capo con anelli sempre più stretti, dritti lungo l'ultimo tratto, poi lo chiude
+  const grow = (i, i2, stages, tag) => {
+    // "lat" va preso nel verso del percorso, come nello sweep, altrimenti l'anello nuovo risulta girato a specchio
+    const dir = sub2(path[i], path[i2]), L = len2(dir), t = [dir[0] / L, dir[1] / L], fw = i === 0 ? [-t[0], -t[1]] : t, lat = [-fw[1], fw[0]];
+    let ring = [...Array(m).keys()].map(j => i * m + j), along = 0;
+    stages.forEach(([len, sc], k) => {
+      along += len;
+      const c = [path[i][0] + t[0] * along, path[i][1] + t[1] * along], start = V.length;
+      sec.forEach(([x, y]) => { const xs = cx + (x - cx) * sc, ys = cy + (y - cy) * sc; V.push([c[0] + lat[0] * xs, c[1] + lat[1] * xs, ys]); });
+      for (let j = 0; j < m; j++) { const j2 = (j + 1) % m; F.push([ring[j], ring[j2], start + j2, start + j]); cluster.push(tag + k); }
+      ring = [...Array(m).keys()].map(j => start + j);
+    });
+    F.push(ring.slice()); cluster.push(tag + "-tappo");
+  };
+  const ps = p.ps / 100;
+  grow(0, 1, [[p.sl * 0.35, ps * 1.25], [p.sl * 0.65, ps]], "picciolo");   // spalla che si stringe, poi il collo dritto
+  grow(P - 1, P - 2, [[p.tl * 0.6, 0.55], [p.tl * 0.4, 0.22]], "punta");    // punta corta che si chiude quasi a cono
+  if (up) {
+    for (let k = 0; k < V.length; k++) { const [x, y, z] = V[k]; V[k] = [x, -z, y]; }
+    const z0 = Math.min(...V.map(v => v[2]));
+    for (let k = 0; k < V.length; k++) V[k][2] -= z0;
+  }
+  return { V, F, cluster };
+}
 
 function orientOptions(def, V, F) {
   if (def.natural) return [{ id: "base", label: "Sulla base" }];
@@ -1433,6 +1485,7 @@ function analyze(V, F, floor) {
     snake: "Il serpente è un tubo che va avanti a zig-zag. Ogni tratto è un anello di pannelli, con i giunti tagliati a metà angolo come le cornici. Alle due estremità ci sono due tappi.",
     torus: "La ciambella è un tubo chiuso ad anello: si cammina dentro il tubo, intorno al buco centrale. Ogni spicchio è un anello di pannelli.",
     tunnel: "Il tunnel è una galleria appoggiata a terra: due pareti dritte, una volta ad arco fatta di spicchi e due fondi ad arco alle estremità. Più spicchi mettete, più l'arco è tondo. Nello sviluppo la volta è una sola striscia da piegare.",
+    banana: "La banana ha il corpo curvo a 5 facce, come il frutto vero, e due capi diversi: da una parte il picciolo, stretto e lungo, dall'altra una punta corta che si chiude quasi a cono. Si appoggia sdraiata, con la curva a terra, oppure con le punte all'insù: in quel caso il pavimento è il pannello sotto lo spicchio centrale.",
     boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",
     C: "La forma a C è disegnata in pianta come la L, ma con due bracci: una schiena e due bracci paralleli che lasciano un cortile aperto in mezzo. Pareti dritte e tetto piatto in un solo pezzo, con la stessa forma del pavimento.",
   };
