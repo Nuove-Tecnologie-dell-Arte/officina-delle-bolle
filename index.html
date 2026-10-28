@@ -1111,8 +1111,9 @@ const int = (key, label, def, min, max) => ({ key, label, def, min, max, type: "
 const pick = (key, label, options, def) => ({ key, label, options, def, type: "pick" });
 
 const SHAPES = [
-  { id: "d20", group: "Cupola e cubo", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
-  { id: "d6", group: "Cupola e cubo", name: "Cubo (6 quadrati)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
+  { id: "d20", group: "Solidi regolari", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
+  { id: "d6", group: "Solidi regolari", name: "Cubo (6 quadrati)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
+  { id: "d12", group: "Solidi regolari", name: "Dodecaedro (12 pentagoni)", kind: "convex", params: [num("s", "Lato (m)", 1.2, 0.1)], points: p => PTS.dod().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
   { id: "prism", group: "Prismi e piramidi", name: "Prisma (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 6, 3, 24), num("s", "Lato della base (m)", 1.5, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.s), p.h, ngRot(p.n))] },
   { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 2.5, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
   { id: "frus", group: "Prismi e piramidi", name: "Piramide senza punta (tronco)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
@@ -1569,6 +1570,7 @@ function analyze(V, F, floor) {
   /* ---------- testi per ogni forma ---------- */
   const ABOUT = {
     d6: "Il cubo ha 6 quadrati tutti uguali. Appoggiato su una faccia è una stanza; appoggiato su un vertice e tagliato diventa una forma più dinamica.",
+    d12: "Il dodecaedro è la forma del dado d12: 12 pentagoni regolari tutti uguali. Appoggiato su una faccia ha già un pavimento pentagonale; l'altezza è circa 2,2 volte il lato, quindi con lati piccoli diventa comunque alto.",
     d20: "La cupola è un icosaedro, la forma del dado d20: 20 triangoli equilateri tutti uguali. Appoggiata su un vertice e tagliata al primo livello perde la punta in basso e prende un pavimento pentagonale: è la forma della vostra bolla.",
     prism: "Il prisma ha una base con il numero di lati che volete e pareti rettangolari dritte. Con tanti lati diventa quasi un cilindro.",
     pyr: "La piramide ha una base con il numero di lati che volete e pareti triangolari che si incontrano in una punta.",
