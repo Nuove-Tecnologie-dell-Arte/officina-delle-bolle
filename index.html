@@ -1,0 +1,2686 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Officina delle Bolle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: barra dei passi fissa; apertura = banco di lavoro su tappetino da taglio con la vista 3D protagonista;
+   poi sei passi in sequenza, ognuno con intestazione numerata. Colore = tipo di pezzo, ovunque. */
+:root {
+  --paper: #f3f6f4;
+  --card: #ffffff;
+  --mat: #dbe6df;
+  --green: #23654f;
+  --green-soft: rgba(35,101,79,.09);
+  --line: rgba(35,101,79,.10);
+  --line-strong: rgba(35,101,79,.24);
+  --ink: #16221e;
+  --muted: #55665f;
+  --rule: #cfdad4;
+  --cut: #c22f57;
+  --on-t: #ffffff;
+  --shadow: 0 1px 2px rgba(18,38,31,.06), 0 10px 30px rgba(18,38,31,.07);
+  --t1: #2f6f5a; --t2: #3b6fb6; --t3: #b9631b; --t4: #8a4fb0; --t5: #b8434f; --t6: #24868b; --t7: #7d6f12; --t8: #586370;
+  --r-s: 6px; --r-m: 10px; --r-l: 16px;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1412; --card: #141c19; --mat: #17221e; --green: #62bb98; --green-soft: rgba(98,187,152,.10);
+    --line: rgba(98,187,152,.07); --line-strong: rgba(98,187,152,.17); --ink: #e3ece8; --muted: #93a59d; --rule: #26332e;
+    --cut: #ff7396; --on-t: #0e1412; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+    --t1: #6cc3a0; --t2: #86adef; --t3: #f0a25c; --t4: #c69ae6; --t5: #f2878f; --t6: #6fd0d4; --t7: #d8c65e; --t8: #a7b2bf;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1412; --card: #141c19; --mat: #17221e; --green: #62bb98; --green-soft: rgba(98,187,152,.10);
+  --line: rgba(98,187,152,.07); --line-strong: rgba(98,187,152,.17); --ink: #e3ece8; --muted: #93a59d; --rule: #26332e;
+  --cut: #ff7396; --on-t: #0e1412; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+  --t1: #6cc3a0; --t2: #86adef; --t3: #f0a25c; --t4: #c69ae6; --t5: #f2878f; --t6: #6fd0d4; --t7: #d8c65e; --t8: #a7b2bf;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--card); }
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 72px; padding-block: 28px 90px; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; line-height: 1.12; margin: 0; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 800; letter-spacing: -.02em; }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2rem); font-weight: 700; letter-spacing: -.01em; }
+h3 { font-size: 1.2rem; font-weight: 700; }
+h4 { font-size: 1rem; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--green); }
+section { display: grid; gap: 22px; scroll-margin-top: 84px; }
+.eyebrow { font-family: var(--mono); font-size: .76rem; letter-spacing: .09em; text-transform: uppercase; color: var(--green); }
+.muted { color: var(--muted); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pid { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+/* ---------- barra dei passi ---------- */
+.stepsbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.stepsbar .in { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 16px; min-height: 56px; }
+.brand { display: grid; line-height: 1.15; flex: none; }
+.brand b { font-family: var(--display); font-weight: 800; font-size: 1.02rem; }
+.brand span { font-size: .78rem; color: var(--muted); max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.steps-nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-left: auto; }
+.steps-nav::-webkit-scrollbar { display: none; }
+.steps-nav a { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; text-decoration: none; color: var(--muted); font-size: .9rem; font-weight: 500; white-space: nowrap; min-height: 40px; }
+.steps-nav a i { font-style: normal; font-family: var(--mono); font-size: .75rem; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--rule); }
+.steps-nav a:hover { color: var(--ink); background: var(--green-soft); }
+.steps-nav a.on { color: var(--ink); background: var(--green-soft); }
+.steps-nav a.on i { background: var(--green); border-color: var(--green); color: var(--card); }
+.progress { height: 3px; background: transparent; }
+.progress div { height: 100%; width: 0; background: var(--green); transition: width .15s linear; }
+@media (max-width: 420px) { .brand { display: none; } .steps-nav { margin-left: 0; } }
+@media (max-width: 860px) { .brand span { display: none; } .steps-nav a span { display: none; } .steps-nav a { padding: 8px; } .steps-nav a.on span { display: inline; } }
+
+/* ---------- tappetino e righello ---------- */
+.mat {
+  background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--line-strong) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-strong) 1px, transparent 1px),
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  background-position: -1px -1px;
+  border-radius: var(--r-l); padding: 20px; display: grid; gap: 16px;
+}
+.ruler {
+  height: 16px; border-top: 1px solid var(--ink);
+  background:
+    repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 50px) top left / 100% 11px no-repeat,
+    repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 10px) top left / 100% 5px no-repeat;
+  opacity: .55;
+}
+figure { margin: 0; }
+figcaption { font-size: .88rem; color: var(--muted); }
+
+/* ---------- apertura ---------- */
+.hero { display: grid; gap: 18px; }
+.hero .lede { font-size: 1.15rem; max-width: 62ch; }
+.bench { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .bench { grid-template-columns: 1fr; } }
+.stage { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px; display: grid; gap: 12px; position: relative; }
+canvas#view { width: 100%; aspect-ratio: 5 / 4; max-width: 100%; display: block; cursor: grab; touch-action: none; animation: enter .7s ease-out both; }
+canvas#view:active { cursor: grabbing; }
+@keyframes enter { from { opacity: .35; transform: scale(.96); } to { opacity: 1; transform: none; } }
+.viewopts { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .88rem; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+@media (max-width: 520px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 10px; } }
+.stat { display: grid; gap: 2px; padding: 4px 10px; border-left: 1px solid var(--rule); }
+.stat:first-child { border-left: 0; padding-left: 2px; }
+.stat .k { font-size: .76rem; color: var(--muted); }
+.stat .v { font-family: var(--display); font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.controls { display: grid; gap: 12px; align-content: start; }
+.ctl { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px; display: grid; gap: 10px; }
+.ctl-h { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; }
+.ctl-h i { font-style: normal; font-family: var(--mono); font-size: .75rem; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: var(--card); }
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.field { display: grid; gap: 4px; align-content: start; }
+/* nelle file di campi le caselle restano allineate in basso anche se un'etichetta va a capo */
+.fields .field { align-content: space-between; }
+.field label, .flabel { font-size: .82rem; color: var(--muted); line-height: 1.3; }
+input[type="number"], select {
+  font: 500 1rem var(--mono); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: var(--r-s); padding: 9px 10px; width: 100%; min-height: 44px;
+}
+select { font-family: var(--body); }
+input[type="number"]:hover, select:hover { border-color: var(--line-strong); }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: .94rem; line-height: 1.4; cursor: pointer; }
+.check input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--green); flex: none; }
+.hint { font-size: .85rem; color: var(--muted); }
+.warn { font-size: .92rem; color: var(--cut); }
+.about { display: grid; gap: 10px; max-width: 78ch; background: var(--card); border-radius: var(--r-m); padding: 18px 20px; box-shadow: var(--shadow); }
+
+/* ---------- apertura a tutta larghezza ---------- */
+.heroband {
+  background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--line-strong) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-strong) 1px, transparent 1px),
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.hero-in { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: 28px; align-items: center; padding-block: 40px 34px; }
+@media (max-width: 900px) { .hero-in { grid-template-columns: 1fr; padding-block: 28px 24px; } }
+.hero-text { display: grid; gap: 18px; align-content: center; }
+.hero-text .lede { font-size: 1.12rem; max-width: 50ch; }
+.hero-text .stats { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 12px; }
+.hero-text .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
+.hero-text .stat:nth-child(odd) { border-left: 0; padding-left: 2px; }
+.hero-text .stat .v { font-size: 1.75rem; }
+.hero-shape { font-size: .95rem; }
+.hero-stage { position: relative; background: var(--card); border-radius: var(--r-l); box-shadow: var(--shadow); padding: 12px; display: grid; gap: 8px; }
+.tip { position: absolute; left: 0; top: 0; pointer-events: none; background: var(--ink); color: var(--card); font: 600 .8rem var(--mono); padding: 5px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); z-index: 3; }
+canvas.pickable { cursor: grab; touch-action: none; }
+canvas.pickable.over { cursor: pointer; }
+
+/* ---------- galleria delle forme ---------- */
+.gallery { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: start; }
+.gal-group { display: grid; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.gal-group h4 { font-family: var(--mono); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.gal-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.gal-row .tile { width: 122px; }
+@media (max-width: 640px) {
+  .gal-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: thin; }
+  .gal-group { flex: 1 1 100%; }
+  .gal-row { flex-wrap: nowrap; }
+  .gal-row .tile { flex: 0 0 112px; width: 112px; scroll-snap-align: start; }
+}
+.tile { display: grid; gap: 6px; justify-items: center; align-content: start; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r-m); padding: 8px 8px 10px; cursor: pointer; font: 500 .82rem/1.25 var(--body); color: var(--ink); text-align: center; min-height: 44px; transition: border-color .15s, transform .15s; }
+.tile canvas { width: 100%; aspect-ratio: 1 / 1; display: block; }
+.tile:hover { border-color: var(--green); transform: translateY(-2px); }
+.tile[aria-pressed="true"] { border-color: var(--green); box-shadow: inset 0 0 0 2px var(--green); background: color-mix(in srgb, var(--green) 9%, var(--card)); font-weight: 700; }
+.bench2 { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.5fr); gap: 18px; align-items: start; }
+.mini-stage { position: sticky; top: 76px; }
+canvas#mini { width: 100%; aspect-ratio: 1 / 1; display: block; }
+.controls2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; align-items: start; }
+@media (max-width: 760px) { .bench2 { grid-template-columns: 1fr; } .mini-stage { position: static; } canvas#mini { aspect-ratio: 4 / 3; } }
+
+/* ---------- intestazioni dei passi ---------- */
+.sechead { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 20px; align-items: start; }
+.stepno { font-family: var(--display); font-weight: 800; font-size: clamp(2.8rem, 7vw, 4.4rem); line-height: .9; color: var(--green); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.sechead .txt { display: grid; gap: 6px; padding-top: 4px; }
+.sechead p { color: var(--muted); max-width: 66ch; }
+
+/* ---------- tabelle ---------- */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--mono); font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+td.v { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 6px 4px; }
+.wide table { min-width: 620px; }
+tr.key td { font-weight: 600; }
+.keycards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.kcard { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 6px; align-content: start; border-top: 4px solid var(--green); }
+.kcard .k { font-family: var(--display); font-weight: 700; font-size: 1rem; line-height: 1.25; }
+.kcard .kv { display: grid; font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1.15; }
+.kcard .kv small { font-family: var(--body); font-weight: 500; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.kcard .kv.cr { font-size: 1.7rem; color: var(--green); }
+.kcard .kv.cm { font-size: 1.05rem; }
+.kcard .use { font-size: .84rem; color: var(--muted); }
+#misure[data-view="real"] .cm, #misure[data-view="model"] .cr { display: none; }
+#misure[data-view="model"] .kcard .kv.cm { font-size: 1.7rem; color: var(--green); }
+#misure[data-view="real"] td.v, #misure[data-view="model"] td.v { font-size: 1.08rem; font-weight: 600; }
+#tbl tr.grp td { font-family: var(--display); font-weight: 700; background: var(--mat); font-size: 1rem; padding-top: 12px; }
+tr.key td.v:not(.muted) { color: var(--green); }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.notes li { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px; font-size: .95rem; border-top: 3px solid var(--green); }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-weight: 600; font-size: .82rem; padding: 2px 8px; border-radius: 999px; background: var(--c, var(--green)); color: var(--on-t); white-space: nowrap; }
+.chip.soft { background: color-mix(in srgb, var(--c, var(--green)) 16%, transparent); color: var(--ink); }
+.sw-dot { width: 12px; height: 12px; border-radius: 3px; background: var(--c); display: inline-block; flex: none; }
+
+/* ---------- materiale ---------- */
+.twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+.box { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 18px 20px; display: grid; gap: 10px; align-content: start; }
+.box .tag { font-family: var(--mono); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.box.pick { box-shadow: var(--shadow), inset 0 0 0 2px var(--green); }
+ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 7px; }
+ol.steps { margin: 0; padding-left: 1.5em; display: grid; gap: 10px; max-width: 70ch; }
+ol.steps li::marker { font-family: var(--mono); color: var(--green); font-weight: 600; }
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; counter-reset: f; }
+.flow li { counter-increment: f; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px; display: grid; gap: 4px; font-size: .93rem; }
+.flow li::before { content: counter(f); font-family: var(--display); font-weight: 800; font-size: 1.6rem; color: var(--green); line-height: 1; }
+
+/* ---------- pezzi ---------- */
+.toolbar { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px; }
+.toolbar .field { min-width: 160px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: var(--r-s); overflow: hidden; }
+.seg button { font: 600 .95rem var(--body); color: var(--ink); background: var(--paper); border: 0; padding: 10px 18px; cursor: pointer; min-height: 44px; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--green); color: var(--card); }
+.btn { font: 600 .9rem var(--body); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-s); padding: 9px 14px; cursor: pointer; min-height: 44px; }
+.btn:hover { border-color: var(--green); }
+.overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.ov { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: center; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 12px 14px; text-decoration: none; color: var(--ink); border-left: 5px solid var(--c); }
+.ov:hover { box-shadow: var(--shadow), inset 0 0 0 1px var(--c); }
+.ov b { font-family: var(--display); font-size: 1.5rem; grid-row: span 2; color: var(--c); }
+.ov small { color: var(--muted); }
+.pieces { display: grid; gap: 28px; }
+.piece { background: var(--card); border-radius: var(--r-l); box-shadow: var(--shadow); overflow: hidden; scroll-margin-top: 84px; }
+.piece-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 16px 20px; border-top: 6px solid var(--c); background: color-mix(in srgb, var(--c) 8%, var(--card)); }
+.piece-head .big { font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--c); }
+.piece-head h3 { font-size: 1.25rem; }
+.piece-head .meta { font-size: .88rem; color: var(--muted); }
+.codes { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 20px 4px; }
+.piece-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 22px; padding: 18px 20px 22px; align-items: start; }
+@media (max-width: 820px) { .piece-body { grid-template-columns: 1fr; } }
+.drawing { display: grid; gap: 10px; align-content: start; }
+.drawing .mat { padding: 12px; }
+.drawing svg { width: 100%; height: auto; display: block; }
+.pts { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.pt { border: 1px solid var(--rule); border-radius: var(--r-s); padding: 6px 9px; display: grid; gap: 1px; font-size: .8rem; }
+.pt b { font-family: var(--display); font-size: 1rem; }
+.pt span { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: s; }
+.checklist li { counter-increment: s; }
+.checklist label { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 10px; border-radius: var(--r-s); cursor: pointer; line-height: 1.5; }
+.checklist label:hover { background: var(--green-soft); }
+.checklist input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.checklist .box2 { width: 26px; height: 26px; border-radius: 7px; border: 1.5px solid var(--rule); display: grid; place-items: center; font-family: var(--mono); font-size: .78rem; color: var(--muted); background: var(--paper); }
+.checklist .box2::before { content: counter(s); }
+.checklist input:checked + .box2 { background: var(--green); border-color: var(--green); color: var(--card); }
+.checklist input:checked + .box2::before { content: "✓"; font-size: .95rem; }
+.checklist input:checked ~ .t { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--rule); }
+.checklist input:focus-visible + .box2 { outline: 2px solid var(--green); outline-offset: 2px; }
+.meas { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; background: var(--green-soft); color: var(--ink); padding: 1px 6px; border-radius: 4px; }
+.real .meas { font-size: 1.05em; }
+.note { border-left: 4px solid var(--cut); background: color-mix(in srgb, var(--cut) 7%, var(--card)); padding: 10px 14px; border-radius: 0 var(--r-s) var(--r-s) 0; font-size: .92rem; }
+.okbox { border-left: 4px solid var(--green); background: var(--green-soft); padding: 10px 14px; border-radius: 0 var(--r-s) var(--r-s) 0; font-size: .92rem; }
+.method { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .method { grid-template-columns: 1fr; } }
+.svgbox { overflow-x: auto; }
+.svgbox svg { display: block; width: 100%; height: auto; }
+
+details.piece > summary { list-style: none; cursor: pointer; }
+details.piece > summary::-webkit-details-marker { display: none; }
+details.piece:not([open]) > summary { border-bottom: 0; }
+.piece-head .where { width: 64px; height: 64px; flex: none; border-radius: 8px; background: var(--paper); }
+.prog { display: grid; gap: 4px; min-width: 120px; font: 600 .8rem var(--mono); color: var(--muted); }
+.prog .bar { height: 6px; border-radius: 999px; background: var(--rule); overflow: hidden; }
+.prog .bar div { height: 100%; background: var(--c); transition: width .2s; }
+.piece.complete .prog { color: var(--green); }
+.caret { font: 700 1.5rem var(--display); color: var(--muted); transition: transform .2s; line-height: 1; }
+details[open] .caret { transform: rotate(90deg); }
+.piece.flash { animation: flash 1.4s ease-out; }
+@keyframes flash { 0% { box-shadow: var(--shadow), 0 0 0 5px var(--c); } 100% { box-shadow: var(--shadow), 0 0 0 0 transparent; } }
+@media (max-width: 640px) { .piece-head .where { width: 52px; height: 52px; } .prog { min-width: 100px; } }
+
+/* ---------- sviluppo ---------- */
+#net { min-width: 560px; transition: min-width .2s; }
+.netwrap.zoom #net { min-width: 1500px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .85rem; color: var(--muted); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 28px; height: 0; border-top: 2px solid var(--ink); display: inline-block; }
+.sw.dash { border-top: 2px dashed var(--green); }
+.sw.tab { height: 12px; border: 1px solid var(--muted); background: var(--green-soft); }
+
+/* ---------- giunzioni ---------- */
+.seambar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
+.meter { flex: 1 1 220px; display: grid; gap: 6px; }
+.meter .bar { height: 10px; border-radius: 999px; background: var(--rule); overflow: hidden; }
+.meter .bar div { height: 100%; width: 0; background: var(--green); transition: width .2s; }
+.scrollbox { max-height: 620px; overflow: auto; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); }
+#seams { min-width: 640px; }
+#seams thead th { position: sticky; top: 0; background: var(--card); z-index: 1; box-shadow: 0 1px 0 var(--rule); }
+#seams tr.phase td { font-family: var(--display); font-weight: 700; background: var(--mat); font-size: 1rem; }
+#seams tr.done td { color: var(--muted); }
+#seams tr.done .chip { opacity: .55; }
+#seams td.ck { width: 44px; }
+#seams td.ck input { width: 22px; height: 22px; accent-color: var(--green); }
+@media (max-width: 680px) {
+  #seams { min-width: 0; }
+  #seams thead { display: none; }
+  #seams tr { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr); gap: 2px 8px; padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+  #seams td { border: 0; padding: 2px 0; white-space: normal; }
+  #seams td.ck { grid-row: span 3; }
+  #seams td[data-l]::before { content: attr(data-l); display: block; font-family: var(--mono); font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  #seams tr.phase { display: block; padding: 0; }
+  #seams tr.phase td { display: block; padding: 10px 12px; }
+  .scrollbox { max-height: none; }
+}
+.seamgrid { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.seamview { position: sticky; top: 76px; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 12px; display: grid; gap: 8px; align-self: start; }
+canvas#seamCanvas { width: 100%; aspect-ratio: 1 / 1; display: block; }
+.seaminfo { font-size: .88rem; }
+#seams tbody tr[data-no] { cursor: pointer; }
+#seams tr.sel td { background: color-mix(in srgb, var(--cut) 10%, var(--card)); }
+@media (max-width: 900px) {
+  .seamgrid { grid-template-columns: 1fr; }
+  .seamview { order: -1; top: 58px; z-index: 6; grid-template-columns: 150px minmax(0, 1fr); align-items: center; }
+  canvas#seamCanvas { aspect-ratio: 1 / 1; }
+}
+/* ---------- editor della pianta ---------- */
+.plan-ed { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .plan-ed { grid-template-columns: 1fr; } }
+#planSvg { width: 100%; aspect-ratio: 1 / 1; display: block; background: var(--card); border-radius: var(--r-m); touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+#planSvg .vtx { cursor: grab; }
+.plan-side { display: grid; gap: 10px; align-content: start; }
+.btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn.primary { background: var(--green); color: var(--card); border-color: var(--green); }
+.btn:disabled { opacity: .5; cursor: default; }
+input[type="text"] { font: 500 1rem var(--body); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-s); padding: 9px 10px; width: 100%; min-height: 44px; }
+
+/* ---------- progetti del gruppo ---------- */
+.projform { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+@media (max-width: 560px) { .projform { grid-template-columns: 1fr; } }
+.projlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.projlist li.proj { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r-s); }
+.projlist li.proj.on { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+.projlist li.proj > div { display: grid; gap: 2px; min-width: 0; }
+.projlist li.proj strong { overflow-wrap: anywhere; }
+.projlist li.proj .muted { font-size: .84rem; }
+
+/* ---------- modalità cantiere ---------- */
+.site {
+  position: fixed; inset: 0; z-index: 50; background: var(--paper); display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  gap: 12px;
+}
+.site-top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: start; justify-content: space-between; border-top: 6px solid var(--c, var(--green)); padding-top: 10px; }
+.site-top h2 { font-size: clamp(1.3rem, 4.5vw, 1.9rem); }
+.site-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.site-body { overflow: auto; display: grid; align-content: start; gap: 16px; touch-action: pan-y; }
+.site-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .site-grid { grid-template-columns: 1fr; } }
+.site-draw svg, .site-draw canvas { width: 100%; height: auto; display: block; max-height: 46vh; }
+.site-draw canvas { aspect-ratio: 4 / 3; }
+.site-step { font-size: clamp(1.25rem, 4.2vw, 1.7rem); line-height: 1.45; }
+.site-step .meas { font-size: 1.15em; padding: 2px 8px; }
+.site-pair { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; font-size: clamp(1.2rem, 4.5vw, 1.6rem); }
+.site-pair .chip { font-size: 1em; padding: 4px 12px; }
+.site-big { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+.site-big div { display: grid; }
+.site-big small { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.site-big b { font-family: var(--mono); font-size: clamp(1.6rem, 6vw, 2.4rem); font-variant-numeric: tabular-nums; color: var(--green); }
+.site-done { display: inline-flex; gap: 12px; align-items: center; font: 700 1.15rem var(--display); padding: 12px 18px; border: 2px solid var(--green); border-radius: var(--r-m); cursor: pointer; width: fit-content; }
+.site-done input { width: 26px; height: 26px; accent-color: var(--green); }
+.site-nav { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.site-nav .btn { min-height: 56px; font-size: 1.1rem; }
+.site-nav #siteNext { justify-self: end; }
+.site-nav #siteCount { color: var(--muted); }
+
+hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+footer { font-size: .85rem; color: var(--muted); max-width: 70ch; }
+
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+  .wrap { gap: 56px; }
+  .mat { padding: 12px; border-radius: var(--r-m); }
+  .piece-head, .piece-body { padding-left: 14px; padding-right: 14px; }
+  .codes { padding-left: 14px; padding-right: 14px; }
+  .sechead { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } canvas#view { animation: none; } .progress div, #net, .meter .bar div { transition: none; } }
+</style>
+
+<nav class="stepsbar" aria-label="Passi della guida">
+  <div class="in gutter">
+    <div class="brand"><b>Officina delle Bolle</b><span id="navShape"></span></div>
+    <div class="steps-nav" id="stepsNav">
+      <a href="#forma"><i>1</i><span>Forma</span></a>
+      <a href="#misure"><i>2</i><span>Numeri</span></a>
+      <a href="#prepara"><i>3</i><span>Materiale</span></a>
+      <a href="#pezzi"><i>4</i><span>Pezzi</span></a>
+      <a href="#modellino"><i>5</i><span>Modellino</span></a>
+      <a href="#montaggio"><i>6</i><span>Montaggio</span></a>
+    </div>
+  </div>
+  <div class="progress"><div id="progress"></div></div>
+</nav>
+
+<header class="heroband">
+  <div class="gutter"><div class="hero-in">
+    <div class="hero-text">
+      <h1>Officina delle Bolle</h1>
+      <p class="lede">Scegliete una forma e le sue misure reali: la pagina prepara la guida completa per costruirla, prima come modellino in scala e poi come bolla vera in plastica, con i numeri giusti in ogni passaggio.</p>
+      <div class="stats" id="stats"></div>
+      <p class="hero-shape"><span class="muted">Forma scelta:</span> <strong id="heroShape"></strong> · <a href="#forma">cambiatela</a></p>
+    </div>
+    <figure class="hero-stage">
+      <canvas id="view" class="pickable" aria-label="Vista 3D della forma scelta, con quote e una persona alta 1,75 m per confronto. Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."></canvas>
+      <div class="tip" id="tipHero" hidden></div>
+      <div class="viewopts">
+        <label class="check"><input type="checkbox" id="optPerson" checked> <span>Persona da 1,75 m</span></label>
+        <label class="check"><input type="checkbox" id="optColors" checked> <span>Colora per tipo di pezzo</span></label>
+        <span class="muted">Trascinate per girarla · cliccate un pannello per vedere il suo pezzo.</span>
+      </div>
+      <div class="ruler" aria-hidden="true"></div>
+    </figure>
+  </div></div>
+</header>
+
+<div class="gutter">
+<div class="wrap">
+
+<section id="forma">
+  <div class="sechead"><div class="stepno">01</div><div class="txt"><div class="eyebrow">Passo 1 · Tavola 1</div><h2>Scegli la forma</h2><p>Cliccate una forma, poi scrivete le misure della bolla vera in metri. Tutta la pagina si aggiorna da sola: misure, pezzi, sviluppo e montaggio.</p></div></div>
+  <div class="gallery" id="gallery"></div>
+  <div class="mat">
+    <div class="bench2">
+      <figure class="stage mini-stage">
+        <canvas id="mini" class="pickable" aria-label="Anteprima 3D della forma con le misure scelte."></canvas>
+        <div class="tip" id="tipMini" hidden></div>
+        <figcaption>Anteprima: cambia mentre scrivete i valori.</figcaption>
+        <p class="warn" id="error" hidden></p>
+      </figure>
+      <div class="controls2">
+        <div class="ctl">
+          <div class="ctl-h"><i>1</i>Misure della bolla vera</div>
+          <div class="fields" id="params"></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-h"><i>2</i>Base</div>
+          <div id="baseCtl" style="display:grid;gap:10px"></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-h"><i>3</i>Pavimento e scala</div>
+          <label class="check"><input type="checkbox" id="fit"> <span>Ingrandisci o riduci tutta la forma per avere un pavimento di questa area</span></label>
+          <div class="fields">
+            <div class="field"><label for="fitArea">Area del pavimento (m²)</label><input id="fitArea" type="number" step="0.01" min="0.1" value="6.25"></div>
+            <div class="field"><label for="scale">Scala del modellino (1 : …)</label><input id="scale" type="number" step="any" min="1" value="20"></div>
+          </div>
+          <p class="hint" id="fitNote"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ctl" id="planEditor" hidden>
+    <div class="ctl-h"><i>✎</i>Disegnate la pianta</div>
+    <div class="plan-ed">
+      <svg id="planSvg" viewBox="-7.5 -7.5 15 15" role="img" aria-label="Griglia per disegnare la pianta: toccate per aggiungere un punto, trascinate i punti per spostarli."></svg>
+      <div class="plan-side">
+        <p class="hint">Toccate la griglia per aggiungere un punto: va nel lato più vicino. Trascinate i punti per spostarli. Doppio clic, o dito tenuto premuto, per toglierne uno. I punti si agganciano ogni 25 cm; ogni quadretto è 50 cm.</p>
+        <div class="btnrow">
+          <button type="button" class="btn" id="planUndo">Annulla</button>
+          <button type="button" class="btn" id="planReset">Ricomincia</button>
+        </div>
+        <div class="field"><label for="planPreset">Partite da una forma</label>
+          <select id="planPreset"><option value="">Scegliete…</option><option value="rect">Rettangolo 6 × 4 m</option><option value="L">L</option><option value="T">T</option><option value="U">U</option><option value="hex">Esagono</option></select>
+        </div>
+        <p class="num" id="planInfo"></p>
+        <p class="warn" id="planWarn" hidden></p>
+      </div>
+    </div>
+  </div>
+  <div class="about" id="about"></div>
+  <div class="box" id="projects">
+    <span class="tag">Progetti del gruppo</span>
+    <p class="hint">Salvate forma e misure con un nome: chi apre questa pagina online vede gli stessi progetti e può riaprirli con un clic.</p>
+    <div class="projform" id="projForm" hidden>
+      <div class="field"><label for="projName">Nome del progetto</label><input id="projName" type="text" maxlength="60" placeholder="Per esempio: Cupola gruppo 3" autocomplete="off"></div>
+      <div class="btnrow">
+        <button type="button" class="btn primary" id="projSave">Salva</button>
+        <button type="button" class="btn" id="projUpdate" hidden>Salva le modifiche</button>
+      </div>
+    </div>
+    <p class="hint" id="projStatus">Caricamento dei progetti…</p>
+    <ul class="projlist" id="projList"></ul>
+  </div>
+</section>
+
+<section id="misure">
+  <div class="sechead"><div class="stepno">02</div><div class="txt"><div class="eyebrow">Passo 2</div><h2>Controlla i numeri</h2><p>Prima di comprare il materiale, guardate se la bolla ha le misure che volevate. Se è troppo bassa o troppo grande, tornate al banco di lavoro e cambiate i valori.</p></div></div>
+  <div class="toolbar">
+    <div class="field">
+      <span class="flabel">Mostra le misure</span>
+      <div class="seg" role="group" aria-label="Mostra le misure" id="viewSeg">
+        <button type="button" data-v="both" aria-pressed="true">Entrambe</button>
+        <button type="button" data-v="real" aria-pressed="false">Bolla vera</button>
+        <button type="button" data-v="model" aria-pressed="false">Modellino</button>
+      </div>
+    </div>
+  </div>
+  <div class="keycards" id="keyCards"></div>
+  <div class="card tablewrap wide">
+    <table>
+      <thead><tr><th>Grandezza</th><th class="cr">Bolla reale</th><th class="cm">Modellino</th><th>A cosa serve</th></tr></thead>
+      <tbody id="tbl"></tbody>
+    </table>
+  </div>
+  <h3>Note per la bolla vera</h3>
+  <ul class="notes" id="realNotes"></ul>
+</section>
+
+<section id="prepara">
+  <div class="sechead"><div class="stepno">03</div><div class="txt"><div class="eyebrow">Passo 3</div><h2>Prepara il materiale</h2><p>Lavorate in due tempi: prima il modellino, che costa poco e mostra subito se qualcosa non torna, poi la bolla vera con gli stessi passaggi e le misure grandi.</p></div></div>
+  <div class="twocol">
+    <div class="box"><span class="tag">Per il modellino</span><ul class="plain" id="matModel"></ul></div>
+    <div class="box"><span class="tag">Per la bolla vera</span><ul class="plain" id="matReal"></ul></div>
+  </div>
+  <h3>L'ordine del lavoro</h3>
+  <ol class="flow">
+    <li><strong>Dime</strong><span class="muted">Tracciate un pezzo campione perfetto per ogni tipo (Passo 4).</span></li>
+    <li><strong>Modellino</strong><span class="muted">Costruitelo: se si chiude senza forzare, le misure sono giuste (Passo 5).</span></li>
+    <li><strong>Taglio</strong><span class="muted">Ricalcate le dime grandi sulla plastica e scrivete codice e lettere su ogni pezzo.</span></li>
+    <li><strong>Montaggio</strong><span class="muted">Seguite l'elenco delle giunzioni, dal pavimento verso l'alto (Passo 6).</span></li>
+  </ol>
+</section>
+
+<section id="pezzi">
+  <div class="sechead"><div class="stepno">04</div><div class="txt"><div class="eyebrow">Passo 4 · Tavola 2</div><h2 id="piecesTitle">Traccia i pezzi</h2><p>Ogni pezzo si traccia con metro e squadra, senza compasso. Spuntate i passi mentre lavorate: le spunte restano salvate in questo browser.</p></div></div>
+  <div class="toolbar">
+    <div class="field">
+      <span class="flabel">Misure per</span>
+      <div class="seg" role="group" aria-label="Misure per">
+        <button type="button" id="modeModel" aria-pressed="true">Modellino</button>
+        <button type="button" id="modeReal" aria-pressed="false">Bolla vera</button>
+      </div>
+    </div>
+    <div class="field" id="scaleF"><label for="scale2">Scala del modellino (1 : …)</label><input id="scale2" type="number" step="any" min="1" value="20"></div>
+    <div class="field" id="rollF" hidden><label for="roll">Larghezza del rotolo (cm)</label><input id="roll" type="number" min="20" step="5" value="150"></div>
+    <div class="field" id="marginF" hidden><label for="margin">Margine per saldare o cucire (cm)</label><input id="margin" type="number" min="0" step="0.5" value="3"></div>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
+      <button type="button" class="btn" id="openAll">Apri tutte</button>
+      <button type="button" class="btn" id="closeAll">Chiudi tutte</button>
+      <button type="button" class="btn" id="resetSteps">Azzera le spunte</button>
+      <button type="button" class="btn primary" id="sitePieces">Modalità cantiere</button>
+    </div>
+  </div>
+  <div class="overview" id="overview"></div>
+  <div class="pieces" id="pieces"></div>
+
+  <h3>Il metodo, spiegato una volta per tutte</h3>
+  <div class="method">
+    <ol class="steps">
+      <li><strong>Linea di base.</strong> Tracciate una linea dritta: per la plastica con un filo teso o una stadia, per il cartoncino con il righello. Segnate A e B.</li>
+      <li><strong>Piedi.</strong> Misurando sempre da A (non dal punto segnato prima, così gli errori non si sommano), segnate sulla linea i piedi di ogni punto.</li>
+      <li><strong>Perpendicolari.</strong> Da ogni piede alzate una perpendicolare con la squadra, oppure con la regola 3-4-5 del disegno.</li>
+      <li><strong>Altezze.</strong> Su ogni perpendicolare misurate verso l'alto e segnate il punto.</li>
+      <li><strong>Unite</strong> i punti in ordine alfabetico e tornate ad A.</li>
+      <li><strong>Controllate</strong> lati e diagonali. Va bene un errore fino a 1 mm sul cartoncino e 5 mm sulla plastica. Se una misura non torna, rifate il punto che compare in tutte le misure sbagliate.</li>
+    </ol>
+    <figure class="mat">
+      <div class="svgbox"><svg id="rule345" viewBox="-1.3 -5.3 10.1 6.3" role="img" aria-label="Regola 3-4-5: un triangolo con lati 3, 4 e 5 ha un angolo retto."></svg></div>
+      <figcaption>Regola 3-4-5 per un angolo retto senza squadra: dal piede misurate 3 lungo la linea e 4 verso l'alto; l'angolo è retto quando la distanza fra le due punte è 5. Per la plastica 60-80-100 cm, per il cartoncino 6-8-10 cm.</figcaption>
+    </figure>
+  </div>
+  <div class="twocol">
+    <div class="box"><span class="tag">Metodo alternativo · due metri a nastro</span><p>In tre persone potete trovare ogni punto senza perpendicolari. Due tengono lo zero di due metri a nastro su due punti già segnati, la terza incrocia i nastri e segna dove le letture sono quelle giuste. Usate i lati e le diagonali del passo "Controllate".</p></div>
+    <div class="box"><span class="tag">Pezzi speculari</span><p>Alcuni pezzi hanno una versione "allo specchio", segnata con ↺. Si tracciano con la stessa dima girata sottosopra, e le lettere si scrivono dopo averla girata.</p></div>
+  </div>
+</section>
+
+<section id="modellino">
+  <div class="sechead"><div class="stepno">05</div><div class="txt"><div class="eyebrow">Passo 5 · Tavola 3</div><h2>Costruisci il modellino</h2><p id="modelIntro"></p></div></div>
+  <div class="twocol">
+    <div class="box pick">
+      <span class="tag">Modo 1 · consigliato come prova generale</span>
+      <h4>A pezzi separati, come la bolla vera</h4>
+      <ol class="steps">
+        <li>Tracciate le dime del modellino (Passo 4, "Misure per: Modellino") e ritagliatele.</li>
+        <li>Con le dime ricalcate tutti i pezzi sul cartoncino: <span id="mCount"></span>.</li>
+        <li>Scrivete su ogni pezzo il suo codice (per esempio <span class="pid">P1-1</span>) e le lettere agli angoli.</li>
+        <li>Unite i pezzi con lo scotch seguendo l'elenco delle giunzioni del Passo 6, nello stesso ordine.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <span class="tag">Modo 2 · più veloce</span>
+      <h4>Con lo sviluppo da ritagliare</h4>
+      <ol class="steps">
+        <li>Ritagliate una dima per ogni tipo di pezzo.</li>
+        <li>Sul cartoncino grande ricalcate le dime una accanto all'altra come nel disegno, facendo combaciare i lati.</li>
+        <li>Ripassate le pieghe con una penna scarica e il righello, poi ritagliate il contorno.</li>
+        <li>Piegate tutto verso lo stesso lato e chiudete con lo scotch i bordi che hanno lo stesso numero, partendo dai numeri più bassi. Mettete lo scotch all'interno e, se serve, un pezzetto anche fuori.</li>
+      </ol>
+    </div>
+  </div>
+  <figure class="mat">
+    <div class="seambar">
+      <div class="legend">
+        <span><i class="sw"></i> taglio</span>
+        <span><i class="sw dash"></i> piega</span>
+        <span><span class="pid">P2-3</span> codice</span>
+        <span><b style="color:var(--cut);font-family:var(--mono)">7</b> giunzione</span>
+      </div>
+      <button type="button" class="btn" id="zoomNet">Ingrandisci</button>
+    </div>
+    <div class="svgbox netwrap" id="netwrap"><svg id="net" role="img" aria-label="Sviluppo piano della forma con codici dei pezzi, linee di taglio, pieghe e numeri delle giunzioni."></svg></div>
+    <figcaption id="netCap"></figcaption>
+  </figure>
+</section>
+
+<section id="montaggio">
+  <div class="sechead"><div class="stepno">06</div><div class="txt"><div class="eyebrow">Passo 6 · Tavola 4</div><h2>Monta la bolla vera</h2><p id="montIntro"></p></div></div>
+  <div class="twocol">
+    <div class="box">
+      <span class="tag">Come procedere</span>
+      <ol class="steps">
+        <li><strong>Disponete i pezzi</strong> a terra vicino a dove andranno, in ordine di codice.</li>
+        <li><strong>Partite dal pavimento</strong>: le prime giunzioni uniscono il pavimento alle pareti basse.</li>
+        <li><strong>Salite un anello alla volta</strong>: l'elenco va dal basso verso l'alto, così lavorate sempre su un bordo libero.</li>
+        <li><strong>Unite gli angoli giusti</strong>: le lettere si corrispondono nell'ordine scritto. "A–B con C–A" vuol dire che A va su C e B va su A.</li>
+        <li><strong>Lasciate per ultima una giunzione verticale</strong> vicino a terra: sarà l'ingresso, oppure la chiudete alla fine con cerniera o velcro.</li>
+        <li><strong>Controllate l'angolo</strong>: se una giunzione viene molto più aperta o chiusa di quanto scritto, un pezzo è stato tagliato male.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <span class="tag">Come unire la plastica</span>
+      <ul class="plain">
+        <li><strong>Saldatura</strong> a caldo (saldatore per teli o pistola ad aria calda): la più resistente. Provatela prima su due ritagli.</li>
+        <li><strong>Nastro biadesivo</strong> nel margine, più nastro trasparente sopra, dentro e fuori: veloce, adatto a bolle gonfiate con un ventilatore.</li>
+        <li>In ogni caso sovrapponete il margine di un pezzo sotto l'altro, tenendo le linee tracciate una sopra l'altra.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="seambar">
+    <div class="meter"><span class="flabel" id="seamCount"></span><div class="bar"><div id="seamBar"></div></div></div>
+    <div class="btnrow">
+      <button type="button" class="btn" id="resetSeams">Azzera le giunzioni</button>
+      <button type="button" class="btn primary" id="siteSeams">Modalità cantiere</button>
+    </div>
+  </div>
+  <div class="seamgrid">
+    <div class="scrollbox"><table id="seams"></table></div>
+    <figure class="seamview">
+      <canvas id="seamCanvas" class="pickable" aria-label="Vista 3D che mostra dove va la giunzione scelta: in rosso quella scelta, in verde quelle già fatte."></canvas>
+      <figcaption class="seaminfo" id="seamInfo"></figcaption>
+    </figure>
+  </div>
+</section>
+
+<hr>
+<footer>Calcoli fatti dalla pagina sulla forma scelta. Le misure sono arrotondate al millimetro (bolla reale) e al decimo di millimetro (modellino). Le forme curve sono approssimate con pannelli piani. Prima di tagliare tutta la plastica costruite il modellino: se il modellino si chiude bene, anche la bolla si chiuderà.</footer>
+
+</div>
+</div>
+
+<div class="site" id="site" hidden role="dialog" aria-modal="true" aria-labelledby="siteTitle">
+  <div class="site-top" id="siteTop">
+    <div style="display:grid;gap:4px;min-width:0">
+      <div class="eyebrow" id="siteKind"></div>
+      <h2 id="siteTitle"></h2>
+      <span class="muted" id="siteSub"></span>
+    </div>
+    <div class="site-tools">
+      <div class="seg" role="group" aria-label="Misure per" id="siteMode">
+        <button type="button" data-m="model" aria-pressed="true">Modellino</button>
+        <button type="button" data-m="real" aria-pressed="false">Bolla vera</button>
+      </div>
+      <button type="button" class="btn" id="siteClose">Chiudi</button>
+    </div>
+  </div>
+  <div class="site-body" id="siteBody"></div>
+  <div class="site-nav">
+    <button type="button" class="btn" id="sitePrev">‹ Indietro</button>
+    <span class="num" id="siteCount"></span>
+    <button type="button" class="btn primary" id="siteNext">Avanti ›</button>
+  </div>
+</div>
+
+<script>
+// ENGINE START
+const PHI = (1 + Math.sqrt(5)) / 2;
+const V3 = {
+  add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
+  sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]],
+  mul: (a, k) => [a[0] * k, a[1] * k, a[2] * k],
+  dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+  cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]],
+  len: (a) => Math.hypot(a[0], a[1], a[2]),
+};
+V3.norm = (a) => V3.mul(a, 1 / (V3.len(a) || 1));
+const sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
+const dot2 = (a, b) => a[0] * b[0] + a[1] * b[1];
+const len2 = (a) => Math.hypot(a[0], a[1]);
+const ek = (a, b) => (a < b ? a + "_" + b : b + "_" + a);
+
+function newell(pts) {
+  const n = [0, 0, 0];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    n[0] += (a[1] - b[1]) * (a[2] + b[2]);
+    n[1] += (a[2] - b[2]) * (a[0] + b[0]);
+    n[2] += (a[0] - b[0]) * (a[1] + b[1]);
+  }
+  return n;
+}
+const polyArea = (pts) => V3.len(newell(pts)) / 2;
+const mean3 = (pts) => V3.mul(pts.reduce(V3.add, [0, 0, 0]), 1 / pts.length);
+
+function dedupePoints(pts) {
+  const seen = new Map();
+  pts.forEach(p => { const k = p.map(c => Math.round(c * 1e6)).join(","); if (!seen.has(k)) seen.set(k, p); });
+  return [...seen.values()];
+}
+
+/* inviluppo convesso 3D incrementale: restituisce triangoli orientati verso l'esterno */
+function convexHull(P) {
+  const n = P.length;
+  let i0 = 0, i1 = -1, i2 = -1, i3 = -1;
+  for (let i = 1; i < n; i++) if (V3.len(V3.sub(P[i], P[i0])) > 1e-7) { i1 = i; break; }
+  for (let i = 1; i < n; i++) if (i !== i1 && V3.len(V3.cross(V3.sub(P[i1], P[i0]), V3.sub(P[i], P[i0]))) > 1e-7) { i2 = i; break; }
+  const nn = V3.cross(V3.sub(P[i1], P[i0]), V3.sub(P[i2], P[i0]));
+  for (let i = 1; i < n; i++) if (Math.abs(V3.dot(V3.norm(nn), V3.sub(P[i], P[i0]))) > 1e-7) { i3 = i; break; }
+  if (i1 < 0 || i2 < 0 || i3 < 0) throw new Error("forma piatta");
+  const cen = mean3([P[i0], P[i1], P[i2], P[i3]]);
+  const mk = (a, b, c) => { const nr = V3.norm(V3.cross(V3.sub(P[b], P[a]), V3.sub(P[c], P[a]))); return { v: [a, b, c], n: nr, d: V3.dot(nr, P[a]) }; };
+  const faces = [];
+  const addO = (a, b, c) => { let f = mk(a, b, c); if (V3.dot(f.n, cen) - f.d > 0) f = mk(a, c, b); faces.push(f); };
+  addO(i0, i1, i2); addO(i0, i1, i3); addO(i0, i2, i3); addO(i1, i2, i3);
+  const used = new Set([i0, i1, i2, i3]);
+  for (let p = 0; p < n; p++) {
+    if (used.has(p)) continue;
+    const vis = faces.map(f => V3.dot(f.n, P[p]) - f.d > 1e-9);
+    if (!vis.some(Boolean)) continue;
+    const edges = new Map();
+    faces.forEach((f, k) => { if (!vis[k]) return; for (let j = 0; j < 3; j++) { const a = f.v[j], b = f.v[(j + 1) % 3]; edges.set(a + "," + b, [a, b]); } });
+    const horizon = [];
+    edges.forEach(([a, b]) => { if (!edges.has(b + "," + a)) horizon.push([a, b]); });
+    const keep = faces.filter((f, k) => !vis[k]);
+    faces.length = 0; faces.push(...keep);
+    horizon.forEach(([a, b]) => faces.push(mk(a, b, p)));
+  }
+  return faces.map(f => f.v);
+}
+
+/* unisce i triangoli complanari vicini in poligoni */
+function mergeCoplanar(P, tris) {
+  const N = tris.map(t => V3.norm(V3.cross(V3.sub(P[t[1]], P[t[0]]), V3.sub(P[t[2]], P[t[0]]))));
+  const parent = tris.map((_, i) => i);
+  const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+  const em = new Map();
+  tris.forEach((t, ti) => t.forEach((a, j) => { const k = ek(a, t[(j + 1) % 3]); (em.get(k) || em.set(k, []).get(k)).push(ti); }));
+  em.forEach(list => { if (list.length === 2 && V3.dot(N[list[0]], N[list[1]]) > 1 - 1e-7) parent[find(list[0])] = find(list[1]); });
+  const groups = new Map();
+  tris.forEach((t, i) => { const r = find(i); (groups.get(r) || groups.set(r, []).get(r)).push(t); });
+  const out = [];
+  groups.forEach(ts => {
+    const dir = new Set();
+    ts.forEach(t => t.forEach((a, j) => dir.add(a + "," + t[(j + 1) % 3])));
+    const next = new Map();
+    dir.forEach(e => { const [a, b] = e.split(",").map(Number); if (!dir.has(b + "," + a)) next.set(a, b); });
+    const start = next.keys().next().value;
+    const poly = [start];
+    let cur = next.get(start), guard = 0;
+    while (cur !== start && guard++ < 1000) { poly.push(cur); cur = next.get(cur); }
+    out.push(poly);
+  });
+  return out;
+}
+
+/* fonde i vertici doppi e toglie quelli non usati */
+function weld(V, F) {
+  const keys = new Map(), NV = [], map = [];
+  V.forEach((p, i) => {
+    const k = p.map(c => Math.round(c * 1e6)).join(",");
+    if (!keys.has(k)) { keys.set(k, NV.length); NV.push(p); }
+    map[i] = keys.get(k);
+  });
+  const NF = [];
+  F.forEach(f => {
+    const g = [];
+    f.forEach(i => { const j = map[i]; if (g[g.length - 1] !== j) g.push(j); });
+    while (g.length > 1 && g[0] === g[g.length - 1]) g.pop();
+    if (g.length >= 3 && polyArea(g.map(i => NV[i])) > 1e-10) NF.push(g);
+  });
+  const used = new Map(), FV = [];
+  NF.forEach(f => f.forEach(i => { if (!used.has(i)) { used.set(i, FV.length); FV.push(NV[i]); } }));
+  return { V: FV, F: NF.map(f => f.map(i => used.get(i))) };
+}
+
+function signedVolume(V, F) {
+  let vol = 0;
+  F.forEach(f => { for (let j = 1; j < f.length - 1; j++) vol += V3.dot(V[f[0]], V3.cross(V[f[j]], V[f[j + 1]])); });
+  return vol / 6;
+}
+
+/* rende coerente il verso di tutte le facce, con le normali verso l'esterno */
+function orientMesh(V, F0) {
+  const F = F0.map(f => f.slice());
+  const em = new Map();
+  F.forEach((f, fi) => f.forEach((a, j) => { const k = ek(a, f[(j + 1) % f.length]); (em.get(k) || em.set(k, []).get(k)).push(fi); }));
+  const seen = new Array(F.length).fill(false);
+  for (let s = 0; s < F.length; s++) {
+    if (seen[s]) continue;
+    seen[s] = true;
+    const q = [s];
+    while (q.length) {
+      const fi = q.shift(), f = F[fi];
+      for (let j = 0; j < f.length; j++) {
+        const a = f[j], b = f[(j + 1) % f.length];
+        for (const gi of em.get(ek(a, b))) {
+          if (gi === fi || seen[gi]) continue;
+          const g = F[gi], ja = g.indexOf(a);
+          if (g[(ja + 1) % g.length] === b) g.reverse();
+          seen[gi] = true; q.push(gi);
+        }
+      }
+    }
+  }
+  if (signedVolume(V, F) < 0) F.forEach(f => f.reverse());
+  return { V, F };
+}
+
+function rotFromTo(a, b) {
+  a = V3.norm(a); b = V3.norm(b);
+  const v = V3.cross(a, b), c = V3.dot(a, b);
+  if (c < -0.999999) {
+    const ax = Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+    const k = V3.norm(V3.cross(a, ax));
+    return p => V3.sub(V3.mul(k, 2 * V3.dot(k, p)), p);
+  }
+  const kk = 1 / (1 + c);
+  return p => V3.add(V3.add(V3.mul(p, c), V3.cross(v, p)), V3.mul(v, V3.dot(v, p) * kk));
+}
+
+function hull2D(pts) {
+  const P = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [], up = [];
+  for (const p of P) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 1e-12) lo.pop(); lo.push(p); }
+  for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], p) <= 1e-12) up.pop(); up.push(p); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+
+/* taglia una forma convessa con il piano z = z0 e chiude il taglio con il pavimento */
+function cutConvex(V, F, z0) {
+  const eps = 1e-5, NV = [], keys = new Map(), ring = [];
+  const snap = (p) => (Math.abs(p[2] - z0) <= eps ? [p[0], p[1], z0] : p);
+  const id = (p) => { const k = p.map(c => Math.round(c * 1e6)).join(","); if (!keys.has(k)) { keys.set(k, NV.length); NV.push(p); } return keys.get(k); };
+  const NF = [];
+  for (const f of F) {
+    const pts = f.map(i => snap(V[i])), out = [];
+    for (let j = 0; j < pts.length; j++) {
+      const a = pts[j], b = pts[(j + 1) % pts.length];
+      if (a[2] >= z0 - eps) { out.push(a); if (a[2] === z0) ring.push(a); }
+      if ((a[2] > z0 + eps && b[2] < z0 - eps) || (a[2] < z0 - eps && b[2] > z0 + eps)) {
+        const t = (z0 - a[2]) / (b[2] - a[2]);
+        const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, z0];
+        out.push(p); ring.push(p);
+      }
+    }
+    if (out.length >= 3 && polyArea(out) > 1e-10) NF.push(out.map(id));
+  }
+  const cap = hull2D(dedupePoints(ring).map(p => [p[0], p[1]])).reverse();
+  NF.push(cap.map(p => id([p[0], p[1], z0])));
+  return weld(NV, NF);
+}
+
+/* ---------- generatori di forme ---------- */
+const signs = (v) => {
+  let out = [[]];
+  v.forEach(x => { out = out.flatMap(o => (x === 0 ? [[...o, 0]] : [[...o, x], [...o, -x]])); });
+  return out;
+};
+const cyc = (p) => [[p[0], p[1], p[2]], [p[1], p[2], p[0]], [p[2], p[0], p[1]]];
+const allCyc = (v) => signs(v).flatMap(cyc);
+function unitEdge(pts) {
+  pts = dedupePoints(pts);
+  let m = Infinity;
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) { const d = V3.len(V3.sub(pts[i], pts[j])); if (d > 1e-9 && d < m) m = d; }
+  return pts.map(p => V3.mul(p, 1 / m));
+}
+const PTS = {
+  tet: () => unitEdge([[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]]),
+  cube: () => unitEdge(signs([1, 1, 1])),
+  oct: () => unitEdge(allCyc([1, 0, 0])),
+  dod: () => unitEdge([...signs([1, 1, 1]), ...allCyc([0, 1 / PHI, PHI])]),
+  ico: () => unitEdge(allCyc([0, 1, PHI])),
+  tico: () => unitEdge([...allCyc([0, 1, 3 * PHI]), ...allCyc([1, 2 + PHI, 2 * PHI]), ...allCyc([PHI, 2, 2 * PHI + 1])]),
+};
+function geodesicPoints(freq) {
+  const ico = dedupePoints(allCyc([0, 1, PHI])).map(V3.norm);
+  const tris = convexHull(ico);
+  const pts = [];
+  tris.forEach(([a, b, c]) => {
+    const A = ico[a], B = ico[b], C = ico[c];
+    for (let i = 0; i <= freq; i++) for (let j = 0; j <= freq - i; j++) {
+      const p = V3.add(A, V3.add(V3.mul(V3.sub(B, A), i / freq), V3.mul(V3.sub(C, A), j / freq)));
+      pts.push(V3.norm(p));
+    }
+  });
+  return dedupePoints(pts);
+}
+function ngon(n, R, z, rot) {
+  const out = [];
+  for (let i = 0; i < n; i++) { const a = rot + 2 * Math.PI * i / n; out.push([R * Math.cos(a), R * Math.sin(a), z]); }
+  return out;
+}
+const circumR = (n, s) => s / (2 * Math.sin(Math.PI / n));
+const ngRot = (n) => -Math.PI / 2 - Math.PI / n;   // un lato parallelo all'asse x
+
+function fromPoints(pts) {
+  pts = dedupePoints(pts);
+  const tris = convexHull(pts);
+  return weld(pts, mergeCoplanar(pts, tris));
+}
+
+function extrude(outline, h, roof, roofH) {
+  let o = outline.slice();
+  let a2 = 0;
+  o.forEach((p, i) => { const q = o[(i + 1) % o.length]; a2 += p[0] * q[1] - q[0] * p[1]; });
+  if (a2 < 0) o.reverse();
+  const n = o.length, V = [], F = [];
+  o.forEach(p => V.push([p[0], p[1], 0]));
+  o.forEach(p => V.push([p[0], p[1], h]));
+  F.push([...Array(n).keys()].reverse());
+  for (let i = 0; i < n; i++) F.push([i, (i + 1) % n, n + (i + 1) % n, n + i]);
+  if (roof === "punta") {
+    let cx = 0, cy = 0; o.forEach(p => { cx += p[0] / n; cy += p[1] / n; });
+    V.push([cx, cy, h + roofH]);
+    for (let i = 0; i < n; i++) F.push([n + i, n + (i + 1) % n, 2 * n]);
+  } else {
+    F.push([...Array(n).keys()].map(i => n + i));
+  }
+  return { V, F };
+}
+
+/* tubo che segue un percorso orizzontale, con giunti tagliati a metà angolo */
+function sweep(path, closed, section) {
+  const N = path.length, m = section.length, V = [], F = [];
+  const nrm2 = (v) => { const l = len2(v) || 1; return [v[0] / l, v[1] / l]; };
+  for (let i = 0; i < N; i++) {
+    const hasPrev = closed || i > 0, hasNext = closed || i < N - 1;
+    const din = hasPrev ? nrm2(sub2(path[i], path[(i - 1 + N) % N])) : null;
+    const dout = hasNext ? nrm2(sub2(path[(i + 1) % N], path[i])) : null;
+    const t = din && dout ? nrm2([din[0] + dout[0], din[1] + dout[1]]) : (din || dout);
+    const lat = [-t[1], t[0]];
+    const seg = din || dout, latSeg = [-seg[1], seg[0]];
+    const k = 1 / dot2(lat, latSeg);
+    section.forEach(([x, y]) => V.push([path[i][0] + lat[0] * x * k, path[i][1] + lat[1] * x * k, y]));
+  }
+  const segs = closed ? N : N - 1;
+  for (let i = 0; i < segs; i++) {
+    const i2 = (i + 1) % N;
+    for (let j = 0; j < m; j++) { const j2 = (j + 1) % m; F.push([i * m + j, i * m + j2, i2 * m + j2, i2 * m + j]); }
+  }
+  if (!closed) { F.push([...Array(m).keys()]); F.push([...Array(m).keys()].map(j => (N - 1) * m + j)); }
+  // ogni spicchio del tubo diventa una striscia a sé nello sviluppo
+  const cluster = F.map((_, i) => (i < segs * m ? Math.floor(i / m) : "tappo" + i));
+  return { V, F, cluster };
+}
+function tubeSection(m, d, flat) {
+  const r = d / 2, off = flat ? -Math.PI / 2 + Math.PI / m : -Math.PI / 2;
+  const pts = [];
+  for (let j = 0; j < m; j++) { const a = off + 2 * Math.PI * j / m; pts.push([r * Math.cos(a), r * Math.sin(a)]); }
+  const minY = Math.min(...pts.map(p => p[1]));
+  return pts.map(p => [p[0], p[1] - minY]);
+}
+
+/* pianta disegnata a mano: punti in metri sulla griglia dell'editor (y verso il basso, come nello schermo) */
+function hexPts(r) { const o = []; for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + Math.PI * i / 3; o.push([Math.round(r * Math.cos(a) * 4) / 4, Math.round(r * Math.sin(a) * 4) / 4]); } return o; }
+function planProblem(pts, peaked) {
+  if (!Array.isArray(pts) || pts.length < 3) return "Servono almeno 3 punti.";
+  const n = pts.length;
+  const segX = (a, b, c, d) => { const o = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]); return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0; };
+  for (let i = 0; i < n; i++) {
+    if (len2(sub2(pts[(i + 1) % n], pts[i])) < 1e-6) return "Due punti vicini sono uno sopra l'altro: spostatene uno.";
+    for (let j = i + 2; j < n; j++) { if (i === 0 && j === n - 1) continue; if (segX(pts[i], pts[(i + 1) % n], pts[j], pts[(j + 1) % n])) return "Due lati della pianta si incrociano: spostate i punti in modo che il contorno non si attraversi."; }
+  }
+  let a2 = 0; pts.forEach((p, i) => { const q = pts[(i + 1) % n]; a2 += p[0] * q[1] - q[0] * p[1]; });
+  if (Math.abs(a2) < 1e-6) return "La pianta non ha area: i punti sono tutti in fila.";
+  if (peaked) {
+    const c = [pts.reduce((s, p) => s + p[0], 0) / n, pts.reduce((s, p) => s + p[1], 0) / n];
+    for (let i = 0; i < n; i++) { const p = pts[i], q = pts[(i + 1) % n]; if (Math.sign(cross2(sub2(q, p), sub2(c, p))) !== Math.sign(a2)) return "Con questa pianta il tetto a punta non si può fare: dal centro non si vedono tutti i lati. Scegliete il tetto piatto o una pianta più raccolta."; }
+  }
+  return null;
+}
+function checkPlan(pts, peaked) { const e = planProblem(pts, peaked); if (e) throw new Error(e); }
+
+const num = (key, label, def, min, step) => ({ key, label, def, min, step: step || 0.05, type: "num" });
+const int = (key, label, def, min, max) => ({ key, label, def, min, max, type: "int" });
+const pick = (key, label, options, def) => ({ key, label, options, def, type: "pick" });
+
+const SHAPES = [
+  { id: "d20", group: "Cupola e cubo", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
+  { id: "d6", group: "Cupola e cubo", name: "Cubo (6 quadrati)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
+  { id: "prism", group: "Prismi e piramidi", name: "Prisma (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 6, 3, 24), num("s", "Lato della base (m)", 1.5, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.s), p.h, ngRot(p.n))] },
+  { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 2.5, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
+  { id: "frus", group: "Prismi e piramidi", name: "Piramide senza punta (tronco)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
+  { id: "box", group: "Prismi e piramidi", name: "Parallelepipedo", kind: "convex", natural: true, params: [num("a", "Lunghezza (m)", 3, 0.1), num("b", "Larghezza (m)", 2, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => signs([p.a / 2, p.b / 2, 1]).map(v => [v[0], v[1], v[2] > 0 ? p.h : 0]) },
+  { id: "L", group: "Forme in pianta", name: "A forma di L", kind: "extrude", params: [num("a", "Lato lungo (m)", 5, 0.5), num("b", "Lato corto (m)", 4, 0.5), num("w", "Larghezza dei bracci (m)", 2, 0.3), num("h", "Altezza (m)", 2.2, 0.3)],
+    outline: p => [[0, 0], [p.a, 0], [p.a, p.w], [p.w, p.w], [p.w, p.b], [0, p.b]] },
+  { id: "C", group: "Forme in pianta", name: "A forma di C", kind: "extrude", params: [num("b", "Lunghezza della schiena (m)", 6, 1), num("a", "Lunghezza dei bracci (m)", 5, 0.5), num("w", "Larghezza di schiena e bracci (m)", 2, 0.3), num("h", "Altezza (m)", 2.2, 0.3)],
+    outline: p => {
+      if (2 * p.w >= p.b) throw new Error("La schiena è troppo corta per due bracci così larghi: allungate la schiena o stringete i bracci.");
+      if (p.a <= p.w) throw new Error("I bracci devono essere più lunghi della loro larghezza.");
+      return [[0, 0], [p.a, 0], [p.a, p.w], [p.w, p.w], [p.w, p.b - p.w], [p.a, p.b - p.w], [p.a, p.b], [0, p.b]];
+    } },
+  { id: "arrow", group: "Forme in pianta", name: "Freccia", kind: "extrude", params: [num("L", "Lunghezza totale (m)", 6, 1), num("w", "Larghezza dell'asta (m)", 2, 0.3), num("W", "Larghezza della punta (m)", 4, 0.5), num("Lh", "Lunghezza della punta (m)", 2, 0.3), num("h", "Altezza (m)", 2.2, 0.3)],
+    outline: p => [[0, -p.w / 2], [p.L - p.Lh, -p.w / 2], [p.L - p.Lh, -p.W / 2], [p.L, 0], [p.L - p.Lh, p.W / 2], [p.L - p.Lh, p.w / 2], [0, p.w / 2]] },
+  { id: "custom", group: "Forme in pianta", name: "Pianta disegnata da voi", kind: "extrude",
+    params: [{ key: "pts", type: "pts", def: hexPts(3) }, num("h", "Altezza delle pareti (m)", 2.2, 0.3), pick("roof", "Tetto", [["piatto", "Piatto"], ["punta", "A punta"]], "piatto"), num("rh", "Altezza della punta del tetto (m)", 1, 0.1)],
+    outline: p => { checkPlan(p.pts, p.roof === "punta"); return p.pts.map(q => [q[0], -q[1]]); } },
+  { id: "star", group: "Forme in pianta", name: "Stella", kind: "extrude", params: [int("n", "Punte", 5, 3, 12), num("R", "Raggio delle punte (m)", 3, 0.5), num("r", "Raggio interno (m)", 1.4, 0.3), num("h", "Altezza delle pareti (m)", 2.2, 0.3), pick("roof", "Tetto", [["piatto", "Piatto"], ["punta", "A punta"]], "piatto"), num("rh", "Altezza della punta del tetto (m)", 1, 0.1)],
+    outline: p => { const o = []; for (let i = 0; i < 2 * p.n; i++) { const a = Math.PI / 2 + Math.PI * i / p.n, r = i % 2 ? p.r : p.R; o.push([r * Math.cos(a), r * Math.sin(a)]); } return o; } },
+  { id: "snake", group: "Tubi e gallerie", name: "Serpente (tubo a zig-zag)", kind: "sweep", params: [num("d", "Diametro del tubo (m)", 1.8, 0.3), int("m", "Lati del tubo", 6, 3, 16), num("s", "Lunghezza di ogni tratto (m)", 1, 0.2), int("c", "Numero di curve", 3, 1, 10), int("k", "Tratti per curva", 4, 1, 12), num("a", "Quanto gira ogni curva (gradi)", 120, 10, 5)],
+    build: (p, flat) => {
+      const path = [[0, 0]]; let hd = -p.a / 2 * Math.PI / 180; const dl = p.a / p.k * Math.PI / 180;
+      for (let c = 0; c < p.c; c++) { const sg = c % 2 ? -1 : 1; for (let j = 0; j < p.k; j++) { const q = path[path.length - 1]; path.push([q[0] + p.s * Math.cos(hd), q[1] + p.s * Math.sin(hd)]); hd += sg * dl; } }
+      return sweep(path, false, tubeSection(p.m, p.d, flat));
+    } },
+  { id: "torus", group: "Tubi e gallerie", name: "Ciambella", kind: "sweep", params: [num("D", "Diametro esterno (m)", 6, 1), num("d", "Diametro del tubo (m)", 2, 0.3), int("N", "Spicchi intorno", 12, 3, 32), int("m", "Lati del tubo", 6, 3, 16)],
+    build: (p, flat) => {
+      const sec = tubeSection(p.m, p.d, flat);
+      const xmax = Math.max(...sec.map(q => q[0]));
+      const Rm = (p.D / 2 - xmax) * Math.cos(Math.PI / p.N);
+      if (Rm <= xmax / Math.cos(Math.PI / p.N) + 1e-6) throw new Error("Il buco al centro è troppo piccolo: aumentate il diametro esterno o riducete il diametro del tubo.");
+      const path = []; for (let i = 0; i < p.N; i++) { const a = 2 * Math.PI * i / p.N; path.push([Rm * Math.cos(a), Rm * Math.sin(a)]); }
+      return sweep(path, true, sec);
+    } },
+  { id: "tunnel", group: "Tubi e gallerie", name: "Tunnel (galleria ad arco)", kind: "build", floorToggle: true,
+    params: [num("L", "Lunghezza (m)", 4, 0.5), num("w", "Larghezza (m)", 2.4, 0.5), num("hs", "Altezza delle pareti dritte (m)", 0.6, 0.05), int("k", "Spicchi dell'arco", 6, 2, 24)],
+    build: (p) => {
+      // sezione: due pareti dritte e un arco a mezzo cerchio, spinta per tutta la lunghezza
+      const r = p.w / 2, sec = [[-r, 0], [-r, p.hs]];
+      for (let j = 1; j < p.k; j++) { const a = Math.PI - Math.PI * j / p.k; sec.push([r * Math.cos(a), p.hs + r * Math.sin(a)]); }
+      sec.push([r, p.hs], [r, 0]);
+      return sweep([[0, 0], [p.L, 0]], false, sec);
+    } },
+  { id: "boat", group: "Forme speciali", name: "Barca (scafo con piramide)", kind: "build", floorToggle: true,
+    params: [num("L", "Lunghezza (m)", 5, 1), num("W", "Larghezza del ponte (m)", 2.6, 0.5), num("Lp", "Lunghezza della prua (m)", 1.6, 0.2), num("h", "Altezza dello scafo (m)", 1.4, 0.3), int("f", "Fondo: larghezza in % del ponte", 60, 20, 100),
+      pick("sail", "Piramide sul ponte", [["si", "Sì"], ["no", "No"]], "si"), num("a", "Lato della piramide (m)", 1.4, 0.2), num("hp", "Altezza della piramide (m)", 1.6, 0.2)],
+    build: (p) => {
+      if (p.Lp >= p.L - 0.2) throw new Error("La prua è lunga quanto tutta la barca: riducete la lunghezza della prua.");
+      // ponte: poppa dritta e prua a punta; il fondo è lo stesso contorno rimpicciolito, così le fiancate sono trapezi piani
+      const top = [[0, -p.W / 2], [p.L - p.Lp, -p.W / 2], [p.L, 0], [p.L - p.Lp, p.W / 2], [0, p.W / 2]];
+      const cx = top.reduce((s, q) => s + q[0], 0) / top.length, k = p.f / 100;
+      const V = [], F = [];
+      top.forEach(q => V.push([cx + (q[0] - cx) * k, q[1] * k, 0]));
+      top.forEach(q => V.push([q[0], q[1], p.h]));
+      F.push([4, 3, 2, 1, 0]);
+      for (let i = 0; i < 5; i++) F.push([i, (i + 1) % 5, 5 + (i + 1) % 5, 5 + i]);
+      if (p.sail === "no") { F.push([5, 6, 7, 8, 9]); return { V, F }; }
+      const sx = (p.L - p.Lp) / 2, ha = p.a / 2;
+      if (p.a > Math.min(p.W, p.L - p.Lp) * 0.85) throw new Error("La piramide è troppo grande per il ponte: riducete il suo lato.");
+      const sq = [[sx - ha, -ha], [sx + ha, -ha], [sx + ha, ha], [sx - ha, ha]];
+      const s0 = V.length;
+      sq.forEach(q => V.push([q[0], q[1], p.h]));
+      V.push([sx, 0, p.h + p.hp]);
+      for (let i = 0; i < 4; i++) F.push([s0 + i, s0 + (i + 1) % 4, s0 + 4]);
+      // il ponte intorno alla piramide diventa 4 pezzi: ogni angolo della base si collega al vertice del ponte nella sua direzione
+      const ang = (q) => Math.atan2(q[1], q[0] - sx);
+      const near = sq.map(q => { let best = 0, bd = Infinity; top.forEach((t, j) => { const d = Math.abs(Math.atan2(Math.sin(ang(t) - ang(q)), Math.cos(ang(t) - ang(q)))); if (d < bd) { bd = d; best = j; } }); return best; });
+      for (let i = 0; i < 4; i++) {
+        const poly = [s0 + i];
+        let j = near[i];
+        poly.push(5 + j);
+        while (j !== near[(i + 1) % 4]) { j = (j + 1) % 5; poly.push(5 + j); }
+        poly.push(s0 + (i + 1) % 4);
+        F.push(poly);
+      }
+      return { V, F };
+    } },
+];
+
+function orientOptions(def, V, F) {
+  if (def.natural) return [{ id: "base", label: "Sulla base" }];
+  const areas = F.map(f => polyArea(f.map(i => V[i])));
+  const mx = Math.max(...areas), mn = Math.min(...areas);
+  const o = [{ id: "faccia", label: mn < mx * 0.98 ? "Su una faccia grande" : "Su una faccia" }];
+  if (mn < mx * 0.98) o.push({ id: "faccia-p", label: "Su una faccia piccola" });
+  o.push({ id: "vertice", label: "Su un vertice (una punta in basso)" }, { id: "spigolo", label: "Su uno spigolo" });
+  return o;
+}
+
+function buildShape(def, p, opt) {
+  let V, F, levels = [], orients = [], cutUsed = false, cluster = null;
+  if (def.kind === "convex") {
+    ({ V, F } = fromPoints(def.points(p)));
+    orients = orientOptions(def, V, F);
+    const o = orients.find(x => x.id === opt.orient) || orients.find(x => x.id === def.defOrient) || orients[0];
+    opt.orient = o.id;
+    if (o.id !== "base") {
+      const c = mean3(V);
+      let feat;
+      if (o.id === "vertice") feat = V[0];
+      else if (o.id === "spigolo") feat = mean3([V[F[0][0]], V[F[0][1]]]);
+      else {
+        const areas = F.map(f => polyArea(f.map(i => V[i])));
+        const target = o.id === "faccia" ? Math.max(...areas) : Math.min(...areas);
+        const fi = areas.findIndex(a => Math.abs(a - target) < 1e-9 * Math.max(1, target));
+        feat = mean3(F[fi].map(i => V[i]));
+      }
+      const R = rotFromTo(V3.sub(feat, c), [0, 0, -1]);
+      V = V.map(v => R(V3.sub(v, c)));
+    }
+    const z0 = Math.min(...V.map(v => v[2]));
+    V = V.map(v => [v[0], v[1], v[2] - z0]);
+    const zs = [...new Set(V.map(v => Math.round(v[2] * 1e6) / 1e6))].sort((a, b) => a - b);
+    const top = zs[zs.length - 1];
+    if (V.filter(v => v[2] < 1e-6).length >= 3) levels.push({ z: 0, label: "Nessun taglio (appoggiata su una faccia)" });
+    zs.slice(1, -1).forEach((z, i) => levels.push({ z, label: `Taglio ${i + 1}: toglie il ${Math.round(z / top * 100)}% dell'altezza` }));
+    if (opt.level == null || opt.level >= levels.length) {
+      if (def.defCut === "half") { let best = 0; levels.forEach((L, i) => { if (Math.abs(L.z - top / 2) < Math.abs(levels[best].z - top / 2)) best = i; }); opt.level = best; }
+      else opt.level = levels.length && levels[0].z === 0 && levels.length > 1 ? 1 : 0;
+    }
+    if (opt.cut && levels.length && levels[opt.level].z > 0) {
+      ({ V, F } = cutConvex(V, F, levels[opt.level].z));
+      const zm = Math.min(...V.map(v => v[2]));
+      V = V.map(v => [v[0], v[1], v[2] - zm]);
+      cutUsed = true;
+    }
+  } else if (def.kind === "extrude") {
+    ({ V, F } = extrude(def.outline(p), p.h, p.roof, p.rh));
+  } else {
+    ({ V, F, cluster } = def.build(p, opt.cut));
+  }
+  const nBefore = F.length;
+  ({ V, F } = weld(V, F));
+  if (F.length !== nBefore) cluster = null;
+  ({ V, F } = orientMesh(V, F));
+  // centra in pianta
+  let cx = 0, cy = 0;
+  const xs = V.map(v => v[0]), ys = V.map(v => v[1]);
+  cx = (Math.min(...xs) + Math.max(...xs)) / 2; cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  V = V.map(v => [v[0] - cx, v[1] - cy, v[2]]);
+  const isFloor = (f) => { const n = V3.norm(newell(f.map(i => V[i]))); return n[2] < -0.9999 && f.every(i => V[i][2] < 1e-6); };
+  let floorArea = 0;
+  F.forEach(f => { if (isFloor(f)) floorArea += polyArea(f.map(i => V[i])); });
+  let volume = signedVolume(V, F);
+  let k = 1;
+  if (opt.fit && floorArea > 1e-9 && opt.fitArea > 0) {
+    k = Math.sqrt(opt.fitArea / floorArea);
+    V = V.map(v => V3.mul(v, k));
+    floorArea *= k * k; volume *= k * k * k;
+  }
+  let open = false;
+  if ((def.kind === "extrude" || def.floorToggle) && !opt.cut) {
+    const keep = F.map(f => !isFloor(f));
+    F = F.filter((f, i) => keep[i]);
+    if (cluster) cluster = cluster.filter((c, i) => keep[i]);
+    const n0 = F.length;
+    open = true; ({ V, F } = weld(V, F));
+    if (F.length !== n0) cluster = null;
+  }
+  const floor = F.map(isFloor);
+  return { V, F, floor, floorArea, volume, k, levels, orients, open, cutUsed, cluster };
+}
+
+/* ---------- pezzi ---------- */
+function faceFrame(V, f) {
+  const P = f.map(i => V[i]);
+  const n = V3.norm(newell(P));
+  const u = V3.norm(V3.sub(P[1], P[0]));
+  const w = V3.cross(n, u);
+  return P.map(p => { const d = V3.sub(p, P[0]); return [V3.dot(d, u), V3.dot(d, w)]; });
+}
+function polySig(pts) {
+  const n = pts.length, ang = [], len = [];
+  for (let i = 0; i < n; i++) {
+    const prev = pts[(i - 1 + n) % n], cur = pts[i], next = pts[(i + 1) % n];
+    const b = sub2(next, cur), a = sub2(prev, cur);
+    let t = Math.atan2(cross2(b, a), dot2(b, a)); if (t < 0) t += 2 * Math.PI;
+    ang.push(Math.round(t * 1800 / Math.PI));
+    len.push(Math.round(len2(b) * 1000));
+  }
+  const best = (tok) => { let m = null; for (let r = 0; r < tok.length; r += 2) { const s = tok.slice(r).concat(tok.slice(0, r)).join(","); if (m === null || s < m) m = s; } return m; };
+  const fwd = []; for (let i = 0; i < n; i++) fwd.push("a" + ang[i], "e" + len[i]);
+  const rev = []; for (let i = n - 1; i >= 0; i--) rev.push("a" + ang[i], "e" + len[(i - 1 + n) % n]);
+  const d = best(fwd), r = best(rev);
+  return { sig: d < r ? d : r, direct: d };
+}
+function groupPieces(V, F, floor) {
+  const groups = new Map();
+  F.forEach((f, fi) => {
+    const pts = faceFrame(V, f);
+    const { sig, direct } = polySig(pts);
+    if (!groups.has(sig)) groups.set(sig, { pts, faces: [], floors: 0, directs: new Set() });
+    const g = groups.get(sig);
+    g.faces.push(fi); if (floor[fi]) g.floors++; g.directs.add(direct);
+  });
+  return [...groups.values()].sort((a, b) => b.floors - a.floors || b.faces.length - a.faces.length);
+}
+/* coordinate per tracciare: lato più lungo sul bordo esterno come base AB, tutti i punti sopra */
+function baselineCoords(pts) {
+  const n = pts.length;
+  let best = -1, bl = -1;
+  for (let i = 0; i < n; i++) {
+    const a = pts[i], b = pts[(i + 1) % n], e = sub2(b, a), L = len2(e);
+    let ok = true;
+    for (let j = 0; j < n; j++) if (cross2(e, sub2(pts[j], a)) < -1e-9 * L) { ok = false; break; }
+    if (ok && L > bl + 1e-9) { bl = L; best = i; }
+  }
+  if (best < 0) best = 0;
+  const a = pts[best], e = sub2(pts[(best + 1) % n], a), L = len2(e), u = [e[0] / L, e[1] / L];
+  const out = [];
+  for (let k = 0; k < n; k++) { const p = pts[(best + k) % n], d = sub2(p, a); out.push([dot2(d, u), cross2(u, d)]); }
+  return out;
+}
+
+/* ---------- sviluppo ---------- */
+function triangulate(poly) {
+  const idx = poly.map((_, i) => i), tris = [];
+  const inTri = (p, a, b, c) => cross2(sub2(b, a), sub2(p, a)) > 1e-12 && cross2(sub2(c, b), sub2(p, b)) > 1e-12 && cross2(sub2(a, c), sub2(p, c)) > 1e-12;
+  let guard = 0;
+  while (idx.length > 3 && guard++ < 5000) {
+    let found = false;
+    for (let k = 0; k < idx.length; k++) {
+      const i0 = idx[(k - 1 + idx.length) % idx.length], i1 = idx[k], i2 = idx[(k + 1) % idx.length];
+      const a = poly[i0], b = poly[i1], c = poly[i2];
+      if (cross2(sub2(b, a), sub2(c, a)) <= 1e-12) continue;
+      let inside = false;
+      for (const j of idx) { if (j === i0 || j === i1 || j === i2) continue; if (inTri(poly[j], a, b, c)) { inside = true; break; } }
+      if (inside) continue;
+      tris.push([i0, i1, i2]); idx.splice(k, 1); found = true; break;
+    }
+    if (!found) break;
+  }
+  if (idx.length === 3) tris.push(idx.slice());
+  return tris;
+}
+function triOverlap(t1, t2, eps) {
+  for (const t of [t1, t2]) for (let i = 0; i < 3; i++) {
+    const a = t[i], b = t[(i + 1) % 3];
+    let ax = [a[1] - b[1], b[0] - a[0]]; const L = len2(ax); ax = [ax[0] / L, ax[1] / L];
+    let n1 = Infinity, x1 = -Infinity, n2 = Infinity, x2 = -Infinity;
+    t1.forEach(p => { const d = dot2(p, ax); n1 = Math.min(n1, d); x1 = Math.max(x1, d); });
+    t2.forEach(p => { const d = dot2(p, ax); n2 = Math.min(n2, d); x2 = Math.max(x2, d); });
+    if (x1 <= n2 + eps || x2 <= n1 + eps) return false;
+  }
+  return true;
+}
+function unfold(V, F, floor, cluster) {
+  const frames = F.map(f => faceFrame(V, f));
+  const tri = frames.map(triangulate);
+  const edgeFaces = new Map();
+  F.forEach((f, fi) => f.forEach((a, j) => { const k = ek(a, f[(j + 1) % f.length]); (edgeFaces.get(k) || edgeFaces.set(k, []).get(k)).push(fi); }));
+  const elens = []; F.forEach(f => f.forEach((a, j) => elens.push(V3.len(V3.sub(V[a], V[f[(j + 1) % f.length]])))));
+  elens.sort((a, b) => a - b);
+  const med = elens[Math.floor(elens.length / 2)], eps = med * 1e-6;
+  const placed = new Array(F.length).fill(null), tree = new Set(), islands = [];
+  const areas = F.map(f => polyArea(f.map(i => V[i])));
+  const order = F.map((_, i) => i).sort((a, b) => (floor[b] - floor[a]) || (areas[b] - areas[a]));
+  for (const root of order) {
+    if (placed[root]) continue;
+    const isl = { faces: [], tris: [] };
+    islands.push(isl);
+    const put = (fi, pts) => { placed[fi] = { island: islands.length - 1, pts }; isl.faces.push(fi); tri[fi].forEach(t => isl.tris.push(t.map(i => pts[i]))); };
+    put(root, frames[root]);
+    const q = [root];
+    while (q.length) {
+      const fi = q.shift(), f = F[fi], P = placed[fi].pts;
+      for (let j = 0; j < f.length; j++) {
+        const a = f[j], b = f[(j + 1) % f.length], key = ek(a, b);
+        for (const gi of edgeFaces.get(key)) {
+          if (gi === fi || placed[gi]) continue;
+          if (cluster && cluster[gi] !== cluster[fi]) continue;
+          const g = F[gi], Q = frames[gi];
+          const ga = g.indexOf(a), gb = g.indexOf(b);
+          const Pa = P[j], Pb = P[(j + 1) % f.length];
+          const ang = Math.atan2(Pa[1] - Pb[1], Pa[0] - Pb[0]) - Math.atan2(Q[ga][1] - Q[gb][1], Q[ga][0] - Q[gb][0]);
+          const c = Math.cos(ang), s = Math.sin(ang);
+          const pts = Q.map(q0 => { const d = sub2(q0, Q[gb]); return [Pb[0] + c * d[0] - s * d[1], Pb[1] + s * d[0] + c * d[1]]; });
+          const newT = tri[gi].map(t => t.map(i => pts[i]));
+          let clash = false;
+          for (const t1 of newT) { for (const t2 of isl.tris) if (triOverlap(t1, t2, eps)) { clash = true; break; } if (clash) break; }
+          if (clash) continue;
+          put(gi, pts); tree.add(key); q.push(gi);
+        }
+      }
+    }
+  }
+  // gira ogni gruppo in modo che occupi il rettangolo più piccolo, disteso in orizzontale
+  islands.forEach(isl => {
+    const pts = isl.faces.flatMap(fi => placed[fi].pts);
+    const angs = [];
+    isl.faces.slice(0, 40).forEach(fi => { const q = placed[fi].pts; q.forEach((p, i) => { const r = q[(i + 1) % q.length]; angs.push(-Math.atan2(r[1] - p[1], r[0] - p[0])); }); });
+    let best = 0, bestA = Infinity, bestWide = true;
+    angs.forEach(t => {
+      const c = Math.cos(t), sn = Math.sin(t);
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      pts.forEach(p => { const x = c * p[0] - sn * p[1], y = sn * p[0] + c * p[1]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
+      const A = (x1 - x0) * (y1 - y0);
+      if (A < bestA - 1e-9) { bestA = A; best = t; bestWide = x1 - x0 >= y1 - y0; }
+    });
+    if (!bestWide) best += Math.PI / 2;
+    const c = Math.cos(best), sn = Math.sin(best);
+    isl.faces.forEach(fi => { placed[fi].pts = placed[fi].pts.map(p => [c * p[0] - sn * p[1], sn * p[0] + c * p[1]]); });
+  });
+  const seams = [];
+  edgeFaces.forEach((list, key) => { if (list.length === 2 && !tree.has(key)) seams.push({ key, faces: list }); });
+  return { placed, islands, tree, seams, edgeFaces, med };
+}
+
+
+/* ---------- lettere, codici dei pezzi e giunzioni ---------- */
+function matchLetters(pts, C) {
+  const n = pts.length, size = Math.max(...C.map(p => Math.hypot(p[0], p[1]))) || 1, tol = size * 2e-3;
+  for (const dir of [1, -1]) for (let s = 0; s < n; s++) {
+    const idx = (k) => (((s + dir * k) % n) + n) % n;
+    const a = pts[idx(0)], e = sub2(pts[idx(1)], a), L = len2(e), u = [e[0] / L, e[1] / L];
+    let ok = true;
+    for (let k = 0; k < n && ok; k++) {
+      const d = sub2(pts[idx(k)], a), x = dot2(d, u), y = dir * cross2(u, d);
+      if (Math.abs(x - C[k][0]) > tol || Math.abs(y - C[k][1]) > tol) ok = false;
+    }
+    if (ok) { const letters = []; for (let k = 0; k < n; k++) letters[idx(k)] = k; return { letters, mirror: dir === -1 }; }
+  }
+  return { letters: pts.map((_, i) => i), mirror: false, fail: true };
+}
+function minWidth(C) {
+  const H = hull2D(C);
+  let best = { w: Infinity, l: 0 };
+  for (let i = 0; i < H.length; i++) {
+    const a = H[i], e = sub2(H[(i + 1) % H.length], a), L = len2(e), u = [e[0] / L, e[1] / L];
+    let x0 = Infinity, x1 = -Infinity, y1 = 0;
+    C.forEach(p => { const d = sub2(p, a); const x = dot2(d, u), y = Math.abs(cross2(u, d)); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+    if (y1 < best.w) best = { w: y1, l: x1 - x0 };
+  }
+  return best;
+}
+function analyze(V, F, floor) {
+  const cz = F.map(f => mean3(f.map(i => V[i])));
+  const types = groupPieces(V, F, floor).map(g => ({
+    C: baselineCoords(g.pts), faces: g.faces.slice(), floors: g.floors,
+    zmin: Math.min(...g.faces.map(fi => cz[fi][2])),
+  }));
+  types.sort((a, b) => ((b.floors > 0) - (a.floors > 0)) || (a.zmin - b.zmin) || (b.faces.length - a.faces.length));
+  const faceInfo = [];
+  const az = (p) => Math.atan2(p[1], p[0]);
+  types.forEach((t, ti) => {
+    t.faces.sort((a, b) => (Math.round(cz[a][2] * 1000) - Math.round(cz[b][2] * 1000)) || (az(cz[a]) - az(cz[b])));
+    t.mirrorCount = 0;
+    t.faces.forEach((fi, k) => {
+      const m = matchLetters(faceFrame(V, F[fi]), t.C);
+      if (m.mirror) t.mirrorCount++;
+      faceInfo[fi] = { type: ti, copy: k, id: `P${ti + 1}-${k + 1}`, letters: m.letters, mirror: m.mirror };
+    });
+  });
+  const N = F.map(f => V3.norm(newell(f.map(i => V[i]))));
+  const em = new Map();
+  F.forEach((f, fi) => f.forEach((a, j) => { const b = f[(j + 1) % f.length], k = ek(a, b); (em.get(k) || em.set(k, []).get(k)).push({ fi, a, b }); }));
+  const seams = [], rims = [];
+  em.forEach((list, key) => {
+    const A = V[list[0].a], B = V[list[0].b], len = V3.len(V3.sub(A, B)), mid = V3.mul(V3.add(A, B), 0.5);
+    if (list.length !== 2) { rims.push({ key, len, side: list[0] }); return; }
+    const [p, q] = list;
+    const th = Math.acos(Math.max(-1, Math.min(1, V3.dot(N[p.fi], N[q.fi]))));
+    const conv = V3.dot(N[p.fi], V3.sub(cz[q.fi], A)) < 0;
+    const dih = th < 1e-6 ? 180 : (conv ? 180 - th * 180 / Math.PI : 180 + th * 180 / Math.PI);
+    seams.push({ key, len, zmid: mid[2], az: az(mid), p, q, dih, floor: !!(floor[p.fi] || floor[q.fi]) });
+  });
+  seams.sort((x, y) => ((y.floor - x.floor)) || (Math.round(x.zmid * 1000) - Math.round(y.zmid * 1000)) || (x.az - y.az));
+  seams.forEach((s, i) => { s.no = i + 1; });
+  const seamNo = new Map(seams.map(s => [s.key, s.no]));
+  return { types, faceInfo, seams, rims, seamNo };
+}
+// ENGINE END
+
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const fmt = (x, d) => { const v = Number(x.toFixed(d)); return (v === 0 ? 0 : v).toLocaleString("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d }); };
+  const mR = (x) => (Math.abs(x) < 1 ? fmt(x * 100, 1) + " cm" : fmt(x, 3) + " m");
+  const cmR = (x) => fmt(x * 100, 1) + " cm";
+  const cmM = (x) => fmt(x * 100 / state.scale, 2) + " cm";
+  const letter = (i) => (i < 26 ? String.fromCharCode(65 + i) : String.fromCharCode(65 + Math.floor(i / 26) - 1) + String.fromCharCode(65 + i % 26));
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const tvar = (t) => `var(--t${(t % 8) + 1})`;
+  const tcol = (t) => css(`--t${(t % 8) + 1}`);
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } },
+    set(k, v) { try { if (v) localStorage.setItem(k, "1"); else localStorage.removeItem(k); } catch (e) { /* spunte solo per questa visita */ } },
+    clear(prefix) { try { Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k)); } catch (e) { /* niente */ } },
+  };
+
+  const state = { shape: "d20", params: {}, opt: { cut: true, fit: true, fitArea: 6.25, orient: null, level: null }, scale: 20, mode: "model", roll: 150, margin: 3, person: true, colors: true };
+  let cur = null;
+  const isReal = () => state.mode === "real";
+  const Lx = (m) => (isReal() ? cmR(m) : cmM(m));
+  const M = (m) => `<b class="meas">${Lx(m)}</b>`;
+  const shapeKey = () => "bolle|" + state.shape + "|" + JSON.stringify(state.params) + "|" + state.opt.cut + "|" + state.opt.orient + "|" + state.opt.level + "|" + (state.opt.fit ? state.opt.fitArea : "-");
+
+  /* ---------- testi per ogni forma ---------- */
+  const ABOUT = {
+    d6: "Il cubo ha 6 quadrati tutti uguali. Appoggiato su una faccia è una stanza; appoggiato su un vertice e tagliato diventa una forma più dinamica.",
+    d20: "La cupola è un icosaedro, la forma del dado d20: 20 triangoli equilateri tutti uguali. Appoggiata su un vertice e tagliata al primo livello perde la punta in basso e prende un pavimento pentagonale: è la forma della vostra bolla.",
+    prism: "Il prisma ha una base con il numero di lati che volete e pareti rettangolari dritte. Con tanti lati diventa quasi un cilindro.",
+    pyr: "La piramide ha una base con il numero di lati che volete e pareti triangolari che si incontrano in una punta.",
+    frus: "La piramide senza punta (tronco di piramide) ha una base grande, un tetto piatto più piccolo e pareti a trapezio inclinate.",
+    box: "Il parallelepipedo è una scatola: 6 rettangoli, uguali a coppie. È la forma più facile da tracciare.",
+    L: "La forma a L è disegnata in pianta e alzata con pareti dritte. Il tetto è piatto e ha la stessa forma del pavimento.",
+    arrow: "La freccia è disegnata in pianta (un'asta e una punta triangolare) e alzata con pareti dritte e tetto piatto.",
+    star: "La stella è disegnata in pianta e alzata con pareti dritte. Il tetto può essere piatto oppure a punta, con un triangolo per ogni lato.",
+    snake: "Il serpente è un tubo che va avanti a zig-zag. Ogni tratto è un anello di pannelli, con i giunti tagliati a metà angolo come le cornici. Alle due estremità ci sono due tappi.",
+    torus: "La ciambella è un tubo chiuso ad anello: si cammina dentro il tubo, intorno al buco centrale. Ogni spicchio è un anello di pannelli.",
+    tunnel: "Il tunnel è una galleria appoggiata a terra: due pareti dritte, una volta ad arco fatta di spicchi e due fondi ad arco alle estremità. Più spicchi mettete, più l'arco è tondo. Nello sviluppo la volta è una sola striscia da piegare.",
+    boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",
+    C: "La forma a C è disegnata in pianta come la L, ma con due bracci: una schiena e due bracci paralleli che lasciano un cortile aperto in mezzo. Pareti dritte e tetto piatto in un solo pezzo, con la stessa forma del pavimento.",
+  };
+
+  /* ---------- controlli ---------- */
+  const def = () => SHAPES.find(s => s.id === state.shape);
+
+  /* galleria: un riquadro con la miniatura vera di ogni forma */
+  const shortName = (s) => s.name.split(" (")[0];
+  function buildGallery() {
+    const groups = new Map();
+    SHAPES.forEach(s => { if (!groups.has(s.group)) groups.set(s.group, []); groups.get(s.group).push(s); });
+    $("gallery").innerHTML = [...groups].map(([name, list]) => `<div class="gal-group"><h4>${esc(name)}</h4><div class="gal-row">${list.map(s =>
+      `<button type="button" class="tile" data-id="${s.id}" aria-pressed="${s.id === state.shape}" title="${esc(s.name)}"><canvas data-thumb="${s.id}" aria-hidden="true"></canvas><span>${esc(shortName(s))}</span></button>`).join("")}</div></div>`).join("");
+    $("gallery").addEventListener("click", e => { const b = e.target.closest(".tile"); if (b) selectShape(b.dataset.id); });
+  }
+  function selectShape(id) {
+    if (id === state.shape) return;
+    state.shape = id; state.opt.fit = false;
+    document.querySelectorAll(".tile").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
+    renderParams(); update();
+  }
+  const thumbs = new Map();
+  function buildThumbs() {
+    let i = 0;
+    const step = () => {
+      if (i >= SHAPES.length) return;
+      const s = SHAPES[i++];
+      try {
+        const p = {}; s.params.forEach(q => { p[q.key] = q.def; });
+        const r = buildShape(s, p, { cut: s.kind !== "convex" || s.defOrient === "vertice" });
+        r.an = analyze(r.V, r.F, r.floor);
+        thumbs.set(s.id, r); drawThumb(s.id);
+      } catch (e) { /* senza miniatura il riquadro mostra solo il nome */ }
+      setTimeout(step, 0);
+    };
+    step();
+  }
+  function drawThumb(id) {
+    const cv = document.querySelector(`canvas[data-thumb="${id}"]`), r = thumbs.get(id);
+    if (cv && r && fitCanvas(cv)) renderView(cv, r, { yaw: 0.6, pitch: 0.42, thin: true });
+  }
+  const isLength = (p) => p.type === "num" && /\(m\)/.test(p.label);
+
+  /* ---------- editor della pianta (forma "Pianta disegnata da voi") ---------- */
+  const plan = { undo: [], drag: null, press: null };
+  const PRESETS = {
+    rect: [[-3, -2], [3, -2], [3, 2], [-3, 2]],
+    L: [[-3, -3], [-1, -3], [-1, 1], [3, 1], [3, 3], [-3, 3]],
+    T: [[-4, -3], [4, -3], [4, -1], [1, -1], [1, 3], [-1, 3], [-1, -1], [-4, -1]],
+    U: [[-4, -3], [-2, -3], [-2, 1], [2, 1], [2, -3], [4, -3], [4, 3], [-4, 3]],
+    hex: hexPts(3),
+  };
+  const snap = (v) => Math.max(-7, Math.min(7, Math.round(v * 4) / 4));
+  function planPts() { return state.params.pts || []; }
+  function planRaw(e) {
+    const svg = $("planSvg"), m = svg.getScreenCTM();
+    if (!m) return [0, 0];
+    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    return [pt.x, pt.y];
+  }
+  const planPoint = (e) => planRaw(e).map(snap);
+  // il punto più vicino al dito o al mouse, entro mezzo metro: più facile da prendere di un cerchietto
+  function planHit(e) {
+    const r = planRaw(e); let best = -1, bd = 0.5;
+    planPts().forEach((q, i) => { const d = len2(sub2(q, r)); if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+  function renderPlan() {
+    const svg = $("planSvg");
+    if ($("planEditor").hidden) return;
+    const pts = planPts(), n = pts.length;
+    const ink = css("--ink"), muted = css("--muted"), green = css("--green"), line = css("--rule"), cut = css("--cut"), col = tcol(0), card = css("--card");
+    let s = "";
+    for (let v = -7; v <= 7.001; v += 0.5) {
+      const strong = Math.abs(v - Math.round(v)) < 1e-6;
+      s += `<line x1="${v}" y1="-7" x2="${v}" y2="7" stroke="${strong ? muted : line}" stroke-width="${strong ? 0.025 : 0.015}" opacity="${strong ? 0.5 : 1}"/>`;
+      s += `<line x1="-7" y1="${v}" x2="7" y2="${v}" stroke="${strong ? muted : line}" stroke-width="${strong ? 0.025 : 0.015}" opacity="${strong ? 0.5 : 1}"/>`;
+    }
+    for (let v = -6; v <= 6; v += 2) s += `<text x="${v}" y="7.38" font-size="0.32" text-anchor="middle" fill="${muted}" font-family="IBM Plex Mono, monospace">${v} m</text>`;
+    if (n >= 2) s += `<polygon points="${pts.map(p => p.join(",")).join(" ")}" fill="${col}" fill-opacity=".25" stroke="${ink}" stroke-width="0.06" stroke-linejoin="round"/>`;
+    // lunghezza di ogni lato, scritta fuori dal contorno
+    let a2 = 0; pts.forEach((p, i) => { const q = pts[(i + 1) % n]; a2 += p[0] * q[1] - q[0] * p[1]; });
+    pts.forEach((p, i) => {
+      if (n < 2) return;
+      const q = pts[(i + 1) % n], L = len2(sub2(q, p));
+      if (L < 0.3) return;
+      const u = [(q[0] - p[0]) / L, (q[1] - p[1]) / L], out = a2 > 0 ? [u[1], -u[0]] : [-u[1], u[0]];
+      const mx = (p[0] + q[0]) / 2 + out[0] * 0.35, my = (p[1] + q[1]) / 2 + out[1] * 0.35;
+      s += `<text x="${mx}" y="${my}" font-size="0.34" text-anchor="middle" dominant-baseline="middle" fill="${ink}" font-family="IBM Plex Mono, monospace" font-weight="600" paint-order="stroke" stroke="${card}" stroke-width="0.12">${fmt(L, 2)}</text>`;
+    });
+    pts.forEach((p, i) => {
+      s += `<circle class="vtx" data-i="${i}" cx="${p[0]}" cy="${p[1]}" r="0.24" fill="${i === plan.drag ? cut : green}" stroke="${card}" stroke-width="0.06"/>`;
+    });
+    svg.innerHTML = s;
+    const prob = planProblem(pts, state.params.roof === "punta");
+    $("planWarn").hidden = !prob; $("planWarn").textContent = prob || "";
+    let per = 0; pts.forEach((p, i) => { per += len2(sub2(pts[(i + 1) % n], p)); });
+    $("planInfo").textContent = `${n} punti · area ${fmt(Math.abs(a2) / 2, 2)} m² · perimetro ${fmt(per, 2)} m`;
+    $("planUndo").disabled = !plan.undo.length;
+  }
+  function planCommit(pts, keepUndo) {
+    if (!keepUndo) { plan.undo.push(planPts().map(q => q.slice())); if (plan.undo.length > 60) plan.undo.shift(); }
+    // con l'adattamento all'area attivo, la pianta disegnata diventa la misura vera e l'adattamento si spegne
+    if (state.opt.fit && cur && cur.k !== 1 && def().id === "custom") {
+      def().params.forEach(q => { if (isLength(q)) state.params[q.key] = +(state.params[q.key] * cur.k).toFixed(4); });
+      state.opt.fit = false;
+    }
+    state.params.pts = pts;
+    renderPlan();
+    schedule();
+  }
+  (function attachPlan() {
+    const svg = $("planSvg");
+    svg.addEventListener("pointerdown", e => {
+      const hit = planHit(e);
+      try { svg.setPointerCapture(e.pointerId); } catch (err) { /* senza cattura il trascinamento funziona lo stesso dentro la griglia */ }
+      if (e.detail > 1) return;   // il secondo clic di un doppio clic serve solo a togliere il punto
+      if (hit >= 0) {
+        const i = hit;
+        plan.undo.push(planPts().map(q => q.slice()));
+        plan.drag = i; plan.moved = false;
+        clearTimeout(plan.press);
+        if (e.pointerType !== "mouse") plan.press = setTimeout(() => { if (!plan.moved) removePoint(i, true); }, 650);   // dito tenuto premuto: toglie il punto (col mouse si usa il doppio clic)
+        renderPlan();
+        return;
+      }
+      // tocco sulla griglia: nuovo punto nel lato più vicino
+      const p = planPoint(e), pts = planPts().map(q => q.slice());
+      let best = pts.length, bd = Infinity;
+      pts.forEach((a, i) => {
+        const b = pts[(i + 1) % pts.length], ab = sub2(b, a), L2 = dot2(ab, ab) || 1;
+        const t = Math.max(0, Math.min(1, dot2(sub2(p, a), ab) / L2));
+        const d = len2(sub2(p, [a[0] + ab[0] * t, a[1] + ab[1] * t]));
+        if (d < bd) { bd = d; best = i + 1; }
+      });
+      pts.splice(best, 0, p);
+      planCommit(pts);
+    });
+    svg.addEventListener("pointermove", e => {
+      if (plan.drag == null) return;
+      const p = planPoint(e), pts = planPts().map(q => q.slice()), old = pts[plan.drag];
+      if (!old || (old[0] === p[0] && old[1] === p[1])) return;
+      plan.moved = true; clearTimeout(plan.press);
+      pts[plan.drag] = p;
+      state.params.pts = pts;
+      renderPlan();
+    });
+    const end = () => {
+      clearTimeout(plan.press);
+      if (plan.drag == null) return;
+      plan.drag = null;
+      if (plan.moved) planCommit(planPts(), true); else { plan.undo.pop(); renderPlan(); }
+    };
+    svg.addEventListener("pointerup", end);
+    svg.addEventListener("pointercancel", end);
+    svg.addEventListener("dblclick", e => { const i = planHit(e); if (i >= 0) removePoint(i, false); });
+    function removePoint(i, fromPress) {
+      const pts = planPts();
+      if (pts.length <= 3) { $("planWarn").hidden = false; $("planWarn").textContent = "Servono almeno 3 punti: questo non si può togliere."; return; }
+      plan.drag = null;
+      if (fromPress) plan.undo.pop();
+      planCommit(pts.filter((_, k) => k !== i).map(q => q.slice()));
+    }
+    $("planUndo").addEventListener("click", () => { const prev = plan.undo.pop(); if (prev) planCommit(prev, true); });
+    $("planReset").addEventListener("click", () => planCommit(hexPts(3)));
+    $("planPreset").addEventListener("change", e => { const p = PRESETS[e.target.value]; if (p) planCommit(p.map(q => q.slice())); e.target.value = ""; });
+  })();
+
+  // values: misure già pronte (un progetto salvato); senza, si parte da quelle predefinite
+  function renderParams(values) {
+    const d = def();
+    state.params = {};
+    d.params.forEach(p => { const v = values && values[p.key] !== undefined ? values[p.key] : p.def; state.params[p.key] = p.type === "pts" ? v.map(q => q.slice()) : v; });
+    const fields = d.params.filter(p => p.type !== "pts");
+    $("params").innerHTML = fields.map(p => {
+      const val = state.params[p.key];
+      if (p.type === "pick") return `<div class="field"><label for="p_${p.key}">${esc(p.label)}</label><select id="p_${p.key}">${p.options.map(([v, l]) => `<option value="${v}"${v === val ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>`;
+      const step = p.type === "int" ? 1 : (p.step || 0.05);
+      return `<div class="field"><label for="p_${p.key}">${esc(p.label)}</label><input id="p_${p.key}" type="number" step="${step}" min="${p.min}"${p.max ? ` max="${p.max}"` : ""} value="${val}"></div>`;
+    }).join("");
+    $("planEditor").hidden = !d.params.some(p => p.type === "pts");
+    plan.undo = [];
+    renderPlan();
+    fields.forEach(p => {
+      $("p_" + p.key).addEventListener(p.type === "pick" ? "change" : "input", (e) => {
+        let v = p.type === "pick" ? e.target.value : parseFloat(e.target.value);
+        if (p.type !== "pick") { if (!(v >= p.min)) return; if (p.type === "int") v = Math.round(v); if (p.max && v > p.max) return; }
+        if (state.opt.fit && isLength(p) && cur && cur.k !== 1) {
+          // scrivere un lato a mano vuol dire scegliere le misure: l'area si ricalcola da sola, come nella guida del D20
+          d.params.forEach(q => { if (isLength(q) && q.key !== p.key) state.params[q.key] = +(state.params[q.key] * cur.k).toFixed(4); });
+          if (state.params.pts) state.params.pts = state.params.pts.map(pt => pt.map(c => +(c * cur.k).toFixed(3)));
+          state.opt.fit = false;
+        } else if (state.opt.fit && isLength(p)) state.opt.fit = false;
+        state.params[p.key] = v; schedule();
+      });
+    });
+    if (values) return;   // un progetto salvato porta già base e taglio
+    state.opt.orient = null; state.opt.level = null;
+    state.opt.cut = d.kind !== "convex" || d.defOrient === "vertice";
+  }
+
+  function renderBaseCtl() {
+    const d = def(), box = $("baseCtl");
+    let h = "";
+    if (d.kind === "convex") {
+      if (cur && cur.orients.length > 1) h += `<div class="field"><label for="orient">Come appoggia a terra</label><select id="orient">${cur.orients.map(o => `<option value="${o.id}"${o.id === state.opt.orient ? " selected" : ""}>${esc(o.label)}</option>`).join("")}</select></div>`;
+      const lv = cur ? cur.levels.filter(L => L.z > 0) : [];
+      if (lv.length) {
+        h += `<label class="check"><input type="checkbox" id="cut"${state.opt.cut ? " checked" : ""}> <span>Taglia la parte bassa per avere un pavimento piatto</span></label>`;
+        h += `<div class="field"><label for="level">Altezza del taglio</label><select id="level"${state.opt.cut ? "" : " disabled"}>${cur.levels.map((L, i) => `<option value="${i}"${i === state.opt.level ? " selected" : ""}>${esc(L.label)}</option>`).join("")}</select></div>`;
+      } else {
+        h += `<p class="hint">Appoggiata sulla base: il pavimento c'è già.</p>`;
+      }
+    } else if (d.kind === "extrude" || d.floorToggle) {
+      h += `<label class="check"><input type="checkbox" id="cut"${state.opt.cut ? " checked" : ""}> <span>Con pavimento (togliete la spunta per una bolla aperta sotto)</span></label>`;
+    } else {
+      h += `<label class="check"><input type="checkbox" id="cut"${state.opt.cut ? " checked" : ""}> <span>Fondo piatto: un lato del tubo appoggiato a terra</span></label>`;
+    }
+    box.innerHTML = h;
+    if ($("orient")) $("orient").addEventListener("change", e => { state.opt.orient = e.target.value; state.opt.level = null; update(); });
+    if ($("cut")) $("cut").addEventListener("change", e => { state.opt.cut = e.target.checked; update(); });
+    if ($("level")) $("level").addEventListener("change", e => { state.opt.level = +e.target.value; update(); });
+  }
+
+  $("fit").addEventListener("change", e => { state.opt.fit = e.target.checked; update(); });
+  $("fitArea").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v > 0) { state.opt.fitArea = v; state.opt.fit = true; schedule(); } });
+  // la scala si può cambiare sia dal banco di lavoro sia sopra i pezzi: i due campi restano uguali
+  ["scale", "scale2"].forEach(id => $(id).addEventListener("input", e => {
+    const v = parseFloat(e.target.value);
+    if (v > 0) { state.scale = v; $(id === "scale" ? "scale2" : "scale").value = e.target.value; schedule(); }
+  }));
+  $("optPerson").addEventListener("change", e => { state.person = e.target.checked; drawView("hero"); });
+  $("optColors").addEventListener("change", e => { state.colors = e.target.checked; drawAll(); });
+  function setMode(m) {
+    state.mode = m;
+    $("modeModel").setAttribute("aria-pressed", String(m === "model"));
+    $("modeReal").setAttribute("aria-pressed", String(m === "real"));
+    $("rollF").hidden = $("marginF").hidden = m !== "real";
+    $("scaleF").hidden = m === "real";
+    $("pieces").classList.toggle("real", m === "real");
+    if (cur) renderPieces();
+  }
+  $("modeModel").addEventListener("click", () => setMode("model"));
+  $("modeReal").addEventListener("click", () => setMode("real"));
+  $("roll").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v > 0) { state.roll = v; renderPieces(); } });
+  $("margin").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v >= 0) { state.margin = v; renderPieces(); renderPrep(); } });
+  $("resetSteps").addEventListener("click", () => { store.clear(shapeKey() + "|step"); renderPieces(); });
+  $("resetSeams").addEventListener("click", () => { store.clear(shapeKey() + "|seam"); renderSeams(); });
+  // bolla, modellino o entrambe nelle misure del Passo 2 (ricordato in questo browser)
+  function setView(v) {
+    $("misure").dataset.view = v;
+    $("viewSeg").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+    try { localStorage.setItem("bolle|vista", v); } catch (e) { /* solo per questa visita */ }
+  }
+  $("viewSeg").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (b) setView(b.dataset.v); });
+  try { const v = localStorage.getItem("bolle|vista"); if (v) setView(v); } catch (e) { /* vista predefinita */ }
+  $("openAll").addEventListener("click", () => document.querySelectorAll("#pieces details.piece").forEach(d => { d.open = true; }));
+  $("closeAll").addEventListener("click", () => document.querySelectorAll("#pieces details.piece").forEach(d => { d.open = false; }));
+  $("overview").addEventListener("click", e => { const a = e.target.closest("a.ov"); if (!a) return; e.preventDefault(); goToPiece(+a.dataset.t); });
+  $("pieces").addEventListener("toggle", () => {
+    openState.set = new Set([...document.querySelectorAll("#pieces details.piece")].map((d, i) => (d.open ? i : -1)).filter(i => i >= 0));
+  }, true);
+  const seamsTbl = $("seams");
+  const rowNo = (e) => { const tr = e.target.closest && e.target.closest("tr[data-no]"); return tr ? +tr.dataset.no : null; };
+  seamsTbl.addEventListener("mouseover", e => { const n = rowNo(e); if (n) selectSeam(n); });
+  seamsTbl.addEventListener("click", e => { const n = rowNo(e); if (n) selectSeam(n); });
+  seamsTbl.addEventListener("focusin", e => { const n = rowNo(e); if (n) selectSeam(n); });
+  $("zoomNet").addEventListener("click", () => { const z = $("netwrap").classList.toggle("zoom"); $("zoomNet").textContent = z ? "Rimpicciolisci" : "Ingrandisci"; });
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (!t.matches || !t.matches("input[data-k]")) return;
+    store.set(t.dataset.k, t.checked);
+    if (t.closest("#seams")) { t.closest("tr").classList.toggle("done", t.checked); seamMeter(); drawView("seam"); }
+    const card = t.closest("details.piece");
+    if (card) updateProg(card);
+  });
+
+  let timer = null;
+  function schedule() { clearTimeout(timer); timer = setTimeout(update, 140); }
+
+  /* ---------- calcolo ---------- */
+  function update() {
+    const d = def();
+    renderPlan();
+    try {
+      const opt = Object.assign({}, state.opt);
+      cur = buildShape(d, state.params, opt);
+      state.opt.orient = opt.orient; state.opt.level = opt.level;
+      cur.an = analyze(cur.V, cur.F, cur.floor);
+      cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster);
+      cur.H = Math.max(...cur.V.map(v => v[2]));
+      const xs = cur.V.map(v => v[0]), ys = cur.V.map(v => v[1]);
+      cur.dx = Math.max(...xs) - Math.min(...xs); cur.dy = Math.max(...ys) - Math.min(...ys);
+      const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      cur.diam = 2 * Math.max(...cur.V.map(v => Math.hypot(v[0] - mx, v[1] - my)));
+      cur.walls = 0; cur.floorPer = 0; cur.seamLen = 0;
+      cur.F.forEach((f, i) => { if (!cur.floor[i]) cur.walls += polyArea(f.map(j => cur.V[j])); });
+      cur.an.seams.forEach(s => { cur.seamLen += s.len; if (cur.floor[s.p.fi] !== cur.floor[s.q.fi]) cur.floorPer += s.len; });
+      $("error").hidden = true;
+    } catch (err) {
+      $("error").textContent = "Con questi valori la forma non si può costruire. " + (err.message && err.message.length > 20 ? err.message : "Provate a cambiare le misure.");
+      $("error").hidden = false;
+      return;
+    }
+    renderBaseCtl();
+    $("fit").checked = state.opt.fit;
+    syncFields();
+    $("fitNote").textContent = !state.opt.fit ? "" : cur.floorArea > 0 && cur.k !== 1
+      ? `Le misure sopra sono state adattate per avere ${fmt(cur.floorArea, 2)} m² di pavimento. Se scrivete un lato a mano, l'adattamento si spegne e l'area si ricalcola.`
+      : (cur.floorArea > 0 ? "" : "Questa forma non ha un pavimento piatto, quindi non si può adattare all'area: attivate la base o il fondo piatto.");
+    $("navShape").textContent = d.name;
+    $("heroShape").textContent = d.name;
+    renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll();
+  }
+
+  /* i campi mostrano sempre le misure effettive: lati moltiplicati per il fattore dell'area, oppure l'area che risulta dai lati */
+  function syncFields() {
+    const d = def(), act = document.activeElement;
+    d.params.forEach(p => {
+      const el = $("p_" + p.key);
+      if (!el || el === act || !isLength(p)) return;
+      el.value = +(state.params[p.key] * (state.opt.fit ? cur.k : 1)).toFixed(3);
+    });
+    if (!state.opt.fit && cur.floorArea > 0 && $("fitArea") !== act) { state.opt.fitArea = +cur.floorArea.toFixed(4); $("fitArea").value = +cur.floorArea.toFixed(2); }
+  }
+
+  function pieceName(C) {
+    const n = C.length, L = [], A = [];
+    for (let i = 0; i < n; i++) {
+      const a = C[i], b = C[(i + 1) % n], c = C[(i - 1 + n) % n];
+      L.push(len2(sub2(b, a)));
+      A.push(Math.atan2(Math.abs(cross2(sub2(b, a), sub2(c, a))), dot2(sub2(b, a), sub2(c, a))) * 180 / Math.PI);
+    }
+    const eqL = L.every(x => Math.abs(x - L[0]) < 1e-3), eqA = A.every(x => Math.abs(x - A[0]) < 0.1);
+    const same = (x, y) => Math.abs(x - y) < 1e-3;
+    if (n === 3) return eqL ? "triangolo equilatero" : (same(L[0], L[1]) || same(L[1], L[2]) || same(L[0], L[2]) ? "triangolo isoscele" : "triangolo");
+    if (n === 4) {
+      if (A.every(x => Math.abs(x - 90) < 0.1)) return eqL ? "quadrato" : "rettangolo";
+      const par = (i, j) => Math.abs(cross2(sub2(C[(i + 1) % 4], C[i]), sub2(C[(j + 1) % 4], C[j]))) < 1e-6;
+      if (par(0, 2) && par(1, 3)) return "parallelogramma";
+      if (par(0, 2) || par(1, 3)) return "trapezio";
+      return "quadrilatero";
+    }
+    const names = { 5: "pentagono", 6: "esagono", 7: "ettagono", 8: "ottagono", 9: "ennagono", 10: "decagono", 12: "dodecagono" };
+    return (names[n] || `poligono a ${n} lati`) + (eqL && eqA ? " regolare" : "");
+  }
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  function renderStats() {
+    const tiles = [
+      ["Altezza", mR(cur.H)],
+      ["Pavimento", cur.floorArea > 0 ? fmt(cur.floorArea, 2) + " m²" : "nessuno"],
+      ["Pezzi", cur.F.length + ""],
+      ["Tipi di pezzo", cur.an.types.length + ""],
+    ];
+    $("stats").innerHTML = tiles.map(([k, v]) => `<div class="stat"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+  }
+
+  function renderAbout() {
+    const d = def(), an = cur.an;
+    const floorT = an.types.find(t => t.floors > 0);
+    let base = "";
+    if (d.kind === "convex") {
+      if (cur.cutUsed) {
+        const L = cur.levels[state.opt.level];
+        base = `Avete tagliato la parte bassa: il taglio toglie il ${L.label.match(/\d+%/)[0]} dell'altezza e lascia un pavimento a forma di <strong>${pieceName(floorT.C)}</strong> di <span class="num">${fmt(cur.floorArea, 2)} m²</span>.`;
+      } else if (floorT) base = `La forma appoggia su una faccia, che fa da pavimento: un <strong>${pieceName(floorT.C)}</strong> di <span class="num">${fmt(cur.floorArea, 2)} m²</span>.`;
+      else base = `La forma appoggia su una punta o su uno spigolo: senza taglio non ha un pavimento piatto e non sta in piedi da sola. Per una bolla vera conviene attivare il taglio.`;
+    } else if (d.kind === "extrude" || d.floorToggle) {
+      base = cur.open ? `La bolla è aperta sotto: il bordo a terra va fissato con zavorre o picchetti. Lo spazio a terra è di <span class="num">${fmt(cur.floorArea, 2)} m²</span>.` : `Il pavimento è piatto e ha la forma della pianta: <span class="num">${fmt(cur.floorArea, 2)} m²</span>.`;
+    } else {
+      base = cur.floorArea > 0 ? `Il tubo appoggia su un lato piatto: il pavimento è una striscia di <span class="num">${plural(an.types.filter(t => t.floors > 0).reduce((a, t) => a + t.floors, 0), "pezzo", "pezzi")}</span>, in tutto <span class="num">${fmt(cur.floorArea, 2)} m²</span>.` : `Il tubo appoggia su uno spigolo: non c'è un pavimento piatto.`;
+    }
+    const legend = an.types.map((t, i) => `<span class="chip soft" style="--c:${tvar(i)}"><i class="sw-dot" style="--c:${tvar(i)}"></i>Pezzo ${i + 1} × ${t.faces.length}</span>`).join(" ");
+    $("about").innerHTML = `<div class="eyebrow">La forma scelta</div><h3>${esc(d.name)}</h3><p>${ABOUT[d.id] || ""}</p><p>${base}</p><p>In tutto servono <strong>${plural(cur.F.length, "pezzo", "pezzi")}</strong> di <strong>${plural(an.types.length, "tipo", "tipi")}</strong> e <strong>${plural(an.seams.length, "giunzione", "giunzioni")}</strong>.</p><div style="display:flex;flex-wrap:wrap;gap:6px">${legend}</div>`;
+  }
+
+  /* tabella delle misure, divisa come nella guida del D20: lato, pavimento, pezzi, bolla intera */
+  function renderTable() {
+    const sc = state.scale, an = cur.an, rows = [];
+    const head = (t) => rows.push({ head: t });
+    const row = (name, real, model, use, key) => rows.push({ name, real, model, use, key });
+    const len = (name, x, use, key) => row(name, mR(x), cmM(x), use, key);
+    const lens = (C) => [...new Set(C.map((p, k) => Math.round(len2(sub2(C[(k + 1) % C.length], p)) * 1000)))].sort((a, b) => a - b).map(v => v / 1000);
+    const lensRow = (name, L, use) => row(name, L.map(mR).join(" · "), L.map(cmM).join(" · "), use);
+    const allLens = [...new Set(an.types.flatMap(t => lens(t.C).map(v => Math.round(v * 1000))))];
+    const oneLen = allLens.length === 1;
+    const isRegular = (C) => /regolare|equilatero|quadrato/.test(pieceName(C));
+    const maxY = (C) => Math.max(...C.map(p => p[1]));
+    const del = (w) => (/^[aeiouh]/i.test(w) ? "dell'" : "del ") + w;   // del pentagono, dell'esagono
+    const isRoof = (t) => t.faces.some(fi => V3.norm(newell(cur.F[fi].map(j => cur.V[j])))[2] > 0.999);
+
+    if (oneLen) len("Lato di ogni pezzo", allLens[0] / 1000, `L'unica misura da tagliare: tutti i ${cur.F.length} pezzi hanno lo stesso lato.`, true);
+
+    const nFloor = cur.floor.filter(Boolean).length;
+    if (cur.floorArea > 0) {
+      head("Pavimento");
+      row(cur.open ? "Area a terra (senza pavimento)" : "Area del pavimento", fmt(cur.floorArea, 2) + " m²", fmt(cur.floorArea * 1e4 / sc / sc, 1) + " cm²", "La superficie calpestabile.", true);
+      const ft = an.types.find(t => t.floors > 0);
+      if (nFloor === 1 && ft) {
+        const C = ft.C, n = C.length, nm = pieceName(C);
+        if (!oneLen) lensRow(`Lati del pavimento (${nm})`, lens(C), "Le misure dei lati da tracciare.");
+        if (n > 3) {
+          let dg = 0;
+          for (let a = 0; a < n; a++) for (let b = a + 2; b < n; b++) { if (a === 0 && b === n - 1) continue; dg = Math.max(dg, len2(sub2(C[b], C[a]))); }
+          len(`Diagonale ${isRegular(C) ? "" : "più lunga "}${del(nm.split(" ")[0])}`, dg, "Seconda apertura del compasso, o misura di controllo.");
+        }
+        len(`Altezza ${del(nm.split(" ")[0])}`, maxY(C), "Da un lato al punto opposto: quanto è profondo il pavimento.", true);
+        if (isRegular(C)) {
+          const cx = C.reduce((a, p) => a + p[0], 0) / n, cy = C.reduce((a, p) => a + p[1], 0) / n;
+          const R = Math.hypot(C[0][0] - cx, C[0][1] - cy);
+          const m0 = [(C[0][0] + C[1][0]) / 2, (C[0][1] + C[1][1]) / 2], ap = Math.hypot(m0[0] - cx, m0[1] - cy);
+          len("Raggio del cerchio che contiene la base", R, "Per tracciare il pavimento o picchettarlo a terra.");
+          len("Distanza centro → metà di un lato di base", ap, "Apotema: utile per centrare la base.");
+        }
+      }
+      const per = cur.open ? an.rims.reduce((a, r) => a + r.len, 0) : cur.floorPer;
+      if (per > 0) len("Perimetro del pavimento", per, "Giunzione fra pavimento e pareti; lunghezza di zavorra o picchetti.");
+    }
+
+    const walls = an.types.map((t, i) => ({ t, i })).filter(o => o.t.floors < o.t.faces.length);
+    if (walls.length) {
+      const roof = walls.some(o => isRoof(o.t));
+      head((roof ? "Pezzi delle pareti e del tetto" : "Pezzi delle pareti") + (walls.length > 1 ? ` (${walls.length} tipi)` : ""));
+      const many = walls.length > 6;
+      walls.forEach(({ t, i }) => {
+        const nm = pieceName(t.C), tag = `${isRoof(t) ? "Tetto · " : ""}Pezzo ${i + 1} · ${nm} × ${t.faces.length - t.floors}`;
+        if (many) { lensRow(`${tag}: lati`, lens(t.C), "Le altezze per tracciarlo sono nella sua scheda al Passo 4."); return; }
+        if (!oneLen) lensRow(`${tag}: lati`, lens(t.C), "Le misure dei lati da tracciare.");
+        const simple = walls.length === 1 && /triangolo/.test(nm);
+        len(simple ? "Altezza dei triangoli" : `${tag}: altezza`, maxY(t.C), "Dal lato AB al punto più lontano: serve per tracciarlo.");
+      });
+    }
+
+    head("Bolla intera");
+    len("Altezza totale della bolla", cur.H, "Dal pavimento al punto più alto.", true);
+    if (def().kind === "convex") len("Ingombro a terra (diametro)", cur.diam, "Cerchio in cui sta tutta la bolla vista dall'alto, centrato sull'asse.");
+    row("Ingombro a terra (rettangolo)", `${mR(cur.dx)} × ${mR(cur.dy)}`, `${cmM(cur.dx)} × ${cmM(cur.dy)}`, "Lo spazio rettangolare che serve per montarla.");
+    row("Volume interno", fmt(cur.volume, 1) + " m³", fmt(cur.volume * 1000 / sc ** 3, 2) + " litri", "Aria da gonfiare o da ventilare.");
+    row(`Superficie delle pareti (${cur.F.length - nFloor} pezzi)`, fmt(cur.walls, 1) + " m²", fmt(cur.walls * 1e4 / sc / sc, 0) + " cm²", "Telo necessario, senza margini di cucitura.");
+    len("Lunghezza totale delle giunzioni", cur.seamLen, "Quanto c'è da saldare, cucire o nastrare.");
+    row("Pezzi", `${cur.F.length} (${an.types.length} ${an.types.length === 1 ? "tipo" : "tipi"})`, `${cur.F.length}`, "Pannelli piatti da tagliare.");
+    // le misure principali vanno nei riquadri grandi, tutte le altre nella tabella
+    $("keyCards").innerHTML = rows.filter(r => r.key).map(r => `<div class="kcard">
+        <span class="k">${r.name}</span>
+        <span class="kv cr"><small>Bolla</small>${r.real}</span>
+        <span class="kv cm"><small>Modellino 1:${fmt(sc, sc % 1 ? 1 : 0)}</small>${r.model}</span>
+        <span class="use">${r.use}</span>
+      </div>`).join("");
+    const body = [];
+    let pending = null;
+    rows.forEach(r => {
+      if (r.head) { pending = r.head; return; }
+      if (r.key) return;
+      if (pending) { body.push(`<tr class="grp"><td colspan="4">${pending}</td></tr>`); pending = null; }
+      body.push(`<tr><td>${r.name}</td><td class="v cr">${r.real}</td><td class="v cm">${r.model}</td><td class="muted">${r.use}</td></tr>`);
+    });
+    $("tbl").innerHTML = body.join("");
+  }
+
+  function renderNotes() {
+    const an = cur.an, out = [];
+    const fw = [...new Set(an.seams.filter(s => s.floor).map(s => fmt(s.dih, 1)))];
+    const ww = an.seams.filter(s => !s.floor).map(s => s.dih);
+    if (fw.length) out.push(`<strong>Pavimento e pareti</strong><br>Angolo di <span class="num">${fw.slice(0, 6).join("°, ")}°</span>${fw.length > 6 ? " e altri" : ""}. Sopra 90° la parete si apre verso l'esterno, sotto 90° rientra.`);
+    if (ww.length) {
+      const mn = Math.min(...ww), mx = Math.max(...ww);
+      out.push(Math.abs(mx - mn) < 0.05 ? `<strong>Fra i pannelli</strong><br>L'angolo è sempre <span class="num">${fmt(mn, 1)}°</span>: se usate un telaio, i nodi sono tutti uguali.` : `<strong>Fra i pannelli</strong><br>L'angolo va da <span class="num">${fmt(mn, 1)}°</span> a <span class="num">${fmt(mx, 1)}°</span>. Il valore di ogni giunzione è nel Passo 6.${mx > 180.05 ? " Sopra 180° la forma rientra e la giunzione si piega verso l'interno." : ""}`);
+    }
+    const fpts = [];
+    cur.F.forEach((f, i) => { if (cur.floor[i]) f.forEach(j => fpts.push([cur.V[j][0], cur.V[j][1]])); });
+    if (fpts.length >= 3 && def().kind === "convex") {
+      const H = hull2D(fpts);
+      let over = 0;
+      cur.V.forEach(v => {
+        let d = -Infinity;
+        for (let i = 0; i < H.length; i++) { const a = H[i], e = sub2(H[(i + 1) % H.length], a), L = len2(e); d = Math.max(d, -cross2([e[0] / L, e[1] / L], sub2([v[0], v[1]], a))); }
+        over = Math.max(over, d);
+      });
+      out.push(over > 0.01 ? `<strong>Stabilità</strong><br>Le pareti sporgono fino a <span class="num">${cmR(over)}</span> oltre il bordo del pavimento: la bolla è più larga in alto che a terra.` : `<strong>Stabilità</strong><br>Nessuna parete sporge oltre il pavimento: la bolla è stabile e il peso sta in basso.`);
+    }
+    if (cur.open) out.push(`<strong>Bordo a terra</strong><br>Senza pavimento il bordo (<span class="num">${mR(an.rims.reduce((a, r) => a + r.len, 0))}</span>) va fissato con zavorre, sacchetti di sabbia o picchetti.`);
+    out.push(cur.H >= 1.9 ? `<strong>Spazio interno</strong><br>Con <span class="num">${mR(cur.H)}</span> al punto più alto, al centro si sta in piedi.` : `<strong>Spazio interno</strong><br>Con <span class="num">${mR(cur.H)}</span> al punto più alto, dentro non si sta in piedi: è una bolla per stare seduti.`);
+    out.push(`<strong>Aperture</strong><br>Lasciate un ingresso e, se la bolla si gonfia con un ventilatore, un foro per il tubo dell'aria vicino a terra.`);
+    $("realNotes").innerHTML = out.map(t => `<li>${t}</li>`).join("");
+  }
+
+  function renderPrep() {
+    const an = cur.an, sc = state.scale, mg = state.margin / 100;
+    let plastic = 0;
+    cur.F.forEach(f => {
+      const P = f.map(i => cur.V[i]);
+      let per = 0; P.forEach((p, i) => { per += V3.len(V3.sub(p, P[(i + 1) % P.length])); });
+      plastic += polyArea(P) + per * mg;
+    });
+    const big = Math.max(...an.types.map(t => { const C = t.C; let m = 0; C.forEach(p => C.forEach(q => { m = Math.max(m, len2(sub2(p, q))); })); return m; }));
+    const cm2 = (cur.walls + cur.floorArea) * 1e4 / sc / sc * 1.3;
+    $("matModel").innerHTML = [
+      `Cartoncino da 200–300 g/m²: circa <span class="num">${fmt(cm2, 0)} cm²</span>, cioè ${plural(Math.max(1, Math.ceil(cm2 / 600)), "foglio A4", "fogli A4")} o un foglio grande.`,
+      `Righello di metallo (il pezzo più lungo misura <span class="num">${cmM(big)}</span>), squadretta, matita dura, gomma.`,
+      `Cutter e tappetino da taglio, oppure forbici.`,
+      `Scotch (nastro adesivo trasparente o di carta): <span class="num">${an.seams.length}</span> giunzioni, lunghe in tutto <span class="num">${cmM(cur.seamLen)}</span>.`,
+      `Un pennarello fine per codici e lettere.`,
+    ].map(t => `<li>${t}</li>`).join("");
+    $("matReal").innerHTML = [
+      `Telo di plastica: circa <span class="num">${fmt(plastic, 1)} m²</span> con margini di ${fmt(state.margin, 1)} cm, più 10–15% di scarti: <strong class="num">${fmt(plastic * 1.15, 1)} m²</strong>.`,
+      `Metro a nastro rigido da almeno 5 m, stadia o listello dritto, filo da muratore, squadra grande (oppure la regola 60-80-100).`,
+      `Pennarello indelebile fine, nastro per fissare il telo a terra, forbici grandi o cutter.`,
+      `Materiale per le giunzioni: <span class="num">${mR(cur.seamLen)}</span> in tutto. Con il nastro calcolatene il doppio, perché va dentro e fuori.`,
+      `Un pavimento pulito e piano più grande del pezzo più lungo (<span class="num">${cmR(big)}</span>).`,
+    ].map(t => `<li>${t}</li>`).join("");
+    $("mCount").textContent = an.types.map((t, i) => `${t.faces.length} del pezzo ${i + 1}`).join(", ");
+  }
+
+  /* ---------- pezzi ---------- */
+  function role(t) { return t.floors === t.faces.length ? "pavimento" : t.floors > 0 ? `${t.floors} a terra, ${t.faces.length - t.floors} parete` : "pareti"; }
+  function renderPieces() {
+    const an = cur.an, real = isReal();
+    $("piecesTitle").textContent = `Traccia i pezzi: ${cur.F.length} in tutto, ${plural(an.types.length, "tipo", "tipi diversi")}`;
+    $("overview").innerHTML = an.types.map((t, i) => `<a class="ov" href="#pezzo${i + 1}" data-t="${i}" style="--c:${tvar(i)}"><b>${i + 1}</b><span>${cap(pieceName(t.C))} <span class="muted">× ${t.faces.length}</span></span><small>${role(t)}</small></a>`).join("");
+    const k = shapeKey() + "|" + state.mode;
+    if (openState.key !== k) openState = { key: k, set: null };
+    const keep = openState.set;
+    $("pieces").innerHTML = an.types.map((t, i) => pieceCard(t, i, real)).join("");
+    // aperte: quelle scelte da voi; la prima volta, la prima scheda non ancora completata
+    const cards = [...document.querySelectorAll("#pieces details.piece")];
+    if (keep) cards.forEach((d, i) => { d.open = keep.has(i); });
+    else { const first = cards.find(d => !d.classList.contains("complete")) || cards[0]; if (first) first.open = true; }
+    drawWhere();
+  }
+  let openState = { key: null, set: null };
+  function updateProg(d) {
+    const all = d.querySelectorAll(".checklist input"), done = [...all].filter(x => x.checked).length;
+    d.querySelector(".prog b").textContent = done;
+    d.querySelector(".prog .bar div").style.width = (all.length ? done / all.length * 100 : 0) + "%";
+    d.classList.toggle("complete", done === all.length);
+  }
+  function goToPiece(t) {
+    const d = $("pezzo" + (t + 1));
+    if (!d) return;
+    d.open = true;
+    d.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    d.classList.remove("flash"); void d.offsetWidth; d.classList.add("flash");
+  }
+
+  // i passi per tracciare un tipo di pezzo: testo e punti da evidenziare nel disegno (usati da scheda e cantiere)
+  function pieceSteps(t, real) {
+    const C = t.C, n = C.length, AB = C[1][0], mg = state.margin;
+    const xs = C.map(p => p[0]);
+    const minX = Math.min(0, ...xs), maxX = Math.max(AB, ...xs);
+    const lineLen = maxX - minX + (real ? 0.2 : 0.02 * state.scale);
+    const steps = [];
+    const add = (html, hl) => steps.push({ html, hl: hl || [] });
+    add(`Tracciate una linea di base dritta lunga almeno ${M(lineLen)}${real ? ", con il filo teso o la stadia" : ", con il righello"}.`);
+    add(`Segnate il punto <strong>A</strong>${minX < -1e-9 ? ` (lasciate almeno ${M(-minX)} di linea alla sua sinistra)` : ""} e, a ${M(AB)} da A, il punto <strong>B</strong>.`, [0, 1]);
+    for (let k = 2; k < n; k++) {
+      const [x, y] = C[k];
+      let foot;
+      if (Math.abs(x) < 5e-4) foot = "proprio in A";
+      else if (Math.abs(x - AB) < 5e-4) foot = "proprio in B";
+      else if (x < 0) foot = `a ${M(-x)} a sinistra di A`;
+      else if (x > AB) foot = `a ${M(x)} da A, oltre B`;
+      else foot = `a ${M(x)} da A`;
+      add(`Punto <strong>${letter(k)}</strong>: piede sulla linea ${foot}, alzate la perpendicolare e misurate ${M(y)} verso l'alto.`, [k]);
+    }
+    add(`Unite i punti nell'ordine ${C.map((_, k) => letter(k)).join(" → ")} → A.`);
+    const sides = C.map((p, k) => `${letter(k)}${letter((k + 1) % n)} ${M(len2(sub2(C[(k + 1) % n], p)))}`);
+    const diags = [];
+    if (n > 3) for (let a = 0; a < n; a++) for (let b = a + 2; b < n; b++) { if (a === 0 && b === n - 1) continue; if (diags.length < 8) diags.push(`${letter(a)}${letter(b)} ${M(len2(sub2(C[b], C[a])))}`); }
+    add(`Controllate i lati: ${sides.join(" · ")}.${diags.length ? ` E le diagonali: ${diags.join(" · ")}.` : ""}`);
+    add(real ? `Ritagliate lasciando ${M(mg / 100)} di margine fuori dalla linea: la linea resta disegnata e serve per far combaciare i pezzi.` : `Ritagliate esattamente sulla linea: i pezzi si uniscono bordo contro bordo con lo scotch, senza linguette.`);
+    add(`Scrivete la lettera vicino a ogni angolo e al centro il codice del pezzo.`);
+    if (t.faces.length > 1) add(`Questo primo pezzo è la dima: ricalcatelo per fare gli altri ${t.faces.length - 1}${t.mirrorCount ? `. ${plural(t.mirrorCount, "copia va ricalcata", "copie vanno ricalcate")} con la dima girata sottosopra (segnate con ↺)` : ""}.`);
+    return steps;
+  }
+
+  function pieceCard(t, i, real) {
+    const C = t.C, mg = state.margin;
+    const steps = pieceSteps(t, real);
+    let warn = "";
+    if (real) {
+      const mw = minWidth(C), need = mw.w * 100 + 2 * mg;
+      warn = need > state.roll
+        ? `<p class="note">Con i margini questo pezzo è largo almeno <span class="num">${fmt(need, 1)} cm</span> e non entra in un rotolo da ${fmt(state.roll, 0)} cm. Prima di tracciarlo unite due strisce di telo con una saldatura dritta, oppure dividete il pezzo in due lungo una diagonale (aggiungendo una giunzione).</p>`
+        : `<p class="okbox">Entra nel rotolo: con il lato lungo lungo il rotolo occupa <span class="num">${fmt(need, 1)} cm</span> di larghezza e <span class="num">${fmt(mw.l * 100 + 2 * mg, 1)} cm</span> di lunghezza.</p>`;
+    }
+    const key = shapeKey() + "|step|" + state.mode + "|" + i + "|";
+    const codes = t.faces.map(fi => { const f = cur.an.faceInfo[fi]; return `<span class="chip soft" style="--c:${tvar(i)}">${f.id}${f.mirror ? " ↺" : ""}</span>`; });
+    const area = polyArea(C.map(p => [p[0], p[1], 0]));
+    const done = steps.filter((_, k) => store.get(key + k)).length, complete = done === steps.length;
+    return `<details class="piece${complete ? " complete" : ""}" id="pezzo${i + 1}" style="--c:${tvar(i)}">
+      <summary class="piece-head">
+        <span class="big">${i + 1}</span>
+        <canvas class="where" data-t="${i}" aria-hidden="true"></canvas>
+        <div style="display:grid;gap:2px;flex:1 1 200px">
+          <h3>${cap(pieceName(C))}</h3>
+          <span class="meta">Uso: ${role(t)} · area di un pezzo <span class="num">${real ? fmt(area, 3) + " m²" : fmt(area * 1e4 / state.scale ** 2, 1) + " cm²"}</span> · nel disegno: dove va</span>
+        </div>
+        <div class="prog"><span>✓ <b>${done}</b> di ${steps.length} passi</span><div class="bar"><div style="width:${done / steps.length * 100}%"></div></div></div>
+        <span class="chip" style="--c:${tvar(i)}">× ${t.faces.length}</span>
+        <span class="caret" aria-hidden="true">›</span>
+      </summary>
+      <div class="codes" style="padding-top:12px">${codes.join("")}</div>
+      <div class="piece-body">
+        <div class="drawing">
+          <div class="mat">${pieceSVG(C, i)}</div>
+          <div class="pts">${C.map((p, k) => `<div class="pt"><b>${letter(k)}</b><span>piede ${Lx(p[0])}</span><span>altezza ${Lx(p[1])}</span></div>`).join("")}</div>
+        </div>
+        <div style="display:grid;gap:12px;align-content:start;min-width:0">
+          <h4>Passo per passo · ${real ? "bolla vera" : `modellino 1:${fmt(state.scale, 0)}`}</h4>
+          <ol class="checklist">${steps.map((s, k) => { const kk = key + k; return `<li><label><input type="checkbox" data-k="${esc(kk)}"${store.get(kk) ? " checked" : ""}><span class="box2"></span><span class="t">${s.html}</span></label></li>`; }).join("")}</ol>
+          ${warn}
+        </div>
+      </div>
+    </details>`;
+  }
+
+  function pieceSVG(C, ti, hl) {
+    const n = C.length;
+    const xs = C.map(p => p[0]), ys = C.map(p => p[1]);
+    const AB = C[1][0];
+    const minX = Math.min(0, ...xs), maxX = Math.max(AB, ...xs), maxY = Math.max(...ys);
+    const span = Math.max(maxX - minX, maxY, 1e-6), pad = span * 0.12, f = span / 100;
+    const labels = n <= 8;
+    const bottom = labels ? 22 * f : 10 * f;
+    const vb = `${minX - pad} ${-maxY - pad} ${maxX - minX + 2 * pad} ${maxY + pad + bottom}`;
+    const ink = css("--ink"), green = css("--green"), muted = css("--muted"), cut = css("--cut"), col = tcol(ti), halo = css("--mat");
+    const T = (x, y, str, size, color, anchor, weight) => `<text x="${x}" y="${y}" font-size="${size}" font-family="IBM Plex Mono, monospace" font-weight="${weight || 500}" fill="${color}" text-anchor="${anchor || "middle"}" dominant-baseline="middle" paint-order="stroke" stroke="${halo}" stroke-width="${1.4 * f}" stroke-linejoin="round">${str}</text>`;
+    let s = `<svg viewBox="${vb}" role="img" aria-label="Costruzione del pezzo con linea di base, perpendicolari e quote">`;
+    s += `<polygon points="${C.map(p => `${p[0]},${-p[1]}`).join(" ")}" fill="${col}" fill-opacity=".22" stroke="none"/>`;
+    s += `<line x1="${minX - pad * 0.8}" y1="0" x2="${maxX + pad * 0.8}" y2="0" stroke="${muted}" stroke-width="${0.5 * f}" stroke-dasharray="${2 * f} ${1.5 * f}"/>`;
+    C.forEach((p, i) => {
+      if (i < 2 || p[1] < 1e-9) return;
+      s += `<line x1="${p[0]}" y1="0" x2="${p[0]}" y2="${-p[1]}" stroke="${green}" stroke-width="${0.5 * f}" stroke-dasharray="${2 * f} ${1.5 * f}"/>`;
+      const k = 3 * f, dir = p[0] >= 0 ? 1 : -1;
+      s += `<polyline points="${p[0] + k * dir},0 ${p[0] + k * dir},${-k} ${p[0]},${-k}" fill="none" stroke="${green}" stroke-width="${0.4 * f}"/>`;
+      s += `<circle cx="${p[0]}" cy="0" r="${0.9 * f}" fill="${green}"/>`;
+    });
+    s += `<polygon points="${C.map(p => `${p[0]},${-p[1]}`).join(" ")}" fill="none" stroke="${ink}" stroke-width="${0.9 * f}" stroke-linejoin="round"/>`;
+    if (labels) {
+      C.forEach((p, i) => {
+        if (i < 2 || p[1] < 1e-9) return;
+        s += T(p[0] + 1.6 * f, -p[1] / 2, Lx(p[1]), 3.3 * f, green, "start", 600);
+        if (Math.abs(p[0]) > 5e-4 && Math.abs(p[0] - AB) > 5e-4) s += T(p[0], 8.5 * f, Lx(p[0]), 2.9 * f, muted);
+      });
+      s += `<line x1="0" y1="${15 * f}" x2="${AB}" y2="${15 * f}" stroke="${ink}" stroke-width="${0.35 * f}"/>`;
+      [0, AB].forEach(x => { s += `<line x1="${x}" y1="${13.5 * f}" x2="${x}" y2="${16.5 * f}" stroke="${ink}" stroke-width="${0.35 * f}"/>`; });
+      s += T(AB / 2, 15 * f, "AB " + Lx(AB), 3.3 * f, ink, "middle", 600);
+    }
+    const cx = xs.reduce((a, b) => a + b, 0) / n, cy = ys.reduce((a, b) => a + b, 0) / n;
+    C.forEach((p, i) => {
+      const d = [p[0] - cx, p[1] - cy], L = len2(d) || 1, off = 5 * f;
+      const lx = i < 2 ? p[0] + (i === 0 ? -3.5 * f : 3.5 * f) : p[0] + d[0] / L * off;
+      const ly = i < 2 ? -4 * f : p[1] + d[1] / L * off;
+      s += `<circle cx="${p[0]}" cy="${-p[1]}" r="${1.3 * f}" fill="${i < 2 ? cut : ink}"/>`;
+      s += T(lx, -ly, letter(i), 4.6 * f, ink, "middle", 700);
+    });
+    // punto del passo in corso (modalità cantiere): cerchio rosso e perpendicolare in evidenza
+    (hl || []).forEach(k => {
+      const p = C[k]; if (!p) return;
+      if (k >= 2 && p[1] > 1e-9) s += `<line x1="${p[0]}" y1="0" x2="${p[0]}" y2="${-p[1]}" stroke="${cut}" stroke-width="${0.9 * f}"/><circle cx="${p[0]}" cy="0" r="${1.4 * f}" fill="${cut}"/>`;
+      s += `<circle cx="${p[0]}" cy="${-p[1]}" r="${3.4 * f}" fill="none" stroke="${cut}" stroke-width="${0.9 * f}"/>`;
+    });
+    return s + "</svg>";
+  }
+
+  /* ---------- sviluppo ---------- */
+  function renderNet() {
+    const sc = state.scale, U = 100 / sc;
+    const { placed, islands, tree, edgeFaces, med } = cur.unf;
+    const an = cur.an, F = cur.F, svg = $("net");
+    const gap = med * 0.6;
+    const boxes = islands.map(isl => {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      isl.faces.forEach(fi => placed[fi].pts.forEach(p => { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }));
+      const m = med * 0.25;
+      return { x0: x0 - m, y0: y0 - m, w: x1 - x0 + 2 * m, h: y1 - y0 + 2 * m };
+    });
+    const totalA = boxes.reduce((a, b) => a + b.w * b.h, 0);
+    const rowW = Math.max(Math.max(...boxes.map(b => b.w)), Math.sqrt(totalA) * 1.7);
+    const orderB = boxes.map((b, i) => i).sort((a, b) => boxes[b].h - boxes[a].h);
+    let x = 0, y = 0, rowH = 0, W = 0;
+    const offs = [];
+    orderB.forEach(i => {
+      const b = boxes[i];
+      if (x > 0 && x + b.w > rowW) { x = 0; y += rowH + gap; rowH = 0; }
+      offs[i] = [x - b.x0, y - b.y0];
+      x += b.w + gap; rowH = Math.max(rowH, b.h); W = Math.max(W, x - gap);
+    });
+    const Htot = y + rowH;
+    const ink = css("--ink"), green = css("--green"), muted = css("--muted"), cutC = css("--cut"), halo = css("--mat");
+    const P = (fi, i) => { const p = placed[fi].pts[i], o = offs[placed[fi].island]; return [p[0] + o[0], -(p[1] + o[1])]; };
+    const sw = med * 0.012, fs = med * 0.11;
+    const T = (x0, y0, str, size, color, weight) => `<text x="${x0}" y="${y0}" font-size="${size}" fill="${color}" font-family="IBM Plex Mono, monospace" font-weight="${weight || 500}" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="${halo}" stroke-width="${size * 0.22}" stroke-linejoin="round">${str}</text>`;
+    let s = "", lines = "", labels = "";
+    const drawn = new Set();
+    F.forEach((f, fi) => {
+      const pts = f.map((_, i) => P(fi, i));
+      const ty = an.faceInfo[fi].type;
+      s += `<polygon points="${pts.map(p => p.join(",")).join(" ")}" fill="${tcol(ty)}" fill-opacity="${cur.floor[fi] ? ".42" : ".3"}" stroke="none"/>`;
+      const c = pts.reduce((a, p) => [a[0] + p[0] / pts.length, a[1] + p[1] / pts.length], [0, 0]);
+      const fa = polyArea(f.map(j => cur.V[j]));
+      const tsz = Math.min(fs * 0.95, Math.sqrt(fa) * 0.13);
+      labels += T(c[0], c[1], an.faceInfo[fi].id, tsz, ink, 700);
+      f.forEach((a, j) => {
+        const b = f[(j + 1) % f.length], key = ek(a, b), p = pts[j], q = pts[(j + 1) % f.length];
+        const isTree = tree.has(key);
+        const dk = key + "@" + placed[fi].island;
+        const L = len2(sub2(q, p)), u = [(q[0] - p[0]) / L, (q[1] - p[1]) / L], inw = [-u[1], u[0]];
+        const lt = an.faceInfo[fi].letters[j];
+        const toC = sub2(c, p), lc = len2(toC) || 1, lo = Math.min(fs * 0.9, lc * 0.3);
+        labels += T(p[0] + toC[0] / lc * lo, p[1] + toC[1] / lc * lo, letter(lt), Math.min(fs * 0.7, tsz * 0.8), muted);
+        if (isTree && drawn.has(dk)) return;
+        drawn.add(dk);
+        lines += `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="${isTree ? green : ink}" stroke-width="${isTree ? sw * 0.8 : sw}" ${isTree ? `stroke-dasharray="${med * 0.05} ${med * 0.04}"` : ""} stroke-linecap="round"/>`;
+        const no = !isTree && an.seamNo.get(key);
+        if (no) {
+          const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, off = Math.min(fs * 0.8, L * 0.1);
+          labels += T(mx - inw[0] * off, my - inw[1] * off, no, Math.min(fs * 0.85, L * 0.15), cutC, 700);
+        }
+      });
+    });
+    const pad = med * 0.3;
+    svg.setAttribute("viewBox", `${-pad} ${-(Htot + pad)} ${W + 2 * pad} ${Htot + 2 * pad}`);
+    svg.innerHTML = s + lines + labels;
+    const nIs = islands.length, cutSeams = an.seams.filter(sm => !tree.has(sm.key)).length;
+    $("modelIntro").textContent = `Il modellino è in scala 1:${fmt(sc, 0)}: ogni misura è ${fmt(sc, 0)} volte più piccola di quella vera. Si può costruire in due modi: il primo è più lungo ma è una vera prova della bolla. ${nIs === 1 ? "Con lo sviluppo tutti i pezzi stanno in un unico foglio." : `Con lo sviluppo i pezzi sono divisi in ${nIs} gruppi, perché in un unico foglio si sovrapporrebbero.`}`;
+    $("netCap").innerHTML = `Ingombro di tutti i gruppi affiancati: circa <span class="num">${fmt(W * U, 0)} × ${fmt(Htot * U, 0)} cm</span>. Il disegno non è in scala 1:1: le misure giuste sono nel Passo 4. ${plural(cutSeams, "bordo da chiudere", "bordi da chiudere")} con lo scotch, con gli stessi numeri delle giunzioni del Passo 6. Le lettere piccole sono quelle degli angoli; i colori sono i tipi di pezzo.`;
+  }
+
+  /* ---------- montaggio ---------- */
+  function seamMeter() {
+    const all = document.querySelectorAll("#seams input[data-k]"), done = [...all].filter(i => i.checked).length;
+    $("seamCount").textContent = `Giunzioni fatte: ${done} di ${all.length}`;
+    $("seamBar").style.width = (all.length ? done / all.length * 100 : 0) + "%";
+  }
+  function renderSeams() {
+    const an = cur.an;
+    const side = (fi, a, b) => { const f = cur.F[fi], inf = an.faceInfo[fi]; return `<span class="chip" style="--c:${tvar(inf.type)}">${inf.id}</span> <b class="num">${letter(inf.letters[f.indexOf(a)])}–${letter(inf.letters[f.indexOf(b)])}</b>`; };
+    const nf = an.seams.filter(s => s.floor).length;
+    $("montIntro").textContent = `Qui sotto ci sono tutte le ${an.seams.length} giunzioni, nell'ordine in cui farle${nf ? `: le prime ${nf} uniscono il pavimento alle pareti` : ""}. Per ognuna trovate i due pezzi da unire con le lettere del lato, la lunghezza e l'angolo fra i pannelli. Spuntatele man mano.`;
+    const key = shapeKey() + "|seam|";
+    let rows = "", phase = null;
+    an.seams.forEach(s => {
+      const ph = s.floor ? "Fase 1 · pavimento e pareti basse" : "Fase 2 · pareti, dal basso verso l'alto";
+      if (ph !== phase) { rows += `<tr class="phase"><td colspan="7">${ph}</td></tr>`; phase = ph; }
+      const k = key + s.no, on = store.get(k);
+      rows += `<tr data-no="${s.no}"${on ? ' class="done"' : ""}><td class="ck"><input type="checkbox" aria-label="Giunzione ${s.no} fatta" data-k="${esc(k)}"${on ? " checked" : ""}></td><td class="v" data-l="N°"><strong>${s.no}</strong></td><td data-l="Pezzo e lato">${side(s.p.fi, s.p.a, s.p.b)}</td><td data-l="con">${side(s.q.fi, s.p.a, s.p.b)}</td><td class="v" data-l="Lunghezza">${cmR(s.len)} <span class="muted">(${cmM(s.len)})</span></td><td class="v" data-l="Angolo">${fmt(s.dih, 1)}°</td><td class="v" data-l="Da terra">${cmR(s.zmid)}</td></tr>`;
+    });
+    if (an.rims.length) {
+      rows += `<tr class="phase"><td colspan="7">Bordi liberi (restano aperti)</td></tr>`;
+      an.rims.forEach(r => { rows += `<tr><td></td><td class="v">—</td><td colspan="2">${side(r.side.fi, r.side.a, r.side.b)}</td><td class="v" data-l="Lunghezza">${cmR(r.len)}</td><td></td><td></td></tr>`; });
+    }
+    $("seams").innerHTML = `<thead><tr><th></th><th>N°</th><th>Pezzo e lato</th><th>con pezzo e lato</th><th>Lunghezza bolla (modellino)</th><th>Angolo</th><th>Da terra</th></tr></thead><tbody>${rows}</tbody>`;
+    seamMeter();
+    // giunzione mostrata nel 3D: la stessa di prima se c'è ancora, altrimenti la prima da fare
+    const done = doneSeams();
+    const keepNo = seamSel && an.seams[seamSel.no - 1] && an.seams[seamSel.no - 1].key === seamSel.key ? seamSel.no : null;
+    const first = an.seams.find(s => !done.has(s.no)) || an.seams[0];
+    seamSel = null;
+    if (keepNo || first) selectSeam(keepNo || first.no, true);
+  }
+  function doneSeams() {
+    const key = shapeKey() + "|seam|", out = new Set();
+    if (cur) cur.an.seams.forEach(s => { if (store.get(key + s.no)) out.add(s.no); });
+    return out;
+  }
+  function selectSeam(no, instant) {
+    const s = cur.an.seams[no - 1];
+    if (!s || (seamSel && seamSel.no === no)) return;
+    seamSel = s;
+    document.querySelectorAll("#seams tr.sel").forEach(tr => tr.classList.remove("sel"));
+    const tr = document.querySelector(`#seams tr[data-no="${no}"]`);
+    if (tr) tr.classList.add("sel");
+    // gira la vista in modo che la giunzione stia davanti
+    const [a, b] = s.key.split("_").map(Number), V = cur.V;
+    const mx = V.reduce((t, v) => t + v[0], 0) / V.length, my = V.reduce((t, v) => t + v[1], 0) / V.length;
+    const ang = Math.atan2((V[a][1] + V[b][1]) / 2 - my, (V[a][0] + V[b][0]) / 2 - mx);
+    views.seam.target = -Math.PI / 2 - ang;
+    if (instant || reduced) { views.seam.rot.yaw = views.seam.target; views.seam.target = null; }
+    const an = cur.an, plain = (fi) => { const f = cur.F[fi], inf = an.faceInfo[fi]; return `<strong class="pid">${inf.id}</strong> ${letter(inf.letters[f.indexOf(s.p.a)])}–${letter(inf.letters[f.indexOf(s.p.b)])}`; };
+    $("seamInfo").innerHTML = `<strong>Giunzione ${s.no}</strong>: ${plain(s.p.fi)} con ${plain(s.q.fi)} · <span class="num">${cmR(s.len)}</span> · angolo <span class="num">${fmt(s.dih, 1)}°</span><br><span class="muted">In rosso la giunzione scelta, in verde quelle già fatte.</span>`;
+    drawView("seam");
+  }
+
+  /* ---------- viste 3D: un solo disegnatore per apertura, anteprima, miniature e giunzioni ---------- */
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let PAL = null, seamSel = null, spin = !reduced;
+  function palette() {
+    const t = []; for (let i = 0; i < 8; i++) t.push(rgb(css(`--t${i + 1}`)));
+    PAL = { t, plain: rgb(css("--t1")), floor: rgb(css("--t8")), grey: rgb(css("--muted")), ink: css("--ink"), muted: css("--muted"), card: css("--card"), cut: css("--cut"), green: css("--green") };
+  }
+  function fitCanvas(cv) {
+    const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    if (!r.width || !r.height) return false;
+    const w = Math.round(r.width * d), h = Math.round(r.height * d);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    return true;
+  }
+  const poly = (ctx, pts) => { ctx.beginPath(); pts.forEach((s, i) => (i ? ctx.lineTo(s[0], s[1]) : ctx.moveTo(s[0], s[1]))); ctx.closePath(); };
+
+  // m: {V, F, floor, an, diam}; o: yaw, pitch, annot, person, colors, thin, hlType, hlFace, hlSeam {key, faces}, done (Set di numeri)
+  function renderView(cv, m, o) {
+    const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, dpr = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, W, H);
+    if (!m || !W || !PAL) return [];
+    const V = m.V, Ht = Math.max(...V.map(v => v[2])), zc = Ht / 2;
+    const mx = V.reduce((a, v) => a + v[0], 0) / V.length, my = V.reduce((a, v) => a + v[1], 0) / V.length;
+    const rad = Math.max(...V.map(v => Math.hypot(v[0] - mx, v[1] - my, v[2] - zc))) || 1;
+    const sc = Math.min(W, H) / (2 * (o.annot ? 1.22 : 1.06) * Math.max(rad, o.person ? 1.1 : 0));
+    const cy0 = H / 2 - (o.annot ? 0.05 * H : 0);
+    const cyw = Math.cos(o.yaw), syw = Math.sin(o.yaw), cp = Math.cos(o.pitch), sp = Math.sin(o.pitch);
+    const T = (p) => { const x = p[0] - mx, y = p[1] - my, z = p[2] - zc, x1 = x * cyw - y * syw, y1 = x * syw + y * cyw; return [x1, y1 * cp - z * sp, y1 * sp + z * cp]; };
+    const S = (q) => [W / 2 + q[0] * sc, cy0 - q[2] * sc];
+    const tv = V.map(T), L = V3.norm([-0.45, -0.75, 0.5]);
+    const lw = Math.max(1, W / (o.thin ? 240 : 650));
+    const front = [], polys = [];
+    m.F.map((f, fi) => { const p = f.map(i => tv[i]); return { fi, p, n: V3.norm(newell(p)), depth: p.reduce((a, q) => a + q[1], 0) / p.length }; })
+      .sort((a, b) => b.depth - a.depth)
+      .forEach(({ fi, p, n }) => {
+        front[fi] = n[1] < 0;
+        let lit = 0.62 + 0.45 * Math.abs(V3.dot(n, L));
+        if (n[1] >= 0) lit *= 0.65;
+        const ty = m.an.faceInfo[fi].type;
+        let base = o.colors === false ? (m.floor[fi] ? PAL.floor : PAL.plain) : PAL.t[ty % 8], alpha = 0.94;
+        if (o.hlType != null && ty !== o.hlType) { base = PAL.grey; alpha = 0.28; }
+        if (o.hlSeam && !o.hlSeam.faces.includes(fi)) { base = PAL.grey; alpha = 0.28; }
+        const c = base.map(v => Math.min(255, Math.round(v * lit)));
+        const pts = p.map(S);
+        poly(ctx, pts);
+        ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${alpha})`; ctx.fill();
+        ctx.globalAlpha = o.thin ? 0.55 : 1; ctx.strokeStyle = PAL.ink; ctx.lineWidth = lw; ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1;
+        polys.push({ fi, pts });
+      });
+    const edge = (key, color, width, dash) => {
+      const [a, b] = key.split("_").map(Number), A = S(tv[a]), B = S(tv[b]);
+      ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round"; if (dash) ctx.setLineDash(dash);
+      ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke(); ctx.restore();
+    };
+    if (o.done) m.an.seams.forEach(s => { if (o.done.has(s.no) && (front[s.p.fi] || front[s.q.fi])) edge(s.key, PAL.green, lw * 3); });
+    if (o.hlSeam) edge(o.hlSeam.key, PAL.cut, lw * 5, o.hlSeam.faces.some(fi => front[fi]) ? null : [6 * dpr, 5 * dpr]);
+    if (o.hlFace != null) { const pp = polys.find(q => q.fi === o.hlFace); if (pp) { ctx.save(); poly(ctx, pp.pts); ctx.strokeStyle = PAL.cut; ctx.lineWidth = lw * 3; ctx.lineJoin = "round"; ctx.stroke(); ctx.restore(); } }
+    if (o.annot) annotate(ctx, W, H, dpr, sc, cy0, zc, Ht, m.diam, o);
+    return polys;
+  }
+
+  // quote da disegno tecnico: altezza, diametro a terra, linea di terra e persona
+  function annotate(ctx, W, H, dpr, sc, cy0, zc, Ht, diam, o) {
+    const cp = Math.cos(o.pitch), groundY = cy0 + zc * cp * sc, topY = cy0 - (Ht - zc) * cp * sc;
+    const half = diam / 2 * sc, cx = W / 2, left = cx - half, right = cx + half;
+    const arrow = (x1, y1, x2, y2) => {
+      const a = Math.atan2(y2 - y1, x2 - x1), h = 6 * dpr;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+      [[x1, y1, a + Math.PI], [x2, y2, a]].forEach(([x, y, t]) => { ctx.moveTo(x, y); ctx.lineTo(x - h * Math.cos(t - 0.45), y - h * Math.sin(t - 0.45)); ctx.moveTo(x, y); ctx.lineTo(x - h * Math.cos(t + 0.45), y - h * Math.sin(t + 0.45)); });
+      ctx.stroke();
+    };
+    const label = (txt, x, y, align) => {
+      ctx.font = `600 ${12 * dpr}px "IBM Plex Mono", monospace`; ctx.textBaseline = "middle"; ctx.textAlign = align;
+      const w = ctx.measureText(txt).width, x0 = align === "center" ? x - w / 2 : x;
+      ctx.fillStyle = PAL.card; ctx.fillRect(x0 - 4 * dpr, y - 9 * dpr, w + 8 * dpr, 18 * dpr);
+      ctx.fillStyle = PAL.ink; ctx.fillText(txt, x, y);
+    };
+    ctx.save();
+    ctx.lineWidth = Math.max(1, W / 700);
+    ctx.strokeStyle = PAL.muted; ctx.setLineDash([6 * dpr, 5 * dpr]);
+    ctx.beginPath(); ctx.moveTo(Math.max(6 * dpr, left - 40 * dpr), groundY); ctx.lineTo(Math.min(W - 6 * dpr, right + 70 * dpr), groundY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = PAL.ink;
+    const qx = Math.max(16 * dpr, left - 20 * dpr);
+    arrow(qx, groundY, qx, topY);
+    label(mR(Ht), Math.min(qx + 8 * dpr, W - 80 * dpr), (groundY + topY) / 2, "left");
+    const qy = Math.min(H - 12 * dpr, groundY + half * Math.sin(o.pitch) + 20 * dpr);   // sotto il bordo davanti del pavimento
+    ctx.strokeStyle = PAL.muted;
+    ctx.beginPath(); ctx.moveTo(left, groundY + 4 * dpr); ctx.lineTo(left, qy + 6 * dpr); ctx.moveTo(right, groundY + 4 * dpr); ctx.lineTo(right, qy + 6 * dpr); ctx.stroke();
+    ctx.strokeStyle = PAL.ink;
+    arrow(left, qy, right, qy);
+    label("Ø " + mR(diam), cx, qy, "center");
+    if (o.person) {
+      const ph = 1.75 * cp * sc, px = Math.min(W - 18 * dpr, right + 26 * dpr), u = ph / 7.5, bw = u * 1.5, top = groundY - ph;
+      ctx.fillStyle = PAL.muted; ctx.globalAlpha = 0.85;
+      ctx.beginPath(); ctx.arc(px, top + u * 0.6, u * 0.6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(px - bw / 2, top + u * 1.4); ctx.lineTo(px + bw / 2, top + u * 1.4); ctx.lineTo(px + bw / 2, top + u * 4.3); ctx.lineTo(px + bw * 0.28, top + u * 4.3);
+      ctx.lineTo(px + bw * 0.28, groundY); ctx.lineTo(px + 0.05 * bw, groundY); ctx.lineTo(px + 0.05 * bw, top + u * 4.6); ctx.lineTo(px - 0.05 * bw, top + u * 4.6);
+      ctx.lineTo(px - 0.05 * bw, groundY); ctx.lineTo(px - bw * 0.28, groundY); ctx.lineTo(px - bw * 0.28, top + u * 4.3); ctx.lineTo(px - bw / 2, top + u * 4.3);
+      ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.font = `500 ${10 * dpr}px "IBM Plex Mono", monospace`; ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillStyle = PAL.muted;
+      ctx.fillText("1,75 m", px, top - 16 * dpr);
+    }
+    ctx.restore();
+  }
+
+  const rot = { yaw: 0.6, pitch: 0.38 };
+  const views = {
+    hero: { cv: $("view"), rot, tip: $("tipHero"), hover: null, visible: true },
+    mini: { cv: $("mini"), rot, tip: $("tipMini"), hover: null, visible: false },
+    seam: { cv: $("seamCanvas"), rot: { yaw: 0.6, pitch: 0.5 }, hover: null, visible: false, target: null },
+  };
+  function drawView(name) {
+    const v = views[name];
+    if (!cur || !PAL || !fitCanvas(v.cv)) return;
+    const o = { yaw: v.rot.yaw, pitch: v.rot.pitch, colors: state.colors };
+    if (name === "hero") Object.assign(o, { annot: true, person: state.person, hlFace: v.hover });
+    if (name === "mini") o.hlFace = v.hover;
+    if (name === "seam") Object.assign(o, { hlSeam: seamSel ? { key: seamSel.key, faces: [seamSel.p.fi, seamSel.q.fi] } : null, done: doneSeams() });
+    v.polys = renderView(v.cv, cur, o);
+  }
+  function drawWhere() {
+    document.querySelectorAll("#pieces canvas.where").forEach(cv => { if (fitCanvas(cv)) renderView(cv, cur, { yaw: 0.6, pitch: 0.42, thin: true, hlType: +cv.dataset.t }); });
+  }
+  function drawAll() { if (!PAL) palette(); Object.keys(views).forEach(drawView); drawWhere(); }
+
+  function pick(v, e) {
+    const r = v.cv.getBoundingClientRect(), x = (e.clientX - r.left) * v.cv.width / r.width, y = (e.clientY - r.top) * v.cv.height / r.height;
+    const inside = (pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    const ps = v.polys || [];
+    for (let i = ps.length - 1; i >= 0; i--) if (inside(ps[i].pts)) return ps[i].fi;
+    return null;
+  }
+  const redraw = (name) => { if (name === "seam") drawView("seam"); else { drawView("hero"); drawView("mini"); } };
+  function attach(name) {
+    const v = views[name], cv = v.cv;
+    let drag = false, moved = 0, lx = 0, ly = 0;
+    const hideTip = () => { if (v.tip) v.tip.hidden = true; };
+    cv.addEventListener("pointerdown", e => { drag = true; moved = 0; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener("pointermove", e => {
+      if (drag) {
+        const dx = e.clientX - lx, dy = e.clientY - ly;
+        moved += Math.abs(dx) + Math.abs(dy);
+        if (moved > 4) { spin = false; v.target = null; v.rot.yaw += dx * 0.01; v.rot.pitch = Math.max(-0.2, Math.min(1.2, v.rot.pitch + dy * 0.01)); hideTip(); redraw(name); }
+        lx = e.clientX; ly = e.clientY; return;
+      }
+      if (name === "seam" || !cur) return;
+      const fi = pick(v, e);
+      cv.classList.toggle("over", fi != null);
+      if (fi !== v.hover) { v.hover = fi; redraw(name); }
+      if (fi == null) { hideTip(); return; }
+      const inf = cur.an.faceInfo[fi], box = cv.parentElement.getBoundingClientRect();
+      v.tip.textContent = `${inf.id} · ${pieceName(cur.an.types[inf.type].C)}`;
+      v.tip.style.left = (e.clientX - box.left) + "px"; v.tip.style.top = (e.clientY - box.top) + "px";
+      v.tip.hidden = false;
+    });
+    cv.addEventListener("pointerup", e => {
+      const click = drag && moved <= 4;
+      drag = false;
+      if (click && name !== "seam" && cur) { const fi = pick(v, e); if (fi != null) { hideTip(); goToPiece(cur.an.faceInfo[fi].type); } }
+    });
+    cv.addEventListener("pointercancel", () => { drag = false; });
+    cv.addEventListener("pointerleave", () => { if (v.hover != null) { v.hover = null; redraw(name); } hideTip(); cv.classList.remove("over"); });
+  }
+  Object.keys(views).forEach(attach);
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(es => es.forEach(en => { const v = Object.values(views).find(x => x.cv === en.target); if (v) v.visible = en.isIntersecting; }));
+    Object.values(views).forEach(v => io.observe(v.cv));
+  } else Object.values(views).forEach(v => { v.visible = true; });
+  function loop() {
+    if (cur && spin) { rot.yaw += 0.005; if (views.hero.visible) drawView("hero"); if (views.mini.visible) drawView("mini"); }
+    const sv = views.seam;
+    if (cur && sv.target != null) {
+      let d = sv.target - sv.rot.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+      if (Math.abs(d) < 0.002) { sv.rot.yaw = sv.target; sv.target = null; } else sv.rot.yaw += d * 0.15;
+      if (sv.visible) drawView("seam");
+    }
+    requestAnimationFrame(loop);
+  }
+  let rsz = null;
+  window.addEventListener("resize", () => { clearTimeout(rsz); rsz = setTimeout(() => { drawAll(); SHAPES.forEach(s => drawThumb(s.id)); }, 100); });
+
+  function rgb(c) { const t = document.createElement("canvas").getContext("2d"); t.fillStyle = c; const h = t.fillStyle; return h[0] === "#" ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : h.match(/\d+/g).slice(0, 3).map(Number); }
+
+  /* ---------- modalità cantiere: un passo o una giunzione alla volta, a schermo intero ---------- */
+  const site = { kind: null, idx: 0, items: [], lock: null, x0: null };
+  function siteItems() {
+    if (site.kind === "pieces") {
+      const out = [];
+      cur.an.types.forEach((t, i) => {
+        const st = pieceSteps(t, isReal()), key = shapeKey() + "|step|" + state.mode + "|" + i + "|";
+        st.forEach((s, k) => out.push({ t, i, k, n: st.length, s, key: key + k }));
+      });
+      return out;
+    }
+    return cur.an.seams.map(s => ({ seam: s, key: shapeKey() + "|seam|" + s.no }));
+  }
+  async function openSite(kind) {
+    if (!cur) return;
+    site.kind = kind; site.items = siteItems();
+    const first = site.items.findIndex(it => !store.get(it.key));
+    site.idx = first >= 0 ? first : 0;
+    $("site").hidden = false;
+    document.documentElement.style.overflow = "hidden";
+    $("siteMode").hidden = kind !== "pieces";
+    syncSiteMode();
+    renderSite();
+    $("siteNext").focus();
+    try { site.lock = await navigator.wakeLock.request("screen"); } catch (e) { site.lock = null; /* lo schermo può spegnersi: non è un problema */ }
+  }
+  function closeSite() {
+    $("site").hidden = true;
+    document.documentElement.style.overflow = "";
+    try { if (site.lock) site.lock.release(); } catch (e) { /* già rilasciato */ }
+    site.lock = null;
+    renderPieces(); renderSeams(); drawView("seam");
+  }
+  function syncSiteMode() { $("siteMode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === state.mode))); }
+  function renderSite() {
+    const it = site.items[site.idx], N = site.items.length;
+    if (!it) return;
+    const on = store.get(it.key);
+    const done = `<label class="site-done"><input type="checkbox" id="siteDone" data-k="${esc(it.key)}"${on ? " checked" : ""}> <span>${site.kind === "pieces" ? "Fatto" : "Fatta"}</span></label>`;
+    if (site.kind === "pieces") {
+      $("siteTop").style.setProperty("--c", tvar(it.i));
+      $("siteKind").textContent = `Modalità cantiere · pezzi · ${isReal() ? "bolla vera" : "modellino 1:" + fmt(state.scale, state.scale % 1 ? 1 : 0)}`;
+      $("siteTitle").textContent = `Pezzo ${it.i + 1} · ${cap(pieceName(it.t.C))}`;
+      $("siteSub").textContent = `Passo ${it.k + 1} di ${it.n} · da tagliare: ${it.t.faces.length}`;
+      $("siteBody").innerHTML = `<div class="site-grid"><div class="mat site-draw">${pieceSVG(it.t.C, it.i, it.s.hl)}</div><div style="display:grid;gap:18px;align-content:start"><p class="site-step">${it.s.html}</p>${done}</div></div>`;
+    } else {
+      const s = it.seam, an = cur.an;
+      const side = (fi) => { const f = cur.F[fi], inf = an.faceInfo[fi]; return `<span class="chip" style="--c:${tvar(inf.type)}">${inf.id}</span> <b class="num">${letter(inf.letters[f.indexOf(s.p.a)])}–${letter(inf.letters[f.indexOf(s.p.b)])}</b>`; };
+      $("siteTop").style.setProperty("--c", "var(--cut)");
+      $("siteKind").textContent = "Modalità cantiere · giunzioni";
+      $("siteTitle").textContent = `Giunzione ${s.no} di ${an.seams.length}`;
+      $("siteSub").textContent = s.floor ? "Fase 1 · pavimento e pareti basse" : "Fase 2 · pareti, dal basso verso l'alto";
+      $("siteBody").innerHTML = `<div class="site-grid"><div class="mat site-draw"><canvas id="siteCanvas" aria-label="Dove va la giunzione, in rosso"></canvas></div>
+        <div style="display:grid;gap:18px;align-content:start">
+          <div class="site-pair">${side(s.p.fi)} <span class="muted">con</span> ${side(s.q.fi)}</div>
+          <p class="muted">Le lettere si corrispondono nell'ordine scritto.</p>
+          <div class="site-big"><div><small>Lunghezza bolla</small><b>${cmR(s.len)}</b></div><div><small>Modellino</small><b>${cmM(s.len)}</b></div><div><small>Angolo</small><b>${fmt(s.dih, 1)}°</b></div></div>
+          ${done}
+        </div></div>`;
+      const cv = $("siteCanvas");
+      if (fitCanvas(cv)) {
+        const [a, b] = s.key.split("_").map(Number), V = cur.V;
+        const mx = V.reduce((t, v) => t + v[0], 0) / V.length, my = V.reduce((t, v) => t + v[1], 0) / V.length;
+        const yaw = -Math.PI / 2 - Math.atan2((V[a][1] + V[b][1]) / 2 - my, (V[a][0] + V[b][0]) / 2 - mx);
+        renderView(cv, cur, { yaw, pitch: 0.5, hlSeam: { key: s.key, faces: [s.p.fi, s.q.fi] }, done: doneSeams() });
+      }
+    }
+    $("siteCount").textContent = `${site.idx + 1} / ${N}`;
+    $("sitePrev").disabled = site.idx === 0;
+    $("siteNext").textContent = site.idx === N - 1 ? "Fine" : "Avanti ›";
+  }
+  function siteGo(d) {
+    const n = site.idx + d;
+    if (n >= site.items.length) { closeSite(); return; }
+    if (n < 0) return;
+    site.idx = n; renderSite();
+  }
+  $("sitePieces").addEventListener("click", () => openSite("pieces"));
+  $("siteSeams").addEventListener("click", () => openSite("seams"));
+  $("siteClose").addEventListener("click", closeSite);
+  $("sitePrev").addEventListener("click", () => siteGo(-1));
+  $("siteNext").addEventListener("click", () => siteGo(1));
+  $("siteMode").addEventListener("click", e => {
+    const b = e.target.closest("button[data-m]");
+    if (!b || b.dataset.m === state.mode) return;
+    const it = site.items[site.idx];
+    setMode(b.dataset.m); syncSiteMode();
+    site.items = siteItems();
+    const back = site.items.findIndex(x => x.i === it.i && x.k === it.k);
+    site.idx = back >= 0 ? back : 0;
+    renderSite();
+  });
+  $("siteBody").addEventListener("change", e => {
+    if (e.target.id !== "siteDone") return;
+    if (e.target.checked) setTimeout(() => { if (!$("site").hidden) siteGo(1); }, 450);   // fatto: si passa al prossimo
+    else if (site.kind === "seams") renderSite();
+  });
+  document.addEventListener("keydown", e => {
+    if ($("site").hidden) return;
+    if (e.key === "Escape") closeSite();
+    else if (e.key === "ArrowRight") siteGo(1);
+    else if (e.key === "ArrowLeft") siteGo(-1);
+  });
+  $("siteBody").addEventListener("pointerdown", e => { site.x0 = [e.clientX, e.clientY]; });
+  $("siteBody").addEventListener("pointerup", e => {
+    if (!site.x0) return;
+    const dx = e.clientX - site.x0[0], dy = e.clientY - site.x0[1];
+    site.x0 = null;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) siteGo(dx < 0 ? 1 : -1);   // scorrere il dito di lato
+  });
+
+  /* ---------- progetti del gruppo (salvati nel database condiviso della pagina) ---------- */
+  const proj = { db: null, user: null, me: null, owner: false, canWrite: null, openId: null, list: [], confirm: null };
+  const projStatus = (t) => { $("projStatus").textContent = t; $("projStatus").hidden = !t; };
+  async function initProjects() {
+    const C = window.claude;
+    // fuori da Claude (sito pubblico o file aperto dal computer) i progetti condivisi non esistono: la scheda sparisce
+    if (!C || typeof C.use !== "function") { $("projects").hidden = true; return; }
+    let db = null, user = null;
+    try { [db, user] = await Promise.all([C.use("db"), C.use("user")]); } catch (e) { db = null; }
+    if (!db) { projStatus("I progetti del gruppo non sono disponibili qui. Apriteli dalla pagina online, dopo aver fatto l'accesso a Claude."); return; }
+    proj.db = db; proj.user = user;
+    if (user) { proj.me = await user.id(); proj.owner = await user.isOwner(); proj.canWrite = await user.can("data.write"); }
+    $("projForm").hidden = proj.canWrite === false || !proj.me;
+    projStatus(proj.canWrite === false ? "Potete vedere i progetti del gruppo, ma non salvarne di nuovi." : "");
+    db.collection("progetti").orderBy("updatedAt", "desc").limit(100).onSnapshot(snap => {
+      proj.list = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      renderProjects();
+    }, () => projStatus("Non riesco più a leggere i progetti salvati. Ricaricate la pagina per riprovare."));
+  }
+  async function renderProjects() {
+    const ul = $("projList"), list = proj.list;
+    const authors = [...new Set(list.map(p => p.author).filter(a => typeof a === "string"))];
+    let ps = {};
+    try { if (proj.user && authors.length) ps = await proj.user.profiles(authors); } catch (e) { ps = {}; }
+    ul.textContent = "";
+    if (!list.length) {
+      const li = document.createElement("li"); li.className = "muted";
+      li.textContent = "Nessun progetto salvato: scegliete forma e misure, date un nome e premete Salva.";
+      ul.appendChild(li);
+    }
+    list.forEach(p => {
+      const d = SHAPES.find(s => s.id === p.shape);
+      const li = document.createElement("li"); li.className = "proj" + (p.id === proj.openId ? " on" : "");
+      const info = document.createElement("div");
+      const name = document.createElement("strong"); name.textContent = String(p.name || "Senza nome").slice(0, 60);
+      const meta = document.createElement("span"); meta.className = "muted";
+      const who = (typeof p.author === "string" && ps[p.author] && ps[p.author].name) || "qualcuno";
+      const when = Number.isFinite(p.updatedAt) ? new Date(p.updatedAt).toLocaleDateString("it-IT", { day: "numeric", month: "short", year: "numeric" }) : "";
+      meta.textContent = `${d ? shortName(d) : "forma non più disponibile"} · salvato da ${p.author === proj.me ? "voi" : who}${when ? " · " + when : ""}`;
+      info.append(name, meta);
+      const btns = document.createElement("div"); btns.className = "btnrow";
+      const open = document.createElement("button"); open.type = "button"; open.className = "btn"; open.textContent = p.id === proj.openId ? "Aperto" : "Apri";
+      open.disabled = !d; open.addEventListener("click", () => loadProject(p));
+      btns.append(open);
+      if (proj.canWrite !== false && (p.author === proj.me || proj.owner)) {
+        const del = document.createElement("button"); del.type = "button"; del.className = "btn";
+        del.textContent = proj.confirm === p.id ? "Conferma" : "Elimina";
+        del.addEventListener("click", () => deleteProject(p));
+        btns.append(del);
+      }
+      li.append(info, btns);
+      ul.appendChild(li);
+    });
+    const mine = list.find(p => p.id === proj.openId);
+    $("projUpdate").hidden = !(mine && (mine.author === proj.me || proj.owner));
+    $("projSave").textContent = $("projUpdate").hidden ? "Salva" : "Salva come nuovo";
+  }
+  function validPts(v) { return Array.isArray(v) && v.length >= 3 && v.length <= 80 && v.every(q => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite)); }
+  function loadProject(p) {
+    const d = SHAPES.find(s => s.id === p.shape);
+    if (!d) return;
+    // i dati salvati arrivano da altre persone: si prendono solo valori validi, il resto torna al predefinito
+    const params = {};
+    d.params.forEach(q => {
+      const v = p.params ? p.params[q.key] : undefined;
+      if (q.type === "pick") params[q.key] = q.options.some(o => o[0] === v) ? v : q.def;
+      else if (q.type === "pts") params[q.key] = validPts(v) ? v.map(x => [+x[0], +x[1]]) : q.def;
+      else params[q.key] = Number.isFinite(v) && v >= q.min && (!q.max || v <= q.max) ? v : q.def;
+    });
+    const o = p.opt || {};
+    state.shape = d.id;
+    state.opt = { cut: !!o.cut, orient: typeof o.orient === "string" ? o.orient : null, level: Number.isInteger(o.level) ? o.level : null, fit: !!o.fit, fitArea: Number.isFinite(o.fitArea) && o.fitArea > 0 ? o.fitArea : 6.25 };
+    if (Number.isFinite(p.scale) && p.scale >= 1) { state.scale = p.scale; $("scale").value = $("scale2").value = p.scale; }
+    $("fitArea").value = state.opt.fitArea;
+    proj.openId = p.id;
+    $("projName").value = String(p.name || "").slice(0, 60);
+    document.querySelectorAll(".tile").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === d.id)));
+    renderParams(params); update(); renderProjects();
+    projStatus(`Aperto "${String(p.name || "Senza nome").slice(0, 60)}".`);
+  }
+  async function saveProject(asUpdate) {
+    const name = $("projName").value.trim().slice(0, 60);
+    if (!name) { projStatus("Scrivete un nome per il progetto."); $("projName").focus(); return; }
+    const data = {
+      name, shape: state.shape, params: JSON.parse(JSON.stringify(state.params)),
+      opt: { cut: !!state.opt.cut, orient: state.opt.orient || null, level: Number.isInteger(state.opt.level) ? state.opt.level : null, fit: !!state.opt.fit, fitArea: state.opt.fitArea },
+      scale: state.scale, author: proj.me, updatedAt: Date.now(),
+    };
+    $("projSave").disabled = $("projUpdate").disabled = true;
+    try {
+      const old = asUpdate && proj.list.find(p => p.id === proj.openId);
+      if (old) {
+        data.createdAt = Number.isFinite(old.createdAt) ? old.createdAt : data.updatedAt;
+        data.author = typeof old.author === "string" ? old.author : proj.me;
+        await proj.db.collection("progetti").doc(old.id).set(data);
+        projStatus(`Salvate le modifiche a "${name}".`);
+      } else {
+        data.createdAt = data.updatedAt;
+        const ref = await proj.db.collection("progetti").add(data);
+        proj.openId = ref.id;
+        projStatus(`Salvato "${name}": ora lo vede tutto il gruppo.`);
+      }
+    } catch (e) {
+      if (e && e.code === "invalid_argument") { proj.canWrite = false; $("projForm").hidden = true; projStatus("Potete vedere i progetti ma non salvarli: chiedete a chi ha creato la pagina di condividerla con voi come Contributore."); }
+      else if (e && e.code === "quota_exceeded") projStatus("Lo spazio per i progetti è pieno: eliminate qualche progetto vecchio e riprovate.");
+      else projStatus("Salvataggio non riuscito. Controllate la connessione e riprovate tra poco.");
+    }
+    $("projSave").disabled = $("projUpdate").disabled = false;
+    renderProjects();
+  }
+  async function deleteProject(p) {
+    if (proj.confirm !== p.id) { proj.confirm = p.id; renderProjects(); return; }   // primo clic: chiede conferma
+    proj.confirm = null;
+    try { await proj.db.collection("progetti").doc(p.id).delete(); if (proj.openId === p.id) proj.openId = null; projStatus(`Eliminato "${String(p.name || "").slice(0, 60)}".`); }
+    catch (e) { projStatus("Non sono riuscito a eliminarlo. Riprovate tra poco."); }
+    renderProjects();
+  }
+  $("projSave").addEventListener("click", () => saveProject(false));
+  $("projUpdate").addEventListener("click", () => saveProject(true));
+  $("projName").addEventListener("keydown", e => { if (e.key === "Enter") saveProject(false); });
+
+  /* ---------- barra dei passi ---------- */
+  const navLinks = [...document.querySelectorAll("#stepsNav a")];
+  const secs = navLinks.map(a => document.querySelector(a.getAttribute("href")));
+  function onScroll() {
+    const y = window.scrollY + 120;
+    let idx = 0;
+    secs.forEach((s, i) => { if (s && s.offsetTop <= y) idx = i; });
+    navLinks.forEach((a, i) => a.classList.toggle("on", i === idx));
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    $("progress").style.width = (max > 0 ? Math.min(1, window.scrollY / max) * 100 : 0) + "%";
+    const on = navLinks[idx];
+    if (on && on.scrollIntoView && document.activeElement !== on) { const nav = $("stepsNav"); const r = on.offsetLeft - nav.offsetLeft - nav.clientWidth / 2 + on.clientWidth / 2; nav.scrollLeft = r; }
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  /* ---------- regola 3-4-5 ---------- */
+  function rule345() {
+    const s = $("rule345"), ink = css("--ink"), green = css("--green"), cut = css("--cut"), muted = css("--muted");
+    s.innerHTML = `
+      <line x1="-0.4" y1="0" x2="7.6" y2="0" stroke="${muted}" stroke-width="0.04" stroke-dasharray="0.15 0.1"/>
+      <polygon points="0,0 3,0 0,-4" fill="${green}" fill-opacity=".15" stroke="none"/>
+      <line x1="0" y1="0" x2="3" y2="0" stroke="${ink}" stroke-width="0.07"/>
+      <line x1="0" y1="0" x2="0" y2="-4" stroke="${green}" stroke-width="0.07"/>
+      <line x1="3" y1="0" x2="0" y2="-4" stroke="${cut}" stroke-width="0.07" stroke-dasharray="0.2 0.12"/>
+      <polyline points="0.35,0 0.35,-0.35 0,-0.35" fill="none" stroke="${green}" stroke-width="0.04"/>
+      <circle cx="0" cy="0" r="0.09" fill="${cut}"/>
+      <text x="-0.15" y="0.5" font-size="0.32" text-anchor="end" fill="${ink}" font-family="IBM Plex Mono, monospace">piede</text>
+      <text x="1.6" y="0.5" font-size="0.36" text-anchor="middle" fill="${ink}" font-family="IBM Plex Mono, monospace">3 (60 · 6)</text>
+      <text x="-0.2" y="-2" font-size="0.36" text-anchor="middle" fill="${green}" font-family="IBM Plex Mono, monospace" transform="rotate(-90 -0.2 -2)">4 (80 · 8)</text>
+      <text x="1.75" y="-1.9" font-size="0.36" fill="${cut}" font-family="IBM Plex Mono, monospace">5 (100 · 10)</text>
+      <text x="4.4" y="-4.1" font-size="0.32" fill="${muted}" font-family="IBM Plex Mono, monospace">quando la diagonale</text>
+      <text x="4.4" y="-3.65" font-size="0.32" fill="${muted}" font-family="IBM Plex Mono, monospace">misura 5, l'angolo</text>
+      <text x="4.4" y="-3.2" font-size="0.32" fill="${muted}" font-family="IBM Plex Mono, monospace">sul piede è retto</text>`;
+  }
+
+  function themeChange() { palette(); rule345(); renderPlan(); if (cur) { renderAbout(); renderPieces(); renderNet(); renderSeams(); drawAll(); } SHAPES.forEach(s => drawThumb(s.id)); }
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themeChange);
+  new MutationObserver(themeChange).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  palette();
+  buildGallery();
+  renderParams();
+  state.opt.cut = true; state.opt.fit = true;
+  rule345(); update(); onScroll(); loop();
+  setTimeout(buildThumbs, 60);
+  initProjects();
+})();
+</script>
