@@ -2708,14 +2708,18 @@ function analyze(V, F, floor) {
     if (o.done) m.an.seams.forEach(s => { if (o.done.has(s.no) && (front[s.p.fi] || front[s.q.fi])) edge(s.key, PAL.green, lw * 3); });
     if (o.hlSeam) edge(o.hlSeam.key, PAL.cut, lw * 5, o.hlSeam.faces.some(fi => front[fi]) ? null : [6 * dpr, 5 * dpr]);
     if (o.hlFace != null) { const pp = polys.find(q => q.fi === o.hlFace); if (pp) { ctx.save(); poly(ctx, pp.pts); ctx.strokeStyle = PAL.cut; ctx.lineWidth = lw * 3; ctx.lineJoin = "round"; ctx.stroke(); ctx.restore(); } }
-    if (o.annot) annotate(ctx, W, H, dpr, sc, cy0, zc, Ht, m.diam, o);
+    if (o.annot) {
+      // ingombro visto da qui: larghezza da sinistra a destra e profondità verso chi guarda, cambiano girando la forma
+      const xs = tv.map(q => q[0]), ys = tv.map(q => q[1]);
+      annotate(ctx, W, H, dpr, sc, cy0, zc, Ht, { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }, o);
+    }
     return polys;
   }
 
-  // quote da disegno tecnico: altezza, diametro a terra, linea di terra e persona
-  function annotate(ctx, W, H, dpr, sc, cy0, zc, Ht, diam, o) {
+  // quote da disegno tecnico: altezza, larghezza e profondità viste da qui, linea di terra e persona
+  function annotate(ctx, W, H, dpr, sc, cy0, zc, Ht, ext, o) {
     const cp = Math.cos(o.pitch), groundY = cy0 + zc * cp * sc, topY = cy0 - (Ht - zc) * cp * sc;
-    const half = diam / 2 * sc, cx = W / 2, left = cx - half, right = cx + half;
+    const left = W / 2 + ext.x0 * sc, right = W / 2 + ext.x1 * sc, cx = (left + right) / 2;
     const arrow = (x1, y1, x2, y2) => {
       const a = Math.atan2(y2 - y1, x2 - x1), h = 6 * dpr;
       ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
@@ -2737,12 +2741,13 @@ function analyze(V, F, floor) {
     const qx = Math.max(16 * dpr, left - 20 * dpr);
     arrow(qx, groundY, qx, topY);
     label(mR(Ht), Math.min(qx + 8 * dpr, W - 80 * dpr), (groundY + topY) / 2, "left");
-    const qy = Math.min(H - 12 * dpr, groundY + half * Math.sin(o.pitch) + 20 * dpr);   // sotto il bordo davanti del pavimento
+    const qy = Math.min(H - 34 * dpr, groundY - ext.y0 * Math.sin(o.pitch) * sc + 20 * dpr);   // sotto il punto più vicino a chi guarda
     ctx.strokeStyle = PAL.muted;
     ctx.beginPath(); ctx.moveTo(left, groundY + 4 * dpr); ctx.lineTo(left, qy + 6 * dpr); ctx.moveTo(right, groundY + 4 * dpr); ctx.lineTo(right, qy + 6 * dpr); ctx.stroke();
     ctx.strokeStyle = PAL.ink;
     arrow(left, qy, right, qy);
-    label("Ø " + mR(diam), cx, qy, "center");
+    label("larghezza " + mR(ext.x1 - ext.x0), cx, qy, "center");
+    ctx.save(); ctx.globalAlpha = 0.8; label("profondità " + mR(ext.y1 - ext.y0), cx, qy + 22 * dpr, "center"); ctx.restore();
     if (o.person) {
       const ph = 1.75 * cp * sc, px = Math.min(W - 18 * dpr, right + 26 * dpr), u = ph / 7.5, bw = u * 1.5, top = groundY - ph;
       ctx.fillStyle = PAL.muted; ctx.globalAlpha = 0.85;
