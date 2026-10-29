@@ -1198,10 +1198,10 @@ const SHAPES = [
       pick("pose", "Appoggio", [["giu", "Sdraiata, curva a terra"], ["su", "Con le punte all'insù"]], "giu")],
     build: (p, flat) => bananaMesh(p, flat) },
   { id: "scolo", group: "Forme speciali", name: "Scolopendra", kind: "sweep",
-    params: [pick("body", "Corpo", [["onda", "Ondulato"], ["dritto", "Dritto"]], "onda"), int("N", "Segmenti del corpo", 9, 3, 21), num("s", "Lunghezza di ogni segmento (m)", 0.8, 0.2), num("d", "Diametro del corpo (m)", 1.2, 0.3), int("m", "Lati del tubo", 6, 4, 10),
-      num("a", "Quanto ondeggia (gradi, solo corpo ondulato)", 30, 0, 5), int("e", "Una coppia di zampe ogni … segmenti", 1, 1, 5), num("lz", "Lunghezza delle zampe (m)", 0.9, 0.2),
-      pick("ant", "Antenne", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle antenne (m)", 1.4, 0.2),
-      pick("pin", "Pinze sulla coda", [["si", "Sì"], ["no", "No"]], "si"), num("lp", "Lunghezza delle pinze (m)", 1.1, 0.2)],
+    params: [pick("body", "Corpo", [["onda", "Ondulato"], ["dritto", "Dritto"]], "onda"), int("N", "Segmenti del corpo", 9, 3, 21), num("s", "Lunghezza di ogni segmento (m)", 1, 0.2), num("d", "Larghezza del corpo (m)", 2, 0.3), num("h", "Altezza del corpo (m)", 2.2, 0.3), int("m", "Lati del tubo", 6, 4, 10),
+      num("a", "Quanto ondeggia (gradi, solo corpo ondulato)", 25, 0, 5), int("e", "Una coppia di zampe ogni … segmenti", 1, 1, 5), num("lz", "Lunghezza delle zampe (m)", 1.4, 0.2),
+      pick("ant", "Antenne", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle antenne (m)", 2, 0.2),
+      pick("pin", "Pinze sulla coda", [["si", "Sì"], ["no", "No"]], "si"), num("lp", "Lunghezza delle pinze (m)", 1.6, 0.2)],
     build: (p, flat) => scoloMesh(p, flat) },
 ];
 
@@ -1258,7 +1258,9 @@ function scoloMesh(p, flat) {
   const N = p.N, s = p.s, amp = (p.body === "onda" ? p.a : 0) * Math.PI / 180;
   const path = [[0, 0]];
   for (let i = 0; i < N; i++) { const hd = amp * Math.sin(2 * Math.PI * (i + 0.5) / N), q = path[i]; path.push([q[0] + s * Math.cos(hd), q[1] + s * Math.sin(hd)]); }
-  const sec = tubeSection(p.m, p.d, flat), m = sec.length, P = path.length;
+  // sezione larga d e alta h: il tubo si stira in verticale, così dentro ci si sta in piedi
+  const sec0 = tubeSection(p.m, p.d, flat), top0 = Math.max(...sec0.map(q => q[1]));
+  const sec = sec0.map(([x, y]) => [x, y * p.h / top0]), m = sec.length, P = path.length;
   const { V, F, cluster } = sweep(path, false, sec);
   F.length -= 2; cluster.length -= 2;   // via i tappi: al loro posto testa e coda
   const cx = sec.reduce((t, q) => t + q[0], 0) / m, cy = sec.reduce((t, q) => t + q[1], 0) / m;
@@ -1307,7 +1309,7 @@ function scoloMesh(p, flat) {
       if (!f) return;
       // inclinata quanto basta perché la punta arrivi quasi a terra: se la toccasse con tutto il bordo,
       // il fianco sotto della zampa sarebbe sdraiato sul pavimento e verrebbe contato come pavimento
-      const minRel = Math.min(...F[f.fi].map(j => V[j][2] - f.fc[2])), gap = 0.05 * p.d;
+      const minRel = Math.min(...F[f.fi].map(j => V[j][2] - f.fc[2])), gap = 0.05 * Math.min(p.d, p.h);
       const sn = Math.max(-0.3, Math.min(0.8, (f.fc[2] + kz * minRel - gap) / p.lz)), cs = Math.sqrt(1 - sn * sn);
       tips[side].push(sprout(f.fi, [f.out[0] * cs, f.out[1] * cs, -sn], p.lz, kz, "zampa" + side + i));
     });
@@ -1667,7 +1669,7 @@ function analyze(V, F, floor) {
     snake: "Il serpente è un tubo che va avanti a zig-zag. Ogni tratto è un anello di pannelli, con i giunti tagliati a metà angolo come le cornici. Alle due estremità ci sono due tappi.",
     torus: "La ciambella è un tubo chiuso ad anello: si cammina dentro il tubo, intorno al buco centrale. Ogni spicchio è un anello di pannelli.",
     tunnel: "Il tunnel è una galleria appoggiata a terra: due pareti dritte, una volta ad arco fatta di spicchi e due fondi ad arco alle estremità. Più spicchi mettete, più l'arco è tondo. Nello sviluppo la volta è una sola striscia da piegare.",
-    scolo: "La scolopendra ha il corpo a segmenti, una coppia di zampe ogni tot segmenti, due antenne davanti e due pinze sulla coda: zampe, antenne e pinze sono piramidi senza punta che spuntano dai fianchi. Con il corpo dritto i segmenti sono tutti uguali e i tipi di pezzo pochi; ondulato è più vivo, ma ogni segmento curva in modo diverso e i tipi aumentano.",
+    scolo: "La scolopendra ha il corpo a segmenti, una coppia di zampe ogni tot segmenti, due antenne davanti e due pinze sulla coda: zampe, antenne e pinze sono piramidi senza punta che spuntano dai fianchi. Con il corpo dritto i segmenti sono tutti uguali e i tipi di pezzo pochi; ondulato è più vivo, ma ogni segmento curva in modo diverso e i tipi aumentano. Larghezza e altezza del corpo sono separate: con 2 m o più di altezza ci si cammina dentro in piedi, e le porte si tagliano dove servono.",
     banana: "La banana ha il corpo curvo a 5 facce, come il frutto vero, e due capi diversi: da una parte il picciolo, stretto e lungo, dall'altra una punta corta che si chiude quasi a cono. Si appoggia sdraiata, con la curva a terra, oppure con le punte all'insù: in quel caso il pavimento è il pannello sotto lo spicchio centrale.",
     boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",
     C: "La forma a C è disegnata in pianta come la L, ma con due bracci: una schiena e due bracci paralleli che lasciano un cortile aperto in mezzo. Pareti dritte e tetto piatto in un solo pezzo, con la stessa forma del pavimento.",
