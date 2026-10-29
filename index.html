@@ -1197,6 +1197,12 @@ const SHAPES = [
       num("tl", "Lunghezza della punta (m)", 0.9, 0.2), num("sl", "Lunghezza del picciolo (m)", 1.1, 0.2), int("ps", "Spessore del picciolo (% del corpo)", 30, 10, 70),
       pick("pose", "Appoggio", [["giu", "Sdraiata, curva a terra"], ["su", "Con le punte all'insù"]], "giu")],
     build: (p, flat) => bananaMesh(p, flat) },
+  { id: "scolo", group: "Forme speciali", name: "Scolopendra", kind: "sweep",
+    params: [pick("body", "Corpo", [["onda", "Ondulato"], ["dritto", "Dritto"]], "onda"), int("N", "Segmenti del corpo", 9, 3, 21), num("s", "Lunghezza di ogni segmento (m)", 0.8, 0.2), num("d", "Diametro del corpo (m)", 1.2, 0.3), int("m", "Lati del tubo", 6, 4, 10),
+      num("a", "Quanto ondeggia (gradi, solo corpo ondulato)", 30, 0, 5), int("e", "Una coppia di zampe ogni … segmenti", 1, 1, 5), num("lz", "Lunghezza delle zampe (m)", 0.9, 0.2),
+      pick("ant", "Antenne", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle antenne (m)", 1.4, 0.2),
+      pick("pin", "Pinze sulla coda", [["si", "Sì"], ["no", "No"]], "si"), num("lp", "Lunghezza delle pinze (m)", 1.1, 0.2)],
+    build: (p, flat) => scoloMesh(p, flat) },
 ];
 
 /* banana: corpo curvo a spicchi (giunti a metà angolo), da un capo il picciolo stretto e lungo, dall'altro una punta corta e tozza.
@@ -1243,6 +1249,85 @@ function bananaMesh(p, flat) {
     for (let k = 0; k < V.length; k++) V[k][2] -= z0;
   }
   return { V, F, cluster };
+}
+
+/* scolopendra: corpo a segmenti (dritto o a S), testa e coda che si stringono, zampe, antenne e pinze.
+   Zampe, antenne e pinze sono tronchi di piramide che nascono da una faccia del tubo: la punta è la stessa faccia
+   rimpicciolita e spostata, così ogni fianco resta un trapezio piano. */
+function scoloMesh(p, flat) {
+  const N = p.N, s = p.s, amp = (p.body === "onda" ? p.a : 0) * Math.PI / 180;
+  const path = [[0, 0]];
+  for (let i = 0; i < N; i++) { const hd = amp * Math.sin(2 * Math.PI * (i + 0.5) / N), q = path[i]; path.push([q[0] + s * Math.cos(hd), q[1] + s * Math.sin(hd)]); }
+  const sec = tubeSection(p.m, p.d, flat), m = sec.length, P = path.length;
+  const { V, F, cluster } = sweep(path, false, sec);
+  F.length -= 2; cluster.length -= 2;   // via i tappi: al loro posto testa e coda
+  const cx = sec.reduce((t, q) => t + q[0], 0) / m, cy = sec.reduce((t, q) => t + q[1], 0) / m;
+  const ctr = (idx) => mean3(idx.map(i => V[i]));
+  const norm2 = (v) => { const l = len2(v) || 1; return [v[0] / l, v[1] / l]; };
+  // un anello più stretto oltre il capo i, poi il tappo; restituisce le facce del tratto nuovo (una per lato del tubo)
+  const grow = (i, i2, len, sc, tag) => {
+    const t = norm2(sub2(path[i], path[i2])), lat = i === 0 ? [t[1], -t[0]] : [-t[1], t[0]];
+    const ring = [...Array(m).keys()].map(j => i * m + j), start = V.length, c = [path[i][0] + t[0] * len, path[i][1] + t[1] * len], faces = [];
+    sec.forEach(([x, y]) => { const xs = cx + (x - cx) * sc, ys = cy + (y - cy) * sc; V.push([c[0] + lat[0] * xs, c[1] + lat[1] * xs, ys]); });
+    for (let j = 0; j < m; j++) { const j2 = (j + 1) % m; faces.push(F.length); F.push([ring[j], ring[j2], start + j2, start + j]); cluster.push(tag); }
+    F.push([...Array(m).keys()].map(j => start + j)); cluster.push(tag + "-tappo");
+    return { faces, fw: [t[0], t[1], 0], center: ctr([...ring, ...[...Array(m).keys()].map(j => start + j)]) };
+  };
+  const removed = new Set(), tips = { L: [], R: [] };
+  const sprout = (fi, dir, len, k, tag) => {
+    const base = F[fi], fc = ctr(base), start = V.length, n = base.length;
+    base.forEach(i => V.push(V3.add(V3.add(fc, V3.mul(dir, len)), V3.mul(V3.sub(V[i], fc), k))));
+    for (let j = 0; j < n; j++) { F.push([base[j], base[(j + 1) % n], start + (j + 1) % n, start + j]); cluster.push(tag); }
+    F.push([...Array(n).keys()].map(j => start + j)); cluster.push(tag);
+    removed.add(fi);
+    return V3.add(fc, V3.mul(dir, len));
+  };
+  const unit = (v) => V3.norm(v);
+  // sceglie, su ogni fianco, la faccia bassa (zampe, pinze) o alta (antenne)
+  const pickSides = (faces, center, fw, low) => {
+    const lat = [-fw[1], fw[0], 0], out = {};
+    faces.forEach(fi => {
+      const fc = ctr(F[fi]), o = V3.sub(fc, center), side = V3.dot(o, lat) > 0 ? "L" : "R";
+      const n = unit(o), lateral = Math.abs(V3.dot(n, lat));
+      if (lateral < 0.3) return;                    // fondo o tetto
+      if (low ? n[2] > 0.05 : n[2] < -0.05) return;  // fianco basso o alto
+      const score = low ? -n[2] + lateral * 0.01 : n[2] + lateral * 0.01;
+      if (!out[side] || score > out[side].score) out[side] = { fi, fc, score, out: unit([o[0], o[1], 0]) };
+    });
+    return out;
+  };
+  const kz = 0.4;
+  for (let i = 0; i < N; i++) {
+    if ((N - 1 - i) % p.e) continue;
+    const faces = [...Array(m).keys()].map(j => i * m + j), center = ctr([...Array(2 * m).keys()].map(j => i * m + j));
+    const fw = [...norm2(sub2(path[i + 1], path[i])), 0];
+    const sd = pickSides(faces, center, fw, true);
+    ["L", "R"].forEach(side => {
+      const f = sd[side];
+      if (!f) return;
+      // inclinata quanto basta perché la punta arrivi quasi a terra: se la toccasse con tutto il bordo,
+      // il fianco sotto della zampa sarebbe sdraiato sul pavimento e verrebbe contato come pavimento
+      const minRel = Math.min(...F[f.fi].map(j => V[j][2] - f.fc[2])), gap = 0.05 * p.d;
+      const sn = Math.max(-0.3, Math.min(0.8, (f.fc[2] + kz * minRel - gap) / p.lz)), cs = Math.sqrt(1 - sn * sn);
+      tips[side].push(sprout(f.fi, [f.out[0] * cs, f.out[1] * cs, -sn], p.lz, kz, "zampa" + side + i));
+    });
+  }
+  // con il corpo troppo ondulato le zampe sul lato interno della curva si toccano
+  ["L", "R"].forEach(side => tips[side].forEach((t, j) => {
+    const u = tips[side][j + 1];
+    if (u && Math.hypot(u[0] - t[0], u[1] - t[1]) < kz * s * p.e + 0.05) throw new Error("Le zampe sul lato interno della curva si toccano: riducete l'ondulazione, accorciate le zampe o mettetene una coppia ogni 2 segmenti.");
+  }));
+  const head = grow(P - 1, P - 2, s * 0.5, 0.75, "testa"), tail = grow(0, 1, s * 0.5, 0.6, "coda");
+  if (p.ant === "si") {
+    const sd = pickSides(head.faces, head.center, head.fw, false);
+    ["L", "R"].forEach(side => { const f = sd[side]; if (f) sprout(f.fi, unit(V3.add(V3.add(V3.mul(head.fw, 0.8), V3.mul(f.out, 0.45)), [0, 0, 0.4])), p.la, 0.25, "antenna" + side); });
+  }
+  if (p.pin === "si") {
+    const sd = pickSides(tail.faces, tail.center, tail.fw, true);
+    ["L", "R"].forEach(side => { const f = sd[side]; if (f) sprout(f.fi, unit(V3.add(V3.add(V3.mul(tail.fw, 0.85), V3.mul(f.out, 0.45)), [0, 0, -0.05])), p.lp, 0.3, "pinza" + side); });
+  }
+  const keep = F.map((_, i) => !removed.has(i));
+  return { V, F: F.filter((_, i) => keep[i]), cluster: cluster.filter((_, i) => keep[i]) };
 }
 
 function orientOptions(def, V, F) {
@@ -1582,6 +1667,7 @@ function analyze(V, F, floor) {
     snake: "Il serpente è un tubo che va avanti a zig-zag. Ogni tratto è un anello di pannelli, con i giunti tagliati a metà angolo come le cornici. Alle due estremità ci sono due tappi.",
     torus: "La ciambella è un tubo chiuso ad anello: si cammina dentro il tubo, intorno al buco centrale. Ogni spicchio è un anello di pannelli.",
     tunnel: "Il tunnel è una galleria appoggiata a terra: due pareti dritte, una volta ad arco fatta di spicchi e due fondi ad arco alle estremità. Più spicchi mettete, più l'arco è tondo. Nello sviluppo la volta è una sola striscia da piegare.",
+    scolo: "La scolopendra ha il corpo a segmenti, una coppia di zampe ogni tot segmenti, due antenne davanti e due pinze sulla coda: zampe, antenne e pinze sono piramidi senza punta che spuntano dai fianchi. Con il corpo dritto i segmenti sono tutti uguali e i tipi di pezzo pochi; ondulato è più vivo, ma ogni segmento curva in modo diverso e i tipi aumentano.",
     banana: "La banana ha il corpo curvo a 5 facce, come il frutto vero, e due capi diversi: da una parte il picciolo, stretto e lungo, dall'altra una punta corta che si chiude quasi a cono. Si appoggia sdraiata, con la curva a terra, oppure con le punte all'insù: in quel caso il pavimento è il pannello sotto lo spicchio centrale.",
     boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",
     C: "La forma a C è disegnata in pianta come la L, ma con due bracci: una schiena e due bracci paralleli che lasciano un cortile aperto in mezzo. Pareti dritte e tetto piatto in un solo pezzo, con la stessa forma del pavimento.",
