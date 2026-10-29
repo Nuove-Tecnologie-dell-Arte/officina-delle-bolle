@@ -1203,19 +1203,19 @@ const SHAPES = [
       pick("ant", "Antenne", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle antenne (m)", 2, 0.2),
       pick("pin", "Pinze sulla coda", [["si", "Sì"], ["no", "No"]], "si"), num("lp", "Lunghezza delle pinze (m)", 1.6, 0.2)],
     build: (p, flat) => scoloMesh(p, flat) },
-  { id: "balena", group: "Figure da attraversare", name: "Balena", kind: "build", floorToggle: true,
+  { id: "balena", group: "Forme speciali", name: "Balena", kind: "build", floorToggle: true,
     params: [num("L", "Lunghezza del corpo (m)", 6.5, 2), num("W", "Larghezza massima (m)", 2.6, 0.5), num("H", "Altezza massima (m)", 2.4, 0.5), int("N", "Segmenti del corpo", 8, 4, 16), int("m", "Lati del tubo", 8, 5, 12),
       int("b", "Bocca: grandezza in % del corpo", 75, 40, 100), num("tl", "Lunghezza della coda (m)", 1.6, 0.3), pick("fin", "Pinne sul dorso e sui fianchi", [["si", "Sì"], ["no", "No"]], "si")],
     build: (p) => balenaMesh(p) },
-  { id: "fungo", group: "Figure da attraversare", name: "Fungo", kind: "build", floorToggle: true,
+  { id: "fungo", group: "Forme speciali", name: "Fungo", kind: "build", floorToggle: true,
     params: [int("n", "Lati", 8, 5, 16), num("dg", "Diametro del gambo (m)", 2.6, 0.5), num("hg", "Altezza del gambo (m)", 2.3, 0.3), num("dc", "Diametro del cappello (m)", 5, 1), num("hc", "Altezza del cappello (m)", 1.6, 0.3)],
     build: (p) => fungoMesh(p) },
-  { id: "razzo", group: "Figure da attraversare", name: "Razzo", kind: "build", floorToggle: true,
-    params: [int("n", "Lati", 8, 5, 16), num("d", "Diametro (m)", 2.6, 0.5), num("H", "Altezza del corpo (m)", 3.2, 1.2), num("hp", "Altezza della punta (m)", 1.8, 0.3),
-      pick("al", "Alette", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle alette (m)", 1, 0.2)],
+  { id: "razzo", group: "Forme speciali", name: "Razzo", kind: "build", floorToggle: true,
+    params: [int("n", "Lati (multiplo di 4)", 12, 8, 16), num("d", "Diametro (m)", 2.8, 0.5), num("H", "Altezza del corpo (m)", 3.6, 3.2), num("hp", "Altezza della punta (m)", 2, 0.3),
+      pick("al", "Alette", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle alette (m)", 1.5, 0.2), pick("ob", "Oblò", [["si", "Sì"], ["no", "No"]], "si")],
     build: (p) => razzoMesh(p) },
-  { id: "tarta", group: "Figure da attraversare", name: "Tartaruga", kind: "build", floorToggle: true,
-    params: [num("D", "Diametro del guscio (m)", 4.2, 1), num("H", "Altezza del guscio (m)", 2.4, 0.5), num("lt", "Lunghezza della testa (m)", 1, 0.2), num("lz", "Lunghezza delle zampe (m)", 0.7, 0.2), num("lc", "Lunghezza della coda (m)", 0.5, 0.1)],
+  { id: "tarta", group: "Forme speciali", name: "Tartaruga", kind: "build", floorToggle: true, yaw: -0.6,
+    params: [num("Lg", "Lunghezza del guscio (m)", 6, 1), num("D", "Larghezza del guscio (m)", 4.4, 1), num("H", "Altezza del guscio (m)", 2.3, 0.5), num("lt", "Lunghezza di collo e testa (m)", 2, 0.3), num("lz", "Lunghezza delle zampe (m)", 1.1, 0.2), num("lc", "Lunghezza della coda (m)", 0.7, 0.1)],
     build: (p) => tartaMesh(p) },
 ];
 
@@ -1422,28 +1422,44 @@ function fungoMesh(p) {
   return { V: L.V, F: L.F, cluster: L.cluster };
 }
 
-/* razzo: corpo cilindrico, ogiva in due tratti fino alla punta, quattro alette in basso */
+/* razzo: ugello stretto in basso che si allarga nel corpo, corpo tondo (tanti lati), ogiva arrotondata in quattro tratti,
+   quattro alette grandi che scendono fino a terra e un oblò sporgente: così non sembra una matita */
 function razzoMesh(p) {
   const n = p.n, R = p.d / 2, H = p.H, hp = p.hp;
-  const L = lathe([[R, 0], [R, 0.9], [R, H], [R * 0.78, H + 0.4 * hp], [R * 0.42, H + 0.75 * hp], [0, H + hp]], n, -Math.PI / n);
+  if (H < 3.2) throw new Error("Il corpo del razzo deve essere alto almeno 3,2 m: sotto ci sono l'ugello e le alette, sopra l'oblò.");
+  if (n % 4) throw new Error("I lati devono essere un multiplo di 4, così le quattro alette stanno alla stessa distanza: 8, 12 o 16.");
+  const L = lathe([[R * 0.82, 0], [R, 0.5], [R, 1.6], [R, 2.3], [R, 3.0], [R, H],
+    [R * 0.94, H + 0.25 * hp], [R * 0.8, H + 0.5 * hp], [R * 0.55, H + 0.75 * hp], [R * 0.22, H + 0.93 * hp], [0, H + hp]], n, -Math.PI / n);
   const removed = new Set();
   if (p.al === "si") [0, 1, 2, 3].forEach(q => {
-    const fi = L.band(0, Math.round(q * n / 4)), f = L.F[fi];
-    sproutFace(L.V, L.F, L.cluster, removed, fi, groundDir(L.V, f, outOf(L.V, f), p.la, 0.2, 0.08), p.la, 0.2, "aletta" + q);
+    const fi = L.band(1, q * n / 4), f = L.F[fi];
+    sproutFace(L.V, L.F, L.cluster, removed, fi, groundDir(L.V, f, outOf(L.V, f), p.la, 0.18, 0.05), p.la, 0.18, "aletta" + q);
   });
+  // oblò: un pannello che sporge poco, a metà fra due alette
+  if (p.ob === "si") { const fi = L.band(3, Math.round(n / 8)), f = L.F[fi]; sproutFace(L.V, L.F, L.cluster, removed, fi, outOf(L.V, f), 0.08, 0.6, "oblò"); }
   return dropFaces(L.V, L.F, L.cluster, removed);
 }
 
-/* tartaruga: guscio a 8 lati (bordo basso e cupola fino a un tetto piatto), testa davanti, coda dietro, 4 zampe sulle
-   diagonali; i due fianchi restano liberi per le porte */
+/* tartaruga: guscio ovale e basso che sporge sopra il corpo (la tesa), collo e testa ben fuori davanti, quattro zampe
+   a pinna sotto il guscio, coda a punta. L'ovale è il guscio tondo allungato in avanti: allungare in una direzione
+   lascia piatti i pannelli. I due fianchi restano liberi per le porte. */
 function tartaMesh(p) {
-  const R = p.D / 2, H = p.H, eb = 0.5;
-  if (H < 1.8) throw new Error("Il guscio è troppo basso per entrarci: almeno 1,8 m.");
-  const L = lathe([[R, 0], [R, eb], [0.86 * R, eb + 0.45 * (H - eb)], [0.52 * R, eb + 0.85 * (H - eb)], [0.3 * R, H]], 8, -Math.PI / 8);
-  const removed = new Set(), V = L.V, F = L.F, C = L.cluster;
-  sproutFace(V, F, C, removed, L.band(1, 0), V3.norm([1, 0, 0.25]), p.lt, 0.6, "testa");
-  sproutFace(V, F, C, removed, L.band(0, 4), V3.norm([-1, 0, -0.05]), p.lc, 0.3, "coda");
-  [1, 3, 5, 7].forEach(j => { const fi = L.band(0, j); sproutFace(V, F, C, removed, fi, groundDir(V, F[fi], outOf(V, F[fi]), p.lz, 0.6, 0.03), p.lz, 0.6, "zampa" + j); });
+  const R = p.D / 2, H = p.H, sk = 0.7, rim = 1.0;
+  if (H < rim + 0.8) throw new Error("Il guscio è troppo basso per entrarci: almeno 1,8 m.");
+  if (p.Lg < p.D) throw new Error("Il guscio deve essere lungo almeno quanto è largo.");
+  const L = lathe([[0.8 * R, 0], [0.8 * R, sk], [R, sk + 0.15], [R, rim], [0.86 * R, rim + 0.4 * (H - rim)], [0.56 * R, rim + 0.78 * (H - rim)], [0.26 * R, H]], 8, -Math.PI / 8);
+  const sx = p.Lg / p.D, V = L.V, F = L.F, C = L.cluster, removed = new Set();
+  V.forEach(v => { v[0] *= sx; });
+  // collo che sale in avanti, testa più grossa, muso che si stringe: ogni pezzo spunta dalla punta del precedente
+  sproutFace(V, F, C, removed, L.band(0, 0), V3.norm([1, 0, 0.95]), p.lt * 0.5, 0.6, "collo");
+  sproutFace(V, F, C, removed, F.length - 1, V3.norm([1, 0, 0.2]), p.lt * 0.3, 1.5, "testa");
+  sproutFace(V, F, C, removed, F.length - 1, V3.norm([1, 0, -0.15]), p.lt * 0.2, 0.55, "muso");
+  sproutFace(V, F, C, removed, L.band(0, 4), V3.norm([-1, 0, -0.1]), p.lc, 0.25, "coda");
+  // zampe davanti un po' in avanti, dietro un po' indietro
+  [[1, 0.6], [7, 0.6], [3, -0.5], [5, -0.5]].forEach(([j, fw]) => {
+    const fi = L.band(0, j), o = outOf(V, F[fi]);
+    sproutFace(V, F, C, removed, fi, groundDir(V, F[fi], [o[0] + fw, o[1], 0], p.lz, 0.5, 0.04), p.lz, 0.5, "zampa" + j);
+  });
   return dropFaces(V, F, C, removed);
 }
 
@@ -1786,8 +1802,8 @@ function analyze(V, F, floor) {
     tunnel: "Il tunnel è una galleria appoggiata a terra: due pareti dritte, una volta ad arco fatta di spicchi e due fondi ad arco alle estremità. Più spicchi mettete, più l'arco è tondo. Nello sviluppo la volta è una sola striscia da piegare.",
     balena: "La balena è un tunnel che si allarga dalla bocca e si stringe verso la coda, con la coda orizzontale, la pinna sul dorso e due pinne sui fianchi. Si entra dalla bocca, che è il pannello davanti, e si esce da una porta tagliata nell'ultimo pannello del fianco o sotto la coda.",
     fungo: "Il fungo ha un gambo grosso che fa da stanza e un cappello largo che sporge tutto intorno, con la tesa che scende sotto il bordo. Le porte si tagliano in due pannelli opposti del gambo: si passa da una parte all'altra sotto il cappello.",
-    razzo: "Il razzo è una torre a più lati con la punta a ogiva e quattro alette in basso. Le porte si tagliano nei pannelli lunghi del corpo, fra un'aletta e l'altra, uno davanti e uno dietro.",
-    tarta: "La tartaruga ha un guscio a 8 lati con il bordo basso e la cupola fino a un tetto piatto, la testa davanti, la coda dietro e quattro zampe tozze sulle diagonali. I due fianchi restano liberi: le porte si tagliano lì, nel bordo e nel pannello sopra, e si attraversa da un fianco all'altro.",
+    razzo: "Il razzo ha il corpo tondo che parte da un ugello più stretto, la punta arrotondata, quattro alette grandi che scendono fino a terra e un oblò che sporge. Le porte si tagliano nei pannelli del corpo fra un'aletta e l'altra, una davanti e una dietro.",
+    tarta: "La tartaruga ha il guscio ovale e basso che sporge sopra il corpo, il collo con la testa ben fuori davanti, quattro zampe a pinna e la coda a punta. I due fianchi, fra le zampe, restano liberi: le porte si tagliano lì, nel corpo e nella tesa del guscio, e si attraversa da un fianco all'altro.",
     scolo: "La scolopendra ha il corpo a segmenti, una coppia di zampe ogni tot segmenti, due antenne davanti e due pinze sulla coda: zampe, antenne e pinze sono piramidi senza punta che spuntano dai fianchi. Con il corpo dritto i segmenti sono tutti uguali e i tipi di pezzo pochi; ondulato è più vivo, ma ogni segmento curva in modo diverso e i tipi aumentano. Larghezza e altezza del corpo sono separate: con 2 m o più di altezza ci si cammina dentro in piedi, e le porte si tagliano dove servono.",
     banana: "La banana ha il corpo curvo a 5 facce, come il frutto vero, e due capi diversi: da una parte il picciolo, stretto e lungo, dall'altra una punta corta che si chiude quasi a cono. Si appoggia sdraiata, con la curva a terra, oppure con le punte all'insù: in quel caso il pavimento è il pannello sotto lo spicchio centrale.",
     boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",
@@ -1809,6 +1825,9 @@ function analyze(V, F, floor) {
   function selectShape(id) {
     if (id === state.shape) return;
     state.shape = id; state.opt.fit = false;
+    // alcune forme si riconoscono meglio da un lato preciso (la tartaruga di profilo, con la testa in vista)
+    const sd = SHAPES.find(s => s.id === id);
+    if (sd && sd.yaw != null) rot.yaw = sd.yaw;
     document.querySelectorAll(".tile").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
     renderParams(); update();
   }
