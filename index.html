@@ -1203,6 +1203,20 @@ const SHAPES = [
       pick("ant", "Antenne", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle antenne (m)", 2, 0.2),
       pick("pin", "Pinze sulla coda", [["si", "Sì"], ["no", "No"]], "si"), num("lp", "Lunghezza delle pinze (m)", 1.6, 0.2)],
     build: (p, flat) => scoloMesh(p, flat) },
+  { id: "balena", group: "Figure da attraversare", name: "Balena", kind: "build", floorToggle: true,
+    params: [num("L", "Lunghezza del corpo (m)", 6.5, 2), num("W", "Larghezza massima (m)", 2.6, 0.5), num("H", "Altezza massima (m)", 2.4, 0.5), int("N", "Segmenti del corpo", 8, 4, 16), int("m", "Lati del tubo", 8, 5, 12),
+      int("b", "Bocca: grandezza in % del corpo", 75, 40, 100), num("tl", "Lunghezza della coda (m)", 1.6, 0.3), pick("fin", "Pinne sul dorso e sui fianchi", [["si", "Sì"], ["no", "No"]], "si")],
+    build: (p) => balenaMesh(p) },
+  { id: "fungo", group: "Figure da attraversare", name: "Fungo", kind: "build", floorToggle: true,
+    params: [int("n", "Lati", 8, 5, 16), num("dg", "Diametro del gambo (m)", 2.6, 0.5), num("hg", "Altezza del gambo (m)", 2.3, 0.3), num("dc", "Diametro del cappello (m)", 5, 1), num("hc", "Altezza del cappello (m)", 1.6, 0.3)],
+    build: (p) => fungoMesh(p) },
+  { id: "razzo", group: "Figure da attraversare", name: "Razzo", kind: "build", floorToggle: true,
+    params: [int("n", "Lati", 8, 5, 16), num("d", "Diametro (m)", 2.6, 0.5), num("H", "Altezza del corpo (m)", 3.2, 1.2), num("hp", "Altezza della punta (m)", 1.8, 0.3),
+      pick("al", "Alette", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle alette (m)", 1, 0.2)],
+    build: (p) => razzoMesh(p) },
+  { id: "tarta", group: "Figure da attraversare", name: "Tartaruga", kind: "build", floorToggle: true,
+    params: [num("D", "Diametro del guscio (m)", 4.2, 1), num("H", "Altezza del guscio (m)", 2.4, 0.5), num("lt", "Lunghezza della testa (m)", 1, 0.2), num("lz", "Lunghezza delle zampe (m)", 0.7, 0.2), num("lc", "Lunghezza della coda (m)", 0.5, 0.1)],
+    build: (p) => tartaMesh(p) },
 ];
 
 /* banana: corpo curvo a spicchi (giunti a metà angolo), da un capo il picciolo stretto e lungo, dall'altro una punta corta e tozza.
@@ -1251,9 +1265,88 @@ function bananaMesh(p, flat) {
   return { V, F, cluster };
 }
 
+/* tronco di piramide che spunta da una faccia: la punta è la stessa faccia rimpicciolita di k e spostata di len·dir,
+   così ogni fianco resta un trapezio piano. La faccia di partenza finisce in "removed" e si toglie alla fine con dropFaces. */
+function sproutFace(V, F, cluster, removed, fi, dir, len, k, tag) {
+  const base = F[fi], fc = mean3(base.map(i => V[i])), start = V.length, n = base.length;
+  base.forEach(i => V.push(V3.add(V3.add(fc, V3.mul(dir, len)), V3.mul(V3.sub(V[i], fc), k))));
+  for (let j = 0; j < n; j++) { F.push([base[j], base[(j + 1) % n], start + (j + 1) % n, start + j]); cluster.push(tag); }
+  F.push([...Array(n).keys()].map(j => start + j)); cluster.push(tag);
+  removed.add(fi);
+  return V3.add(fc, V3.mul(dir, len));
+}
+function dropFaces(V, F, cluster, removed) {
+  const keep = F.map((_, i) => !removed.has(i));
+  return { V, F: F.filter((_, i) => keep[i]), cluster: cluster.filter((_, i) => keep[i]) };
+}
+/* direzione verso "out" (in pianta) inclinata quanto basta perché la punta arrivi quasi a terra: se la toccasse con tutto
+   il bordo, il fianco sotto sarebbe sdraiato sul pavimento e verrebbe contato come pavimento */
+function groundDir(V, face, out, len, k, gap) {
+  const fc = mean3(face.map(i => V[i])), minRel = Math.min(...face.map(j => V[j][2] - fc[2]));
+  const sn = Math.max(-0.3, Math.min(0.8, (fc[2] + k * minRel - gap) / len)), cs = Math.sqrt(1 - sn * sn), h = Math.hypot(out[0], out[1]) || 1;
+  return [out[0] / h * cs, out[1] / h * cs, -sn];
+}
+/* solido "al tornio": anelli di poligoni regolari a n lati, uno per ogni [raggio, quota] dal basso verso l'alto.
+   Due anelli vicini sono simili e allineati, quindi le facce fra loro sono trapezi piani; raggio 0 = punta.
+   band(i, j) è la faccia j della fascia fra l'anello i e il successivo: con rot = -π/n la faccia 0 guarda avanti (+x). */
+function lathe(profile, n, rot) {
+  const V = [], F = [], cluster = [], rings = [], bands = [];
+  profile.forEach(([r, z]) => {
+    if (r < 1e-9) { rings.push([V.length]); V.push([0, 0, z]); return; }
+    const s = V.length;
+    for (let j = 0; j < n; j++) { const a = rot + 2 * Math.PI * j / n; V.push([r * Math.cos(a), r * Math.sin(a), z]); }
+    rings.push([...Array(n).keys()].map(j => s + j));
+  });
+  if (rings[0].length > 1) { F.push(rings[0].slice().reverse()); cluster.push("base"); }
+  for (let i = 0; i < rings.length - 1; i++) {
+    const A = rings[i], B = rings[i + 1];
+    bands.push([]);
+    for (let j = 0; j < n; j++) {
+      const j2 = (j + 1) % n;
+      bands[i].push(F.length);
+      F.push(B.length === 1 ? [A[j], A[j2], B[0]] : A.length === 1 ? [A[0], B[j2], B[j]] : [A[j], A[j2], B[j2], B[j]]);
+      cluster.push("fascia" + i);
+    }
+  }
+  const last = rings[rings.length - 1];
+  if (last.length > 1) { F.push(last.slice()); cluster.push("cima"); }
+  return { V, F, cluster, band: (i, j) => bands[i][((j % n) + n) % n] };
+}
+// direzione in pianta dal centro verso una faccia (per far spuntare zampe e alette verso l'esterno)
+const outOf = (V, face) => { const c = mean3(face.map(i => V[i])), h = Math.hypot(c[0], c[1]) || 1; return [c[0] / h, c[1] / h, 0]; };
+
+/* balena: corpo dritto a tunnel che si allarga dalla bocca e si stringe verso la coda. Gli anelli sono la stessa sezione
+   ingrandita attorno al punto in basso al centro, così il pavimento resta piatto e i fianchi sono trapezi piani.
+   Coda orizzontale (due tronchi di piramide indietro e in fuori), pinna sul dorso e pinne pettorali. */
+function balenaMesh(p) {
+  const N = p.N, m = p.m, b = p.b / 100;
+  const sec0 = tubeSection(m, p.W, true), top0 = Math.max(...sec0.map(q => q[1]));
+  const sec = sec0.map(([x, y]) => [x, y * p.H / top0]);
+  const scale = (t) => t < 0.45 ? b + (1 - b) * Math.sin(Math.PI / 2 * t / 0.45) : 1 - 0.65 * Math.pow((t - 0.45) / 0.55, 1.3);
+  const V = [], F = [], cluster = [];
+  for (let i = 0; i <= N; i++) { const t = i / N, s = scale(t); sec.forEach(([x, y]) => V.push([-p.L * t, x * s, y * s])); }
+  for (let i = 0; i < N; i++) for (let j = 0; j < m; j++) { const j2 = (j + 1) % m; F.push([i * m + j, i * m + j2, (i + 1) * m + j2, (i + 1) * m + j]); cluster.push(i); }
+  F.push([...Array(m).keys()].reverse()); cluster.push("bocca");
+  F.push([...Array(m).keys()].map(j => N * m + j)); cluster.push("coda");
+  const removed = new Set();
+  // la faccia del segmento i che punta di più nella direzione "want"
+  const best = (i, want) => {
+    const c = mean3([...Array(2 * m).keys()].map(j => V[i * m + j]));
+    let bi = -1, bs = -Infinity;
+    for (let j = 0; j < m; j++) { const fi = i * m + j, n = V3.norm(V3.sub(mean3(F[fi].map(k => V[k])), c)), sc = V3.dot(n, want); if (sc > bs) { bs = sc; bi = fi; } }
+    return bi;
+  };
+  // coda: dai fianchi dell'ultimo segmento, indietro e in fuori, appena all'insù
+  [1, -1].forEach(sd => sproutFace(V, F, cluster, removed, best(N - 1, [0, sd, 0]), V3.norm([-0.8, 0.6 * sd, 0.08]), p.tl, 0.35, "coda" + sd));
+  if (p.fin === "si") {
+    sproutFace(V, F, cluster, removed, best(Math.round(N * 0.5), [0, 0, 1]), V3.norm([-0.55, 0, 0.83]), 0.35 * p.H, 0.3, "dorso");
+    [1, -1].forEach(sd => { const fi = best(Math.min(1, N - 2), V3.norm([0, sd, -0.6])); sproutFace(V, F, cluster, removed, fi, groundDir(V, F[fi], [-0.35, sd, 0], 0.45 * p.W, 0.4, 0.05 * p.H), 0.45 * p.W, 0.4, "pinna" + sd); });
+  }
+  return dropFaces(V, F, cluster, removed);
+}
+
 /* scolopendra: corpo a segmenti (dritto o a S), testa e coda che si stringono, zampe, antenne e pinze.
-   Zampe, antenne e pinze sono tronchi di piramide che nascono da una faccia del tubo: la punta è la stessa faccia
-   rimpicciolita e spostata, così ogni fianco resta un trapezio piano. */
+   Zampe, antenne e pinze sono tronchi di piramide che nascono da una faccia del tubo (sproutFace). */
 function scoloMesh(p, flat) {
   const N = p.N, s = p.s, amp = (p.body === "onda" ? p.a : 0) * Math.PI / 180;
   const path = [[0, 0]];
@@ -1276,14 +1369,7 @@ function scoloMesh(p, flat) {
     return { faces, fw: [t[0], t[1], 0], center: ctr([...ring, ...[...Array(m).keys()].map(j => start + j)]) };
   };
   const removed = new Set(), tips = { L: [], R: [] };
-  const sprout = (fi, dir, len, k, tag) => {
-    const base = F[fi], fc = ctr(base), start = V.length, n = base.length;
-    base.forEach(i => V.push(V3.add(V3.add(fc, V3.mul(dir, len)), V3.mul(V3.sub(V[i], fc), k))));
-    for (let j = 0; j < n; j++) { F.push([base[j], base[(j + 1) % n], start + (j + 1) % n, start + j]); cluster.push(tag); }
-    F.push([...Array(n).keys()].map(j => start + j)); cluster.push(tag);
-    removed.add(fi);
-    return V3.add(fc, V3.mul(dir, len));
-  };
+  const sprout = (fi, dir, len, k, tag) => sproutFace(V, F, cluster, removed, fi, dir, len, k, tag);
   const unit = (v) => V3.norm(v);
   // sceglie, su ogni fianco, la faccia bassa (zampe, pinze) o alta (antenne)
   const pickSides = (faces, center, fw, low) => {
@@ -1307,11 +1393,7 @@ function scoloMesh(p, flat) {
     ["L", "R"].forEach(side => {
       const f = sd[side];
       if (!f) return;
-      // inclinata quanto basta perché la punta arrivi quasi a terra: se la toccasse con tutto il bordo,
-      // il fianco sotto della zampa sarebbe sdraiato sul pavimento e verrebbe contato come pavimento
-      const minRel = Math.min(...F[f.fi].map(j => V[j][2] - f.fc[2])), gap = 0.05 * Math.min(p.d, p.h);
-      const sn = Math.max(-0.3, Math.min(0.8, (f.fc[2] + kz * minRel - gap) / p.lz)), cs = Math.sqrt(1 - sn * sn);
-      tips[side].push(sprout(f.fi, [f.out[0] * cs, f.out[1] * cs, -sn], p.lz, kz, "zampa" + side + i));
+      tips[side].push(sprout(f.fi, groundDir(V, F[f.fi], f.out, p.lz, kz, 0.05 * Math.min(p.d, p.h)), p.lz, kz, "zampa" + side + i));
     });
   }
   // con il corpo troppo ondulato le zampe sul lato interno della curva si toccano
@@ -1328,8 +1410,41 @@ function scoloMesh(p, flat) {
     const sd = pickSides(tail.faces, tail.center, tail.fw, true);
     ["L", "R"].forEach(side => { const f = sd[side]; if (f) sprout(f.fi, unit(V3.add(V3.add(V3.mul(tail.fw, 0.85), V3.mul(f.out, 0.45)), [0, 0, -0.05])), p.lp, 0.3, "pinza" + side); });
   }
-  const keep = F.map((_, i) => !removed.has(i));
-  return { V, F: F.filter((_, i) => keep[i]), cluster: cluster.filter((_, i) => keep[i]) };
+  return dropFaces(V, F, cluster, removed);
+}
+
+/* fungo: gambo (la stanza) e cappello che sporge, con la tesa che scende sotto il bordo */
+function fungoMesh(p) {
+  const n = p.n, Rg = p.dg / 2, Rc = p.dc / 2, hg = p.hg, hc = p.hc;
+  if (Rc * 0.92 < Rg * 0.9 + 0.3) throw new Error("Il cappello deve essere più largo del gambo di almeno 60 cm: aumentate il diametro del cappello.");
+  if (hg < 1.9) throw new Error("Il gambo è troppo basso per passarci sotto: almeno 1,9 m.");
+  const L = lathe([[Rg, 0], [Rg * 0.9, hg], [Rc * 0.92, hg - 0.25], [Rc, hg + 0.15], [Rc * 0.82, hg + 0.65 * hc], [Rc * 0.45, hg + 0.92 * hc], [0, hg + hc]], n, -Math.PI / n);
+  return { V: L.V, F: L.F, cluster: L.cluster };
+}
+
+/* razzo: corpo cilindrico, ogiva in due tratti fino alla punta, quattro alette in basso */
+function razzoMesh(p) {
+  const n = p.n, R = p.d / 2, H = p.H, hp = p.hp;
+  const L = lathe([[R, 0], [R, 0.9], [R, H], [R * 0.78, H + 0.4 * hp], [R * 0.42, H + 0.75 * hp], [0, H + hp]], n, -Math.PI / n);
+  const removed = new Set();
+  if (p.al === "si") [0, 1, 2, 3].forEach(q => {
+    const fi = L.band(0, Math.round(q * n / 4)), f = L.F[fi];
+    sproutFace(L.V, L.F, L.cluster, removed, fi, groundDir(L.V, f, outOf(L.V, f), p.la, 0.2, 0.08), p.la, 0.2, "aletta" + q);
+  });
+  return dropFaces(L.V, L.F, L.cluster, removed);
+}
+
+/* tartaruga: guscio a 8 lati (bordo basso e cupola fino a un tetto piatto), testa davanti, coda dietro, 4 zampe sulle
+   diagonali; i due fianchi restano liberi per le porte */
+function tartaMesh(p) {
+  const R = p.D / 2, H = p.H, eb = 0.5;
+  if (H < 1.8) throw new Error("Il guscio è troppo basso per entrarci: almeno 1,8 m.");
+  const L = lathe([[R, 0], [R, eb], [0.86 * R, eb + 0.45 * (H - eb)], [0.52 * R, eb + 0.85 * (H - eb)], [0.3 * R, H]], 8, -Math.PI / 8);
+  const removed = new Set(), V = L.V, F = L.F, C = L.cluster;
+  sproutFace(V, F, C, removed, L.band(1, 0), V3.norm([1, 0, 0.25]), p.lt, 0.6, "testa");
+  sproutFace(V, F, C, removed, L.band(0, 4), V3.norm([-1, 0, -0.05]), p.lc, 0.3, "coda");
+  [1, 3, 5, 7].forEach(j => { const fi = L.band(0, j); sproutFace(V, F, C, removed, fi, groundDir(V, F[fi], outOf(V, F[fi]), p.lz, 0.6, 0.03), p.lz, 0.6, "zampa" + j); });
+  return dropFaces(V, F, C, removed);
 }
 
 function orientOptions(def, V, F) {
@@ -1669,6 +1784,10 @@ function analyze(V, F, floor) {
     snake: "Il serpente è un tubo che va avanti a zig-zag. Ogni tratto è un anello di pannelli, con i giunti tagliati a metà angolo come le cornici. Alle due estremità ci sono due tappi.",
     torus: "La ciambella è un tubo chiuso ad anello: si cammina dentro il tubo, intorno al buco centrale. Ogni spicchio è un anello di pannelli.",
     tunnel: "Il tunnel è una galleria appoggiata a terra: due pareti dritte, una volta ad arco fatta di spicchi e due fondi ad arco alle estremità. Più spicchi mettete, più l'arco è tondo. Nello sviluppo la volta è una sola striscia da piegare.",
+    balena: "La balena è un tunnel che si allarga dalla bocca e si stringe verso la coda, con la coda orizzontale, la pinna sul dorso e due pinne sui fianchi. Si entra dalla bocca, che è il pannello davanti, e si esce da una porta tagliata nell'ultimo pannello del fianco o sotto la coda.",
+    fungo: "Il fungo ha un gambo grosso che fa da stanza e un cappello largo che sporge tutto intorno, con la tesa che scende sotto il bordo. Le porte si tagliano in due pannelli opposti del gambo: si passa da una parte all'altra sotto il cappello.",
+    razzo: "Il razzo è una torre a più lati con la punta a ogiva e quattro alette in basso. Le porte si tagliano nei pannelli lunghi del corpo, fra un'aletta e l'altra, uno davanti e uno dietro.",
+    tarta: "La tartaruga ha un guscio a 8 lati con il bordo basso e la cupola fino a un tetto piatto, la testa davanti, la coda dietro e quattro zampe tozze sulle diagonali. I due fianchi restano liberi: le porte si tagliano lì, nel bordo e nel pannello sopra, e si attraversa da un fianco all'altro.",
     scolo: "La scolopendra ha il corpo a segmenti, una coppia di zampe ogni tot segmenti, due antenne davanti e due pinze sulla coda: zampe, antenne e pinze sono piramidi senza punta che spuntano dai fianchi. Con il corpo dritto i segmenti sono tutti uguali e i tipi di pezzo pochi; ondulato è più vivo, ma ogni segmento curva in modo diverso e i tipi aumentano. Larghezza e altezza del corpo sono separate: con 2 m o più di altezza ci si cammina dentro in piedi, e le porte si tagliano dove servono.",
     banana: "La banana ha il corpo curvo a 5 facce, come il frutto vero, e due capi diversi: da una parte il picciolo, stretto e lungo, dall'altra una punta corta che si chiude quasi a cono. Si appoggia sdraiata, con la curva a terra, oppure con le punte all'insù: in quel caso il pavimento è il pannello sotto lo spicchio centrale.",
     boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",
@@ -3009,7 +3128,10 @@ function analyze(V, F, floor) {
   buildGallery();
   renderParams();
   state.opt.cut = true; state.opt.fit = true;
-  rule345(); update(); initStep(); loop();
+  rule345(); update();
+  // ?forma=balena nell'indirizzo apre direttamente quella forma (per mandare il link a una forma precisa)
+  try { const q = new URLSearchParams(location.search).get("forma"); if (q && SHAPES.some(s => s.id === q)) selectShape(q); } catch (e) { /* indirizzo senza parametri */ }
+  initStep(); loop();
   setTimeout(buildThumbs, 60);
   initProjects();
 })();
