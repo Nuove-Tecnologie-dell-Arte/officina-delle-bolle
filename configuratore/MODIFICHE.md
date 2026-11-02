@@ -59,6 +59,20 @@ Pezzi aggiunti:
   - si gonfia a cuscino (`st.gon`), si abbassa sgonfiandosi (`st.hk`) e fa pieghe quando è molle (`st.fl`);
   - i pannelli che guardano in su prendono il materiale del cielo stellato.
 
+## Le forme dell'Officina nella griglia "Bolle"
+Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 15 forme dell'Officina che il configuratore non aveva: Cupola, Dodecaedro, Forma a L, Forma a C, Freccia, Serpente, Ciambella, Tunnel, Barca, Banana, Scolopendra, Balena, Fungo, Razzo, Tartaruga.
+- **Motore.** `caricaMotoreOfficina()` legge `../index.html` (la pagina dell'Officina, stesso sito), prende il codice tra `// ENGINE START` e `// ENGINE END` e lo esegue. Non c'è codice copiato.
+  - Se si cambiano o si tolgono quei due segnaposto nell'Officina, il configuratore non trova più le forme.
+  - Aperto da solo, il configuratore mostra solo le bolle originali.
+- **Tipi `of:<id>`.** Sono creati da `FORME_OFF`:
+  - `par` sono i parametri numerici dell'Officina tradotti da `parOff()`;
+  - `scelte` sono i parametri a scelta (posa, pinne…), mostrati con `sceltaRiga()` nel pannello Aggiungi e nella scheda Forma;
+  - `f` sono i gonfiatori consigliati, calcolati la prima volta che servono.
+- **`formaOff()`, chiamata da `forma()`.** Costruisce la mesh con `buildShape` dell'Officina, con le opzioni di partenza dell'Officina, e la passa a `formaOfficina()`.
+  - La mesh resta in `d.mesh`, così le composizioni salvate si riaprono anche senza motore.
+  - Con misure impossibili tiene la forma di prima e mostra il messaggio dell'Officina.
+- **Altre aggiunte:** `ICONE['of:…']` (15 icone), `standard()` con le scelte, e una riga in `disegnaTipi()` e in `ispettore()` per le tendine.
+
 Funzioni originali ritoccate, una riga ciascuna, sempre con `[Officina]`:
 - **`costruisciPezzo`**: il guscio al posto di pareti e soffitto, le stelle sul guscio, le linee delle cuciture vere. Non disegna le linee dello strappo.
 - **`aggiornaPezzo`**: aggiorna guscio, stelle e linee; le cornici delle porte si spostano di `e.fuori`.

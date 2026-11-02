@@ -692,8 +692,24 @@ const ICONE = {
   croce: '<path d="M11 3h8v8h8v8h-8v8h-8v-8H3v-8h8z"/>',
   libera: '<path d="M6 8c3-4 9-3 12 0s8 1 8 6-3 9-8 9-4-3-9-2-6-2-6-6 0-5 3-7z"/>',
   officina: '<path d="M3 25h24 M5 25V17l10-12 10 12v8 M5 17h20 M15 5v20"/>',   // [Officina]
+  // [Officina] le forme dell'Officina nella griglia "Bolle"
+  'of:d20': '<path d="M3 24h24 M4 24a11 11 0 0 1 22 0 M15 13v11 M15 13l-7 4-3 7 M15 13l7 4 3 7 M8 17l7 7 7-7"/>',
+  'of:d12': '<path d="M15 3l11 8-4 13H8L4 11z M15 8l6 4.4-2.3 7.1h-7.4L9 12.4z M15 3v5 M26 11l-5 1.4 M22 24l-3.3-4.5 M8 24l3.3-4.5 M4 11l5 1.4"/>',
+  'of:L': '<path d="M5 4h8v14h13v8H5z"/>',
+  'of:C': '<path d="M6 4h19v7H13v8h12v7H6z"/>',
+  'of:arrow': '<path d="M3 11h13V5l11 10-11 10v-6H3z"/>',
+  'of:snake': '<path d="M3 23l6-11 6 11 6-11 6 11 M3 17l6-11 6 11 6-11 6 11"/>',
+  'of:torus': '<ellipse cx="15" cy="16" rx="12" ry="7.5"/><ellipse cx="15" cy="15" rx="5" ry="2.5"/>',
+  'of:tunnel': '<path d="M3 25V14a12 9 0 0 1 24 0v11 M9 25v-9a6 5 0 0 1 12 0v9 M3 25h6 M21 25h6"/>',
+  'of:boat': '<path d="M3 18h24l-4 7H7z M15 18V4l8 12h-8"/>',
+  'of:banana': '<path d="M5 8c1 10 9 16 20 13l2-2c-10 1-17-5-19-12z M5 8l-1-3"/>',
+  'of:scolo': '<ellipse cx="15" cy="15" rx="12" ry="3"/><path d="M8 12l-2-5 M8 18l-2 5 M13 12l-1-5 M13 18l-1 5 M18 12l1-5 M18 18l1 5 M23 12l2-5 M23 18l2 5"/>',
+  'of:balena': '<path d="M3 17c0-6 6-9 12-9 7 0 10 4 10 8 0 3-3 5-8 5H8c-3 0-5-1-5-4z M24 14l3-5 M24 16l3 3 M8 14h1"/>',
+  'of:fungo': '<path d="M3 15a12 10 0 0 1 24 0z M11 15v10h8V15"/>',
+  'of:razzo': '<path d="M15 3c4 3 5 8 5 13v6H10v-6c0-5 1-10 5-13z M10 18l-4 6h4 M20 18l4 6h-4"/><circle cx="15" cy="12" r="2"/>',
+  'of:tarta': '<path d="M4 20a11 9 0 0 1 22 0z M4 20h22 M26 18c2 0 3-1 3-3 M8 20l-2 4 M22 20l2 4 M10 14l5 3 5-3"/>',
 };
-const standard = t => Object.fromEntries(TIPI[t].par.map(p => [p[0], p[5]]));
+const standard = t => Object.fromEntries([...TIPI[t].par.map(p => [p[0], p[5]]), ...(TIPI[t].scelte || []).map(s => [s.key, s.def])]);   // [Officina] anche le scelte
 const descrStd = t => TIPI[t].par.map(p => p[1] + ' ' + (p[6] === 'm' ? fmt(p[5], 2) + ' m' : p[5] + (p[6] || ''))).join(' · ');
 
 // corridoi sagomati (dai cartamodelli): pianta come poligono, bocche alle estremità, pareti verticali e soffitto piatto
@@ -842,8 +858,50 @@ function formaOfficina(d) {
     cuciture: O.lungCuc, Rc: Math.max(...V.map(v => Math.hypot(...v))), corr: false, libero: false, spigoli: null, W2: O.ri, mesh: true, off: O, Vs: O.Vs, sup: O.sup, alt: O.altA,
     peso: () => pesoTelo(), luce: Math.max(0.5, O.luce) };
 }
+// [Officina] le forme dell'Officina nella griglia "Bolle": il motore si legge dalla pagina dell'Officina (stesso sito), senza copiarlo
+const FORME_OFF = [['d20', 'Cupola'], ['d12', 'Dodecaedro'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Ciambella'], ['tunnel', 'Tunnel'],
+  ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Scolopendra'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga']];
+let MOTORE_OFF = null;
+const _ofMesh = new Map();   // forma + misure → mesh già costruita
+function parOff(q) {   // parametro dell'Officina → [chiave, etichetta, min, max, passo, standard, unità] del configuratore
+  if (q.type === 'int') return [q.key, q.label, q.min, q.max, 1, q.def, ''];
+  const m = q.label.match(/\s*\((m|gradi|%[^)]*)\)\s*$/), u = !m ? '' : m[1] === 'm' ? 'm' : m[1] === 'gradi' ? '°' : '%', lab = m ? q.label.slice(0, m.index) : q.label;
+  return [q.key, lab, q.min, u === '°' ? Math.max(180, q.def * 2) : u === '%' ? 100 : Math.max(q.def * 3, 6), q.step, q.def, u];
+}
+async function caricaMotoreOfficina() {
+  try {
+    const r = await fetch('../index.html', { cache: 'no-cache' }); if (!r.ok) return;
+    const t = await r.text(), a = t.indexOf('// ENGINE START'), b = t.indexOf('// ENGINE END'); if (a < 0 || b < a) return;
+    MOTORE_OFF = new Function(t.slice(a, b) + '\nreturn { SHAPES, buildShape };')();
+  } catch (e) { MOTORE_OFF = null; return; }   // configuratore aperto da solo: restano le bolle originali
+  for (const [id, nome] of FORME_OFF) {
+    const def = MOTORE_OFF.SHAPES.find(s => s.id === id), k = 'of:' + id; if (!def) continue;
+    TIPI[k] = { nome, off: id, par: def.params.filter(q => q.type === 'num' || q.type === 'int').map(parOff),
+      scelte: def.params.filter(q => q.type === 'pick').map(q => ({ key: q.key, label: q.label, options: q.options, def: q.def })),
+      get f() { return this._f || (this._f = gonfConsigliati({ tipo: k, d: standard(k) }) || { piccolo: 1, grande: 0 }); } };   // di partenza i gonfiatori che la tengono su (calcolati la prima volta che serve)
+    if (!CAT.bolle.includes(k)) CAT.bolle.push(k);
+  }
+  if (catAgg === 'bolle' && !$('aggForma').hidden) disegnaTipi();
+}
+function formaOff(tipo, d) {
+  const T = TIPI[tipo];
+  if (MOTORE_OFF && T) {
+    const def = MOTORE_OFF.SHAPES.find(s => s.id === T.off), p = {};
+    for (const q of def.params) p[q.key] = d[q.key] ?? q.def;
+    const key = tipo + JSON.stringify(p); let mesh = _ofMesh.get(key);
+    if (!mesh) {
+      try { const r = MOTORE_OFF.buildShape(def, p, { cut: def.kind !== 'convex' || def.defOrient === 'vertice', fit: false, orient: null, level: null });   // come all'apertura dell'Officina
+        mesh = { v: r.V.map(v => v.map(x => Math.round(x * 1000) / 1000)), f: r.F.map(f => f.slice()) }; _ofMesh.set(key, mesh); }
+      catch (e) { if (!d.mesh) throw e; avviso('Con queste misure la forma non si costruisce: ' + (e.message || 'cambiate un valore') + ' Resta quella di prima.', 6000); }
+    }
+    if (mesh) d.mesh = mesh;   // salvata con il pezzo: la composizione si riapre anche senza il motore
+  }
+  if (!d.mesh) throw new Error('forma dell\'Officina non disponibile');
+  return formaOfficina({ mesh: d.mesh, k: 1 });
+}
 function forma(tipo, d) {
   if (tipo === 'officina') return formaOfficina(d);   // [Officina]
+  if (tipo.startsWith('of:')) return formaOff(tipo, d);   // [Officina]
   let V = [], apex = false; const H = d.H;
   if (tipo === 'cubo') V = [[-d.W / 2, -d.P / 2], [d.W / 2, -d.P / 2], [d.W / 2, d.P / 2], [-d.W / 2, d.P / 2]];
   else if (tipo === 'corridoio') V = [[-d.L / 2, -d.W / 2], [d.L / 2, -d.W / 2], [d.L / 2, d.W / 2], [-d.L / 2, d.W / 2]];
@@ -2477,7 +2535,13 @@ function disegnaTipi() {
   $('tipi').querySelectorAll('button').forEach(b => b.onclick = () => { tipoScelto = b.dataset.t; ultimoTipo[catAgg] = tipoScelto; attNuovo = 0; dimNuovo = standard(tipoScelto); fNuovo = { ...TIPI[tipoScelto].f }; porteNuove = forma(tipoScelto, dimNuovo).conn.slice(); disegnaTipi(); });
   const cont = $('parNuovo'); cont.innerHTML = '';
   for (const [k, lab, mn, mx, st, , u] of TIPI[tipoScelto].par) campo(cont, lab, dimNuovo[k], mn, mx, st, u, v => { dimNuovo[k] = v; nuovoCambiato(); }, u === 'm' || u === '×' ? 2 : 0);
+  for (const s of TIPI[tipoScelto].scelte || []) sceltaRiga(cont, s, dimNuovo[s.key], v => { dimNuovo[s.key] = v; nuovoCambiato(); });   // [Officina]
   nuovoCambiato();
+}
+function sceltaRiga(cont, s, val, onCambio) {   // [Officina] un parametro a scelta delle forme dell'Officina (posa, pinne, antenne…)
+  const l = document.createElement('label'); l.className = 'riga';
+  l.innerHTML = `<span>${esc(s.label)}</span><select>${s.options.map(([v, t]) => `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
+  l.querySelector('select').onchange = e => onCambio(e.target.value); cont.appendChild(l);
 }
 function nuovoCambiato() {
   contaGonf($('gonfNuovo'), fNuovo, nuovoCambiato);
@@ -2553,6 +2617,7 @@ function ispettore(nuovo) {
   $('iScoppia').onclick = () => p.scoppio ? ripara(p) : scoppia(p);
   const cont = $('parSel'); let t;
   for (const [k, lab, mn, mx, st, , u] of TIPI[p.tipo].par) campo(cont, lab, p.d[k], mn, mx, st, u, val => { const legami = legamiAttuali(); p.d[k] = val; clearTimeout(t); t = setTimeout(() => { p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); }, 140); }, u === 'm' || u === '×' ? 2 : 0);
+  for (const s of TIPI[p.tipo].scelte || []) sceltaRiga(cont, s, p.d[s.key], v => { const legami = legamiAttuali(); p.d[s.key] = v; p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); });   // [Officina]
   contaGonf($('iGonf'), p.f, () => strutturaCambiata());
   { const g0 = genitore(p); sceltaPorte($('iPorte'), p.F, p.porte, p.usati, () => strutturaCambiata(), g0 && p.porte.length > 1 ? g0.ef : undefined); }
   disegnaTinte($('iTinte'), p); disegnaStelle($('iStelle'), p);
@@ -3771,6 +3836,7 @@ function daOfficina() {
   avviso(`Dall'Officina: ${nome}. Gonfiatori consigliati: ${g || 'nessuna combinazione funziona'}. ${giudizio}` + (ritocchi.length ? ` Misure portate nei limiti del configuratore: ${ritocchi.join(', ')}.` : '') + (M.nota ? ' ' + String(M.nota).slice(0, 200) : ''), 12000);
 }
 daOfficina();
+caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bolle"
 
 window.cfg = { FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, metriNastro, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
   giro: () => faiEntrare(), GENTE, scoppia, ripara, comp: () => comp, fotografa, carica, apriComp, nuovaComp, persone: () => persone, unoAdesso, fermaTutti, eseguiCopione, muoviPersona, aggancia, liberaLati, collega, tipo: t => { tipoScelto = t; }, pLim, capTelo, tensione, simT: () => simT };
