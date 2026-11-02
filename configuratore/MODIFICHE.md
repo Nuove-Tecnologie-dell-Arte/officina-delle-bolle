@@ -15,7 +15,7 @@ Nel file sono tutte segnate `[Officina]`. Se arriva una versione nuova, basta ri
    - sostituisce i colori scritti a mano: pulsanti attivi, pannelli trasparenti, righe selezionate.
 
    Gli schemi in sezione restano un foglio bianco anche col tema scuro.
-3. **Intestazione**: al posto di `<div class="marchio">Bolle</div>` c'è il link `a.marca` "← Officina delle Bolle · Configuratore", che riporta all'Officina (`../`).
+3. **Intestazione**: al posto di `<div class="marchio">Bolle</div>` c'è il selettore `nav.app` "Officina | Configuratore", uguale a quello in cima all'Officina (vedi "Navigazione tra Officina e configuratore" più sotto).
 4. **Script**, colori presi dal tema invece che scritti a mano:
    - `gaugeSVG` (manometri);
    - `disegnaGrafico` (grafico della pressione);
@@ -125,3 +125,33 @@ Fisica, persone, materiali, budget, salvataggi e il resto dell'interfaccia sono 
 ## Da segnalare all'altro gruppo
 - Le prove in `test/` bloccano ogni richiesta a internet tranne Three.js, quindi anche i caratteri di Google Fonts, e lo segnano come errore in console ("Failed to load resource"). Basta rispondere vuoto a `fonts.googleapis.com` / `fonts.gstatic.com` nel gestore `pg.on('request', …)`: così tutte le prove passano.
 - `test/povup.js` cerca `pg.$('canvas')`, che ora trova per prima l'anteprima nascosta di Forma da foto (`#ffCanvas`), e si ferma. Con `pg.$('#scena > canvas')` la prova passa.
+
+## Stanza di sfondo (aggiunta da Alfredo nel repo, 2 novembre)
+Non è una parte `[Officina]`: è una funzione nuova del configuratore, scritta direttamente qui. Se arriva una versione nuova del file unico, va tenuta anche questa.
+- **Pulsante "Stanza"** nella barra Vista e pannello `#pannelloSt`.
+- **Foto 360° equirettangolare** (JPG, PNG, WebP o HDR con `RGBELoader`, script aggiunto dopo `GLTFLoader`). Viene proiettata su una scatola dal punto di scatto con la stessa formula di Blender (`matEquirett`, coordinate Object + Equirectangular).
+- **Modello GLB**: i materiali diventano `MeshBasicMaterial` con la loro texture.
+- **Backface culling come in Blender**: le facce sono disegnate solo dal lato interno (`THREE.BackSide`), così le pareti rivolte verso la camera spariscono. La spunta "Pareti vicine trasparenti" passa a `DoubleSide`.
+- **Stanze pronte** (`STANZE`): per ora il "Corridoio dell'Accademia", in `configuratore/stanze/` (`corridoio.jpg` 4096 × 2048 più la miniatura). Si caricano con `fetch`, quindi solo dal sito, non aprendo il file dal computer. È ricavato da `Corridoio.hdr` di Alfredo. Quell'HDR non ha valori sopra il bianco, quindi in JPG si vede uguale e pesa 0,9 MB invece di 54.
+- **Corridoio ricostruito in 3D** (`ST.pianta`, `geoPianta`): il corridoio non è più una scatola. Dalla foto ho letto il bordo tra pavimento e pareti (la base dello zoccolo di marmo) a ogni angolo e ne ho ricavato la pianta vera: l'angolo del chiostro, con la parete della porta verde, quella della porta aperta, il pilastro d'angolo con le finestre e i due bracci lunghi circa 30 m. Le misure sono in multipli dell'altezza della fotocamera (stimata 0,90 m): cambiandola si ingrandisce tutta la stanza in proporzione. La foto è proiettata dal punto di scatto su pavimento, pareti e soffitto (piatto, 8 m), quindi anche spostandosi lontano dal punto di scatto lo zoccolo resta sull'attacco a terra e i corridoi hanno profondità. Le facce sono rivolte verso l'esterno, così con `BackSide` le pareti verso la camera spariscono come prima. Se si carica a mano un file che si chiama "corridoio" (anche l'HDR) usa la stessa pianta; le altre foto restano su una stanza a scatola.
+- Gli HDR caricati a mano: se non superano il bianco diventano una texture a 8 bit (veloce e uguale a vedersi), altrimenti restano in mezzi float con il tone mapping.
+- Il pavimento grigio ha un `polygonOffset` per non litigare con il pavimento della stanza. Un piano `ShadowMaterial` riceve le ombre di bolle e persone.
+- La stanza resta salvata nel browser con IndexedDB (database `bolle-stanza`) e si ricarica all'apertura. Non entra nel JSON delle composizioni.
+- Codice nel blocco `STANZA DI SFONDO`, prima di `window.cfg`. API: `cfg.ST`, `cfg.caricaStanza(file)`, `cfg.togliStanza()`, `cfg.aggiornaStanza()`.
+
+## Sezione Oggetti tolta (2 novembre)
+
+- Tolti il pulsante "Oggetti" della barra Vista, il suo pannello (`#pannelloO`) e tutto il secondo `<script>` che lo faceva funzionare: import di PLY, OBJ, STL e GLB, splat, la scena Municipalità_4 incorporata, ancoraggi e maniglie per spostare, ruotare e scalare. Il file passa da 3,8 a 2,3 MB.
+- Non si caricano più `TransformControls`, `PLYLoader`, `OBJLoader` e `STLLoader`. Restano `GLTFLoader` e `RGBELoader`, che servono alla stanza di sfondo.
+- Le situazioni degli avatar leggono gli oggetti da `window.oggetti`, che ora non c'è: "Attorno agli oggetti" non capita più, il resto funziona come prima.
+
+## Navigazione tra Officina e configuratore (2 novembre)
+
+- **Selettore in alto, uguale nelle due pagine** (`nav.app`): "Officina | Configuratore", con la parte in cui si è evidenziata. Nell'Officina sta nella barra dei passi, a destra; nel configuratore al posto del vecchio link "← Officina delle Bolle". Sugli schermi stretti si vede solo il pulsante per andare nell'altra parte.
+- **Stessa scheda**: "Porta la forma nel configuratore" (prima "Apri nel configuratore") non apre più una scheda nuova ogni volta.
+- **Niente si perde passando da una parte all'altra**:
+  - l'Officina ricorda l'ultima forma, con misure, opzioni, scala e nome, in `localStorage` (`bolle|forma`), e la riprende quando si torna;
+  - il configuratore riapre la composizione su cui si stava lavorando invece di partire da un cubo nuovo (il cubo d'esempio resta per chi non ha ancora composizioni), e salva l'ultima modifica anche uscendo dalla pagina (`pagehide`).
+- **Ritorno alla forma giusta**: la forma mandata dall'Officina porta con sé le sue impostazioni (`src` nel `#officina=`), che il configuratore salva nella composizione (`officina`). Da quella composizione, "Officina" riapre l'Officina su quella forma, al passo Numeri (`../#apri={…}`).
+- **Niente doppioni**: rimandando la stessa forma dopo un ritocco, il configuratore aggiorna la sua composizione "Dall'Officina · nome" invece di crearne un'altra, finché ha un pezzo solo. Se nel frattempo ci si sono aggiunte altre bolle, ne crea una nuova con "(2)", "(3)"…
+
