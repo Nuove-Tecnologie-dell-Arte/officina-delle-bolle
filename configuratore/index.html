@@ -743,6 +743,9 @@ const ICONE = {
   'of:fungo': '<path d="M3 15a12 10 0 0 1 24 0z M11 15v10h8V15"/>',
   'of:razzo': '<path d="M15 3c4 3 5 8 5 13v6H10v-6c0-5 1-10 5-13z M10 18l-4 6h4 M20 18l4 6h-4"/><circle cx="15" cy="12" r="2"/>',
   'of:tarta': '<path d="M4 20a11 9 0 0 1 22 0z M4 20h22 M26 18c2 0 3-1 3-3 M8 20l-2 4 M22 20l2 4 M10 14l5 3 5-3"/>',
+  'of:ananas': '<path d="M10 27c-3-3-3-10 0-13h10c3 3 3 10 0 13z M10 14l5-11 5 11 M12 14L7 6 M18 14l5-8 M11 18l8 6 M19 18l-8 6"/>',
+  'of:pera': '<path d="M15 6c-3 0-4 3-4 6 0 2-5 4-5 9 0 4 4 6 9 6s9-2 9-6c0-5-5-7-5-9 0-3-1-6-4-6z M15 6l1-4"/>',
+  'of:uva': '<circle cx="9" cy="17" r="3.5"/><circle cx="15" cy="15" r="3.5"/><circle cx="21" cy="17" r="3.5"/><circle cx="12" cy="22" r="3.5"/><circle cx="18" cy="22" r="3.5"/><path d="M26 15c1-3 2-5 3-6"/>',
 };
 const standard = t => Object.fromEntries([...TIPI[t].par.map(p => [p[0], p[5]]), ...(TIPI[t].scelte || []).map(s => [s.key, s.def])]);   // [Officina] anche le scelte
 const descrStd = t => TIPI[t].par.map(p => p[1] + ' ' + (p[6] === 'm' ? fmt(p[5], 2) + ' m' : p[5] + (p[6] || ''))).join(' · ');
@@ -888,6 +891,8 @@ const PORTE_OFF = {
   tunnel: [[1, 0], [-1, 0]], snake: [[1, 0], [-1, 0]],   // le due estremità
   torus: [[1, 0], [-1, 0]],                 // due punti opposti del giro esterno
   arrow: [[-1, 0], [0, 1, 1]],              // la coda e un fianco
+  ananas: [[1, 0], [-1, 0]], pera: [[1, 0], [-1, 0]],   // due pannelli opposti in basso
+  uva: [[1, 0], [-1, 0]],                   // si entra dalla parte larga (davanti) e si esce dalla punta
 };
 function formaOfficina(d) {
   const O = datiOfficina(d.mesh, d.k || 1), V = O.V, verso = Math.sign(V.reduce((t, a, i) => { const b = V[(i + 1) % V.length]; return t + a[0] * b[1] - b[0] * a[1]; }, 0)) || 1;
@@ -903,7 +908,7 @@ function formaOfficina(d) {
     for (const r of regola) {
       const dir = [r[0], -r[1]], ld = Math.hypot(...dir), u = [dir[0] / ld, dir[1] / ld], perp = [-u[1], u[0]], Rc = Math.max(...V.map(v => Math.hypot(...v))) || 1;
       let best = -1, bs = -1e9;
-      E.forEach((e, i) => { if (scelti.includes(i) || e.L < 0.45 || e.hMax < 0.7 * hTop) return;   // 45 cm: la base del razzo ha lati corti
+      E.forEach((e, i) => { if (scelti.includes(i) || e.L < 0.45 || e.hMax < 0.5 * hTop) return;   // 45 cm: la base del razzo ha lati corti
         const s = e.n[0] * u[0] + e.n[1] * u[1] + 0.35 * (e.m[0] * u[0] + e.m[1] * u[1]) / Rc - (r[2] ? 0.6 * Math.abs(e.m[0] * perp[0] + e.m[1] * perp[1]) / Rc : 0);
         if (s > bs) { bs = s; best = i; } });
       if (best >= 0) scelti.push(best);
@@ -925,7 +930,8 @@ function formaOfficinaFine(O, V, E, conn) {
 }
 // [Officina] le forme dell'Officina nella griglia "Bolle": il motore si legge dalla pagina dell'Officina (stesso sito), senza copiarlo
 const FORME_OFF = [['d20', 'Cupola'], ['d12', 'Dodecaedro'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Ciambella'], ['tunnel', 'Tunnel'],
-  ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Scolopendra'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga']];
+  ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Scolopendra'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga'],
+  ['ananas', 'Ananas'], ['pera', 'Pera'], ['uva', 'Uva']];
 let MOTORE_OFF = null;
 const _ofMesh = new Map();   // forma + misure → mesh già costruita
 function parOff(q) {   // parametro dell'Officina → [chiave, etichetta, min, max, passo, standard, unità] del configuratore
