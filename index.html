@@ -2166,7 +2166,7 @@ function analyze(V, F, floor) {
     const terra = cur.V.filter(v => v[2] < 1e-4);
     if (terra.length < 3 || (cur.floorArea || 0) + (cur.open ? 1 : 0) < 0.5) return { no: "Questa forma non appoggia a terra: appoggiatela su una faccia o tagliate la base (Passo 1 → Altre opzioni)." };
     const mm = (x) => Math.round(x * 1000) / 1000;
-    return { tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1 } };
+    return { tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: d.id } };   // off: il configuratore mette le entrate dove le prevede l'Officina
   }
   function renderBridge(ok) {
     const a = $("bridgeGo"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure al Passo 1." };

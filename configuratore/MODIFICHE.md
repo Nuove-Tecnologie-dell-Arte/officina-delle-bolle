@@ -73,6 +73,40 @@ Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 15 forme dell'O
   - Con misure impossibili tiene la forma di prima e mostra il messaggio dell'Officina.
 - **Altre aggiunte:** `ICONE['of:…']` (15 icone), `standard()` con le scelte, e una riga in `disegnaTipi()` e in `ispettore()` per le tendine.
 
+## Porte realistiche (1,80 m)
+- **Costanti.** `PORTA_MIN = 1.8` e `ALT_PORTA = 1.95`, cioè la porta più la cornice.
+- **Altezze minime in `TIPI`.** `H` minima a 1,95 m per tutte le bolle e i corridoi. La piramide ha la porta al 55% dell'altezza, quindi minimo e partenza sono 3,3 m.
+- **Maniche** alte almeno `PORTA_MIN` (in `collega()`).
+- **Forme `of:…`.** `formaOff()` ingrandisce insieme tutte le misure in metri finché le porte arrivano a 1,95 m. `avvisaIngrandita()` lo dice e ridisegna i campi.
+- **Forme mandate dall'Officina.** `daOfficina()` alza `d.k` (Ingrandisci) finché le porte arrivano a 1,95 m.
+
+## Entrate nei punti giusti
+- **`PORTE_OFF`** dice dove si entra in ogni forma speciale, presa dalle descrizioni dell'Officina:
+  - la balena dalla bocca;
+  - il fungo dal gambo;
+  - il razzo tra le alette;
+  - tartaruga, scolopendra e banana dai fianchi;
+  - la barca dalla poppa;
+  - tunnel e serpente dalle estremità.
+- **`formaOfficina()`** sceglie i lati a terra più vicini a quelle direzioni. Il risultato si compone in `formaOfficinaFine()`.
+- **Forme mandate dal pulsante dell'Officina.** L'Officina manda l'id della forma in `d.off`, così valgono le stesse regole.
+
+## Interazioni nuove tra i Sonny
+- **Gesti in `posaSonny()`:** `pugno`, `inchino`, `ballaCoppia`.
+- **`COPPIE2`:**
+  - pugno;
+  - inchino, quando arriva qualcuno;
+  - giro: ballo in coppia attorno al punto di mezzo, nella Festa;
+  - guarda: uno indica un oggetto o un punto in alto e l'altro guarda e annuisce.
+- **In `interazioni()`:** il saluto da lontano tra due Sonny liberi della stessa bolla, distanti più di 3,5 m.
+
+## Menu che si tolgono
+- **Linguette `#lingSx` e `#lingDx`** sui bordi della scena: chiudono e riaprono i pannelli laterali (`#vCostruisci.chiusoSx` / `.chiusoDx`, colonne fissate con `grid-column`).
+- **`X_PAN()`** mette una × su Persone, Pressione (nell'intestazione del riquadro) e Vista.
+- **Pulsante "Menu" (`#bMenu`, `#menuMenu`)** nell'intestazione: le spunte per ogni menu, più "Nascondi tutto" e "Mostra tutto".
+- **Salvataggio.** Lo stato si salva in `bolle-menu`.
+- **Scena.** `ridimensiona()` non sposta più la scena quando la Pressione è nascosta.
+
 ## Pulsante "Notte" nascosto
 Il pulsante `#bNotte` della barra Vista ha `hidden`. La vista notte resta, e si accende da sola con "Guarda il soffitto da dentro" del soffitto stellato.
 

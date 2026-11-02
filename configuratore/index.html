@@ -383,6 +383,26 @@
   .cons.mid { color: var(--mid); }
   #oMsg { background: color-mix(in srgb, var(--mid) 12%, var(--card)); border-color: color-mix(in srgb, var(--mid) 40%, var(--line)); }
   svg.schema { background: #fff; } svg.schema text { fill: #16221e; } svg.schema .m { fill: #55665f; }   /* gli schemi restano un foglio bianco, anche col tema scuro */
+  /* [Officina] menu che si tolgono */
+  #vCostruisci.chiusoSx { grid-template-columns: 0 minmax(0, 1fr) 280px; }
+  #vCostruisci.chiusoDx { grid-template-columns: 236px minmax(0, 1fr) 0; }
+  #vCostruisci.chiusoSx.chiusoDx { grid-template-columns: 0 minmax(0, 1fr) 0; }
+  #vCostruisci.chiusoSx > aside.sx, #vCostruisci.chiusoDx > aside.dx { display: none; }
+  @media (min-width: 981px) { #vCostruisci > aside.sx { grid-column: 1; grid-row: 1; } #vCostruisci > #scena { grid-column: 2; grid-row: 1; } #vCostruisci > aside.dx { grid-column: 3; grid-row: 1; } }
+  #scena.noPersone .sinistra, #scena.noPersone #pannelloS, #scena.noPress .pannelloP, #scena.noVista .barraScena, #scena.noVista #pannelloO { display: none !important; }
+  .linguetta { position: absolute; top: 50%; transform: translateY(-50%); z-index: 6; width: 18px; height: 60px; padding: 0; display: grid; place-items: center;
+    background: var(--vetro); color: var(--mut); border: 1px solid var(--line); font: 600 15px/1 var(--body); box-shadow: var(--ombra); }
+  .linguetta.sx { left: 0; border-left: 0; border-radius: 0 8px 8px 0; } .linguetta.dx { right: 0; border-right: 0; border-radius: 8px 0 0 8px; }
+  .linguetta:hover { color: var(--acc); background: var(--card); }
+  .xPan { border: 0; background: none; color: var(--mut); padding: 0 4px; margin-left: 2px; font: 600 16px/1 var(--body); border-radius: 6px; cursor: pointer; }
+  .xPan:hover { color: var(--fg); background: var(--acc-soft); }
+  .pannelloP h3 .xPan { font-size: 14px; padding: 0 3px; vertical-align: 1px; }
+  .menuMenu { position: relative; }
+  #bMenu { display: inline-flex; align-items: center; gap: 7px; }
+  .voceMenu { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; font-size: 13.5px; cursor: pointer; }
+  .voceMenu:hover { background: var(--acc-soft); } .voceMenu input { accent-color: var(--acc); width: 16px; height: 16px; }
+  .menuMenu .bottoni { padding: 6px 4px 2px; }
+  @media (max-width: 980px) { .linguetta { display: none; } #vCostruisci.chiusoSx, #vCostruisci.chiusoDx, #vCostruisci.chiusoSx.chiusoDx { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -416,6 +436,17 @@
       <button id="bRigonfia"><b>Sgonfia e rigonfia</b><span>Svuota tutto e lo rigonfia da zero: vedi quanto ci mette.</span></button>
       <button id="bBlack"><b>Blackout</b><span>Spegne i gonfiatori: quanto restano su le bolle?</span></button>
       <button id="bEsplodi" class="del"><b>Esplodi</b><span>Fa scoppiare la bolla selezionata (o la più grande).</span></button>
+    </div>
+  </div>
+  <div class="menuMenu"><!-- [Officina] mostra o nasconde i menu, uno per uno o tutti -->
+    <button id="bMenu" aria-haspopup="true" aria-expanded="false" title="Mostra o nascondi i menu"><svg viewBox="0 0 20 14" width="16" height="12" aria-hidden="true"><path d="M1 7s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="7" r="2.6" fill="currentColor"/></svg>Menu<svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+    <div class="menuProve" id="menuMenu" hidden>
+      <label class="voceMenu"><input type="checkbox" data-m="sx"> Pannello Aggiungi (sinistra)</label>
+      <label class="voceMenu"><input type="checkbox" data-m="dx"> Pannello del pezzo (destra)</label>
+      <label class="voceMenu"><input type="checkbox" data-m="persone"> Persone e stato</label>
+      <label class="voceMenu"><input type="checkbox" data-m="press"> Pressione</label>
+      <label class="voceMenu"><input type="checkbox" data-m="vista"> Vista</label>
+      <div class="bottoni"><button id="mNascondi">Nascondi tutto</button><button id="mMostra">Mostra tutto</button></div>
     </div>
   </div>
   <div class="velocita" title="Velocità della simulazione"><span>Velocità</span><div class="seg" id="vel" role="group" aria-label="Velocità">
@@ -487,6 +518,7 @@
 
     <div id="scena">
       <div id="sovra"></div>
+      <button class="linguetta sx" id="lingSx"><!-- [Officina] chiude e riapre i pannelli laterali --></button><button class="linguetta dx" id="lingDx"></button>
       <div class="sinistra"><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><button class="chip" id="bSit" title="Cosa fanno gli avatar dentro ogni bolla">Situazioni</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span></div><div class="statoScena"><span class="chip" title="Come sta la struttura"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></span><button class="chip" id="chipBudget" style="pointer-events:auto;cursor:pointer" title="Apri Materiali"></button></div></div>
       <div class="pannelloP" id="pannelloP" aria-label="Pressione dei moduli"></div>
       <div class="lampo" id="lampo"></div>
@@ -665,18 +697,21 @@ const CH = {
 // =====================================================================
 //  FORME
 // =====================================================================
+// [Officina] porte realistiche: passaggio di almeno 1,80 m, quindi forma alta almeno 1,95 m dove c'è la porta.
+// Per questo le altezze minime in TIPI sono 1,95 m (la piramide, con la porta al 55% dell'altezza, 3,3 m).
+const PORTA_MIN = 1.8, ALT_PORTA = 1.95;
 const TIPI = {
-  stella:    { nome: 'Stella',    f: { piccolo: 1, grande: 0 }, par: [['punte', 'Punte', 4, 8, 1, 5, ''], ['D', 'Diametro', 1.2, 8, 0.05, 2.4, 'm'], ['k', 'Rientro punte', 0.4, 0.8, 0.01, 0.6, ''], ['H', 'Altezza', 1.5, 4, 0.05, 2, 'm']] },
-  cubo:      { nome: 'Cubo',      f: { piccolo: 0, grande: 1 }, par: [['W', 'Larghezza', 1, 8, 0.05, 3, 'm'], ['P', 'Profondità', 1, 8, 0.05, 3, 'm'], ['H', 'Altezza', 1.5, 4, 0.05, 2.5, 'm']] },
-  prisma:    { nome: 'Poligono',  f: { piccolo: 1, grande: 0 }, par: [['lati', 'Lati', 3, 12, 1, 6, ''], ['D', 'Diametro', 1.2, 8, 0.05, 3, 'm'], ['H', 'Altezza', 1.5, 4, 0.05, 2.2, 'm']] },
-  cilindro:  { nome: 'Cilindro',  f: { piccolo: 1, grande: 0 }, par: [['D', 'Diametro', 1.5, 8, 0.05, 3.5, 'm'], ['H', 'Altezza', 1.8, 4, 0.05, 2.4, 'm'], ['lati', 'Spicchi (posti per le porte)', 6, 16, 1, 8, '']] },
-  piramide:  { nome: 'Piramide',  f: { piccolo: 1, grande: 0 }, par: [['lati', 'Lati di base', 3, 8, 1, 4, ''], ['L', 'Lato di base', 1.2, 8, 0.05, 3, 'm'], ['k', 'Cima: 0 a punta, poi sempre più piatta', 0, 0.8, 0.01, 0.45, ''], ['H', 'Altezza', 2.5, 6, 0.05, 2.8, 'm']] },
-  corridoio: { nome: 'Corridoio', f: { piccolo: 1, grande: 0 }, par: [['L', 'Lunghezza', 1.5, 10, 0.05, 3, 'm'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.8, 3, 0.05, 2.2, 'm']] },
-  curva:     { nome: 'Curva',     f: { piccolo: 1, grande: 1 }, par: [['Ri', 'Raggio interno', 0, 8, 0.05, 1.5, 'm'], ['ang', 'Angolo di curva', 15, 180, 5, 90, '°'], ['s', 'Tratto dritto a ogni bocca', 0, 4, 0.05, 0.5, 'm'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.8, 3, 0.05, 2.2, 'm']] },
-  angolo:    { nome: 'Angolo',    f: { piccolo: 1, grande: 1 }, par: [['La', 'Bracci (sull\'asse)', 1, 12, 0.05, 3.5, 'm'], ['th', 'Angolo tra i bracci', 30, 170, 5, 90, '°'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.8, 3, 0.05, 2.2, 'm']] },
-  ipsilon:   { nome: 'Y',         f: { piccolo: 1, grande: 1 }, par: [['Ls', 'Gamba (sull\'asse)', 1, 12, 0.05, 4, 'm'], ['Lb', 'Rami (sull\'asse)', 1, 12, 0.05, 3, 'm'], ['phi', 'Apertura dei rami', 15, 85, 5, 45, '°'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.8, 3, 0.05, 2.2, 'm']] },
-  libera:    { nome: 'Forma da foto', f: { piccolo: 1, grande: 1 }, par: [['k', 'Ingrandisci', 0.3, 3, 0.01, 1, '×'], ['H', 'Altezza', 1.5, 4, 0.05, 2.2, 'm']] },
-  croce:     { nome: 'Croce',     f: { piccolo: 1, grande: 1 }, par: [['La', 'Bracci dal centro (sull\'asse)', 1, 12, 0.05, 3.75, 'm'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.8, 3, 0.05, 2.2, 'm']] },
+  stella:    { nome: 'Stella',    f: { piccolo: 1, grande: 0 }, par: [['punte', 'Punte', 4, 8, 1, 5, ''], ['D', 'Diametro', 1.2, 8, 0.05, 2.4, 'm'], ['k', 'Rientro punte', 0.4, 0.8, 0.01, 0.6, ''], ['H', 'Altezza', 1.95, 4, 0.05, 2.2, 'm']] },
+  cubo:      { nome: 'Cubo',      f: { piccolo: 0, grande: 1 }, par: [['W', 'Larghezza', 1, 8, 0.05, 3, 'm'], ['P', 'Profondità', 1, 8, 0.05, 3, 'm'], ['H', 'Altezza', 1.95, 4, 0.05, 2.5, 'm']] },
+  prisma:    { nome: 'Poligono',  f: { piccolo: 1, grande: 0 }, par: [['lati', 'Lati', 3, 12, 1, 6, ''], ['D', 'Diametro', 1.2, 8, 0.05, 3, 'm'], ['H', 'Altezza', 1.95, 4, 0.05, 2.2, 'm']] },
+  cilindro:  { nome: 'Cilindro',  f: { piccolo: 1, grande: 0 }, par: [['D', 'Diametro', 1.5, 8, 0.05, 3.5, 'm'], ['H', 'Altezza', 1.95, 4, 0.05, 2.4, 'm'], ['lati', 'Spicchi (posti per le porte)', 6, 16, 1, 8, '']] },
+  piramide:  { nome: 'Piramide',  f: { piccolo: 1, grande: 0 }, par: [['lati', 'Lati di base', 3, 8, 1, 4, ''], ['L', 'Lato di base', 1.2, 8, 0.05, 3, 'm'], ['k', 'Cima: 0 a punta, poi sempre più piatta', 0, 0.8, 0.01, 0.45, ''], ['H', 'Altezza', 3.3, 6, 0.05, 3.3, 'm']] },
+  corridoio: { nome: 'Corridoio', f: { piccolo: 1, grande: 0 }, par: [['L', 'Lunghezza', 1.5, 10, 0.05, 3, 'm'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.95, 3, 0.05, 2.2, 'm']] },
+  curva:     { nome: 'Curva',     f: { piccolo: 1, grande: 1 }, par: [['Ri', 'Raggio interno', 0, 8, 0.05, 1.5, 'm'], ['ang', 'Angolo di curva', 15, 180, 5, 90, '°'], ['s', 'Tratto dritto a ogni bocca', 0, 4, 0.05, 0.5, 'm'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.95, 3, 0.05, 2.2, 'm']] },
+  angolo:    { nome: 'Angolo',    f: { piccolo: 1, grande: 1 }, par: [['La', 'Bracci (sull\'asse)', 1, 12, 0.05, 3.5, 'm'], ['th', 'Angolo tra i bracci', 30, 170, 5, 90, '°'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.95, 3, 0.05, 2.2, 'm']] },
+  ipsilon:   { nome: 'Y',         f: { piccolo: 1, grande: 1 }, par: [['Ls', 'Gamba (sull\'asse)', 1, 12, 0.05, 4, 'm'], ['Lb', 'Rami (sull\'asse)', 1, 12, 0.05, 3, 'm'], ['phi', 'Apertura dei rami', 15, 85, 5, 45, '°'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.95, 3, 0.05, 2.2, 'm']] },
+  libera:    { nome: 'Forma da foto', f: { piccolo: 1, grande: 1 }, par: [['k', 'Ingrandisci', 0.3, 3, 0.01, 1, '×'], ['H', 'Altezza', 1.95, 4, 0.05, 2.2, 'm']] },
+  croce:     { nome: 'Croce',     f: { piccolo: 1, grande: 1 }, par: [['La', 'Bracci dal centro (sull\'asse)', 1, 12, 0.05, 3.75, 'm'], ['W', 'Larghezza', 1.2, 4, 0.05, 2.5, 'm'], ['H', 'Altezza', 1.95, 3, 0.05, 2.2, 'm']] },
   officina:  { nome: 'Forma dell\'Officina', f: { piccolo: 1, grande: 1 }, par: [['k', 'Ingrandisci', 0.5, 2, 0.01, 1, '×']] },   // [Officina] arriva solo dall'Officina delle Bolle
 };
 const ICONE = {
@@ -840,6 +875,20 @@ function fuoriOfficina(O, m, n, y) {   // di quanto spostare porta, manica e gon
       bd = Math.abs(t); best = t; } }
   return best;
 }
+// [Officina] dove si entra nelle forme speciali (dalle descrizioni dell'Officina). Direzioni nel sistema dell'Officina: x avanti, y a sinistra;
+// il terzo valore 1 vuol dire "a metà del corpo" (fianchi), altrimenti il lato più esterno in quella direzione
+const PORTE_OFF = {
+  balena: [[1, 0], [-0.5, 1]],              // la bocca, e un fianco verso la coda
+  fungo: [[1, 0], [-1, 0]],                 // due pannelli opposti del gambo
+  razzo: [[1, 1], [-1, -1]],                // nel corpo tra le alette (che stanno a 0°, 90°, 180°, 270°), davanti e dietro
+  tarta: [[0, 1, 1], [0, -1, 1]],           // i due fianchi, tra le zampe
+  scolo: [[0, 1, 1], [0, -1, 1]],           // i due fianchi, a metà corpo
+  boat: [[-1, 0]],                          // la poppa dritta (la prua a punta è davanti)
+  banana: [[0, -1, 1], [0, 1, 1]],          // i due fianchi, a metà della curva
+  tunnel: [[1, 0], [-1, 0]], snake: [[1, 0], [-1, 0]],   // le due estremità
+  torus: [[1, 0], [-1, 0]],                 // due punti opposti del giro esterno
+  arrow: [[-1, 0], [0, 1, 1]],              // la coda e un fianco
+};
 function formaOfficina(d) {
   const O = datiOfficina(d.mesh, d.k || 1), V = O.V, verso = Math.sign(V.reduce((t, a, i) => { const b = V[(i + 1) % V.length]; return t + a[0] * b[1] - b[0] * a[1]; }, 0)) || 1;
   const E = (O.E0 || (O.E0 = V.map((a, i) => {   // i lati si calcolano una volta (i raggi contro il telo costano); ogni forma ne riceve una copia
@@ -848,12 +897,28 @@ function formaOfficina(d) {
     const hMax = Math.min(...[0.35, 0.5, 0.65].map(u => O.altA(a[0] + (b[0] - a[0]) * u - n[0] * 0.3, a[1] + (b[1] - a[1]) * u - n[1] * 0.3)));   // altezza libera appena dentro il lato
     return { a, b, L, d: dd, n, m, ap: n[0] * m[0] + n[1] * m[1], hMax, fuori: fuoriOfficina(O, m, n, Math.min(1, 0.5 * Math.max(hMax, 0.4))) };
   }))).map(e => ({ ...e }));
+  const regola = PORTE_OFF[d.off];
+  if (regola) {   // [Officina] entrate dove le mette l'Officina: bocca della balena, fianchi della tartaruga, tra le alette del razzo…
+    const hTop = Math.max(...E.map(e => e.hMax)), scelti = [];
+    for (const r of regola) {
+      const dir = [r[0], -r[1]], ld = Math.hypot(...dir), u = [dir[0] / ld, dir[1] / ld], perp = [-u[1], u[0]], Rc = Math.max(...V.map(v => Math.hypot(...v))) || 1;
+      let best = -1, bs = -1e9;
+      E.forEach((e, i) => { if (scelti.includes(i) || e.L < 0.45 || e.hMax < 0.7 * hTop) return;   // 45 cm: la base del razzo ha lati corti
+        const s = e.n[0] * u[0] + e.n[1] * u[1] + 0.35 * (e.m[0] * u[0] + e.m[1] * u[1]) / Rc - (r[2] ? 0.6 * Math.abs(e.m[0] * perp[0] + e.m[1] * perp[1]) / Rc : 0);
+        if (s > bs) { bs = s; best = i; } });
+      if (best >= 0) scelti.push(best);
+    }
+    if (scelti.length) return { ...formaOfficinaFine(O, V, E, scelti.sort((i, j) => i - j)) };
+  }
   const hPorta = Math.min(1.75, 0.8 * O.H);   // nelle forme basse (tunnel, serpente) basta che la porta sia alta quasi quanto la bolla
-  const buoni = E.map((e, i) => i).filter(i => E[i].L >= 0.75 && E[i].hMax >= hPorta).sort((i, j) => E[j].L - E[i].L);   // i corpi curvi hanno lati corti: bastano 75 cm
+  const buoni =E.map((e, i) => i).filter(i => E[i].L >= 0.75 && E[i].hMax >= hPorta).sort((i, j) => E[j].L - E[i].L);   // i corpi curvi hanno lati corti: bastano 75 cm
   // di partenza due porte, le più lontane tra loro (le altre si aggiungono dalla scheda Forma)
   let conn = buoni.length ? [buoni[0]] : [E.map((e, i) => i).sort((i, j) => E[j].L * E[j].hMax - E[i].L * E[i].hMax)[0]];
   const lont = buoni.filter(i => i !== conn[0]).sort((i, j) => Math.hypot(E[j].m[0] - E[conn[0]].m[0], E[j].m[1] - E[conn[0]].m[1]) - Math.hypot(E[i].m[0] - E[conn[0]].m[0], E[i].m[1] - E[conn[0]].m[1]))[0];
   if (lont != null) conn.push(lont); conn.sort((i, j) => i - j);
+  return formaOfficinaFine(O, V, E, conn);
+}
+function formaOfficinaFine(O, V, E, conn) {
   return { V, E, apex: false, K: 0, tondo: false, R: 0, H: O.H, conn, area: O.area, perim: E.reduce((t, e) => t + e.L, 0), vol: O.vol, span: 2 * O.ri, maxL: Math.max(...E.map(e => e.L)), slant: 0,
     cuciture: O.lungCuc, Rc: Math.max(...V.map(v => Math.hypot(...v))), corr: false, libero: false, spigoli: null, W2: O.ri, mesh: true, off: O, Vs: O.Vs, sup: O.sup, alt: O.altA,
     peso: () => pesoTelo(), luce: Math.max(0.5, O.luce) };
@@ -886,18 +951,31 @@ async function caricaMotoreOfficina() {
 function formaOff(tipo, d) {
   const T = TIPI[tipo];
   if (MOTORE_OFF && T) {
-    const def = MOTORE_OFF.SHAPES.find(s => s.id === T.off), p = {};
-    for (const q of def.params) p[q.key] = d[q.key] ?? q.def;
-    const key = tipo + JSON.stringify(p); let mesh = _ofMesh.get(key);
-    if (!mesh) {
-      try { const r = MOTORE_OFF.buildShape(def, p, { cut: def.kind !== 'convex' || def.defOrient === 'vertice', fit: false, orient: null, level: null });   // come all'apertura dell'Officina
-        mesh = { v: r.V.map(v => v.map(x => Math.round(x * 1000) / 1000)), f: r.F.map(f => f.slice()) }; _ofMesh.set(key, mesh); }
-      catch (e) { if (!d.mesh) throw e; avviso('Con queste misure la forma non si costruisce: ' + (e.message || 'cambiate un valore') + ' Resta quella di prima.', 6000); }
+    const def = MOTORE_OFF.SHAPES.find(s => s.id === T.off);
+    for (let giro = 0; giro < 4; giro++) {
+      const p = {}; for (const q of def.params) p[q.key] = d[q.key] ?? q.def;
+      const key = tipo + JSON.stringify(p); let mesh = _ofMesh.get(key);
+      if (!mesh) {
+        try { const r = MOTORE_OFF.buildShape(def, p, { cut: def.kind !== 'convex' || def.defOrient === 'vertice', fit: false, orient: null, level: null });   // come all'apertura dell'Officina
+          mesh = { v: r.V.map(v => v.map(x => Math.round(x * 1000) / 1000)), f: r.F.map(f => f.slice()) }; _ofMesh.set(key, mesh); }
+        catch (e) { if (!d.mesh) throw e; avviso('Con queste misure la forma non si costruisce: ' + (e.message || 'cambiate un valore') + ' Resta quella di prima.', 6000); break; }
+      }
+      d.mesh = mesh;   // salvata con il pezzo: la composizione si riapre anche senza il motore
+      // porte da 1,80 m: se la forma è troppo bassa dove ci sono le porte, tutte le misure in metri crescono insieme
+      const F = formaOfficina({ mesh, k: 1, off: T.off }), hb = Math.min(...F.conn.map(i => F.E[i].hMax));
+      if (hb >= ALT_PORTA - 0.01 || giro === 3) return F;
+      const f = ALT_PORTA / Math.max(0.4, hb) * 1.02; let cambiata = false;
+      for (const [k, , , mx, st, std, u] of T.par) if (u === 'm') { const v = +(Math.ceil(Math.min(mx, (d[k] ?? std) * f) / st - 1e-9) * st).toFixed(3); if (v !== d[k]) { d[k] = v; cambiata = true; } }
+      if (!cambiata) return F;
+      formaOff.ingrandita = T.nome;
     }
-    if (mesh) d.mesh = mesh;   // salvata con il pezzo: la composizione si riapre anche senza il motore
   }
   if (!d.mesh) throw new Error('forma dell\'Officina non disponibile');
-  return formaOfficina({ mesh: d.mesh, k: 1 });
+  return formaOfficina({ mesh: d.mesh, k: 1, off: T && T.off });
+}
+function avvisaIngrandita() {   // [Officina] dopo un ingrandimento automatico: lo dice e ridisegna i campi
+  if (!formaOff.ingrandita) return false;
+  avviso(`${formaOff.ingrandita}: misure ingrandite perché le porte siano alte almeno ${fmt(PORTA_MIN, 2)} m.`, 6000); formaOff.ingrandita = null; return true;
 }
 function forma(tipo, d) {
   if (tipo === 'officina') return formaOfficina(d);   // [Officina]
@@ -1154,7 +1232,7 @@ function collega() {
   for (const l of link) {
     l.porta.tipo = D.porte;
     l.w = Math.min(D.manW, ...[[l.a, l.ea], [l.b, l.eb]].filter(x => x[0]).map(([q, e]) => apertura(q.F, e).w));
-    l.h = Math.max(1.7, Math.min(D.manH, ...[[l.a, l.ea], [l.b, l.eb]].filter(x => x[0]).map(([q, e]) => apertura(q.F, e).h)));
+    l.h = Math.max(PORTA_MIN, Math.min(D.manH, ...[[l.a, l.ea], [l.b, l.eb]].filter(x => x[0]).map(([q, e]) => apertura(q.F, e).h)));
   }
   for (const p of pezzi) { p.usati = usati.get(p); p.chiuse = p.porte.length - p.usati.size; p.scafo = scafo(p); p.sovrapposto = false; }
   for (let i = 0; i < pezzi.length; i++) for (let j = i + 1; j < pezzi.length; j++)
@@ -1813,6 +1891,12 @@ function posaSonny(S, fase, passo, azione, t, X) {
         L(5, 'z', -(55 + 40 * Math.sin(r)), bw); L(8, 'z', 55 + 40 * Math.sin(r + Math.PI), bw); L(6, 'x', -(60 + 30 * Math.sin(r)), bw); L(9, 'x', -(60 + 30 * Math.sin(r + 1)), bw);
         L(1, 'y', 14 * Math.sin(r / 2), bw); L(11, 'x', -(10 + 10 * s), bw); L(14, 'x', -(10 + 10 * s), bw); L(12, 'x', 16 + 16 * s, bw); L(15, 'x', 16 + 16 * s, bw);
         L(13, 'x', -6 * s, bw); L(16, 'x', -6 * s, bw); o[0].position.y -= 0.05 * s * bw; o[0].position.x += 0.04 * Math.sin(r / 2) * bw; o[4].rotation.z += 6 * RAD * Math.sin(r / 2) * bw; }
+      // [Officina] gesti nuovi: pugno, inchino, ballo in coppia
+      else if (b === 'pugno') { L(5, 'x', -62, bw); L(5, 'z', 6, bw); L(6, 'x', -(38 + 14 * Math.max(0, Math.sin(t * 7))), bw); L(7, 'x', 10, bw); }
+      else if (b === 'inchino') { L(1, 'x', 22, bw); L(2, 'x', 10, bw); L(5, 'z', -4, bw); L(8, 'z', 4, bw); L(6, 'x', -8, bw); L(9, 'x', -8, bw); o[4].rotation.x += 14 * RAD * bw; }
+      else if (b === 'ballaCoppia') { const r = t * 4;
+        L(5, 'x', -68, bw); L(5, 'z', 4, bw); L(6, 'x', -14, bw); L(8, 'z', 34, bw); L(8, 'x', -12, bw); L(9, 'x', -72, bw);
+        L(1, 'z', 6 * Math.sin(r), bw); o[0].position.x += 0.04 * Math.sin(r) * bw; o[0].position.y -= 0.03 * Math.abs(Math.sin(r)) * bw; o[4].rotation.z += 5 * RAD * Math.sin(r) * bw; }
     }
     // sguardo: collo e testa (e un po' il petto) si girano verso chi o cosa guarda
     const k = 1 - (X.post === 'sdraiato' ? pw : 0), ly = X.yaw * k, lp = X.pitch * k;
@@ -2146,9 +2230,19 @@ function tickRincorsa(p, M, dt) {
 }
 // gesti a due: stretta di mano, batti il cinque, abbraccio; chi arriva viene accolto
 const COPPIE = [{ tipo: 'mano', dist: 0.74, durata: 2.4 }, { tipo: 'mano', dist: 0.74, durata: 2.4 }, { tipo: 'cinque', dist: 0.7, durata: 1.2, dopo: 'ride' }, { tipo: 'abbraccio', dist: 0.42, durata: 2.6 }];
+// [Officina] interazioni nuove: pugno, inchino, ballo in coppia (girano attorno al loro punto di mezzo), guardano insieme un punto
+const COPPIE2 = { pugno: { tipo: 'pugno', dist: 0.66, durata: 1.1, dopo: 'ride' }, inchino: { tipo: 'inchino', dist: 1.2, durata: 1.6 },
+  giro: { tipo: 'giro', dist: 0.9, durata: 5.5 }, guarda: { tipo: 'guarda', dist: 0.8, durata: 3.2 } };
 const libero = P => P.piano && !P.occupato && !P.percorso.length && P.pw < 0.05 && P.passo < 0.1 && !link.some(l => l.porta.uso === P);
 function interazioni(p, M, sit, dt) {
   const R = p._r, prima = R.membri || new Set(); R.membri = new Set(M);
+  if (['esplora', 'cerchio', 'conversazione', 'oggetti', 'festa', 'passaggio', 'seduti'].includes(sit) && M.length >= 2) {   // [Officina] saluto da lontano nella stessa bolla
+    R.tSal = (R.tSal ?? caso(4, 9)) - dt;
+    if (R.tSal <= 0) { R.tSal = caso(12, 22); const L = M.filter(libero), salTra = R.salTra || (R.salTra = new Map());
+      for (const A of L) { const B = L.find(Q => Q !== A && Math.hypot(A.g.position.x - Q.g.position.x, A.g.position.z - Q.g.position.z) > 3.5); if (!B || tempo - (salTra.get(A) ?? -99) < 25) continue;
+        A.temp = { br: 'saluta', guarda: B, fino: tempo + 1.8 }; salTra.set(A, tempo); R.risp = { P: B, a: A, at: tempo + 0.7 }; break; } }
+  }
+  if (R.risp && tempo >= R.risp.at) { const { P, a } = R.risp; R.risp = null; if (M.includes(P) && M.includes(a) && libero(P)) P.temp = { br: 'saluta', guarda: a, fino: tempo + 1.6 }; }
   const nuovi = M.filter(P => !prima.has(P));
   if (nuovi.length && prima.size) {   // qualcuno è appena entrato
     const N = nuovi[0], vecchi = M.filter(P => P !== N && prima.has(P));
@@ -2156,14 +2250,15 @@ function interazioni(p, M, sit, dt) {
     else if (sit === 'seduti' || sit === 'stelle') for (const P of vecchi) P.temp = { br: 'saluta', guarda: N, fino: tempo + 1.8 };
     else if (!R.int && ['cerchio', 'conversazione', 'esplora', 'oggetti', 'passaggio', 'calca'].includes(sit)) {
       const A = vecchi.filter(libero).sort((a, b) => Math.hypot(a.g.position.x - N.g.position.x, a.g.position.z - N.g.position.z) - Math.hypot(b.g.position.x - N.g.position.x, b.g.position.z - N.g.position.z))[0];
-      if (A) R.int = { A, B: N, ...sceglie([COPPIE[0], COPPIE[3]]), fase: 'aspetta', t: 0 };
+      if (A) R.int = { A, B: N, ...sceglie([COPPIE[0], COPPIE[3], COPPIE2.inchino]), fase: 'aspetta', t: 0 };   // [Officina] anche l'inchino
     }
   }
   if (!R.int && ['cerchio', 'conversazione', 'esplora', 'oggetti', 'festa', 'passaggio'].includes(sit) && M.length >= 2) {
     R.tInt = (R.tInt ?? caso(5, 10)) - dt;
     if (R.tInt <= 0) { R.tInt = caso(9, 18);
       const L = M.filter(libero); for (let i = 0; i < 6 && L.length >= 2; i++) { const A = sceglie(L), B = sceglie(L.filter(Q => Q !== A));
-        if (B && Math.hypot(A.g.position.x - B.g.position.x, A.g.position.z - B.g.position.z) < 3.2) { R.int = { A, B, ...sceglie(sit === 'festa' ? [COPPIE[2], COPPIE[3]] : COPPIE), fase: 'va', t: 0 }; break; } } }
+        if (B && Math.hypot(A.g.position.x - B.g.position.x, A.g.position.z - B.g.position.z) < 3.2) { R.int = { A, B, ...sceglie(sit === 'festa' ? [COPPIE[2], COPPIE[3], COPPIE2.pugno, COPPIE2.giro, COPPIE2.giro]   // [Officina] pugno, ballo, guardano insieme
+          : [...COPPIE, COPPIE2.pugno, ...(['esplora', 'cerchio', 'oggetti'].includes(sit) ? [COPPIE2.guarda, COPPIE2.guarda] : [])]), fase: 'va', t: 0 }; break; } } }
   }
   const I = R.int; if (!I) return;
   const { A, B } = I, fuori = !M.includes(A) || !M.includes(B);
@@ -2177,8 +2272,17 @@ function interazioni(p, M, sit, dt) {
     const q = dentroP(p, B.g.position.x + dx / L * I.dist, B.g.position.z + dz / L * I.dist, 0.3); vaiA(A, q[0], q[1]);
     B.temp = { guarda: A, fino: tempo + 6 };
   }
+  if (I.fase === 'fa' && I.tipo === 'giro' && (I.tv -= dt) <= 0) { I.tv = 0.3; I.th += 0.42;   // [Officina] ballo in coppia: un passo di giro ogni 0,3 s
+    for (const [P, s] of [[A, 0], [B, Math.PI]]) P.percorso = [dentroP(p, I.c[0] + I.r * Math.cos(I.th + s), I.c[1] + I.r * Math.sin(I.th + s), 0.3)]; }
   if (I.fase === 'va' && I.t > 0.2 && !A.percorso.length) { I.fase = 'fa'; I.t = 0;
-    for (const [P, Q] of [[A, B], [B, A]]) P.temp = { br: I.tipo, guarda: Q, fino: tempo + I.durata }; }
+    for (const [P, Q] of [[A, B], [B, A]]) P.temp = { br: I.tipo, guarda: Q, fino: tempo + I.durata };
+    if (I.tipo === 'guarda') {   // [Officina] uno indica un oggetto della bolla (o un punto in alto del telo), l'altro si gira a guardarlo
+      const og = oggettiIn(p)[0], q = og ? null : puntoACaso(p, 0.5, 1.7); I.punto = og ? og.c : [q[0], Math.max(1.6, p.F.H * 0.85), q[1]];
+      A.temp = { br: 'indica', guarda: I.punto, fino: tempo + I.durata }; B.temp = { br: 'annuisce', guarda: I.punto, fino: tempo + I.durata }; }
+    if (I.tipo === 'giro') {   // [Officina] ballo in coppia attorno al punto di mezzo
+      for (const [P, Q] of [[A, B], [B, A]]) P.temp = { br: 'ballaCoppia', guarda: Q, fino: tempo + I.durata };
+      I.c = [(A.g.position.x + B.g.position.x) / 2, (A.g.position.z + B.g.position.z) / 2]; I.r = Math.max(0.35, Math.hypot(A.g.position.x - B.g.position.x, A.g.position.z - B.g.position.z) / 2);
+      I.th = Math.atan2(A.g.position.z - I.c[1], A.g.position.x - I.c[0]); I.tv = 0; } }
   else if (I.fase === 'va' && I.t > 8) chiudi();
   else if (I.fase === 'fa' && I.t > I.durata) {
     if (I.dopo) for (const [P, Q] of [[A, B], [B, A]]) P.temp = { br: I.dopo, guarda: Q, fino: tempo + 1.4 };
@@ -2546,6 +2650,7 @@ function sceltaRiga(cont, s, val, onCambio) {   // [Officina] un parametro a sce
 function nuovoCambiato() {
   contaGonf($('gonfNuovo'), fNuovo, nuovoCambiato);
   const Fn = forma(tipoScelto, dimNuovo); porteNuove = porteNuove.filter(i => i < Fn.E.length);
+  if (avvisaIngrandita()) { porteNuove = Fn.conn.slice(); disegnaTipi(); return; }   // [Officina] misure cresciute per le porte: i campi mostrano quelle nuove
   sceltaPorte($('porteNuove'), Fn, porteNuove, null, () => { attNuovo = 0; nuovoCambiato(); }, porteNuove[attNuovo % Math.max(1, porteNuove.length)]);
   disegnaAttacco();
   clearTimeout(nuovoCambiato.t);
@@ -2616,7 +2721,7 @@ function ispettore(nuovo) {
     el.querySelectorAll('[data-sc]').forEach(x => x.setAttribute('aria-selected', x === b)); el.querySelectorAll('[data-pane]').forEach(x => x.hidden = x.dataset.pane !== tabIsp); });
   $('iScoppia').onclick = () => p.scoppio ? ripara(p) : scoppia(p);
   const cont = $('parSel'); let t;
-  for (const [k, lab, mn, mx, st, , u] of TIPI[p.tipo].par) campo(cont, lab, p.d[k], mn, mx, st, u, val => { const legami = legamiAttuali(); p.d[k] = val; clearTimeout(t); t = setTimeout(() => { p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); }, 140); }, u === 'm' || u === '×' ? 2 : 0);
+  for (const [k, lab, mn, mx, st, , u] of TIPI[p.tipo].par) campo(cont, lab, p.d[k], mn, mx, st, u, val => { const legami = legamiAttuali(); p.d[k] = val; clearTimeout(t); t = setTimeout(() => { p.F = forma(p.tipo, p.d); avvisaIngrandita(); riallinea(p, legami); strutturaCambiata(); }, 140); }, u === 'm' || u === '×' ? 2 : 0);
   for (const s of TIPI[p.tipo].scelte || []) sceltaRiga(cont, s, p.d[s.key], v => { const legami = legamiAttuali(); p.d[s.key] = v; p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); });   // [Officina]
   contaGonf($('iGonf'), p.f, () => strutturaCambiata());
   { const g0 = genitore(p); sceltaPorte($('iPorte'), p.F, p.porte, p.usati, () => strutturaCambiata(), g0 && p.porte.length > 1 ? g0.ef : undefined); }
@@ -2708,6 +2813,31 @@ $('bRiacc').onclick = () => blackout();
 function menuProve(apri) { $('menuProve').hidden = !apri; $('bProve').setAttribute('aria-expanded', apri); }
 $('bProve').onclick = e => { e.stopPropagation(); menuProve($('menuProve').hidden); };
 $('menuProve').addEventListener('click', e => { if (e.target.closest('button')) menuProve(false); });
+// [Officina] menu che si tolgono: i pannelli laterali (linguette sul bordo della scena), i riquadri sulla scena (×) e tutti insieme (Menu)
+function X_PAN(k, cosa) { return `<button class="xPan" data-x="${k}" title="Nascondi ${cosa}" aria-label="Nascondi ${cosa}">×</button>`; }
+const MENU = { sx: true, dx: true, persone: true, press: true, vista: true };
+try { Object.assign(MENU, JSON.parse(localStorage.getItem('bolle-menu') || '{}')); } catch (e) {}
+function applicaMenu(salva) {
+  const v = $('vCostruisci'); v.classList.toggle('chiusoSx', !MENU.sx); v.classList.toggle('chiusoDx', !MENU.dx);
+  box.classList.toggle('noPersone', !MENU.persone); box.classList.toggle('noPress', !MENU.press); box.classList.toggle('noVista', !MENU.vista);
+  $('lingSx').textContent = MENU.sx ? '‹' : '›'; $('lingSx').title = (MENU.sx ? 'Chiudi' : 'Apri') + ' il pannello Aggiungi';
+  $('lingDx').textContent = MENU.dx ? '›' : '‹'; $('lingDx').title = (MENU.dx ? 'Chiudi' : 'Apri') + ' il pannello del pezzo';
+  $('menuMenu').querySelectorAll('[data-m]').forEach(c => { c.checked = MENU[c.dataset.m]; });
+  if (salva) try { localStorage.setItem('bolle-menu', JSON.stringify(MENU)); } catch (e) {}
+  requestAnimationFrame(ridimensiona);
+}
+function menuMenu(apri) { $('menuMenu').hidden = !apri; $('bMenu').setAttribute('aria-expanded', apri); }
+$('bMenu').onclick = e => { e.stopPropagation(); menuMenu($('menuMenu').hidden); };
+$('menuMenu').querySelectorAll('[data-m]').forEach(c => { c.onchange = () => { MENU[c.dataset.m] = c.checked; applicaMenu(true); }; });
+$('mNascondi').onclick = () => { for (const k in MENU) MENU[k] = false; applicaMenu(true); menuMenu(false); };
+$('mMostra').onclick = () => { for (const k in MENU) MENU[k] = true; applicaMenu(true); menuMenu(false); };
+$('lingSx').onclick = () => { MENU.sx = !MENU.sx; applicaMenu(true); };
+$('lingDx').onclick = () => { MENU.dx = !MENU.dx; applicaMenu(true); };
+document.addEventListener('click', e => { const x = e.target.closest('.xPan'); if (x) { MENU[x.dataset.x] = false; applicaMenu(true); }
+  if (!$('menuMenu').hidden && !e.target.closest('.menuMenu')) menuMenu(false); });
+document.querySelector('.sinistra .gruppo').insertAdjacentHTML('beforeend', X_PAN('persone', 'persone e stato'));
+$('barraScena').insertAdjacentHTML('beforeend', X_PAN('vista', 'la barra Vista'));
+applicaMenu(false);
 function guida(apri) { $('guida').hidden = !apri; $('bGuida').setAttribute('aria-expanded', apri); if (!apri) try { localStorage.setItem('bolle-guida-vista', '1'); } catch (e) {} }
 $('bGuida').onclick = e => { e.stopPropagation(); guida($('guida').hidden); };
 $('guidaOk').onclick = () => guida(false);
@@ -3269,8 +3399,8 @@ function pannelloPressione() {
   const firma = pezzi.map(p => p.id + ':' + p.nome + ':' + p.sistema + ':' + valuta(p).c + (p.scoppio ? 'x' : '')).join('|') + (selezionato ? selezionato.id : '');
   if (firma !== firmaPan) {
     firmaPan = firma;
-    if (!pezzi.length) { el.innerHTML = '<h3>Pressione</h3><p class="vuoto" style="margin:4px">Nessun modulo</p>'; return; }
-    let h = '<h3><span>Pressione</span><span>Pa</span></h3>';
+    if (!pezzi.length) { el.innerHTML = '<h3><span>Pressione</span>' + X_PAN('press', 'la pressione') + '</h3><p class="vuoto" style="margin:4px">Nessun modulo</p>'; return; }
+    let h = '<h3><span>Pressione</span><span>Pa ' + X_PAN('press', 'la pressione') + '</span></h3>';   // [Officina] × per nasconderla
     sistemi.forEach((sis, k) => {
       if (sistemi.length > 1) h += `<h3>${nomeSistema(k)}</h3>`;
       for (const p of sis) {
@@ -3514,7 +3644,7 @@ function inquadra() {
 }
 function ridimensiona() {
   const w = box.clientWidth, h = box.clientHeight; if (!w || !h) return; renderer.setSize(w, h); camera.aspect = w / h;
-  const off = w > 700 ? 135 : 0;   // sposta la scena a sinistra del pannello della pressione
+  const off = w > 700 && !box.classList.contains('noPress') ? 135 : 0;   // sposta la scena a sinistra del pannello della pressione ([Officina] solo se c'è)
   if (off) camera.setViewOffset(w + off, h, off, 0, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
@@ -3823,8 +3953,12 @@ function daOfficina() {
     const ok = nv >= 4 && nv <= 20000 && m.v.every(p => Array.isArray(p) && p.length === 3 && p.every(Number.isFinite)) && Array.isArray(m.f) && m.f.length >= 4 && m.f.length <= 40000
       && m.f.every(f => Array.isArray(f) && f.length >= 3 && f.every(i => Number.isInteger(i) && i >= 0 && i < nv));
     if (!ok) { avviso('La forma arrivata dall\'Officina non è valida.', 6000); return; }
-    d.mesh = { v: m.v, f: m.f };
-    try { forma('officina', d); } catch (e) { avviso('Questa forma non appoggia a terra: nell\'Officina appoggiatela su una faccia o tagliate la base (Passo 1 → Altre opzioni).', 8000); return; }
+    d.mesh = { v: m.v, f: m.f }; if (typeof M.d.off === 'string' && PORTE_OFF[M.d.off]) d.off = M.d.off;   // l'id dell'Officina: per mettere le entrate nei punti giusti
+    let F; try { F = forma('officina', d); } catch (e) { avviso('Questa forma non appoggia a terra: nell\'Officina appoggiatela su una faccia o tagliate la base (Passo 1 → Altre opzioni).', 8000); return; }
+    const k0 = d.k;   // porte da 1,80 m: se serve si ingrandisce tutta la forma (si riprova: la mappa delle altezze è a quadretti)
+    for (let giro = 0; giro < 4; giro++) { const hb = Math.min(...F.conn.map(i => F.E[i].hMax)); if (hb >= ALT_PORTA || d.k >= 2) break;
+      d.k = Math.min(2, Math.ceil(ALT_PORTA / Math.max(0.4, hb) * d.k * 1.02 * 100) / 100); F = forma('officina', d); }
+    if (d.k > k0) ritocchi.push(`ingrandita ×${fmt(d.k, 2)} perché le porte siano alte almeno ${fmt(PORTA_MIN, 2)} m`);
   }
   const f = gonfConsigliati({ tipo, d }) || { ...TIPI[tipo].f };
   const ini = compAttiva(); if (ini && ini.nome === 'Cubo iniziale') { comp.lista = comp.lista.filter(c => c !== ini); comp.attiva = null; }   // il cubo d'esempio di questa apertura non serve
