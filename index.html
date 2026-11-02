@@ -205,6 +205,9 @@ td.v { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space
 .wide table { min-width: 620px; }
 tr.key td { font-weight: 600; }
 .keycards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.bridge { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 12px; padding: 12px 16px; background: var(--green-soft); border: 1px solid color-mix(in srgb, var(--green) 30%, transparent); border-radius: var(--r-m); }
+.bridge .txt { display: grid; gap: 2px; min-width: 0; flex: 1 1 260px; }
+.bridge a.btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 .kcard { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 6px; align-content: start; border-top: 4px solid var(--green); }
 .kcard .k { font-family: var(--display); font-weight: 700; font-size: 1rem; line-height: 1.25; }
 .kcard .kv { display: grid; font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1.15; }
@@ -485,6 +488,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <p class="lede">Scegliete una forma e le sue misure reali: la pagina prepara la guida completa per costruirla, prima come modellino in scala e poi come bolla vera in plastica, con i numeri giusti in ogni passaggio.</p>
       <div class="stats" id="stats"></div>
       <p class="hero-shape"><span class="muted">Forma scelta:</span> <strong id="heroShape"></strong> · <a href="#forma">cambiatela</a></p>
+      <p class="hero-shape"><span class="muted">Più bolle collegate, gonfiatori, costi:</span> <a href="configuratore/">Configuratore Bolle</a></p>
     </div>
     <figure class="hero-stage">
       <canvas id="view" class="pickable" aria-label="Vista 3D della forma scelta, con quote e una persona alta 1,75 m per confronto. Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."></canvas>
@@ -596,6 +600,10 @@ details.menu > summary::-webkit-details-marker { display: none; }
     </div>
   </div>
   <div class="keycards" id="keyCards"></div>
+  <div class="bridge" id="bridge">
+    <div class="txt"><b>Sta su? Provatela nel configuratore</b><span class="hint" id="bridgeNote"></span></div>
+    <a class="btn primary" id="bridgeGo" href="configuratore/" target="_blank" rel="noopener">Apri nel configuratore</a>
+  </div>
   <details class="more">
     <summary>Tutte le misure <span class="hint" id="tblCount"></span></summary>
     <div class="card tablewrap wide">
@@ -2135,6 +2143,40 @@ function analyze(V, F, floor) {
   function schedule() { clearTimeout(timer); timer = setTimeout(update, 140); }
 
   /* ---------- calcolo ---------- */
+  /* ponte verso il configuratore (stessa cartella del sito, configuratore/), misure della bolla vera in metri.
+     Una forma passa a un tipo del configuratore solo se ci entra così com'è; tutte le altre passano come forma vera (la mesh). */
+  const LIMITI_CONF = {   // copiati da TIPI in configuratore/index.html: [chiave, minimo, massimo]
+    cubo: [["W", 1, 8], ["P", 1, 8], ["H", 1.5, 4]], prisma: [["lati", 3, 12], ["D", 1.2, 8], ["H", 1.5, 4]],
+    piramide: [["lati", 3, 8], ["L", 1.2, 8], ["k", 0, 0.8], ["H", 2.5, 6]], stella: [["punte", 4, 8], ["D", 1.2, 8], ["k", 0.4, 0.8], ["H", 1.5, 4]], libera: [["H", 1.5, 4]],
+  };
+  function perConfiguratore() {
+    const d = def(), p = state.params, L = (x) => +(x * (cur.k || 1)).toFixed(3), piatto = p.roof !== "punta";
+    let r = null;
+    switch (d.id) {
+      case "d6": if (state.opt.orient === "faccia") r = { tipo: "cubo", d: { W: L(p.s), P: L(p.s), H: L(p.s) } }; break;
+      case "box": r = { tipo: "cubo", d: { W: L(p.a), P: L(p.b), H: L(p.h) } }; break;
+      case "prism": r = { tipo: "prisma", d: { lati: p.n, D: L(2 * circumR(p.n, p.s)), H: L(p.h) } }; break;
+      case "pyr": r = { tipo: "piramide", d: { lati: p.n, L: L(p.s), k: 0, H: L(p.h) } }; break;
+      case "frus": r = { tipo: "piramide", d: { lati: p.n, L: L(p.s), k: +(p.t / p.s).toFixed(3), H: L(p.h) } }; break;
+      case "star": if (piatto) r = { tipo: "stella", d: { punte: p.n, D: L(2 * p.R), k: +(p.r / p.R).toFixed(3), H: L(p.h) } }; break;
+      default: if (d.kind === "extrude" && piatto) r = { tipo: "libera", d: { pts: d.outline(p).map(q => [L(q[0]), L(q[1])]), H: L(p.h) } };
+    }
+    if (r && LIMITI_CONF[r.tipo].every(([k, a, b]) => r.d[k] >= a - 1e-9 && r.d[k] <= b + 1e-9)) return r;
+    // forma vera: la mesh già pronta (adattata al pavimento e centrata), al millimetro
+    const terra = cur.V.filter(v => v[2] < 1e-4);
+    if (terra.length < 3 || (cur.floorArea || 0) + (cur.open ? 1 : 0) < 0.5) return { no: "Questa forma non appoggia a terra: appoggiatela su una faccia o tagliate la base (Passo 1 → Altre opzioni)." };
+    const mm = (x) => Math.round(x * 1000) / 1000;
+    return { tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1 } };
+  }
+  function renderBridge(ok) {
+    const a = $("bridgeGo"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure al Passo 1." };
+    if (r.no) { a.setAttribute("aria-disabled", "true"); a.removeAttribute("href"); a.tabIndex = -1; $("bridgeNote").textContent = r.no; return; }
+    const nome = ($("projName").value.trim() || shortName(def())).slice(0, 60);
+    a.href = "configuratore/#officina=" + encodeURIComponent(JSON.stringify({ v: 1, nome, tipo: r.tipo, d: r.d }));   // dopo il #: le forme grandi non passano dal server
+    a.removeAttribute("aria-disabled"); a.tabIndex = 0;
+    $("bridgeNote").textContent = "La vedete montata con i gonfiatori del lab: pressione, quanti gonfiatori servono, materiali e budget.";
+  }
+
   function update() {
     const d = def();
     renderPlan();
@@ -2156,6 +2198,7 @@ function analyze(V, F, floor) {
     } catch (err) {
       $("error").textContent = "Con questi valori la forma non si può costruire. " + (err.message && err.message.length > 20 ? err.message : "Provate a cambiare le misure.");
       $("error").hidden = false;
+      renderBridge(false);
       return;
     }
     renderBaseCtl();
@@ -2166,7 +2209,7 @@ function analyze(V, F, floor) {
       : (cur.floorArea > 0 ? "" : "Questa forma non ha un pavimento piatto, quindi non si può adattare all'area: attivate la base o il fondo piatto.");
     $("navShape").textContent = d.name;
     $("heroShape").textContent = d.name;
-    renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll(); syncModelRef();
+    renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll(); syncModelRef(); renderBridge(true);
   }
 
   /* i campi mostrano sempre le misure effettive: lati moltiplicati per il fattore dell'area, oppure l'area che risulta dai lati */

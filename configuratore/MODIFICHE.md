@@ -1,0 +1,76 @@
+# Aggiunte al Configuratore Bolle
+
+`index.html` è il file unico del Configuratore Bolle (`configuratore-bolle.html`, versione del 2 novembre 2026) con alcune aggiunte. Servono a due cose:
+- farlo stare sullo stesso sito dell'Officina delle Bolle;
+- fargli ricevere **tutte** le forme dell'Officina, montate così come sono.
+
+Nel file sono tutte segnate `[Officina]`. Se arriva una versione nuova, basta rimetterle.
+
+## Aspetto: lo stesso dell'Officina, chiaro o scuro come il computer
+1. **Caratteri** (nel `<head>`): Bricolage Grotesque, IBM Plex Sans e IBM Plex Mono da Google Fonts, come nell'Officina.
+2. **Blocco `[Officina] tema`** in fondo al `<style>`:
+   - ridefinisce i colori del configuratore (`--bg`, `--card`, `--acc`…) con quelli dell'Officina, in versione chiara e scura (`prefers-color-scheme` e `data-theme`);
+   - aggiunge `--acc-soft`, `--on-acc`, `--vetro` (pannelli sopra la scena), `--sez`, `--ombra` e i colori della scena 3D (`--s3d-a/b/c`, `--pav3d`);
+   - assegna i caratteri;
+   - sostituisce i colori scritti a mano: pulsanti attivi, pannelli trasparenti, righe selezionate.
+
+   Gli schemi in sezione restano un foglio bianco anche col tema scuro.
+3. **Intestazione**: al posto di `<div class="marchio">Bolle</div>` c'è il link `a.marca` "← Officina delle Bolle · Configuratore", che riporta all'Officina (`../`).
+4. **Script**, colori presi dal tema invece che scritti a mano:
+   - `gaugeSVG` (manometri);
+   - `disegnaGrafico` (grafico della pressione);
+   - `sceltaPorte` (piantina delle porte).
+5. **Scena 3D**:
+   - `sfondo()` diventa `dipingiSfondo()`;
+   - `temaScena()` colora cielo e pavimento con il tema e li ridipinge quando il computer passa da chiaro a scuro;
+   - il verde dell'Officina (`0x2f9a74`) sostituisce il blu nelle cuciture selezionate e nell'anteprima di aggancio.
+
+## Link e arrivo delle forme
+1. **Funzione `daOfficina()`** (in fondo al primo script, prima di `window.cfg`), chiamata all'apertura:
+   - legge `#officina=` dall'indirizzo, oppure `?officina=` per i link vecchi. Il dato è un JSON `{ "v": 1, "nome": "…", "tipo": "…", "d": { … } }` con le misure della bolla vera in metri;
+   - porta le misure nei limiti di `TIPI`;
+   - controlla la mesh, se c'è;
+   - sceglie i gonfiatori con `gonfConsigliati`;
+   - crea la composizione "Dall'Officina · nome" e mostra il giudizio;
+   - toglie il dato dall'indirizzo.
+
+## Nuovo tipo di pezzo `officina`: la forma vera
+L'Officina manda un tipo del configuratore (cubo, prisma, piramide, stella, libera) solo se la forma ci entra senza ritocchi. Tutte le altre arrivano come tipo `officina`:
+- `d = { mesh: { v: [[x, y, z]…], f: [[i, j, k…]…] }, k }`;
+- la mesh è dell'Officina, in metri, con z in alto;
+- `k` serve a ingrandirla.
+
+Pezzi aggiunti:
+- **`TIPI.officina` e `ICONE.officina`.** Non sta in `CAT`, quindi non compare in "Aggiungi".
+- **`datiOfficina(mesh, k)`.** Si calcola una volta per ogni mesh e ingrandimento. Ricava:
+  - la pianta a terra;
+  - la mappa delle altezze, cioè il primo telo sopra ogni punto;
+  - il centro, nel punto più lontano dalle zone basse (nella ciambella non è il buco);
+  - volume, telo, cuciture;
+  - l'ingombro visto dall'alto (`Vs`).
+- **`fuoriOfficina()`** sposta porta, manica e gonfiatori lungo la normale del lato, finché toccano il telo.
+- **`formaOfficina(d)`, chiamata all'inizio di `forma()`.** Restituisce gli stessi campi delle altre forme, più `mesh: true`. Per ogni lato aggiunge:
+  - `hMax`, l'altezza libera appena dentro;
+  - `fuori`, quanto sporge il telo.
+
+  Le porte di partenza sono due, sui lati più lunghi e alti e lontani tra loro.
+- **`gusciOfficina(F)`.** Il guscio 3D:
+  - ogni pannello è diviso in triangoli;
+  - si gonfia a cuscino (`st.gon`), si abbassa sgonfiandosi (`st.hk`) e fa pieghe quando è molle (`st.fl`);
+  - i pannelli che guardano in su prendono il materiale del cielo stellato.
+
+Funzioni originali ritoccate, una riga ciascuna, sempre con `[Officina]`:
+- **`costruisciPezzo`**: il guscio al posto di pareti e soffitto, le stelle sul guscio, le linee delle cuciture vere. Non disegna le linee dello strappo.
+- **`aggiornaPezzo`**: aggiorna guscio, stelle e linee; le cornici delle porte si spostano di `e.fuori`.
+- **`puntoAnello`** e posizione dei gonfiatori: spostati di `e.fuori`.
+- **`apertura`**: la porta è alta quanto `e.hMax − 0,15 m`.
+- **`dentroB`**: le persone stanno solo dove sopra c'è abbastanza telo.
+- **`raggioLibero`** usa `W2`.
+- **`teloPezzo`** usa il telo vero (`F.sup`).
+- **`sporgenza`** e **`scafo`** usano l'ingombro dall'alto `Vs`: i pezzi vicini non entrano nella pancia o nelle pinne.
+
+Fisica, persone, materiali, budget, salvataggi e il resto dell'interfaccia sono quelli originali.
+
+## Da segnalare all'altro gruppo
+- Le prove in `test/` bloccano ogni richiesta a internet tranne Three.js, quindi anche i caratteri di Google Fonts, e lo segnano come errore in console ("Failed to load resource"). Basta rispondere vuoto a `fonts.googleapis.com` / `fonts.gstatic.com` nel gestore `pg.on('request', …)`: così tutte le prove passano.
+- `test/povup.js` cerca `pg.$('canvas')`, che ora trova per prima l'anteprima nascosta di Forma da foto (`#ffCanvas`), e si ferma. Con `pg.$('#scena > canvas')` la prova passa.
