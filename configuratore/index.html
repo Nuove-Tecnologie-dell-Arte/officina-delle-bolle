@@ -379,6 +379,11 @@
   .eti, .pannelloP, .legenda3d, #pannelloO, #pannelloS, #pannelloSt, .gruppo, .barraScena { background: var(--vetro); }
   .barraScena .legenda3d { background: none; }
   .menuComp, .menuProve, .guidaPop, .gruppo, .barraScena, .pannelloP, #pannelloO, #pannelloS, #pannelloSt { box-shadow: var(--ombra); }
+  .stPronte { display: grid; gap: 6px; }
+  .stPronta { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; align-items: center; text-align: left; padding: 6px; }
+  .stPronta img { width: 96px; height: 48px; object-fit: cover; border-radius: 6px; display: block; }
+  .stPronta b { display: block; font-size: 13px; } .stPronta span { font-size: 12px; color: var(--mut); }
+  .stPronta[aria-pressed="true"] { border-color: var(--acc); box-shadow: inset 0 0 0 1px var(--acc); }
   #pannelloSt { position: absolute; left: 12px; bottom: 64px; width: 272px; max-height: calc(100% - 140px); overflow-y: auto; z-index: 5; display: grid; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; align-content: start; }
   .tabbom tr.sez td { background: var(--sez); }
   .cons.mid { color: var(--mid); }
@@ -537,7 +542,8 @@
       <div id="pannelloSt" hidden>
         <h2>Stanza di sfondo</h2>
         <p class="vuoto" style="margin:0">Mette le bolle dentro uno spazio vero. Si vedono solo le facce interne, quindi le pareti rivolte verso di te spariscono, come il backface culling del materiale in Blender.</p>
-        <div class="bottoni"><button class="pri" id="stFoto">Foto 360°…</button><button id="stModello">Modello GLB…</button></div><input type="file" id="stFile" hidden>
+        <div class="stPronte" id="stPronte"></div>
+        <div class="bottoni"><button id="stFoto">Foto 360°…</button><button id="stModello">Modello GLB…</button></div><input type="file" id="stFile" hidden>
         <p class="std" style="margin:0">Foto equirettangolare 2:1 (JPG, PNG, WebP o HDR): viene proiettata su una stanza a scatola dal punto in cui è stata scattata. Oppure un modello GLB con le texture dentro. Resta salvata in questo browser.</p>
         <div class="selNome" id="stNome" hidden></div>
         <div class="par" id="stCampi"></div>
@@ -4015,7 +4021,7 @@ function matEquirett(tex) {   // la foto 360° proiettata dal punto in cui è st
 }
 function togliStanza(salva) {
   if (ST.grp) { scena.remove(ST.grp); ST.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
-  ST.grp = null; ST.mats = []; ST.tipo = null; ST.file = null; ST.nome = '';
+  ST.grp = null; ST.mats = []; ST.tipo = null; ST.file = null; ST.nome = ''; if (salva !== false) ST.pronta = null;
   if (salva !== false) stanzaDB('del'); disegnaStanza();
 }
 function aggiornaStanza() {   // misure, posizione, luce, facce visibili
@@ -4030,10 +4036,11 @@ function aggiornaStanza() {   // misure, posizione, luce, facce visibili
   } else if (ST.tipo === 'modello') { g.userData.mod.scale.setScalar(ST.scala); const b = g.userData.base; g.userData.ombra.scale.set(b.x * ST.scala, b.z * ST.scala, 1); }
 }
 function ombraStanza() { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.28 })); m.rotation.x = -Math.PI / 2; m.position.y = 0.0015; m.receiveShadow = true; return m; }
-function stanzaDaFoto(tex, nome) {
+function stanzaDaFoto(tex, nome, hdr) {
   togliStanza(false);
-  tex.generateMipmaps = false; tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter; tex.wrapS = THREE.RepeatWrapping; tex.needsUpdate = true;
-  const g = new THREE.Group(), mat = matEquirett(tex), box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat); box.renderOrder = -1;   // cubo unitario scalato alle misure della stanza
+  tex.generateMipmaps = false; if (tex.minFilter !== THREE.NearestFilter) { tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter; } tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.needsUpdate = true;
+  const g = new THREE.Group(), mat = matEquirett(tex); mat.toneMapped = !!hdr;   // una foto normale si vede com'è; un HDR vero passa dal tone mapping
+  const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat); box.renderOrder = -1;   // cubo unitario scalato alle misure della stanza
   const om = ombraStanza(); g.add(box, om); g.userData = { box, ombra: om };
   ST.grp = g; ST.mats = [mat]; ST.tipo = 'foto'; ST.nome = nome; scena.add(g); aggiornaStanza(); disegnaStanza();
 }
@@ -4051,6 +4058,13 @@ function stanzaDaModello(gltf, nome) {
   for (const m of mats) if (m.userData.colore) m.color.copy(m.userData.colore);
   aggiornaStanza(); disegnaStanza();
 }
+// stanze pronte, nella cartella stanze/ accanto al configuratore
+const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'stanze/corridoio.jpg', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · foto 360°',
+  par: { W: 12, P: 12, H: 7, fy: 1.6, fx: 0, fz: 0, frot: 90, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
+function stanzaPronta(S) {
+  fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { Object.assign(ST, S.par); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); })
+    .catch(() => avviso('Non trovo ' + S.file + ': apri il configuratore dal sito, non come file sul computer.', 6000));
+}
 function caricaStanza(file, dalDB) {
   const nome = file.name || 'stanza', est = (nome.split('.').pop() || '').toLowerCase();
   const fine = ok => { if (ok && !dalDB) { ST.file = file; stanzaDB('put'); } if (!ok) avviso('Non riesco ad aprire ' + nome + '.', 5000); };
@@ -4060,9 +4074,20 @@ function caricaStanza(file, dalDB) {
   } else if (est === 'gltf') avviso('Esporta il modello come GLB (glTF binario), con le texture dentro al file.', 6000);
   else if (est === 'hdr') {
     if (!THREE.RGBELoader) { avviso('Il lettore HDR non è stato caricato: serve internet per il CDN, oppure usa un JPG.', 5000); return; }
-    file.arrayBuffer().then(buf => { const ld = new THREE.RGBELoader().setDataType(THREE.HalfFloatType), d = ld.parse(buf);
-      const t = new THREE.DataTexture(d.data, d.width, d.height, THREE.RGBAFormat, d.type); t.encoding = THREE.LinearEncoding; t.flipY = true; t.needsUpdate = true;
-      stanzaDaFoto(t, nome); ST.file = file; fine(true); }).catch(() => fine(false));
+    file.arrayBuffer().then(buf => { const d = new THREE.RGBELoader().setDataType(THREE.HalfFloatType).parse(buf), dt = d.data, n = d.width * d.height;
+      const h2f = h => { const e = (h & 0x7C00) >> 10, f = h & 0x03FF; return e === 0 ? f / 1024 * 6.103515625e-5 : e === 31 ? 65504 : Math.pow(2, e - 15) * (1 + f / 1024); };   // da mezzo float a numero
+      const ch = Math.round(dt.length / n);   // RGB (3) o RGBA (4), a seconda della versione del lettore
+      let mx = 0; for (let i = 0; i < dt.length; i += ch * 97) { const v = h2f(dt[i]); if (v > mx) mx = v; }
+      let t;
+      if (mx <= 1.02) {   // HDR senza luci oltre il bianco (come quelli salvati da Photoshop): diventa una foto a 8 bit, leggera e uguale a vedersi
+        const lut = new Uint8Array(65536); for (let h = 0; h < 65536; h++) { const v = Math.min(1, Math.max(0, h2f(h))); lut[h] = Math.round(255 * (v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055)); }
+        const px = new Uint8Array(n * 4); for (let i = 0, j = 0; i < n * 4; i += 4, j += ch) { px[i] = lut[dt[j]]; px[i + 1] = lut[dt[j + 1]]; px[i + 2] = lut[dt[j + 2]]; px[i + 3] = 255; }
+        t = new THREE.DataTexture(px, d.width, d.height, THREE.RGBAFormat, THREE.UnsignedByteType); t.encoding = THREE.sRGBEncoding;
+      } else {   // HDR vero: resta in mezzi float e passa dal tone mapping
+        t = new THREE.DataTexture(dt, d.width, d.height, ch === 3 ? THREE.RGBFormat : THREE.RGBAFormat, THREE.HalfFloatType); t.encoding = THREE.LinearEncoding;
+        if (!renderer.capabilities.isWebGL2 && !renderer.extensions.get('OES_texture_half_float_linear')) { t.minFilter = t.magFilter = THREE.NearestFilter; }
+      }
+      t.flipY = true; t.needsUpdate = true; stanzaDaFoto(t, nome, mx > 1.02); ST.file = file; fine(true); }).catch(() => fine(false));
   } else {
     const url = URL.createObjectURL(file);
     new THREE.TextureLoader().load(url, t => { t.encoding = THREE.sRGBEncoding; URL.revokeObjectURL(url); stanzaDaFoto(t, nome); ST.file = file; fine(true); }, undefined, () => { URL.revokeObjectURL(url); fine(false); });
@@ -4074,7 +4099,7 @@ function stanzaDB(az) {
     const rq = indexedDB.open('bolle-stanza', 1);
     rq.onupgradeneeded = () => rq.result.createObjectStore('s');
     rq.onsuccess = () => { const db = rq.result, tx = db.transaction('s', az === 'get' ? 'readonly' : 'readwrite'), os = tx.objectStore('s');
-      const par = { W: ST.W, P: ST.P, H: ST.H, fy: ST.fy, fx: ST.fx, fz: ST.fz, frot: ST.frot, rot: ST.rot, x: ST.x, z: ST.z, scala: ST.scala, luce: ST.luce, interne: ST.interne };
+      const par = { pronta: ST.pronta || null, W: ST.W, P: ST.P, H: ST.H, fy: ST.fy, fx: ST.fx, fz: ST.fz, frot: ST.frot, rot: ST.rot, x: ST.x, z: ST.z, scala: ST.scala, luce: ST.luce, interne: ST.interne };
       if (az === 'put' && ST.file) os.put({ file: ST.file, nome: ST.nome, par }, 'stanza');
       else if (az === 'par') { const g = os.get('stanza'); g.onsuccess = () => { if (g.result) { g.result.par = par; os.put(g.result, 'stanza'); } }; }
       else if (az === 'del') os.delete('stanza');
@@ -4084,6 +4109,8 @@ function stanzaDB(az) {
 let tParSt = 0; const salvaParStanza = () => { clearTimeout(tParSt); tParSt = setTimeout(() => stanzaDB('par'), 400); };
 function disegnaStanza() {
   const el = $('pannelloSt'); if (!el) return;
+  $('stPronte').innerHTML = STANZE.map((S, i) => `<button class="stPronta" data-i="${i}" aria-pressed="${ST.tipo && ST.pronta === S.id}"><img src="${S.mini}" alt=""><span><b>${S.nome}</b><span>${S.sotto}</span></span></button>`).join('');
+  $('stPronte').querySelectorAll('[data-i]').forEach(b => b.onclick = () => stanzaPronta(STANZE[+b.dataset.i]));
   const c = $('stCampi'); c.innerHTML = '';
   $('stNome').hidden = !ST.tipo; $('stTogli').hidden = !ST.tipo; $('stInterne').closest('label').hidden = !ST.tipo;
   if (!ST.tipo) { $('stNome').textContent = ''; return; }
@@ -4101,7 +4128,7 @@ $('bStanza').onclick = () => pannelloStanza($('pannelloSt').hidden);
 document.addEventListener('click', e => { if (e.target && e.target.id === 'bOgg' && !$('pannelloO').hidden) pannelloStanza(false); });
 $('stFoto').onclick = () => { $('stFile').accept = '.jpg,.jpeg,.png,.webp,.hdr,image/*'; $('stFile').click(); };
 $('stModello').onclick = () => { $('stFile').accept = '.glb,.gltf'; $('stFile').click(); };
-$('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) caricaStanza(f); };
+$('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) { ST.pronta = null; caricaStanza(f); } };
 $('stTogli').onclick = () => togliStanza();
 $('stInterne').onchange = e => { ST.interne = e.target.checked; aggiornaStanza(); salvaParStanza(); };
 addEventListener('load', () => stanzaDB('get'));   // dopo il caricamento dei lettori GLB e HDR
