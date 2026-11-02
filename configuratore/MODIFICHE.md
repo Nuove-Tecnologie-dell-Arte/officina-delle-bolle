@@ -73,6 +73,9 @@ Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 15 forme dell'O
   - Con misure impossibili tiene la forma di prima e mostra il messaggio dell'Officina.
 - **Altre aggiunte:** `ICONE['of:…']` (15 icone), `standard()` con le scelte, e una riga in `disegnaTipi()` e in `ispettore()` per le tendine.
 
+## Pulsante "Notte" nascosto
+Il pulsante `#bNotte` della barra Vista ha `hidden`. La vista notte resta, e si accende da sola con "Guarda il soffitto da dentro" del soffitto stellato.
+
 Funzioni originali ritoccate, una riga ciascuna, sempre con `[Officina]`:
 - **`costruisciPezzo`**: il guscio al posto di pareti e soffitto, le stelle sul guscio, le linee delle cuciture vere. Non disegna le linee dello strappo.
 - **`aggiornaPezzo`**: aggiorna guscio, stelle e linee; le cornici delle porte si spostano di `e.fuori`.
