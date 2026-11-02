@@ -60,7 +60,7 @@ Pezzi aggiunti:
   - i pannelli che guardano in su prendono il materiale del cielo stellato.
 
 ## Le forme dell'Officina nella griglia "Bolle"
-Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 18 forme dell'Officina che il configuratore non aveva: Cupola, Dodecaedro, Forma a L, Forma a C, Freccia, Serpente, Ciambella, Tunnel, Barca, Banana, Scolopendra, Balena, Fungo, Razzo, Tartaruga, Ananas, Pera, Uva. Per ogni forma speciale `PORTE_OFF` dice dove si entra.
+Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 17 forme dell'Officina che il configuratore non aveva: Cupola, Dodecaedro, Forma a L, Forma a C, Freccia, Serpente, Ciambella, Tunnel, Barca, Banana, Scolopendra, Balena, Fungo, Razzo, Tartaruga, Ananas, Pera. Per ogni forma speciale `PORTE_OFF` dice dove si entra.
 - **Motore.** `caricaMotoreOfficina()` legge `../index.html` (la pagina dell'Officina, stesso sito), prende il codice tra `// ENGINE START` e `// ENGINE END` e lo esegue. Non c'è codice copiato.
   - Se si cambiano o si tolgono quei due segnaposto nell'Officina, il configuratore non trova più le forme.
   - Aperto da solo, il configuratore mostra solo le bolle originali.

@@ -1238,12 +1238,13 @@ const SHAPES = [
     params: [int("n", "Lati", 10, 8, 16), num("D", "Diametro (m)", 4, 1), num("H", "Altezza del corpo (m)", 3.4, 2.2), int("nf", "Foglie del ciuffo", 7, 3, 12), num("lf", "Lunghezza delle foglie (m)", 1.6, 0.3)],
     build: (p) => ananasMesh(p) },
   { id: "pera", group: "Forme speciali", name: "Pera", kind: "build", floorToggle: true,
-    params: [int("n", "Lati", 10, 8, 16), num("D", "Diametro della pancia (m)", 4.4, 1), num("H", "Altezza (m)", 4.8, 3), num("dn", "Diametro del collo (m)", 2, 0.5), num("lp", "Lunghezza del picciolo (m)", 0.9, 0.2)],
+    params: [int("n", "Lati", 14, 8, 20), num("D", "Diametro della pancia grande (m)", 4.4, 1), num("H", "Altezza (m)", 5.2, 3.5), num("dn", "Diametro della parte alta (m)", 2.5, 0.8), num("lp", "Lunghezza del picciolo (m)", 1.1, 0.3)],
     build: (p) => peraMesh(p) },
+  /* uva: per ora tolta dall'elenco (da ripensare). uvaMesh e sproutBall restano pronte; per rimetterla:
   { id: "uva", group: "Forme speciali", name: "Uva (grappolo sdraiato)", kind: "build", floorToggle: true,
-    params: [num("L", "Lunghezza del grappolo (m)", 6, 2), num("D", "Diametro nella parte larga (m)", 3.8, 1.6), num("dt", "Diametro alla punta (m)", 2.4, 2), int("n", "Lati", 10, 8, 16),
-      pick("ac", "Acini in rilievo", [["si", "Sì"], ["no", "No"]], "si"), num("lr", "Lunghezza del raspo (m)", 0.8, 0.2)],
-    build: (p) => uvaMesh(p) },
+    params: [num("L", "Lunghezza del grappolo (m)", 6.5, 2), num("D", "Diametro nella parte larga (m)", 4, 1.6), num("dt", "Diametro alla punta (m)", 2.2, 2), int("n", "Lati", 10, 8, 16),
+      pick("ac", "Acini tondi", [["si", "Sì"], ["no", "No"]], "si"), num("lr", "Lunghezza del raspo (m)", 0.9, 0.2)],
+    build: (p) => uvaMesh(p) }, */
 ];
 
 /* banana: corpo curvo a spicchi (giunti a metà angolo), da un capo il picciolo stretto e lungo, dall'altro una punta corta e tozza.
@@ -1301,6 +1302,33 @@ function sproutFace(V, F, cluster, removed, fi, dir, len, k, tag) {
   F.push([...Array(n).keys()].map(j => start + j)); cluster.push(tag);
   removed.add(fi);
   return V3.add(fc, V3.mul(dir, len));
+}
+/* una palla tonda che spunta da una faccia convessa qualsiasi (gli acini dell'uva): il bordo della faccia si unisce con triangoli
+   a un ottagono più piccolo (il collo, fa il solco fra un acino e l'altro), poi anelli di ottagoni simili e allineati fanno la palla,
+   chiusa da un ottagono in cima. Triangoli e trapezi sono tutti piani. La palla sta dentro l'impronta della faccia. */
+function sproutBall(V, F, cluster, removed, fi, tag) {
+  const base = F[fi], P = base.map(i => V[i]), c = mean3(P), nn = V3.norm(newell(P)), m = base.length, k = 8;
+  const t0 = Math.abs(nn[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], u = V3.norm(V3.cross(t0, nn)), w = V3.cross(nn, u);
+  let ri = Infinity;   // raggio del cerchio dentro la faccia
+  for (let j = 0; j < m; j++) { const a = P[j], b = P[(j + 1) % m], e = V3.norm(V3.sub(b, a)), d = V3.sub(c, a); ri = Math.min(ri, V3.len(V3.sub(d, V3.mul(e, V3.dot(d, e))))); }
+  if (!(ri > 0.2)) return false;   // acini troppo piccoli: niente
+  const rb = 0.92 * ri, ring = (r, h) => { const s = V.length; for (let j = 0; j < k; j++) { const t = 2 * Math.PI * j / k; V.push(V3.add(V3.add(c, V3.mul(nn, h)), V3.add(V3.mul(u, r * Math.cos(t)), V3.mul(w, r * Math.sin(t))))); } return [...Array(k).keys()].map(j => s + j); };
+  const prof = [[0.5, 0.06], [0.8, 0.32], [1, 0.75], [0.86, 1.2], [0.5, 1.55], [0.18, 1.72]].map(([r, h]) => [r * rb, h * rb]);
+  const R0 = ring(...prof[0]);
+  // cucitura fra il bordo della faccia e il collo: si avanza sull'uno o sull'altro seguendo l'angolo attorno al centro
+  const ang = q => { const d = V3.sub(q, c); let a = Math.atan2(V3.dot(d, w), V3.dot(d, u)); return a < 0 ? a + 2 * Math.PI : a; };
+  const aA = P.map(ang), iA0 = aA.indexOf(Math.min(...aA)), A = [...Array(m).keys()].map(j => base[(iA0 + j) % m]), angA = A.map(i => ang(V[i]));
+  let i = 0, j = 0;
+  while (i < m || j < k) {
+    const nA = i < m ? (i + 1 < m ? angA[i + 1] : angA[0] + 2 * Math.PI) : Infinity, nB = j < k ? 2 * Math.PI * (j + 1) / k : Infinity;
+    if (nA <= nB) { F.push([A[i % m], A[(i + 1) % m], R0[j % k]]); i++; } else { F.push([A[i % m], R0[(j + 1) % k], R0[j % k]]); j++; }
+    cluster.push(tag);
+  }
+  let prev = R0;
+  for (const [r, h] of prof.slice(1)) { const R = ring(r, h); for (let q = 0; q < k; q++) { F.push([prev[q], prev[(q + 1) % k], R[(q + 1) % k], R[q]]); cluster.push(tag); } prev = R; }
+  F.push(prev.slice()); cluster.push(tag);
+  removed.add(fi);
+  return true;
 }
 function dropFaces(V, F, cluster, removed) {
   const keep = F.map((_, i) => !removed.has(i));
@@ -1506,41 +1534,55 @@ function ananasMesh(p) {
   return dropFaces(V, F, C, removed);
 }
 
-/* pera: pancia piena in basso, si stringe fino al collo e finisce con una cima tonda; il picciolo spunta dalla cima,
-   appena storto. Si entra da due pannelli opposti della pancia. */
+/* pera: due pance, come una pera vera. Quella grande in basso, una vita stretta e una pancia piccola e tonda in alto;
+   tutta appena inclinata in avanti (spostare in x in proporzione all'altezza lascia piani i pannelli). Il picciolo esce
+   dalla cima, stretto alla base e piegato in due tratti. Si entra da due pannelli opposti della pancia grande. */
 function peraMesh(p) {
-  const n = p.n, R = p.D / 2, H = p.H, r = p.dn / 2;
-  if (r > 0.8 * R) throw new Error("Il collo deve essere più stretto della pancia: riducete il diametro del collo o allargate la pancia.");
-  if (H < 3) throw new Error("La pera deve essere alta almeno 3 m: la pancia deve lasciar passare in piedi.");
-  const L = lathe([[0.7 * R, 0], [0.95 * R, 0.1 * H], [R, 0.28 * H], [0.9 * R, 0.44 * H], [r + 0.45 * (R - r), 0.58 * H], [r, 0.72 * H], [0.9 * r, 0.84 * H], [0.55 * r, 0.95 * H]], n, -Math.PI / n);
+  const n = p.n, R = p.D / 2, H = p.H, rb = p.dn / 2, incl = 0.09;
+  if (rb > 0.82 * R) throw new Error("La parte alta deve essere più stretta della pancia: riducete il diametro della parte alta.");
+  if (H < 3.5) throw new Error("La pera deve essere alta almeno 3,5 m: sotto la vita si deve passare in piedi.");
+  // pancia grande bassa e piena che rientra morbida; poi la parte alta, stretta e lunga, si affusola piano fino al picciolo (senza una seconda pancia)
+  const L = lathe([[0.6 * R, 0], [0.88 * R, 0.05 * H], [R, 0.16 * H], [0.97 * R, 0.27 * H], [0.86 * R, 0.37 * H], [(0.86 * R + rb) / 2, 0.45 * H], [rb, 0.54 * H],
+    [0.97 * rb, 0.64 * H], [0.9 * rb, 0.74 * H], [0.76 * rb, 0.83 * H], [0.54 * rb, 0.91 * H], [0.24 * rb, 0.97 * H]], n, -Math.PI / n);
   const V = L.V, F = L.F, C = L.cluster, removed = new Set();
-  sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.18, 0, 1]), p.lp, 0.35, "picciolo");
+  V.forEach(v => { v[0] += incl * v[2]; });   // appena inclinata, come una pera vera
+  sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.25, 0, 1]), 0.12, 0.45, "picciolo");   // attacco stretto
+  sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.25, 0, 1]), 0.6 * p.lp, 0.95, "picciolo");
+  sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.75, 0, 0.66]), 0.4 * p.lp, 0.85, "picciolo");
   return dropFaces(V, F, C, removed);
 }
 
-/* uva: grappolo sdraiato. Una goccia "al tornio" lungo x, larga davanti e stretta dietro, con i due capi piani (lì le porte:
-   si entra dalla parte larga e si esce dalla punta). È convessa: si chiude con fromPoints e si taglia sotto per il pavimento.
-   Gli acini sono bozze basse che spuntano dai pannelli del corpo; il raspo esce dal capo largo, verso l'alto. */
+/* uva: grappolo sdraiato. Un cono arrotondato lungo x, largo davanti e a punta dietro, coricato per tutta la lunghezza, con i due
+   capi piani (lì le porte: si entra dalla parte larga e si esce dalla punta). Si chiude con fromPoints e si taglia sotto per il
+   pavimento. Gli acini sono cupolette tonde a tre gradini su tutti i pannelli; dal capo largo escono il raspo e una foglia. */
 function uvaMesh(p) {
   const R = p.D / 2, rt = p.dt / 2, Lg = p.L, n = p.n, taglio = 0.35;
   if (rt >= 0.9 * R) throw new Error("La punta deve essere più stretta della parte larga: riducete il diametro alla punta.");
   if (2 * rt - taglio < 1.6) throw new Error("La punta è troppo bassa per farci una porta: il diametro alla punta deve essere almeno 2 m.");
   if (Lg < 2 * R) throw new Error("Il grappolo deve essere lungo almeno quanto è largo.");
-  const pts = [];   // ogni anello tocca terra con il fondo: il grappolo è coricato per tutta la lunghezza, punta compresa
-  [[0, rt], [0.25, rt + 0.5 * (R - rt)], [0.5, rt + 0.82 * (R - rt)], [0.78, R], [1, 0.78 * R]].forEach(([u, r]) => {
-    for (let j = 0; j < n; j++) { const a = Math.PI / n + 2 * Math.PI * j / n; pts.push([-Lg / 2 + u * Lg, r * Math.cos(a), r + r * Math.sin(a)]); }
-  });
-  let { V, F } = fromPoints(pts);
+  // anelli lungo x, ognuno tocca terra con il fondo (il grappolo è coricato per tutta la lunghezza, punta compresa). Anelli vicini sono
+  // lo stesso poligono ingrandito verso terra, quindi i pannelli fra loro sono trapezi piani, tutti simili: un acino per pannello.
+  const lato = Math.max(0.9, 2 * Math.PI * R / n), m = Math.max(5, Math.round(Lg / lato) + 1), anelli = [];   // trapezi lunghi almeno 90 cm
+  for (let q = 0; q < m; q++) { const u = q / (m - 1), r = u < 0.85 ? rt + (R - rt) * Math.sin(u / 0.85 * Math.PI / 2) : R - 0.15 * R * (u - 0.85) / 0.15; anelli.push([-Lg / 2 + u * Lg, r]); }
+  let V = [], F = [];
+  anelli.forEach(([x, r]) => { for (let j = 0; j < n; j++) { const a = -Math.PI / 2 + Math.PI / n + 2 * Math.PI * j / n; V.push([x, r * Math.cos(a), r + r * Math.sin(a)]); } });
+  for (let q = 0; q < m - 1; q++) for (let j = 0; j < n; j++) { const a = q * n + j, b = q * n + (j + 1) % n; F.push([a, a + n, b + n, b]); }   // verso fuori
+  F.push([...Array(n).keys()]); F.push([...Array(n).keys()].map(j => (m - 1) * n + n - 1 - j));   // capo a punta e capo largo
+  F = F.map(f => { const P = f.map(i => V[i]), c = mean3(P), nn = newell(P), x = c[0], k = anelli.findIndex(a => a[0] >= x - 1e-9), r = anelli[Math.max(0, k)][1];
+    const fuori = Math.abs(nn[0]) > 0.99 * V3.len(nn) ? Math.sign(x) : V3.dot(nn, [0, c[1], c[2] - r]); return fuori >= 0 ? f : f.slice().reverse(); });   // tutte le facce verso fuori
   ({ V, F } = cutConvex(V, F, taglio));
   V = V.map(v => [v[0], v[1], v[2] - taglio]);
   const C = F.map(() => "grappolo"), removed = new Set(), n0 = F.length;
-  const norm = f => V3.norm(newell(f.map(i => V[i])));
+  const norm = f => V3.norm(newell(f.map(i => V[i]))), centro = f => mean3(f.map(i => V[i]));
   const capo = F.findIndex(f => norm(f)[0] > 0.95);
-  if (capo >= 0) sproutFace(V, F, C, removed, capo, V3.norm([0.6, 0, 0.8]), p.lr, 0.3, "raspo");
+  // la foglia: dal pannello più alto vicino al capo largo, larga e piatta che si apre di lato
+  const fogliaF = F.map((f, i) => i).filter(i => i !== capo && norm(F[i])[2] > 0.6 && centro(F[i])[0] > 0.2 * Lg).sort((i, j) => centro(F[j])[0] - centro(F[i])[0])[0];
+  if (capo >= 0) { sproutFace(V, F, C, removed, capo, V3.norm([0.6, 0, 0.8]), 0.25 * p.lr, 0.4, "raspo"); sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.4, 0, 0.9]), 0.75 * p.lr, 0.85, "raspo"); }
+  if (fogliaF != null) sproutFace(V, F, C, removed, fogliaF, V3.norm([0.3, 0.75, 0.6]), 1.2 + p.lr, 0.12, "foglia");
   if (p.ac === "si") for (let fi = 0; fi < n0; fi++) {
-    const f = F[fi], nn = norm(f);
-    if (fi === capo || Math.abs(nn[0]) > 0.9 || nn[2] < -0.2 || f.every(i => V[i][2] < 1e-6)) continue;   // non sui capi (porte), sotto o sul pavimento
-    sproutFace(V, F, C, removed, fi, nn, 0.12 * Math.sqrt(polyArea(f.map(i => V[i]))), 0.55, "acino");
+    const f = F[fi], nn = norm(f), a = Math.sqrt(polyArea(f.map(i => V[i])));
+    if (fi === capo || fi === fogliaF || Math.abs(nn[0]) > 0.9 || nn[2] < -0.55 || centro(f)[2] < 0.7 || a < 0.6 || f.every(i => V[i][2] < 1e-6)) continue;   // non sui capi (porte), sotto o sul pavimento
+    sproutBall(V, F, C, removed, fi, "acino");   // un acino tondo, con il collo che fa il solco fra un acino e l'altro
   }
   return dropFaces(V, F, C, removed);
 }
@@ -1887,8 +1929,8 @@ function analyze(V, F, floor) {
     razzo: "Il razzo ha il corpo tondo che parte da un ugello più stretto, la punta arrotondata, quattro alette grandi che scendono fino a terra e un oblò che sporge. Le porte si tagliano nei pannelli del corpo fra un'aletta e l'altra, una davanti e una dietro.",
     tarta: "La tartaruga ha il guscio ovale e basso che sporge sopra il corpo, il collo con la testa ben fuori davanti, quattro zampe a pinna e la coda a punta. I due fianchi, fra le zampe, restano liberi: le porte si tagliano lì, nel corpo e nella tesa del guscio, e si attraversa da un fianco all'altro.",
     ananas: "L'ananas ha il corpo a botte, stretto a terra, largo a metà e che si richiude in alto, con un ciuffo di foglie lunghe e sottili: una al centro della cima e le altre tutte intorno. Ogni fascia del corpo è un anello di trapezi uguali, quindi i tipi di pezzo sono pochi. Le porte si tagliano in due pannelli opposti della fascia bassa.",
-    pera: "La pera ha la pancia piena in basso, si stringe fino al collo e finisce con una cima tonda da cui spunta il picciolo. Come l'ananas è fatta ad anelli di trapezi uguali. Le porte si tagliano in due pannelli opposti della pancia, dove è più alta e larga.",
-    uva: "L'uva è un grappolo sdraiato: una goccia larga davanti e stretta dietro, appoggiata su un fianco tagliato piatto, con gli acini che sporgono dal telo come bozze e il raspo che esce dal capo largo. I due capi sono piani: si entra dalla parte larga e si esce dalla punta. Senza acini i pezzi sono molti di meno.",
+    pera: "La pera ha due pance, come quella vera: una grande in basso, una vita stretta e una pancia piccola e tonda in alto, da cui esce il picciolo piegato. È appena inclinata in avanti. Ogni fascia è un anello di trapezi uguali. Le porte si tagliano in due pannelli opposti della pancia grande.",
+    uva: "L'uva è un grappolo sdraiato: largo davanti e a punta dietro, coricato su un fianco tagliato piatto, coperto di acini tondi (cupolette a tre gradini), con il raspo e una foglia che escono dal capo largo. I due capi sono piani: si entra dalla parte larga e si esce dalla punta. Senza acini i pezzi sono molti di meno.",
     scolo: "La scolopendra ha il corpo a segmenti, una coppia di zampe ogni tot segmenti, due antenne davanti e due pinze sulla coda: zampe, antenne e pinze sono piramidi senza punta che spuntano dai fianchi. Con il corpo dritto i segmenti sono tutti uguali e i tipi di pezzo pochi; ondulato è più vivo, ma ogni segmento curva in modo diverso e i tipi aumentano. Larghezza e altezza del corpo sono separate: con 2 m o più di altezza ci si cammina dentro in piedi, e le porte si tagliano dove servono.",
     banana: "La banana ha il corpo curvo a 5 facce, come il frutto vero, e due capi diversi: da una parte il picciolo, stretto e lungo, dall'altra una punta corta che si chiude quasi a cono. Si appoggia sdraiata, con la curva a terra, oppure con le punte all'insù: in quel caso il pavimento è il pannello sotto lo spicchio centrale.",
     boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",

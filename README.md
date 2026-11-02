@@ -1,6 +1,6 @@
 # Officina delle Bolle
 
-Un generatore di guide per costruire bolle gonfiabili in plastica fatte di pannelli piatti: cupola, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, ciambella, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera, uva) e piante disegnate a mano.
+Un generatore di guide per costruire bolle gonfiabili in plastica fatte di pannelli piatti: cupola, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, ciambella, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera) e piante disegnate a mano.
 
 Si sceglie la forma e la misura, e la pagina prepara tutto il resto:
 - le misure della bolla vera e del modellino in scala;

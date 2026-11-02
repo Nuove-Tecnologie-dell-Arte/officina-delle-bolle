@@ -931,7 +931,7 @@ function formaOfficinaFine(O, V, E, conn) {
 // [Officina] le forme dell'Officina nella griglia "Bolle": il motore si legge dalla pagina dell'Officina (stesso sito), senza copiarlo
 const FORME_OFF = [['d20', 'Cupola'], ['d12', 'Dodecaedro'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Ciambella'], ['tunnel', 'Tunnel'],
   ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Scolopendra'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga'],
-  ['ananas', 'Ananas'], ['pera', 'Pera'], ['uva', 'Uva']];
+  ['ananas', 'Ananas'], ['pera', 'Pera']];   // l'uva è tolta per ora anche dall'Officina (icona e regola delle porte restano pronte)
 let MOTORE_OFF = null;
 const _ofMesh = new Map();   // forma + misure → mesh già costruita
 function parOff(q) {   // parametro dell'Officina → [chiave, etichetta, min, max, passo, standard, unità] del configuratore
