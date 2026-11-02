@@ -432,6 +432,7 @@ details.more > :not(summary) { margin: 0 18px 18px; }
 details.ctl.more > summary, details.box.more > summary { padding: 0; }
 details.ctl.more > :not(summary), details.box.more > :not(summary) { margin: 4px 0 0; }
 .more-body { display: grid; gap: 14px; }
+.modelref { display: grid; gap: 8px; padding: 12px; border: 1px dashed var(--rule); border-radius: var(--r-s); }
 .more .tablewrap, .more .scrollbox { box-shadow: none; }
 .more .box { box-shadow: none; background: var(--paper); }
 
@@ -532,6 +533,14 @@ details.menu > summary::-webkit-details-marker { display: none; }
           <div class="more-body">
             <div id="baseCtl" style="display:grid;gap:10px"></div>
             <p class="hint" id="baseNote"></p>
+            <div class="modelref">
+              <span class="flabel">Partite dal modellino</span>
+              <div class="fields">
+                <div class="field"><label for="modelRef">Misura</label><select id="modelRef"></select></div>
+                <div class="field"><label for="modelCm">Sul modellino (cm)</label><input id="modelCm" type="number" step="any" min="0.1"></div>
+              </div>
+              <p class="hint" id="modelNote"></p>
+            </div>
             <div class="fields">
               <div class="field"><label for="scale">Scala del modellino (1 : …)</label><input id="scale" type="number" step="any" min="1" value="20"></div>
             </div>
@@ -2039,8 +2048,32 @@ function analyze(V, F, floor) {
   // la scala si può cambiare sia dal banco di lavoro sia sopra i pezzi: i due campi restano uguali
   ["scale", "scale2"].forEach(id => $(id).addEventListener("input", e => {
     const v = parseFloat(e.target.value);
-    if (v > 0) { state.scale = v; $(id === "scale" ? "scale2" : "scale").value = e.target.value; schedule(); }
+    if (v > 0) { state.scale = v; $(id === "scale" ? "scale2" : "scale").value = e.target.value; syncModelRef(); schedule(); }
   }));
+  // "partite dal modellino": una misura della bolla vera e quanto è lunga sul modellino danno la scala, e viceversa
+  function modelRefs() {
+    if (!cur) return [];
+    const out = def().params.filter(isLength).map(p => ({ key: p.key, label: p.label.replace(/\s*\(m\)\s*$/, ""), real: state.params[p.key] * (state.opt.fit ? cur.k : 1) }));
+    out.push({ key: "H", label: "Altezza totale", real: cur.H });
+    return out;
+  }
+  function syncModelRef() {
+    const refs = modelRefs(), sel = $("modelRef"), was = sel.value;
+    if (!refs.length) return;
+    const opts = refs.map(r => `<option value="${r.key}">${esc(r.label)}</option>`).join("");
+    if (sel.innerHTML !== opts) { sel.innerHTML = opts; sel.value = refs.some(r => r.key === was) ? was : refs[0].key; }
+    const r = refs.find(x => x.key === sel.value) || refs[0], cm = r.real * 100 / state.scale;
+    if (document.activeElement !== $("modelCm")) $("modelCm").value = +cm.toFixed(2);
+    $("modelNote").textContent = `Bolla vera ${mR(r.real)} ÷ modellino ${fmt(cm, 2)} cm → scala 1 : ${fmt(state.scale, 2)}`;
+  }
+  $("modelCm").addEventListener("input", e => {
+    const v = parseFloat(e.target.value), r = modelRefs().find(x => x.key === $("modelRef").value);
+    if (!(v > 0) || !r) return;
+    state.scale = +(r.real * 100 / v).toFixed(4);
+    $("scale").value = $("scale2").value = +state.scale.toFixed(2);
+    syncModelRef(); schedule();
+  });
+  $("modelRef").addEventListener("change", syncModelRef);
   $("optPerson").addEventListener("change", e => { state.person = e.target.checked; drawView("hero"); });
   $("optColors").addEventListener("change", e => { state.colors = e.target.checked; drawAll(); });
   function setMode(m) {
@@ -2133,7 +2166,7 @@ function analyze(V, F, floor) {
       : (cur.floorArea > 0 ? "" : "Questa forma non ha un pavimento piatto, quindi non si può adattare all'area: attivate la base o il fondo piatto.");
     $("navShape").textContent = d.name;
     $("heroShape").textContent = d.name;
-    renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll();
+    renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll(); syncModelRef();
   }
 
   /* i campi mostrano sempre le misure effettive: lati moltiplicati per il fattore dell'area, oppure l'area che risulta dai lati */
@@ -2204,7 +2237,7 @@ function analyze(V, F, floor) {
       if (o && cur.orients.length > 1) bits.push(o.label.replace(/\s*\(.*\)$/, ""));
       if (cur.cutUsed) bits.push("tagliata in basso");
     } else bits.push(cur.open ? "senza pavimento" : (cur.floorArea > 0 ? "con pavimento" : "senza fondo piatto"));
-    bits.push("modellino 1:" + fmt(state.scale, state.scale % 1 ? 1 : 0));
+    bits.push("modellino 1:" + fmt(state.scale, Math.abs(state.scale - Math.round(state.scale)) > 0.005 ? 2 : 0));
     $("moreSum").textContent = bits.join(" · ");
     $("shapeLine").innerHTML = `<strong>${esc(d.name)}</strong><span>altezza ${mR(cur.H)}</span><span>${cur.floorArea > 0 ? "pavimento " + fmt(cur.floorArea, 2) + " m²" : "senza pavimento"}</span><span>${plural(cur.F.length, "pezzo", "pezzi")}</span><a href="#forma">Cambia forma o misure</a>`;
   }
