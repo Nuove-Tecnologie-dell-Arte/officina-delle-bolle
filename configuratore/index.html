@@ -373,12 +373,13 @@
   a.marca:hover { background: var(--acc-soft); }
   @media (max-width: 980px) { a.marca .mt span { display: none; } a.marca b { font-size: 14px; } }
   button.pri, .piu, .piuMini, .schede button small, .eti .lnk:hover { color: var(--on-acc); }
-  .tabs button[aria-pressed="true"], .seg button[aria-pressed="true"], button.attivo, #bNotte.attivo, #bOgg.attivo, #bSit.attivo { background: var(--acc); border-color: var(--acc); color: var(--on-acc); }
+  .tabs button[aria-pressed="true"], .seg button[aria-pressed="true"], button.attivo, #bNotte.attivo, #bOgg.attivo, #bSit.attivo, #bStanza.attivo { background: var(--acc); border-color: var(--acc); color: var(--on-acc); }
   .didascalia b { color: var(--card); }
   .voceComp.att, .pannelloP .rp.qui, tr.cl:hover td, .menuProve button:hover { background: var(--acc-soft); }
-  .eti, .pannelloP, .legenda3d, #pannelloO, #pannelloS, .gruppo, .barraScena { background: var(--vetro); }
+  .eti, .pannelloP, .legenda3d, #pannelloO, #pannelloS, #pannelloSt, .gruppo, .barraScena { background: var(--vetro); }
   .barraScena .legenda3d { background: none; }
-  .menuComp, .menuProve, .guidaPop, .gruppo, .barraScena, .pannelloP, #pannelloO, #pannelloS { box-shadow: var(--ombra); }
+  .menuComp, .menuProve, .guidaPop, .gruppo, .barraScena, .pannelloP, #pannelloO, #pannelloS, #pannelloSt { box-shadow: var(--ombra); }
+  #pannelloSt { position: absolute; left: 12px; bottom: 64px; width: 272px; max-height: calc(100% - 140px); overflow-y: auto; z-index: 5; display: grid; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; align-content: start; }
   .tabbom tr.sez td { background: var(--sez); }
   .cons.mid { color: var(--mid); }
   #oMsg { background: color-mix(in srgb, var(--mid) 12%, var(--card)); border-color: color-mix(in srgb, var(--mid) 40%, var(--line)); }
@@ -533,6 +534,16 @@
         <div id="sLista" class="sitLista"></div>
       </div>
       <div id="povInfo" hidden><button id="povPrima" aria-label="Avatar precedente">‹</button><span><b>Occhi di Sonny</b> · trascina per guardarti intorno · rotella: zoom</span><button id="povDopo" aria-label="Avatar successivo">›</button><button id="povEsci">Esci · Esc</button></div>
+      <div id="pannelloSt" hidden>
+        <h2>Stanza di sfondo</h2>
+        <p class="vuoto" style="margin:0">Mette le bolle dentro uno spazio vero. Si vedono solo le facce interne, quindi le pareti rivolte verso di te spariscono, come il backface culling del materiale in Blender.</p>
+        <div class="bottoni"><button class="pri" id="stFoto">Foto 360°…</button><button id="stModello">Modello GLB…</button></div><input type="file" id="stFile" hidden>
+        <p class="std" style="margin:0">Foto equirettangolare 2:1 (JPG, PNG, WebP o HDR): viene proiettata su una stanza a scatola dal punto in cui è stata scattata. Oppure un modello GLB con le texture dentro. Resta salvata in questo browser.</p>
+        <div class="selNome" id="stNome" hidden></div>
+        <div class="par" id="stCampi"></div>
+        <label class="ffSpunta" hidden><input type="checkbox" id="stInterne" checked> Pareti vicine trasparenti</label>
+        <button class="del" id="stTogli" hidden>Togli la stanza</button>
+      </div>
       <div id="pannelloO" hidden>
         <h2>Aggiungi oggetto</h2><div class="tipi" id="oTipi"></div>
         <button class="pri" id="oImp">Importa file…</button><input type="file" id="oFile" multiple hidden>
@@ -544,6 +555,7 @@
       </div>
       <div class="videoBoom" id="videoBoom" hidden><canvas id="vBoom" width="300" height="538" aria-label="Video dello scoppio"></canvas></div>
       <div class="barraScena" id="barraScena" role="group" aria-label="Vista"><span class="gEt">Vista</span><button class="chip" id="bNotte" title="Luci basse: si vedono i fori del soffitto stellato" hidden><!-- [Officina] tolto dalla barra: la notte resta solo per "Guarda il soffitto da dentro" -->Notte</button>
+        <button class="chip" id="bStanza" title="Una stanza vera (foto 360° o modello) intorno alle bolle">Stanza</button>
         <span class="legenda3d"><span><i style="background:var(--gP)"></i>gonfiatore piccolo</span><span><i style="background:var(--gG)"></i>gonfiatore grande</span></span></div>
     </div>
 
@@ -3978,7 +3990,123 @@ function daOfficina() {
 daOfficina();
 caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bolle"
 
-window.cfg = { FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, metriNastro, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
+// =====================================================================
+//  STANZA DI SFONDO: una stanza vera intorno alle bolle (foto 360° o modello 3D).
+//  Come il "backface culling" del materiale in Blender: si disegnano solo le facce interne,
+//  quindi le pareti rivolte verso la camera spariscono e si vede dentro.
+// =====================================================================
+const ST = { tipo: null, nome: '', file: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true,
+  grp: null, mats: [], uCentro: { value: new THREE.Vector3() }, uRot: { value: 0 }, uMis: { value: new THREE.Vector3(8, 4, 6) } };
+pavimento.material.polygonOffset = true; pavimento.material.polygonOffsetFactor = 2; pavimento.material.polygonOffsetUnits = 4;   // il pavimento della stanza vince sul grigio
+function matEquirett(tex) {   // la foto 360° proiettata dal punto in cui è stata scattata, con la stessa formula di Blender
+  const m = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide });
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uCentro = ST.uCentro; sh.uniforms.uRot = ST.uRot; sh.uniforms.uMis = ST.uMis;
+    sh.vertexShader = 'varying vec3 vLoc;\nuniform vec3 uMis;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLoc = position * uMis;');
+    sh.fragmentShader = 'varying vec3 vLoc;\nuniform vec3 uCentro;\nuniform float uRot;\n' + sh.fragmentShader.replace('#include <map_fragment>', `
+      vec3 dd = vLoc - uCentro; float cr = cos(uRot), sr = sin(uRot);
+      dd = vec3(cr * dd.x - sr * dd.z, dd.y, sr * dd.x + cr * dd.z);
+      vec3 bl = vec3(dd.x, -dd.z, dd.y);   // y in alto (three) -> z in alto (Blender)
+      vec2 uvE = vec2(-atan(bl.y, bl.x) / 6.2831853 + 0.5, atan(bl.z, length(bl.xy)) / 3.1415927 + 0.5);
+      vec4 texelColor = texture2D(map, uvE); texelColor = mapTexelToLinear(texelColor); diffuseColor *= texelColor;`);
+  };
+  m.customProgramCacheKey = () => 'equirettangolare';
+  return m;
+}
+function togliStanza(salva) {
+  if (ST.grp) { scena.remove(ST.grp); ST.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
+  ST.grp = null; ST.mats = []; ST.tipo = null; ST.file = null; ST.nome = '';
+  if (salva !== false) stanzaDB('del'); disegnaStanza();
+}
+function aggiornaStanza() {   // misure, posizione, luce, facce visibili
+  if (!ST.grp) return;
+  const g = ST.grp; g.position.set(ST.x, 0, ST.z); g.rotation.y = ST.rot * Math.PI / 180;
+  const lato = ST.interne ? THREE.BackSide : THREE.DoubleSide;
+  for (const m of ST.mats) { if (m.side !== lato) { m.side = lato; m.needsUpdate = true; } if (m.userData.colore) m.color.copy(m.userData.colore).multiplyScalar(ST.luce); else m.color.setScalar(ST.luce); }
+  if (ST.tipo === 'foto') {
+    const box = g.userData.box; box.scale.set(ST.W, ST.H, ST.P); box.position.y = ST.H / 2 + 0.0005;
+    ST.uMis.value.set(ST.W, ST.H, ST.P); ST.uCentro.value.set(ST.fx, ST.fy - ST.H / 2, ST.fz); ST.uRot.value = ST.frot * Math.PI / 180;   // centro della foto rispetto al centro della stanza
+    g.userData.ombra.scale.set(ST.W, ST.P, 1);
+  } else if (ST.tipo === 'modello') { g.userData.mod.scale.setScalar(ST.scala); const b = g.userData.base; g.userData.ombra.scale.set(b.x * ST.scala, b.z * ST.scala, 1); }
+}
+function ombraStanza() { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.28 })); m.rotation.x = -Math.PI / 2; m.position.y = 0.0015; m.receiveShadow = true; return m; }
+function stanzaDaFoto(tex, nome) {
+  togliStanza(false);
+  tex.generateMipmaps = false; tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter; tex.wrapS = THREE.RepeatWrapping; tex.needsUpdate = true;
+  const g = new THREE.Group(), mat = matEquirett(tex), box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat); box.renderOrder = -1;   // cubo unitario scalato alle misure della stanza
+  const om = ombraStanza(); g.add(box, om); g.userData = { box, ombra: om };
+  ST.grp = g; ST.mats = [mat]; ST.tipo = 'foto'; ST.nome = nome; scena.add(g); aggiornaStanza(); disegnaStanza();
+}
+function stanzaDaModello(gltf, nome) {
+  togliStanza(false);
+  const mod = gltf.scene, mats = [];
+  mod.traverse(o => { if (!o.isMesh) return; const v = Array.isArray(o.material) ? o.material : [o.material];
+    const nuovi = v.map(m => { const b = new THREE.MeshBasicMaterial({ map: m.map || m.emissiveMap || null, color: 0xffffff, side: THREE.BackSide, transparent: m.transparent, opacity: m.opacity, alphaTest: m.alphaTest || 0 });
+      if (!b.map && m.color) b.userData.colore = m.color.clone(); mats.push(b); return b; });
+    o.material = Array.isArray(o.material) ? nuovi : nuovi[0]; o.renderOrder = -1; });
+  const bb = new THREE.Box3().setFromObject(mod), c = bb.getCenter(new THREE.Vector3()), dim = bb.getSize(new THREE.Vector3());
+  const piede = new THREE.Group(); mod.position.set(-c.x, -bb.min.y + 0.0005, -c.z); piede.add(mod);
+  const g = new THREE.Group(), om = ombraStanza(); g.add(piede, om); g.userData = { mod: piede, ombra: om, base: dim };
+  ST.grp = g; ST.mats = mats; ST.tipo = 'modello'; ST.nome = nome; scena.add(g);
+  for (const m of mats) if (m.userData.colore) m.color.copy(m.userData.colore);
+  aggiornaStanza(); disegnaStanza();
+}
+function caricaStanza(file, dalDB) {
+  const nome = file.name || 'stanza', est = (nome.split('.').pop() || '').toLowerCase();
+  const fine = ok => { if (ok && !dalDB) { ST.file = file; stanzaDB('put'); } if (!ok) avviso('Non riesco ad aprire ' + nome + '.', 5000); };
+  if (est === 'glb') {
+    if (!THREE.GLTFLoader) { avviso('Il lettore dei modelli GLB non è stato caricato: serve internet per il CDN.', 5000); return; }
+    file.arrayBuffer().then(buf => new THREE.GLTFLoader().parse(buf, '', g => { stanzaDaModello(g, nome); ST.file = file; fine(true); }, () => fine(false))).catch(() => fine(false));
+  } else if (est === 'gltf') avviso('Esporta il modello come GLB (glTF binario), con le texture dentro al file.', 6000);
+  else if (est === 'hdr') {
+    if (!THREE.RGBELoader) { avviso('Il lettore HDR non è stato caricato: serve internet per il CDN, oppure usa un JPG.', 5000); return; }
+    file.arrayBuffer().then(buf => { const ld = new THREE.RGBELoader().setDataType(THREE.HalfFloatType), d = ld.parse(buf);
+      const t = new THREE.DataTexture(d.data, d.width, d.height, THREE.RGBAFormat, d.type); t.encoding = THREE.LinearEncoding; t.flipY = true; t.needsUpdate = true;
+      stanzaDaFoto(t, nome); ST.file = file; fine(true); }).catch(() => fine(false));
+  } else {
+    const url = URL.createObjectURL(file);
+    new THREE.TextureLoader().load(url, t => { t.encoding = THREE.sRGBEncoding; URL.revokeObjectURL(url); stanzaDaFoto(t, nome); ST.file = file; fine(true); }, undefined, () => { URL.revokeObjectURL(url); fine(false); });
+  }
+}
+// la stanza resta salvata in questo browser (IndexedDB: le foto 360° sono troppo grandi per localStorage)
+function stanzaDB(az) {
+  try {
+    const rq = indexedDB.open('bolle-stanza', 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore('s');
+    rq.onsuccess = () => { const db = rq.result, tx = db.transaction('s', az === 'get' ? 'readonly' : 'readwrite'), os = tx.objectStore('s');
+      const par = { W: ST.W, P: ST.P, H: ST.H, fy: ST.fy, fx: ST.fx, fz: ST.fz, frot: ST.frot, rot: ST.rot, x: ST.x, z: ST.z, scala: ST.scala, luce: ST.luce, interne: ST.interne };
+      if (az === 'put' && ST.file) os.put({ file: ST.file, nome: ST.nome, par }, 'stanza');
+      else if (az === 'par') { const g = os.get('stanza'); g.onsuccess = () => { if (g.result) { g.result.par = par; os.put(g.result, 'stanza'); } }; }
+      else if (az === 'del') os.delete('stanza');
+      else if (az === 'get') { const g = os.get('stanza'); g.onsuccess = () => { const r = g.result; if (!r || !r.file) return; Object.assign(ST, r.par || {}); const f = r.file; if (!f.name) try { Object.defineProperty(f, 'name', { value: r.nome }); } catch (e) {} caricaStanza(f, true); }; } };
+  } catch (e) {}
+}
+let tParSt = 0; const salvaParStanza = () => { clearTimeout(tParSt); tParSt = setTimeout(() => stanzaDB('par'), 400); };
+function disegnaStanza() {
+  const el = $('pannelloSt'); if (!el) return;
+  const c = $('stCampi'); c.innerHTML = '';
+  $('stNome').hidden = !ST.tipo; $('stTogli').hidden = !ST.tipo; $('stInterne').closest('label').hidden = !ST.tipo;
+  if (!ST.tipo) { $('stNome').textContent = ''; return; }
+  $('stNome').textContent = (ST.tipo === 'foto' ? 'Foto 360° · ' : 'Modello · ') + ST.nome; $('stInterne').checked = ST.interne;
+  const k = (chi, lab, mn, mx, pa, u, dec) => campo(c, lab, ST[chi], mn, mx, pa, u, v => { ST[chi] = v; aggiornaStanza(); salvaParStanza(); }, dec);
+  if (ST.tipo === 'foto') {
+    k('W', 'Larghezza', 1, 60, 0.05, 'm', 2); k('P', 'Profondità', 1, 60, 0.05, 'm', 2); k('H', 'Altezza', 1.5, 20, 0.05, 'm', 2);
+    k('fy', 'Altezza della fotocamera', 0.1, 10, 0.01, 'm', 2); k('fx', 'Fotocamera: sposta di lato', -15, 15, 0.01, 'm', 2); k('fz', 'Fotocamera: sposta avanti', -15, 15, 0.01, 'm', 2); k('frot', 'Gira la foto', -180, 180, 0.5, '°', 1);
+  } else k('scala', 'Ingrandisci', 0.05, 20, 0.01, '×', 2);
+  k('rot', 'Rotazione', -180, 180, 1, '°', 0); k('x', 'Sposta la stanza di lato', -30, 30, 0.05, 'm', 2); k('z', 'Sposta la stanza avanti', -30, 30, 0.05, 'm', 2);
+  k('luce', 'Luminosità', 0.2, 2.5, 0.01, '×', 2);
+}
+function pannelloStanza(v) { $('pannelloSt').hidden = !v; $('bStanza').classList.toggle('attivo', v); if (v) { if ($('pannelloO') && !$('pannelloO').hidden && $('bOgg')) $('bOgg').click(); disegnaStanza(); } }
+$('bStanza').onclick = () => pannelloStanza($('pannelloSt').hidden);
+document.addEventListener('click', e => { if (e.target && e.target.id === 'bOgg' && !$('pannelloO').hidden) pannelloStanza(false); });
+$('stFoto').onclick = () => { $('stFile').accept = '.jpg,.jpeg,.png,.webp,.hdr,image/*'; $('stFile').click(); };
+$('stModello').onclick = () => { $('stFile').accept = '.glb,.gltf'; $('stFile').click(); };
+$('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) caricaStanza(f); };
+$('stTogli').onclick = () => togliStanza();
+$('stInterne').onchange = e => { ST.interne = e.target.checked; aggiornaStanza(); salvaParStanza(); };
+addEventListener('load', () => stanzaDB('get'));   // dopo il caricamento dei lettori GLB e HDR
+
+window.cfg = { ST, caricaStanza, togliStanza, aggiornaStanza, FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, metriNastro, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
   giro: () => faiEntrare(), GENTE, scoppia, ripara, comp: () => comp, fotografa, carica, apriComp, nuovaComp, persone: () => persone, unoAdesso, fermaTutti, eseguiCopione, muoviPersona, aggancia, liberaLati, collega, tipo: t => { tipoScelto = t; }, pLim, capTelo, tensione, simT: () => simT };
 })();
 </script>
@@ -3987,6 +4115,7 @@ window.cfg = { FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, mi
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
 <script>
 (() => {
 'use strict';
