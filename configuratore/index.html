@@ -4001,7 +4001,7 @@ caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bo
 //  Come il "backface culling" del materiale in Blender: si disegnano solo le facce interne,
 //  quindi le pareti rivolte verso la camera spariscono e si vede dentro.
 // =====================================================================
-const ST = { tipo: null, nome: '', file: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true,
+const ST = { tipo: null, nome: '', file: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true,
   grp: null, mats: [], uCentro: { value: new THREE.Vector3() }, uRot: { value: 0 }, uMis: { value: new THREE.Vector3(8, 4, 6) } };
 pavimento.material.polygonOffset = true; pavimento.material.polygonOffsetFactor = 2; pavimento.material.polygonOffsetUnits = 4;   // il pavimento della stanza vince sul grigio
 function matEquirett(tex) {   // la foto 360° proiettata dal punto in cui è stata scattata, con la stessa formula di Blender
@@ -4019,6 +4019,32 @@ function matEquirett(tex) {   // la foto 360° proiettata dal punto in cui è st
   m.customProgramCacheKey = () => 'equirettangolare';
   return m;
 }
+// stanza ricostruita in 3D: la pianta vera (pavimento, pareti, soffitto) attorno al punto di scatto.
+// La pianta è in multipli dell'altezza della fotocamera (fotocamera in 0,0, foto non girata),
+// quindi cambiare quell'altezza ingrandisce tutta la stanza nella proporzione giusta.
+function geoPianta(pt, k, H, cx, cz, rotF) {
+  const cr = Math.cos(rotF), sr = Math.sin(rotF);
+  const P = pt.map(([a, b]) => { const x = a * k, z = b * k; return new THREE.Vector2(cx + cr * x + sr * z, cz - sr * x + cr * z); });
+  let area = 0; for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; area += a.x * b.y - b.x * a.y; }
+  const giro = area > 0 ? 1 : -1, pos = [], piano = [];
+  const tri = (a, b, c, n) => {   // triangolo con la faccia davanti verso n (verso l'esterno della stanza)
+    const u = new THREE.Vector3().subVectors(b, a), v = new THREE.Vector3().subVectors(c, a), m = u.cross(v);
+    const q = m.dot(n) >= 0 ? [a, b, c] : [a, c, b]; for (const w of q) pos.push(w.x, w.y, w.z); };
+  const V = (p, y) => new THREE.Vector3(p.x, y, p.y), giu = new THREE.Vector3(0, -1, 0), su = new THREE.Vector3(0, 1, 0);
+  for (const [i, j, l] of THREE.ShapeUtils.triangulateShape(P, [])) {
+    tri(V(P[i], 0.0005), V(P[j], 0.0005), V(P[l], 0.0005), giu); tri(V(P[i], H), V(P[j], H), V(P[l], H), su);
+    for (const w of [P[i], P[j], P[l]]) piano.push(w.x, 0.0015, w.y);
+  }
+  for (let i = 0; i < P.length; i++) {
+    const a = P[i], b = P[(i + 1) % P.length], n = new THREE.Vector3(b.y - a.y, 0, a.x - b.x).multiplyScalar(giro);
+    tri(V(a, 0), V(b, 0), V(b, H), n); tri(V(a, 0), V(b, H), V(a, H), n);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+  for (let i = 0; i < piano.length; i += 9) { const y1 = piano[i + 2], y2 = piano[i + 5], y3 = piano[i + 8], x1 = piano[i], x2 = piano[i + 3], x3 = piano[i + 6];
+    if ((x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1) > 0) for (let c = 0; c < 3; c++) { const t = piano[i + 3 + c]; piano[i + 3 + c] = piano[i + 6 + c]; piano[i + 6 + c] = t; } }   // ombra a faccia in su
+  const o = new THREE.BufferGeometry(); o.setAttribute('position', new THREE.Float32BufferAttribute(piano, 3)); o.computeVertexNormals();
+  return { g, o };
+}
 function togliStanza(salva) {
   if (ST.grp) { scena.remove(ST.grp); ST.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
   ST.grp = null; ST.mats = []; ST.tipo = null; ST.file = null; ST.nome = ''; if (salva !== false) ST.pronta = null;
@@ -4029,9 +4055,21 @@ function aggiornaStanza() {   // misure, posizione, luce, facce visibili
   const g = ST.grp; g.position.set(ST.x, 0, ST.z); g.rotation.y = ST.rot * Math.PI / 180;
   const lato = ST.interne ? THREE.BackSide : THREE.DoubleSide;
   for (const m of ST.mats) { if (m.side !== lato) { m.side = lato; m.needsUpdate = true; } if (m.userData.colore) m.color.copy(m.userData.colore).multiplyScalar(ST.luce); else m.color.setScalar(ST.luce); }
-  if (ST.tipo === 'foto') {
+  if (ST.tipo === 'foto' && ST.pianta) {
+    const box = g.userData.box, om = g.userData.ombra, r = ST.frot * Math.PI / 180, k = ST.fy;
+    const chiave = JSON.stringify([ST.pianta, ST.fy, ST.H, ST.fx, ST.fz, ST.frot]);
+    if (g.userData.chiave !== chiave) {   // la geometria cambia solo se cambiano pianta, scala o punto di scatto
+      const { g: geo, o } = geoPianta(ST.pianta, k, ST.H, ST.fx, ST.fz, r);
+      box.geometry.dispose(); box.geometry = geo; om.geometry.dispose(); om.geometry = o; g.userData.chiave = chiave;
+    }
+    box.scale.set(1, 1, 1); box.position.set(0, 0, 0); om.rotation.set(0, 0, 0); om.scale.set(1, 1, 1); om.position.set(0, 0, 0);
+    ST.uMis.value.set(1, 1, 1); ST.uCentro.value.set(ST.fx, ST.fy, ST.fz); ST.uRot.value = r;
+  } else if (ST.tipo === 'foto') {
     const box = g.userData.box; box.scale.set(ST.W, ST.H, ST.P); box.position.y = ST.H / 2 + 0.0005;
     ST.uMis.value.set(ST.W, ST.H, ST.P); ST.uCentro.value.set(ST.fx, ST.fy - ST.H / 2, ST.fz); ST.uRot.value = ST.frot * Math.PI / 180;   // centro della foto rispetto al centro della stanza
+    if (g.userData.chiave) {   // tornata scatola dopo una pianta
+      box.geometry.dispose(); box.geometry = new THREE.BoxGeometry(1, 1, 1); g.userData.ombra.geometry.dispose(); g.userData.ombra.geometry = new THREE.PlaneGeometry(1, 1);
+      g.userData.ombra.rotation.x = -Math.PI / 2; g.userData.ombra.position.y = 0.0015; g.userData.chiave = null; }
     g.userData.ombra.scale.set(ST.W, ST.P, 1);
   } else if (ST.tipo === 'modello') { g.userData.mod.scale.setScalar(ST.scala); const b = g.userData.base; g.userData.ombra.scale.set(b.x * ST.scala, b.z * ST.scala, 1); }
 }
@@ -4059,8 +4097,10 @@ function stanzaDaModello(gltf, nome) {
   aggiornaStanza(); disegnaStanza();
 }
 // stanze pronte, nella cartella stanze/ accanto al configuratore
-const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'stanze/corridoio.jpg', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · foto 360°',
-  par: { W: 12, P: 12, H: 7, fy: 1.6, fx: 0, fz: 0, frot: 90, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
+// Il corridoio è ricostruito dalla foto: l'angolo del chiostro con due bracci, letto dal bordo tra pavimento e pareti
+// (porta verde a destra, porta aperta e il pilastro d'angolo con le finestre). Misure in multipli dell'altezza di scatto.
+const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'stanze/corridoio.jpg', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · ricostruito in 3D',
+  par: { pianta: [[2.6, 2.2], [-34, 2.2], [-34, -1.8], [-1.75, -1.8], [-1.75, -34], [2.6, -34]], W: 12, P: 12, H: 8, fy: 0.9, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
 function stanzaPronta(S) {
   fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { Object.assign(ST, S.par); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); })
     .catch(() => avviso('Non trovo ' + S.file + ': apri il configuratore dal sito, non come file sul computer.', 6000));
@@ -4099,7 +4139,7 @@ function stanzaDB(az) {
     const rq = indexedDB.open('bolle-stanza', 1);
     rq.onupgradeneeded = () => rq.result.createObjectStore('s');
     rq.onsuccess = () => { const db = rq.result, tx = db.transaction('s', az === 'get' ? 'readonly' : 'readwrite'), os = tx.objectStore('s');
-      const par = { pronta: ST.pronta || null, W: ST.W, P: ST.P, H: ST.H, fy: ST.fy, fx: ST.fx, fz: ST.fz, frot: ST.frot, rot: ST.rot, x: ST.x, z: ST.z, scala: ST.scala, luce: ST.luce, interne: ST.interne };
+      const par = { pronta: ST.pronta || null, pianta: ST.pianta || null, W: ST.W, P: ST.P, H: ST.H, fy: ST.fy, fx: ST.fx, fz: ST.fz, frot: ST.frot, rot: ST.rot, x: ST.x, z: ST.z, scala: ST.scala, luce: ST.luce, interne: ST.interne };
       if (az === 'put' && ST.file) os.put({ file: ST.file, nome: ST.nome, par }, 'stanza');
       else if (az === 'par') { const g = os.get('stanza'); g.onsuccess = () => { if (g.result) { g.result.par = par; os.put(g.result, 'stanza'); } }; }
       else if (az === 'del') os.delete('stanza');
@@ -4114,9 +4154,11 @@ function disegnaStanza() {
   const c = $('stCampi'); c.innerHTML = '';
   $('stNome').hidden = !ST.tipo; $('stTogli').hidden = !ST.tipo; $('stInterne').closest('label').hidden = !ST.tipo;
   if (!ST.tipo) { $('stNome').textContent = ''; return; }
-  $('stNome').textContent = (ST.tipo === 'foto' ? 'Foto 360° · ' : 'Modello · ') + ST.nome; $('stInterne').checked = ST.interne;
+  $('stNome').textContent = (ST.tipo === 'foto' ? (ST.pianta ? 'Foto 360° in 3D · ' : 'Foto 360° · ') : 'Modello · ') + ST.nome; $('stInterne').checked = ST.interne;
   const k = (chi, lab, mn, mx, pa, u, dec) => campo(c, lab, ST[chi], mn, mx, pa, u, v => { ST[chi] = v; aggiornaStanza(); salvaParStanza(); }, dec);
-  if (ST.tipo === 'foto') {
+  if (ST.tipo === 'foto' && ST.pianta) {
+    k('fy', 'Altezza della fotocamera (ingrandisce la stanza)', 0.3, 3, 0.01, 'm', 2); k('H', 'Altezza del soffitto', 2, 20, 0.05, 'm', 2);
+  } else if (ST.tipo === 'foto') {
     k('W', 'Larghezza', 1, 60, 0.05, 'm', 2); k('P', 'Profondità', 1, 60, 0.05, 'm', 2); k('H', 'Altezza', 1.5, 20, 0.05, 'm', 2);
     k('fy', 'Altezza della fotocamera', 0.1, 10, 0.01, 'm', 2); k('fx', 'Fotocamera: sposta di lato', -15, 15, 0.01, 'm', 2); k('fz', 'Fotocamera: sposta avanti', -15, 15, 0.01, 'm', 2); k('frot', 'Gira la foto', -180, 180, 0.5, '°', 1);
   } else k('scala', 'Ingrandisci', 0.05, 20, 0.01, '×', 2);
@@ -4128,7 +4170,9 @@ $('bStanza').onclick = () => pannelloStanza($('pannelloSt').hidden);
 document.addEventListener('click', e => { if (e.target && e.target.id === 'bOgg' && !$('pannelloO').hidden) pannelloStanza(false); });
 $('stFoto').onclick = () => { $('stFile').accept = '.jpg,.jpeg,.png,.webp,.hdr,image/*'; $('stFile').click(); };
 $('stModello').onclick = () => { $('stFile').accept = '.glb,.gltf'; $('stFile').click(); };
-$('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) { ST.pronta = null; caricaStanza(f); } };
+$('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) { ST.pronta = null; ST.pianta = null;
+  const S = STANZE.find(S => /corridoio/i.test(f.name) && S.id === 'corridoio'); if (S) Object.assign(ST, S.par);   // la stessa foto del corridoio, anche in HDR: usa la pianta ricostruita
+  caricaStanza(f); } };
 $('stTogli').onclick = () => togliStanza();
 $('stInterne').onchange = e => { ST.interne = e.target.checked; aggiornaStanza(); salvaParStanza(); };
 addEventListener('load', () => stanzaDB('get'));   // dopo il caricamento dei lettori GLB e HDR
