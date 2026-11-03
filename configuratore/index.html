@@ -565,7 +565,7 @@
     <div id="scena">
       <div id="sovra"></div>
       <button class="linguetta sx" id="lingSx"><!-- [Officina] chiude e riapre i pannelli laterali --></button><button class="linguetta dx" id="lingDx"></button>
-      <div class="sinistra"><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><button class="chip" id="bSit" title="Cosa fanno gli avatar dentro ogni bolla">Situazioni</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span><span class="sepv"></span><button class="chip" id="chipStato" title="Apri Aria"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></button><button class="chip" id="chipBudget" title="Apri Materiali"></button></div></div><!-- [Officina] stato e materiali nella stessa barra delle persone -->
+      <div class="sinistra"><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span><span class="sepv"></span><button class="chip" id="chipStato" title="Apri Aria"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></button><button class="chip" id="chipBudget" title="Apri Materiali"></button></div></div><!-- [Officina] stato e materiali nella stessa barra delle persone -->
       <div class="pannelloP" id="pannelloP" aria-label="Pressione dei moduli"></div>
       <div class="lampo" id="lampo"></div>
       <div id="avviso" hidden role="status"></div>
@@ -2241,8 +2241,8 @@ function situazioneDi(p, M, ob, dt) {
     return s;
   }
   R.tSit += dt;
-  if (!L.includes(R.auto)) { R.auto = L[0]; R.tSit = 0; R.durata = caso(35, 55); }
-  else if (R.tSit > R.durata && L.length > 1) { R.auto = L[(L.indexOf(R.auto) + 1) % L.length]; R.tSit = 0; R.durata = caso(35, 55); }
+  if (!L.includes(R.auto)) { R.auto = sceglie(L); R.tSit = 0; R.durata = caso(35, 55); }   // [Officina] a caso fra quelle possibili, mai due volte di fila
+  else if (R.tSit > R.durata && L.length > 1) { R.auto = sceglie(L.filter(x => x !== R.auto)); R.tSit = 0; R.durata = caso(35, 55); }
   return R.auto;
 }
 // dispone il gruppo nella bolla secondo la situazione
@@ -2511,10 +2511,19 @@ function muovi(P, passi) { P.copione = spostati(P, passi); P.attesa = null; P.tC
 function nuovoResidente(p) { const usati = new Set(persone.map(P => P.k)); let k = 1; while (usati.has(k)) k++;
   const P = creaPersona(k); P.casa = P.residente = P.dove = p; P.tAqui = 0; persone.push(P); mettiUna(P); return P; }
 function togliAvatar(P) { if (P === persona) return; if (pov === P) esciPov(); for (const l of link) if (l.porta.uso === P) l.porta.uso = null; scena.remove(P.g); persone = persone.filter(q => q !== P); }
+// [Officina] residenti di ogni bolla, sempre: 1 nei corridoi, nelle bolle uno ogni 6 m² (da 1 a 4). Un numero scritto a mano
+// (p.nRes > 0, dalle prove automatiche) vale di più. In tutto ne restano almeno 6 liberi per i visitatori di Play
+function residentiVoluti() {
+  const V = new Map(); for (const p of pezzi) V.set(p, p.nRes > 0 ? p.nRes : p.tipo === 'corridoio' || p.F.corr ? 1 : clamp(Math.round(areaUtile(p) / 6), 1, 4));
+  let tot = [...V.values()].reduce((a, b) => a + b, 0);
+  while (tot > MAX_AVATAR - 6) { let m = null; for (const [p, n] of V) if (!m || n > V.get(m)) m = p; if (!m || V.get(m) <= 0) break; V.set(m, V.get(m) - 1); tot--; }
+  return V;
+}
 function syncResidenti() {
   for (const P of [...persone]) if (P.casa && !pezzi.includes(P.casa)) togliAvatar(P);
   for (const P of persone) if (P.residente && !pezzi.includes(P.residente)) { P.residente = P.dove = P.casa; P.copione = null; mettiUna(P); }
-  for (const p of pezzi) { const mie = persone.filter(P => P.casa === p), voluti = p.nRes || 0;
+  const VR = residentiVoluti();
+  for (const p of pezzi) { const mie = persone.filter(P => P.casa === p), voluti = VR.get(p) || 0;
     for (let i = mie.length; i < voluti && persone.length < MAX_AVATAR; i++) nuovoResidente(p);
     for (let i = mie.length - 1; i >= voluti; i--) togliAvatar(mie[i]); }
 }
@@ -2894,7 +2903,7 @@ function disegnaSituazioni(forza) {
 }
 function pannelloSit(v) { const pn = $('pannelloS'); pn.hidden = !v; const sb = document.querySelector('.sinistra .gruppo'); if (v && sb) pn.style.top = (sb.getBoundingClientRect().bottom - box.getBoundingClientRect().top + 8) + 'px'; $('bSit').classList.toggle('attivo', v);
   if (v) disegnaSituazioni(true); }
-$('bSit').onclick = () => pannelloSit($('pannelloS').hidden);
+// [Officina] niente più pulsante Situazioni: le situazioni capitano da sole (vedi residentiVoluti e situazioneDi)
 $('sSosta').onchange = e => { GENTE.sosta = +e.target.value; };
 $('sVisite').onchange = e => { GENTE.visite = e.target.checked; };
 $('sPopola').onclick = () => { for (const p of pezzi) p.nRes = p.tipo === 'corridoio' || p.F.corr ? 1 : clamp(Math.round(areaUtile(p) / 6), 1, 4);
@@ -3375,7 +3384,7 @@ function carica(dati) {
     if (!TIPI[q.tipo]) continue;
     const p = nuovoPezzo(q.tipo, { ...standard(q.tipo), ...q.d }, q.f, q.porte);
     Object.assign(p, { x: q.x || 0, z: q.z || 0, ang: q.ang || 0, nome: q.nome || p.nome, ingresso: !!q.ingresso }); if (q.colore) p.colore = q.colore;
-    if (q.tinta) p.tinta = q.tinta; if (q.stelle) p.stelle = { ...q.stelle }; p.situazione = q.situazione || 'auto'; p.nRes = q.nRes || 0;
+    if (q.tinta) p.tinta = q.tinta; if (q.stelle) p.stelle = { ...q.stelle }; p.situazione = 'auto'; p.nRes = 0;   // [Officina] situazioni e residenti si decidono da soli
     pezzi.push(p);
   }
   if (pezzi.length && !pezzi.some(p => p.ingresso)) pezzi[0].ingresso = true;

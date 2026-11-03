@@ -204,3 +204,11 @@ Le stesse cose stavano in più posti; ora ognuna sta in un posto solo (`[Officin
 - **Una barra sola sulla scena:** "Tutto in ordine" (`#chipStato`, apre Aria) e "Materiali" (`#chipBudget`, apre Materiali) stanno nella barra delle persone. Il titolo "Pressione ›" del riquadro della pressione apre Aria.
 - **Prove automatiche:** `test/ui.js` cliccava `[data-cat="gonf"]`, che non c'è più: quel clic va tolto.
 
+## Situazioni da sole (3 novembre)
+
+- **Niente più pulsante "Situazioni"** nella barra delle persone. Il pannello `#pannelloS` resta nel codice, ma non si apre più.
+- **Residenti in ogni bolla, sempre** (`[Officina]`, `residentiVoluti`, usata da `syncResidenti`): 1 nei corridoi, nelle bolle uno ogni 6 m² di pavimento utile (da 1 a 4), come faceva "Popola tutte le bolle". In tutto ne restano almeno 6 liberi per i visitatori di Play (massimo 24 avatar). Un `p.nRes` maggiore di 0, scritto dalle prove automatiche, vale di più.
+- **Situazioni a caso** (`situazioneDi`): la prima si sceglie a caso fra quelle possibili, e ogni 35–55 secondi ne arriva un'altra, mai la stessa due volte di fila. Prima andavano sempre nello stesso ordine.
+- **Composizioni salvate:** riaprendole, situazione e residenti tornano automatici.
+- **Prove automatiche:** `test/sit.js` e `test/multi.js` cliccavano `#bSit` e `#sPopola`. Quei clic vanno tolti, perché i residenti ci sono già.
+
