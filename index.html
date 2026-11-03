@@ -215,6 +215,10 @@ tr.key td { font-weight: 600; }
 .bridge { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 12px; padding: 12px 16px; background: var(--green-soft); border: 1px solid color-mix(in srgb, var(--green) 30%, transparent); border-radius: var(--r-m); }
 .bridge .txt { display: grid; gap: 2px; min-width: 0; flex: 1 1 260px; }
 .bridge a.btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.note.avviso { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 12px 0; }
+.xchiudi { flex: none; border: 0; background: none; color: var(--muted); font: 600 1.2rem/1 var(--body); padding: 0 4px; cursor: pointer; }
+.xchiudi:hover { color: var(--ink); }
+#heroPorta { margin-top: 8px; }
 .kcard { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 6px; align-content: start; border-top: 4px solid var(--green); }
 .kcard .k { font-family: var(--display); font-weight: 700; font-size: 1rem; line-height: 1.25; }
 .kcard .kv { display: grid; font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1.15; }
@@ -498,6 +502,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <h1>Officina delle Bolle</h1>
       <p class="lede">Scegliete una forma e le sue misure reali: la pagina prepara la guida completa per costruirla, prima come modellino in scala e poi come bolla vera in plastica, con i numeri giusti in ogni passaggio.</p>
       <div class="stats" id="stats"></div>
+      <p class="warn" id="heroPorta" hidden></p>
       <p class="hero-shape"><span class="muted">Forma scelta:</span> <strong id="heroShape"></strong> · <a href="#forma">cambiatela</a></p>
       <p class="hero-shape"><span class="muted">Più bolle collegate, gonfiatori, costi:</span> <a href="configuratore/">Configuratore Bolle</a></p>
     </div>
@@ -585,7 +590,12 @@ details.menu > summary::-webkit-details-marker { display: none; }
   <div class="about" id="about"></div>
   <details class="box more" id="projects">
     <summary><span class="tag">Progetti del gruppo</span><span class="hint">Salvate e riaprite forma e misure</span></summary>
-    <p class="hint">Chi apre questa pagina online vede gli stessi progetti e può riaprirli con un clic.</p>
+    <p class="hint" id="projIntro">Chi apre questa pagina online vede gli stessi progetti e può riaprirli con un clic.</p>
+    <div class="btnrow">
+      <button type="button" class="btn" id="projFileSave">Salva su file</button>
+      <button type="button" class="btn" id="projFileOpen">Apri da file</button>
+      <input type="file" id="projFileIn" accept=".json,application/json" hidden>
+    </div>
     <div class="projform" id="projForm" hidden>
       <div class="field"><label for="projName">Nome del progetto</label><input id="projName" type="text" maxlength="60" placeholder="Per esempio: Cupola gruppo 3" autocomplete="off"></div>
       <div class="btnrow">
@@ -610,10 +620,13 @@ details.menu > summary::-webkit-details-marker { display: none; }
       </div>
     </div>
   </div>
+  <div class="note avviso" id="avvisoConf" hidden><span id="avvisoConfT"></span><button type="button" class="xchiudi" id="avvisoConfX" aria-label="Chiudi l'avviso">×</button></div>
   <div class="keycards" id="keyCards"></div>
+  <div class="note avviso" id="avvisoPorta" hidden></div>
   <div class="bridge" id="bridge">
     <div class="txt"><b>Sta su? Provatela nel configuratore</b><span class="hint" id="bridgeNote"></span></div>
-    <a class="btn primary" id="bridgeGo" href="configuratore/">Porta la forma nel configuratore</a>
+    <div class="btnrow"><a class="btn primary" id="bridgeGo" href="configuratore/">Porta la forma nel configuratore</a>
+      <a class="btn" id="bridgeAdd" href="configuratore/" title="La forma si aggiunge alla composizione su cui stavate lavorando nel configuratore, accanto alle altre bolle">Aggiungi alla composizione aperta</a></div>
   </div>
   <details class="more">
     <summary>Tutte le misure <span class="hint" id="tblCount"></span></summary>
@@ -647,6 +660,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
 
 <section id="pezzi">
   <div class="sechead"><div class="stepno">04</div><div class="txt"><h2 id="piecesTitle">Traccia i pezzi</h2><p>Aprite un pezzo e seguite i passi con metro e squadra. Le spunte restano salvate.</p></div></div>
+  <p class="note" id="consiglioTipi" hidden></p>
   <div class="toolbar">
     <div class="field">
       <span class="flabel">Misure per</span>
@@ -1249,7 +1263,7 @@ const SHAPES = [
     params: [int("n", "Lati", 10, 8, 16), num("D", "Diametro (m)", 4, 1), num("H", "Altezza del corpo (m)", 3.4, 2.2), int("nf", "Foglie del ciuffo", 7, 3, 12), num("lf", "Lunghezza delle foglie (m)", 1.6, 0.3)],
     build: (p) => ananasMesh(p) },
   { id: "pera", group: "Forme speciali", name: "Pera", kind: "build", floorToggle: true,
-    params: [int("n", "Lati", 14, 8, 20), num("D", "Diametro della pancia grande (m)", 4.4, 1), num("H", "Altezza (m)", 5.2, 3.5), num("dn", "Diametro della parte alta (m)", 2.5, 0.8), num("lp", "Lunghezza del picciolo (m)", 1.1, 0.3)],
+    params: [int("n", "Lati", 14, 8, 20), num("D", "Diametro della pancia grande (m)", 4.4, 1), num("H", "Altezza (m)", 5.2, 3.5), num("dn", "Diametro della parte alta (m)", 2.5, 0.8), num("lp", "Lunghezza del picciolo (m)", 1.1, 0.3), pick("pos", "Forma", [["incl", "Inclinata (più naturale)"], ["dritta", "Dritta (molti meno tipi di pezzo)"]], "incl")],
     build: (p) => peraMesh(p) },
   /* uva: per ora tolta dall'elenco (da ripensare). uvaMesh e sproutBall restano pronte; per rimetterla:
   { id: "uva", group: "Forme speciali", name: "Uva (grappolo sdraiato)", kind: "build", floorToggle: true,
@@ -1556,7 +1570,7 @@ function peraMesh(p) {
   const L = lathe([[0.6 * R, 0], [0.88 * R, 0.05 * H], [R, 0.16 * H], [0.97 * R, 0.27 * H], [0.86 * R, 0.37 * H], [(0.86 * R + rb) / 2, 0.45 * H], [rb, 0.54 * H],
     [0.97 * rb, 0.64 * H], [0.9 * rb, 0.74 * H], [0.76 * rb, 0.83 * H], [0.54 * rb, 0.91 * H], [0.24 * rb, 0.97 * H]], n, -Math.PI / n);
   const V = L.V, F = L.F, C = L.cluster, removed = new Set();
-  V.forEach(v => { v[0] += incl * v[2]; });   // appena inclinata, come una pera vera
+  if (p.pos !== "dritta") V.forEach(v => { v[0] += incl * v[2]; });   // appena inclinata, come una pera vera (dritta: ogni anello ha i pezzi tutti uguali)
   sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.25, 0, 1]), 0.12, 0.45, "picciolo");   // attacco stretto
   sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.25, 0, 1]), 0.6 * p.lp, 0.95, "picciolo");
   sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.75, 0, 0.66]), 0.4 * p.lp, 0.85, "picciolo");
@@ -2267,8 +2281,8 @@ function analyze(V, F, floor) {
   /* ponte verso il configuratore (stessa cartella del sito, configuratore/), misure della bolla vera in metri.
      Una forma passa a un tipo del configuratore solo se ci entra così com'è; tutte le altre passano come forma vera (la mesh). */
   const LIMITI_CONF = {   // copiati da TIPI in configuratore/index.html: [chiave, minimo, massimo]
-    cubo: [["W", 1, 8], ["P", 1, 8], ["H", 1.5, 4]], prisma: [["lati", 3, 12], ["D", 1.2, 8], ["H", 1.5, 4]],
-    piramide: [["lati", 3, 8], ["L", 1.2, 8], ["k", 0, 0.8], ["H", 2.5, 6]], stella: [["punte", 4, 8], ["D", 1.2, 8], ["k", 0.4, 0.8], ["H", 1.5, 4]], libera: [["H", 1.5, 4]],
+    cubo: [["W", 1, 8], ["P", 1, 8], ["H", 1.95, 4]], prisma: [["lati", 3, 12], ["D", 1.2, 8], ["H", 1.95, 4]],
+    piramide: [["lati", 3, 8], ["L", 1.2, 8], ["k", 0, 0.8], ["H", 3.3, 6]], stella: [["punte", 4, 8], ["D", 1.2, 8], ["k", 0.4, 0.8], ["H", 1.95, 4]], libera: [["H", 1.95, 4]],
   };
   function perConfiguratore() {
     const d = def(), p = state.params, L = (x) => +(x * (cur.k || 1)).toFixed(3), piatto = p.roof !== "punta";
@@ -2290,13 +2304,29 @@ function analyze(V, F, floor) {
     return { tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: d.id } };   // off: il configuratore mette le entrate dove le prevede l'Officina
   }
   function renderBridge(ok) {
-    const a = $("bridgeGo"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure al Passo 1." };
-    if (r.no) { a.setAttribute("aria-disabled", "true"); a.removeAttribute("href"); a.tabIndex = -1; $("bridgeNote").textContent = r.no; return; }
-    const nome = ($("projName").value.trim() || shortName(def())).slice(0, 60);
-    a.href = "configuratore/#officina=" + encodeURIComponent(JSON.stringify({ v: 1, nome, tipo: r.tipo, d: r.d, src: statoForma() }));   // dopo il #: le forme grandi non passano dal server
-    a.removeAttribute("aria-disabled"); a.tabIndex = 0;
-    $("bridgeNote").textContent = "La vedete montata con i gonfiatori del lab: pressione, quanti gonfiatori servono, materiali e budget. Dal configuratore tornate qui con «Officina» in alto: la forma resta com'era.";
+    const a = $("bridgeGo"), b = $("bridgeAdd"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure al Passo 1." };
+    if (r.no) { for (const x of [a, b]) { x.setAttribute("aria-disabled", "true"); x.removeAttribute("href"); x.tabIndex = -1; } $("bridgeNote").textContent = r.no; return; }
+    const nome = ($("projName").value.trim() || shortName(def())).slice(0, 60), pacco = { v: 1, nome, tipo: r.tipo, d: r.d, src: statoForma() };
+    a.href = "configuratore/#officina=" + encodeURIComponent(JSON.stringify(pacco));   // dopo il #: le forme grandi non passano dal server
+    b.href = "configuratore/#officina=" + encodeURIComponent(JSON.stringify({ ...pacco, aggiungi: true }));   // la stessa forma, aggiunta alla composizione aperta
+    for (const x of [a, b]) { x.removeAttribute("aria-disabled"); x.tabIndex = 0; }
+    $("bridgeNote").textContent = "La vedete montata con i gonfiatori del lab: pressione, quanti gonfiatori servono, materiali e budget. Potete aprirla da sola o aggiungerla alla composizione su cui state lavorando. Dal configuratore tornate qui con «Officina» in alto: la forma resta com'era.";
   }
+  /* porte realistiche: per una porta da 1,80 m la bolla deve essere alta almeno 1,95 m dove c'è la porta (come chiede il configuratore).
+     Nelle piramidi la porta sta su una faccia inclinata: conta il 55% dell'altezza (72% con la cima piatta), come nel configuratore. */
+  function renderAvvisi() {
+    const d = def(), hU = d.id === "pyr" ? 0.55 * cur.H : d.id === "frus" ? 0.72 * cur.H : cur.H, basso = hU < 1.95;
+    const t = d.id === "pyr" || d.id === "frus"
+      ? `La porta sta su una faccia inclinata: lì la bolla è alta circa ${mR(hU)}. Per una porta da 1,80 m (si passa in piedi) servono almeno 1,95 m: alzate la piramide.`
+      : `La bolla è alta ${mR(cur.H)}: per una porta da 1,80 m (si passa in piedi) servono almeno 1,95 m dove c'è la porta. Alzatela o aumentate le misure.`;
+    $("avvisoPorta").hidden = !basso; $("avvisoPorta").textContent = t;
+    $("heroPorta").hidden = !basso; $("heroPorta").textContent = basso ? "Troppo bassa per una porta da 1,80 m: guardate il Passo 2." : "";
+    // tante sagome diverse vogliono dire tanto lavoro: si dice quali scelte di questa forma le riducono
+    const nt = cur.an.types.length, piu = CONSIGLI_TIPI[d.id], molti = nt > 40;
+    $("consiglioTipi").hidden = !molti;
+    if (molti) $("consiglioTipi").textContent = `Questa forma ha ${nt} tipi di pezzo diversi: ogni tipo è una sagoma da tracciare a parte. Per meno lavoro: ${piu ? piu + ", oppure " : ""}meno lati o meno spicchi al Passo 1.`;
+  }
+  const CONSIGLI_TIPI = { pera: "scegliete la Forma «Dritta»", scolo: "scegliete il Corpo «Dritto»", balena: "togliete le pinne", tarta: "accorciate collo, zampe e coda" };
 
   function update() {
     const d = def();
@@ -2330,7 +2360,7 @@ function analyze(V, F, floor) {
       : (cur.floorArea > 0 ? "" : "Questa forma non ha un pavimento piatto, quindi non si può adattare all'area: attivate la base o il fondo piatto.");
     $("navShape").textContent = d.name;
     $("heroShape").textContent = d.name;
-    renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll(); syncModelRef(); renderBridge(true);
+    renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll(); syncModelRef(); renderBridge(true); renderAvvisi();
     ricordaForma();
   }
 
@@ -2362,6 +2392,9 @@ function analyze(V, F, floor) {
       if (par(0, 2) || par(1, 3)) return "trapezio";
       return "quadrilatero";
     }
+    // un poligono con angoli rientranti (L, C, freccia, piante disegnate) non si chiama "esagono" o "ottagono": fa pensare a una forma regolare
+    const giri = C.map((a, i) => cross2(sub2(C[(i + 1) % n], a), sub2(C[(i + 2) % n], C[(i + 1) % n])));
+    if (giri.some(x => x > 1e-9) && giri.some(x => x < -1e-9)) return `poligono a ${n} lati`;
     const names = { 5: "pentagono", 6: "esagono", 7: "ettagono", 8: "ottagono", 9: "ennagono", 10: "decagono", 12: "dodecagono" };
     return (names[n] || `poligono a ${n} lati`) + (eqL && eqA ? " regolare" : "");
   }
@@ -2437,7 +2470,7 @@ function analyze(V, F, floor) {
           for (let a = 0; a < n; a++) for (let b = a + 2; b < n; b++) { if (a === 0 && b === n - 1) continue; dg = Math.max(dg, len2(sub2(C[b], C[a]))); }
           len(`Diagonale ${isRegular(C) ? "" : "più lunga "}${del(nm.split(" ")[0])}`, dg, "Seconda apertura del compasso, o misura di controllo.");
         }
-        len(`Altezza ${del(nm.split(" ")[0])}`, maxY(C), "Da un lato al punto opposto: quanto è profondo il pavimento.", true);
+        len("Profondità del pavimento", maxY(C), "Da un lato al punto opposto: quanto è profondo il pavimento.", true);
         if (isRegular(C)) {
           const cx = C.reduce((a, p) => a + p[0], 0) / n, cy = C.reduce((a, p) => a + p[1], 0) / n;
           const R = Math.hypot(C[0][0] - cx, C[0][1] - cy);
@@ -2540,6 +2573,7 @@ function analyze(V, F, floor) {
       `Metro a nastro rigido da almeno 5 m, stadia o listello dritto, filo da muratore, squadra grande (oppure la regola 60-80-100).`,
       `Pennarello indelebile fine, nastro per fissare il telo a terra, forbici grandi o cutter.`,
       `Materiale per le giunzioni: <span class="num">${mR(cur.seamLen)}</span> in tutto. Con il nastro calcolatene il doppio, perché va dentro e fuori.`,
+      `Porte: per ogni porta una cerniera (zip) di almeno <span class="num">1,9 m</span>, su un taglio verticale nel pannello della porta, con una striscia di nastro di rinforzo ai due lati del taglio. La bolla dev'essere alta almeno 1,95 m in quel punto.`,
       `Un pavimento pulito e piano più grande del pezzo più lungo (<span class="num">${cmR(big)}</span>).`,
     ].map(t => `<li>${t}</li>`).join("");
     $("mCount").textContent = an.types.map((t, i) => `${t.faces.length} del pezzo ${i + 1}`).join(", ");
@@ -3155,8 +3189,12 @@ function analyze(V, F, floor) {
   const projStatus = (t) => { $("projStatus").textContent = t; $("projStatus").hidden = !t; };
   async function initProjects() {
     const C = window.claude;
-    // fuori da Claude (sito pubblico o file aperto dal computer) i progetti condivisi non esistono: la scheda sparisce
-    if (!C || typeof C.use !== "function") { $("projects").hidden = true; return; }
+    // fuori da Claude (sito pubblico o file aperto dal computer) i progetti condivisi non esistono: restano il nome e i file da passarsi
+    if (!C || typeof C.use !== "function") {
+      $("projects").querySelector(".tag").textContent = "Salva e riapri";
+      $("projIntro").textContent = "Salvate forma e misure su un file e passatelo al gruppo (chiavetta, mail, chat): con «Apri da file» si riapre uguale, anche su un altro computer.";
+      $("projForm").hidden = false; $("projSave").hidden = true; $("projUpdate").hidden = true; projStatus(""); return;
+    }
     let db = null, user = null;
     try { [db, user] = await Promise.all([C.use("db"), C.use("user")]); } catch (e) { db = null; }
     if (!db) { projStatus("I progetti del gruppo non sono disponibili qui. Apriteli dalla pagina online, dopo aver fatto l'accesso a Claude."); return; }
@@ -3374,8 +3412,32 @@ function analyze(V, F, floor) {
     try { if (location.hash.startsWith("#apri=")) da = JSON.parse(decodeURIComponent(location.hash.slice(6))); } catch (e) { da = null; }
     if (location.hash.startsWith("#apri=")) { try { history.replaceState(null, "", location.pathname + location.search + "#misure"); } catch (e) { /* indirizzo fisso */ } }
     if (q && SHAPES.some(s => s.id === q)) selectShape(q);
-    else if (!(da && applyState(da))) { try { ultima = JSON.parse(localStorage.getItem("bolle|forma") || "null"); } catch (e) { /* niente di salvato */ } if (ultima) applyState(ultima); }
+    else if (da && applyState(da)) avvisoDalConfiguratore(da);
+    else { try { ultima = JSON.parse(localStorage.getItem("bolle|forma") || "null"); } catch (e) { /* niente di salvato */ } if (ultima) applyState(ultima); }
   }
+  // tornando dal configuratore: se lì la forma è stata ingrandita (porte da 1,80 m) o ritoccata, qui le misure sono ancora quelle di prima
+  function avvisoDalConfiguratore(da) {
+    const k = +da.ingrandita, rit = Array.isArray(da.ritocchi) ? da.ritocchi.filter(x => typeof x === "string").slice(0, 6) : [];
+    if (!(k > 1.001) && !rit.length) return;
+    $("avvisoConfT").textContent = k > 1.001
+      ? `Nel configuratore questa forma è stata ingrandita ×${fmt(k, 2)} perché le porte siano alte almeno 1,80 m. Qui le misure sono ancora quelle originali: per costruire quella del configuratore ingranditela (Adatta a un pavimento più grande, o misure più grandi al Passo 1).`
+      : `Nel configuratore alcune misure di questa forma sono state cambiate: ${rit.join(", ")}. Qui sono ancora quelle originali.`;
+    $("avvisoConf").hidden = false;
+  }
+  $("avvisoConfX").addEventListener("click", () => { $("avvisoConf").hidden = true; });
+  // salva e apri da file: forma, misure, opzioni, scala e nome in un .json da passarsi (funziona anche fuori da Claude)
+  $("projFileSave").addEventListener("click", () => {
+    const s = statoForma(), nome = (s.name || shortName(def())).toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "forma";
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: "officina-delle-bolle", versione: 1, ...s }, null, 1)], { type: "application/json" }));
+    a.download = "bolla-" + nome + ".json"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    projStatus(`Salvato il file ${a.download}.`);
+  });
+  $("projFileOpen").addEventListener("click", () => $("projFileIn").click());
+  $("projFileIn").addEventListener("change", async e => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    try { const j = JSON.parse(await f.text()); if (!applyState(j)) throw new Error("forma sconosciuta"); projStatus(`Aperto il file ${f.name}.`); }
+    catch (err) { projStatus(`Il file ${f.name} non contiene una forma dell'Officina.`); }
+  });
   initStep(); loop();
   setTimeout(buildThumbs, 60);
   initProjects();

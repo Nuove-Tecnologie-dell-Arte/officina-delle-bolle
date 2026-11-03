@@ -688,7 +688,7 @@ const D = {
   mat: 'PVC', gsm: 20, t: 20 / 1380, sigma: 18, pMin: 3,
   manW: 1.8, manL: 1.0, manH: 2.0, manMax: 6,      // manica di collegamento: larghezza, lunghezza minima, altezza massima (m)
   nW: 20, nT: 235, nFile: 1,
-  porte: 'magnetico', coll: 'magnetico', giunti: 'magnetico',
+  porte: 'cerniera', coll: 'magnetico', giunti: 'magnetico',   // [Officina] le porte del lab finora sono fatte con le zip
   bleed: 40, aPersona: 30, sfogo: 30,
   spento: false, speed: 1,
 };
@@ -3995,6 +3995,21 @@ function daOfficina() {
   const f = gonfConsigliati({ tipo, d }) || { ...TIPI[tipo].f };
   const ini = compAttiva(); if (ini && ini.nome === 'Cubo iniziale') { comp.lista = comp.lista.filter(c => c !== ini); comp.attiva = null; }   // il cubo d'esempio di questa apertura non serve
   const src = M.src && typeof M.src === 'object' && JSON.stringify(M.src).length < 20000 ? M.src : null;   // com'era nell'Officina: per tornarci con il selettore in alto
+  if (src) { delete src.ingrandita; delete src.ritocchi;   // [Officina] tornando all'Officina si sa se qui la forma è stata ingrandita o ritoccata
+    if (tipo === 'officina' && d.k > 1.001) src.ingrandita = d.k; else if (ritocchi.length) src.ritocchi = ritocchi.slice(0, 6); }
+  if (M.aggiungi) {   // [Officina] "Aggiungi alla composizione aperta": la forma va accanto alle bolle della composizione usata per ultima
+    const dest = comp.lista.filter(c => c.dati && (c.dati.pezzi || []).length).sort((a, b) => (b.agg || 0) - (a.agg || 0))[0];
+    if (dest) {
+      comp.attiva = null; apriComp(dest.id);
+      const p = nuovoPezzo(tipo, { ...standard(tipo), ...d }, { ...f }); p.nome = nome;
+      let x1 = 0, z0 = 1e9, z1 = -1e9; for (const q of pezzi) { x1 = Math.max(x1, q.x + q.F.Rc); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); }
+      p.x = x1 + p.F.Rc + 2.5; p.z = (z0 + z1) / 2; p.ingresso = true;
+      for (let k = 0; k < 60 && pezzi.some(q => siToccano(q.scafo || scafo(q), scafo(p))); k++) p.x += 1;
+      pezzi.push(p); selezionato = p; strutturaCambiata(); tabIsp = 'stato'; ispettore(); salvaPresto(); disegnaComp();
+      avviso(`${nome} aggiunta a «${dest.nome}» (${pezzi.length} bolle): trascinala vicino a un'altra bolla per collegarla, o usa l'icona a catena.` + (ritocchi.length ? ` Misure portate nei limiti del configuratore: ${ritocchi.join(', ')}.` : ''), 12000);
+      return;
+    }
+  }
   const titolo = 'Dall\'Officina · ' + nome, dati = { ...fotografa(), pezzi: [{ tipo, d, f, nome, ingresso: true }], manuali: [], staccati: [] };
   const uguale = comp.lista.find(c => c.nome === titolo && c.officina && (!c.dati || (c.dati.pezzi || []).length <= 1));
   if (uguale) {   // la stessa forma rimandata dopo un ritocco: si aggiorna la sua composizione invece di farne un'altra

@@ -155,3 +155,9 @@ Non è una parte `[Officina]`: è una funzione nuova del configuratore, scritta 
 - **Ritorno alla forma giusta**: la forma mandata dall'Officina porta con sé le sue impostazioni (`src` nel `#officina=`), che il configuratore salva nella composizione (`officina`). Da quella composizione, "Officina" riapre l'Officina su quella forma, al passo Numeri (`../#apri={…}`).
 - **Niente doppioni**: rimandando la stessa forma dopo un ritocco, il configuratore aggiorna la sua composizione "Dall'Officina · nome" invece di crearne un'altra, finché ha un pezzo solo. Se nel frattempo ci si sono aggiunte altre bolle, ne crea una nuova con "(2)", "(3)"…
 
+
+## Correzioni dopo la prova generale (3 novembre)
+
+- **Porte con le zip** (`[Officina]` in `D`): le porte partono come `porte: 'cerniera'`, perché nel lab finora sono fatte con le zip. Distinta e budget contano già cerniere e cursori. Collegamenti e giunture restano magnetici, in attesa di sapere come li fa il lab.
+- **L'ingrandimento torna nell'Officina** (`[Officina]` in `daOfficina`): se la forma arrivata come pezzo vero in 3D è stata ingrandita per avere porte da 1,80 m (`d.k > 1`), il pacchetto `src` salvato nella composizione porta anche `ingrandita: k`; se invece sono state solo portate nei limiti alcune misure, porta `ritocchi` (al massimo 6 righe). Tornando con "Officina", l'Officina mostra un avviso che si chiude con la ×.
+- **Aggiungere alla composizione aperta** (`[Officina]`, blocco `if (M.aggiungi)` in `daOfficina`): se il pacchetto `#officina=` ha `aggiungi: true` (pulsante "Aggiungi alla composizione aperta" dell'Officina), la forma non crea né aggiorna "Dall'Officina · nome", ma va nella composizione con dei pezzi modificata più di recente. Il pezzo viene messo a destra degli altri senza toccarli (`siToccano`), selezionato e salvato; l'avviso dice dove è finito. Se non c'è nessuna composizione con dei pezzi si comporta come prima.
