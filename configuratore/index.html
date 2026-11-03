@@ -761,7 +761,6 @@ const ICONE = {
   'of:tarta': '<path d="M4 20a11 9 0 0 1 22 0z M4 20h22 M26 18c2 0 3-1 3-3 M8 20l-2 4 M22 20l2 4 M10 14l5 3 5-3"/>',
   'of:ananas': '<path d="M10 27c-3-3-3-10 0-13h10c3 3 3 10 0 13z M10 14l5-11 5 11 M12 14L7 6 M18 14l5-8 M11 18l8 6 M19 18l-8 6"/>',
   'of:pera': '<path d="M15 6c-3 0-4 3-4 6 0 2-5 4-5 9 0 4 4 6 9 6s9-2 9-6c0-5-5-7-5-9 0-3-1-6-4-6z M15 6l1-4"/>',
-  'of:uva': '<circle cx="9" cy="17" r="3.5"/><circle cx="15" cy="15" r="3.5"/><circle cx="21" cy="17" r="3.5"/><circle cx="12" cy="22" r="3.5"/><circle cx="18" cy="22" r="3.5"/><path d="M26 15c1-3 2-5 3-6"/>',
 };
 const standard = t => Object.fromEntries([...TIPI[t].par.map(p => [p[0], p[5]]), ...(TIPI[t].scelte || []).map(s => [s.key, s.def])]);   // [Officina] anche le scelte
 const descrStd = t => TIPI[t].par.map(p => p[1] + ' ' + (p[6] === 'm' ? fmt(p[5], 2) + ' m' : p[5] + (p[6] || ''))).join(' · ');
@@ -882,6 +881,24 @@ function datiOfficina(mesh, k) {   // la parte pesante, calcolata una volta per 
     cuciture, lungCuc: cuciture.reduce((t, [a, b]) => t + Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]), 0) };
   perK.set(k, R); return R;
 }
+// [Officina] altezza di una porta sul lato a-b della pianta (n verso fuori), calcolata sul telo vero e non sulla griglia:
+// il primo telo 30 cm dentro la porta, e nessun soffitto quasi piano (il ponte della barca, un tetto) più basso già sopra la soglia.
+// Lo stesso calcolo è nell'Officina (porteOfficina in ../index.html): se si cambia qui, va cambiato anche lì.
+function altSopra(O, x, z, soloPiani) {   // il telo più basso sopra il punto (x, z) della pianta; Infinity se sopra non c'è niente
+  let h = Infinity;
+  for (const F of O.facce) { if (F.pav || Math.abs(F.n[1]) < (soloPiani ? 0.7 : 1e-3)) continue;
+    for (const [i0, i1, i2] of F.tri) { const A = F.P[i0], B = F.P[i1], C = F.P[i2], det = (B[0] - A[0]) * (C[2] - A[2]) - (C[0] - A[0]) * (B[2] - A[2]); if (Math.abs(det) < 1e-9) continue;
+      const l1 = ((x - A[0]) * (C[2] - A[2]) - (C[0] - A[0]) * (z - A[2])) / det, l2 = ((B[0] - A[0]) * (z - A[2]) - (x - A[0]) * (B[2] - A[2])) / det;
+      if (l1 < -1e-6 || l2 < -1e-6 || l1 + l2 > 1 + 1e-6) continue;
+      const y = A[1] + l1 * (B[1] - A[1]) + l2 * (C[1] - A[1]); if (y > 0.05 && y < h) h = y; } }
+  return h;
+}
+function altezzaPorta(O, a, b, n) {
+  let h = Infinity;
+  for (const u of [0.35, 0.5, 0.65]) { const x = a[0] + (b[0] - a[0]) * u, z = a[1] + (b[1] - a[1]) * u, dentro = altSopra(O, x - n[0] * 0.3, z - n[1] * 0.3, false);
+    h = Math.min(h, dentro === Infinity ? 0 : dentro, altSopra(O, x - n[0] * 0.05, z - n[1] * 0.05, true), altSopra(O, x - n[0] * 0.15, z - n[1] * 0.15, true)); }
+  return h;
+}
 function fuoriOfficina(O, m, n, y) {   // di quanto spostare porta, manica e gonfiatori lungo la normale del lato per toccare il telo all'altezza y
   let best = 0, bd = 1e9; const dir = [n[0], 0, n[1]];
   for (const F of O.facce) { if (F.pav) continue; const den = F.n[0] * dir[0] + F.n[2] * dir[2]; if (Math.abs(den) < 1e-6) continue;
@@ -908,14 +925,13 @@ const PORTE_OFF = {
   torus: [[1, 0], [-1, 0]],                 // due punti opposti del giro esterno
   arrow: [[-1, 0], [0, 1, 1]],              // la coda e un fianco
   ananas: [[1, 0], [-1, 0]], pera: [[1, 0], [-1, 0]],   // due pannelli opposti in basso
-  uva: [[1, 0], [-1, 0]],                   // si entra dalla parte larga (davanti) e si esce dalla punta
 };
 function formaOfficina(d) {
   const O = datiOfficina(d.mesh, d.k || 1), V = O.V, verso = Math.sign(V.reduce((t, a, i) => { const b = V[(i + 1) % V.length]; return t + a[0] * b[1] - b[0] * a[1]; }, 0)) || 1;
   const E = (O.E0 || (O.E0 = V.map((a, i) => {   // i lati si calcolano una volta (i raggi contro il telo costano); ogni forma ne riceve una copia
     const b = V[(i + 1) % V.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]), dd = [(b[0] - a[0]) / L, (b[1] - a[1]) / L], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     let n = [dd[1], -dd[0]]; if (verso < 0) n = [-n[0], -n[1]];
-    const hMax = Math.min(...[0.35, 0.5, 0.65].map(u => O.altA(a[0] + (b[0] - a[0]) * u - n[0] * 0.3, a[1] + (b[1] - a[1]) * u - n[1] * 0.3)));   // altezza libera appena dentro il lato
+    const hMax = altezzaPorta(O, a, b, n);   // altezza libera appena dentro il lato
     return { a, b, L, d: dd, n, m, ap: n[0] * m[0] + n[1] * m[1], hMax, fuori: fuoriOfficina(O, m, n, Math.min(1, 0.5 * Math.max(hMax, 0.4))) };
   }))).map(e => ({ ...e }));
   const regola = PORTE_OFF[d.off];
@@ -947,7 +963,7 @@ function formaOfficinaFine(O, V, E, conn) {
 // [Officina] le forme dell'Officina nella griglia "Bolle": il motore si legge dalla pagina dell'Officina (stesso sito), senza copiarlo
 const FORME_OFF = [['d20', 'Cupola'], ['d12', 'Dodecaedro'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Ciambella'], ['tunnel', 'Tunnel'],
   ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Scolopendra'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga'],
-  ['ananas', 'Ananas'], ['pera', 'Pera']];   // l'uva è tolta per ora anche dall'Officina (icona e regola delle porte restano pronte)
+  ['ananas', 'Ananas'], ['pera', 'Pera']];
 let MOTORE_OFF = null;
 const _ofMesh = new Map();   // forma + misure → mesh già costruita
 function parOff(q) {   // parametro dell'Officina → [chiave, etichetta, min, max, passo, standard, unità] del configuratore
@@ -971,9 +987,8 @@ async function caricaMotoreOfficina() {
   if (catAgg === 'bolle' && !$('aggForma').hidden) disegnaTipi();
 }
 function formaOff(tipo, d) {
-  const T = TIPI[tipo];
-  if (MOTORE_OFF && T) {
-    const def = MOTORE_OFF.SHAPES.find(s => s.id === T.off);
+  const T = TIPI[tipo], def = MOTORE_OFF && T && MOTORE_OFF.SHAPES.find(s => s.id === T.off);   // senza def: forma tolta dall'Officina, resta quella salvata
+  if (def) {
     for (let giro = 0; giro < 4; giro++) {
       const p = {}; for (const q of def.params) p[q.key] = d[q.key] ?? q.def;
       const key = tipo + JSON.stringify(p); let mesh = _ofMesh.get(key);
@@ -1193,6 +1208,49 @@ function siToccano(A, B) {
   }
   return true;
 }
+// [Officina] la stanza di sfondo come ostacolo: con una foto 360° (scatola o pianta ricostruita, come il Corridoio) le pareti
+// non si attraversano e il soffitto ha un'altezza. Il modello GLB non ha pareti note: lì niente controlli.
+function pareteStanza() {
+  try { if (!ST.grp || ST.tipo !== 'foto') return null; } catch (e) { return null; }   // all'avvio ST non c'è ancora (è dichiarata più giù)
+  let loc;
+  if (ST.pianta) { const r = ST.frot * Math.PI / 180, cr = Math.cos(r), sr = Math.sin(r), k = ST.fy;
+    loc = ST.pianta.map(([a, b]) => { const x = a * k, z = b * k; return [ST.fx + cr * x + sr * z, ST.fz - sr * x + cr * z]; }); }
+  else loc = [[-ST.W / 2, -ST.P / 2], [ST.W / 2, -ST.P / 2], [ST.W / 2, ST.P / 2], [-ST.W / 2, ST.P / 2]];
+  const t = ST.rot * Math.PI / 180, c = Math.cos(t), sn = Math.sin(t);   // come rotation.y del gruppo della stanza
+  return { P: loc.map(([x, z]) => [ST.x + x * c + z * sn, ST.z - x * sn + z * c]), H: ST.H };
+}
+function nelMuro(sc, S) {   // l'impronta sc (convessa, nel mondo) esce dalla pianta della stanza o attraversa una parete
+  S = S === undefined ? pareteStanza() : S; if (!S) return false;
+  const P = S.P, dentro = (x, z) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > z) !== (P[j][1] > z) && x < (P[j][0] - P[i][0]) * (z - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
+  if (sc.some(q => !dentro(q[0], q[1]))) return true;
+  const lato = (a, b, q) => (b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0]);
+  const inSc = q => { const s0 = sc.map((a, i) => lato(a, sc[(i + 1) % sc.length], q)); return s0.every(v => v > 0.02) || s0.every(v => v < -0.02); };
+  if (P.some(inSc)) return true;   // uno spigolo della stanza (il pilastro del corridoio) dentro la bolla
+  const taglia = (a, b, c, d) => Math.sign(lato(a, b, c)) * Math.sign(lato(a, b, d)) < 0 && Math.sign(lato(c, d, a)) * Math.sign(lato(c, d, b)) < 0;
+  for (let i = 0; i < P.length; i++) for (let j = 0; j < sc.length; j++) if (taglia(P[i], P[(i + 1) % P.length], sc[j], sc[(j + 1) % sc.length])) return true;
+  return false;
+}
+function postoLibero(p) {   // il posto libero più vicino: non sopra altre bolle e non nelle pareti (passi di 50 cm, fino a 20 m)
+  const S = pareteStanza(), ok = () => { const sc = scafo(p); return !pezzi.some(q => q !== p && siToccano(q.scafo || scafo(q), sc)) && !nelMuro(sc, S); };
+  if (ok()) return true;
+  const x0 = p.x, z0 = p.z;
+  for (let r = 1; r <= 40; r++) for (let i = -r; i <= r; i++) for (const [dx, dz] of [[i, -r], [i, r], [-r, i], [r, i]]) { p.x = x0 + dx * 0.5; p.z = z0 + dz * 0.5; if (ok()) return true; }
+  p.x = x0; p.z = z0; return false;
+}
+function mettiSeparato(p) {   // dove va un pezzo nuovo non collegato: a destra degli altri, oppure (con la stanza) nel primo posto libero dentro la stanza
+  if (!pareteStanza()) { for (let k = 0; k < 60 && pezzi.some(q => siToccano(q.scafo || scafo(q), scafo(p))); k++) p.x += 1; return; }
+  if (!postoLibero(p)) { const S = pareteStanza(); p.x = S.P.reduce((t, q) => t + q[0], 0) / S.P.length; p.z = S.P.reduce((t, q) => t + q[1], 0) / S.P.length;
+    if (!postoLibero(p)) avviso(`Nella stanza non c'è posto per ${p.nome}: è rimasta nella parete (in rosso). Fate spazio o rimpicciolitela.`, 7000); }
+}
+let _avvisoStanza = '';
+function avvisoStanza() {   // bolle nelle pareti o più alte del soffitto: si dice una volta, finché la situazione non cambia
+  const S = pareteStanza(); if (!S) { _avvisoStanza = ''; return; }
+  const muro = pezzi.filter(p => p.nelMuro).map(p => p.nome), alte = pezzi.filter(p => p.F.H > S.H - 0.05).map(p => p.nome + ' (' + fmt(p.F.H, 2) + ' m)');
+  const t = (muro.length ? `Nelle pareti della stanza: ${muro.join(', ')}. Spostatele dentro. ` : '') + (alte.length ? `Più alte del soffitto (${fmt(S.H, 2)} m): ${alte.join(', ')}.` : '');
+  if (t && t !== _avvisoStanza) avviso(t.trim(), 8000);
+  else if (!t && _avvisoStanza && /^(Nelle pareti|Più alte del soffitto)/.test($('avviso').textContent)) avviso('');   // risolto: via l'avviso
+  _avvisoStanza = t;
+}
 // collegamenti decisi a mano (anche tra lati che non si guardano dritti) e collegamenti automatici staccati a mano
 let manuali = [], staccati = [];
 const stessaCoppia = (m, a, ea, b, eb) => (m.a === a && m.ea === ea && m.b === b && m.eb === eb) || (m.a === b && m.ea === eb && m.b === a && m.eb === ea);
@@ -1259,6 +1317,8 @@ function collega() {
   for (const p of pezzi) { p.usati = usati.get(p); p.chiuse = p.porte.length - p.usati.size; p.scafo = scafo(p); p.sovrapposto = false; }
   for (let i = 0; i < pezzi.length; i++) for (let j = i + 1; j < pezzi.length; j++)
     if (siToccano(pezzi[i].scafo, pezzi[j].scafo)) pezzi[i].sovrapposto = pezzi[j].sovrapposto = true;
+  const S = pareteStanza();   // [Officina] stanza di sfondo: pareti e soffitto
+  for (const p of pezzi) { p.nelMuro = !!S && nelMuro(p.scafo, S); if (p.nelMuro || (S && p.F.H > S.H - 0.05)) p.sovrapposto = true; }
 }
 function nuovoPezzo(tipo, d, f, porte) {
   const F = forma(tipo, d), n = pezzi.filter(p => p.tipo === tipo).length + 1;
@@ -1272,7 +1332,7 @@ function candidati(tipo, d, porte, k) {
     if (h.usati && h.usati.has(eh)) continue;
     const s = piazzaCon(prova, h, eh, ef); Object.assign(prova, s);
     const sc = scafo(prova);
-    if (pezzi.some(q => siToccano(q.scafo, sc))) continue;
+    if (pezzi.some(q => siToccano(q.scafo, sc)) || nelMuro(sc)) continue;   // [Officina] nelMuro: non nelle pareti della stanza
     const c = connMondo(h, eh);
     out.push({ h, eh, ef, s: { ...s }, P: [c.P[0] + c.n[0] * 0.3, c.P[1] + c.n[1] * 0.3] });
   }
@@ -1310,7 +1370,7 @@ function aggancia(P) {
         const s = piazzaCon(P, O, eo, ep, lun), d = Math.hypot(s.x - P.x, s.z - P.z) + Math.abs(lun - clamp(lun, D.manL * 0.5, D.manMax)) * 0.3;
         if (d > 1.8 || (meglio && d >= meglio.d)) continue;
         const sc = scafo({ ...P, ...s });
-        if (pezzi.some(q => q !== P && siToccano(q.scafo, sc))) continue;
+        if (pezzi.some(q => q !== P && siToccano(q.scafo, sc)) || nelMuro(sc)) continue;   // [Officina] nelMuro
         meglio = { s, d };
       } } }
   if (meglio) Object.assign(P, meglio.s);
@@ -2702,7 +2762,7 @@ function strutturaCambiata() {
   for (const P of persone) if (P.dove && !pezzi.includes(P.dove)) P.dove = null;
   mettiPersona(); inquadra();
   try { aggiornaMateriali(); } catch (e) {}
-  salvaPresto(); bottoneScoppio();
+  salvaPresto(); bottoneScoppio(); avvisoStanza();   // [Officina] avvisoStanza
 }
 let tabIsp = 'stato';
 function ispettore(nuovo) {
@@ -2777,7 +2837,7 @@ $('bSeparato').onclick = () => {   // un modulo da solo, in uno spazio libero ac
   const p = nuovoPezzo(tipoScelto, dimNuovo, fNuovo, porteNuove); p.ingresso = true;
   let x1 = 0, z0 = 1e9, z1 = -1e9; for (const q of pezzi) { x1 = Math.max(x1, q.x + q.F.Rc); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); }
   p.x = pezzi.length ? x1 + p.F.Rc + 2.5 : 0; p.z = pezzi.length ? (z0 + z1) / 2 : 0;
-  for (let k = 0; k < 40 && pezzi.some(q => siToccano(q.scafo || scafo(q), scafo(p))); k++) p.x += 1;
+  mettiSeparato(p);   // [Officina] anche dentro la stanza di sfondo
   pezzi.push(p); selezionato = p; strutturaCambiata(); ispettore(true);
 };
 $('bGiro').onclick = () => inGiro() ? fermaTutti() : faiEntrare();
@@ -2905,7 +2965,10 @@ renderer.domElement.addEventListener('pointermove', e => {
   if (!presa.mosso && Math.hypot(e.clientX - presa.x0, e.clientY - presa.y0) < 5) return;
   if (!presa.mosso) { presa.mosso = true; if (inGiro()) fermaTutti(); for (const l of link) if (l.a === presa.p || l.b === presa.p) l.grp.visible = false; }
   const v = suPiano(e); if (!v) return;
-  presa.p.x = v.x + presa.dx; presa.p.z = v.z + presa.dz; presa.p.g3.grp.position.set(presa.p.x, 0, presa.p.z);
+  // [Officina] con la stanza di sfondo la bolla non entra nelle pareti (se ci sta già dentro, si può spostare per tirarla fuori)
+  const nx = v.x + presa.dx, nz = v.z + presa.dz, S = pareteStanza();
+  if (S && !nelMuro(scafo(presa.p), S) && nelMuro(scafo({ ...presa.p, x: nx, z: nz }), S)) return;
+  presa.p.x = nx; presa.p.z = nz; presa.p.g3.grp.position.set(presa.p.x, 0, presa.p.z);
 });
 renderer.domElement.addEventListener('pointerup', e => {
   ctrl.enabled = true;
@@ -3286,6 +3349,10 @@ function carica(dati) {
   if (dati.GONF) for (const k of ['piccolo', 'grande']) Object.assign(GONF[k], dati.GONF[k] || {});
   pezzi = []; link = []; nextId = 1; selezionato = null; firmaPan = '';
   for (const q of dati.pezzi || []) {
+    // [Officina] forme dell'Officina: la griglia si riempie solo quando il motore è letto (dopo), o la forma è stata tolta (l'uva).
+    // Il pezzo ha la sua mesh salvata, quindi si riapre lo stesso, come forma fissa finché non arriva il motore.
+    if (!TIPI[q.tipo] && typeof q.tipo === 'string' && q.tipo.startsWith('of:') && q.d && q.d.mesh)
+      TIPI[q.tipo] = { nome: q.nome || 'Forma dell\'Officina', off: q.tipo.slice(3), par: [], scelte: [], f: q.f || { piccolo: 1, grande: 0 } };
     if (!TIPI[q.tipo]) continue;
     const p = nuovoPezzo(q.tipo, { ...standard(q.tipo), ...q.d }, q.f, q.porte);
     Object.assign(p, { x: q.x || 0, z: q.z || 0, ang: q.ang || 0, nome: q.nome || p.nome, ingresso: !!q.ingresso }); if (q.colore) p.colore = q.colore;
@@ -3956,7 +4023,7 @@ $('ffOk').onclick = () => {
   const p = nuovoPezzo(G.tipo, { ...standard(G.tipo), ...G.d }, { ...FF.f });
   let x1 = 0, z0 = 1e9, z1 = -1e9; for (const q of pezzi) { x1 = Math.max(x1, q.x + q.F.Rc); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); }
   p.x = pezzi.length ? x1 + p.F.Rc + 2.5 : 0; p.z = pezzi.length ? (z0 + z1) / 2 : 0; p.ingresso = true;
-  for (let k = 0; k < 60 && pezzi.some(q => siToccano(q.scafo || scafo(q), scafo(p))); k++) p.x += 1;
+  mettiSeparato(p);   // [Officina] anche dentro la stanza di sfondo
   pezzi.push(p); selezionato = p; $('dlgFoto').close(); strutturaCambiata(); ispettore();
   avviso(`${p.nome} è nella scena. Trascinala vicino a un'altra bolla per agganciarla, o usa l'icona a catena.`, 5000);
 };
@@ -4004,7 +4071,7 @@ function daOfficina() {
       const p = nuovoPezzo(tipo, { ...standard(tipo), ...d }, { ...f }); p.nome = nome;
       let x1 = 0, z0 = 1e9, z1 = -1e9; for (const q of pezzi) { x1 = Math.max(x1, q.x + q.F.Rc); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); }
       p.x = x1 + p.F.Rc + 2.5; p.z = (z0 + z1) / 2; p.ingresso = true;
-      for (let k = 0; k < 60 && pezzi.some(q => siToccano(q.scafo || scafo(q), scafo(p))); k++) p.x += 1;
+      mettiSeparato(p);
       pezzi.push(p); selezionato = p; strutturaCambiata(); tabIsp = 'stato'; ispettore(); salvaPresto(); disegnaComp();
       avviso(`${nome} aggiunta a «${dest.nome}» (${pezzi.length} bolle): trascinala vicino a un'altra bolla per collegarla, o usa l'icona a catena.` + (ritocchi.length ? ` Misure portate nei limiti del configuratore: ${ritocchi.join(', ')}.` : ''), 12000);
       return;
@@ -4080,8 +4147,10 @@ function togliStanza(salva) {
   if (ST.grp) { scena.remove(ST.grp); ST.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
   ST.grp = null; ST.mats = []; ST.tipo = null; ST.file = null; ST.nome = ''; if (salva !== false) ST.pronta = null;
   if (salva !== false) stanzaDB('del'); disegnaStanza();
+  if (salva !== false) aggiornaStanza();   // [Officina] via la stanza: le bolle nelle pareti tornano normali
 }
 function aggiornaStanza() {   // misure, posizione, luce, facce visibili
+  clearTimeout(aggiornaStanza.t); aggiornaStanza.t = setTimeout(() => { if (pezzi.length) strutturaCambiata(); }, 400);   // [Officina] pareti e soffitto contro le bolle
   if (!ST.grp) return;
   const g = ST.grp; g.position.set(ST.x, 0, ST.z); g.rotation.y = ST.rot * Math.PI / 180;
   const lato = ST.interne ? THREE.BackSide : THREE.DoubleSide;

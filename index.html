@@ -253,6 +253,7 @@ ol.steps li::marker { font-family: var(--mono); color: var(--green); font-weight
 /* ---------- pezzi ---------- */
 .toolbar { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 14px 16px; }
 .toolbar .field { min-width: 160px; }
+.rotoloF { max-width: 260px; margin: 6px 0 4px; }
 .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: var(--r-s); overflow: hidden; }
 .seg button { font: 600 .95rem var(--body); color: var(--ink); background: var(--paper); border: 0; padding: 10px 18px; cursor: pointer; min-height: 44px; }
 .seg button + button { border-left: 1px solid var(--rule); }
@@ -647,7 +648,9 @@ details.menu > summary::-webkit-details-marker { display: none; }
   <div class="sechead"><div class="stepno">03</div><div class="txt"><h2>Prepara il materiale</h2><p>Prima il modellino, che costa poco e mostra subito gli errori, poi la bolla vera.</p></div></div>
   <div class="twocol">
     <div class="box"><span class="tag">Per il modellino</span><ul class="plain" id="matModel"></ul></div>
-    <div class="box"><span class="tag">Per la bolla vera</span><ul class="plain" id="matReal"></ul></div>
+    <div class="box"><span class="tag">Per la bolla vera</span>
+      <div class="field rotoloF"><label for="rotolo">Larghezza del rotolo di telo (m)</label><input id="rotolo" type="number" min="0.5" max="20" step="0.1" value="2"></div>
+      <ul class="plain" id="matReal"></ul></div>
   </div>
   <h3>L'ordine del lavoro</h3>
   <ol class="flow">
@@ -1153,12 +1156,12 @@ const int = (key, label, def, min, max) => ({ key, label, def, min, max, type: "
 const pick = (key, label, options, def) => ({ key, label, options, def, type: "pick" });
 
 const SHAPES = [
-  { id: "d20", group: "Solidi regolari", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
+  { id: "d20", group: "Solidi regolari", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2.2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
   { id: "d6", group: "Solidi regolari", name: "Cubo (6 quadrati)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
   { id: "d12", group: "Solidi regolari", name: "Dodecaedro (12 pentagoni)", kind: "convex", params: [num("s", "Lato (m)", 1.2, 0.1)], points: p => PTS.dod().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
   { id: "prism", group: "Prismi e piramidi", name: "Prisma (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 6, 3, 24), num("s", "Lato della base (m)", 1.5, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.s), p.h, ngRot(p.n))] },
-  { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 2.5, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
-  { id: "frus", group: "Prismi e piramidi", name: "Piramide senza punta (tronco)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
+  { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
+  { id: "frus", group: "Prismi e piramidi", name: "Piramide senza punta (tronco)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
   { id: "box", group: "Prismi e piramidi", name: "Parallelepipedo", kind: "convex", natural: true, params: [num("a", "Lunghezza (m)", 3, 0.1), num("b", "Larghezza (m)", 2, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => signs([p.a / 2, p.b / 2, 1]).map(v => [v[0], v[1], v[2] > 0 ? p.h : 0]) },
   { id: "L", group: "Forme in pianta", name: "A forma di L", kind: "extrude", params: [num("a", "Lato lungo (m)", 5, 0.5), num("b", "Lato corto (m)", 4, 0.5), num("w", "Larghezza dei bracci (m)", 2, 0.3), num("h", "Altezza (m)", 2.2, 0.3)],
     outline: p => [[0, 0], [p.a, 0], [p.a, p.w], [p.w, p.w], [p.w, p.b], [0, p.b]] },
@@ -1175,13 +1178,13 @@ const SHAPES = [
     outline: p => { checkPlan(p.pts, p.roof === "punta"); return p.pts.map(q => [q[0], -q[1]]); } },
   { id: "star", group: "Forme in pianta", name: "Stella", kind: "extrude", params: [int("n", "Punte", 5, 3, 12), num("R", "Raggio delle punte (m)", 3, 0.5), num("r", "Raggio interno (m)", 1.4, 0.3), num("h", "Altezza delle pareti (m)", 2.2, 0.3), pick("roof", "Tetto", [["piatto", "Piatto"], ["punta", "A punta"]], "piatto"), num("rh", "Altezza della punta del tetto (m)", 1, 0.1)],
     outline: p => { const o = []; for (let i = 0; i < 2 * p.n; i++) { const a = Math.PI / 2 + Math.PI * i / p.n, r = i % 2 ? p.r : p.R; o.push([r * Math.cos(a), r * Math.sin(a)]); } return o; } },
-  { id: "snake", group: "Tubi e gallerie", name: "Serpente (tubo a zig-zag)", kind: "sweep", params: [num("d", "Diametro del tubo (m)", 1.8, 0.3), int("m", "Lati del tubo", 6, 3, 16), num("s", "Lunghezza di ogni tratto (m)", 1, 0.2), int("c", "Numero di curve", 3, 1, 10), int("k", "Tratti per curva", 4, 1, 12), num("a", "Quanto gira ogni curva (gradi)", 120, 10, 5)],
+  { id: "snake", group: "Tubi e gallerie", name: "Serpente (tubo a zig-zag)", kind: "sweep", params: [num("d", "Diametro del tubo (m)", 2.4, 0.3), int("m", "Lati del tubo", 6, 3, 16), num("s", "Lunghezza di ogni tratto (m)", 1, 0.2), int("c", "Numero di curve", 3, 1, 10), int("k", "Tratti per curva", 4, 1, 12), num("a", "Quanto gira ogni curva (gradi)", 120, 10, 5)],
     build: (p, flat) => {
       const path = [[0, 0]]; let hd = -p.a / 2 * Math.PI / 180; const dl = p.a / p.k * Math.PI / 180;
       for (let c = 0; c < p.c; c++) { const sg = c % 2 ? -1 : 1; for (let j = 0; j < p.k; j++) { const q = path[path.length - 1]; path.push([q[0] + p.s * Math.cos(hd), q[1] + p.s * Math.sin(hd)]); hd += sg * dl; } }
       return sweep(path, false, tubeSection(p.m, p.d, flat));
     } },
-  { id: "torus", group: "Tubi e gallerie", name: "Ciambella", kind: "sweep", params: [num("D", "Diametro esterno (m)", 6, 1), num("d", "Diametro del tubo (m)", 2, 0.3), int("N", "Spicchi intorno", 12, 3, 32), int("m", "Lati del tubo", 6, 3, 16)],
+  { id: "torus", group: "Tubi e gallerie", name: "Ciambella", kind: "sweep", params: [num("D", "Diametro esterno (m)", 6, 1), num("d", "Diametro del tubo (m)", 2.4, 0.3), int("N", "Spicchi intorno", 12, 3, 32), int("m", "Lati del tubo", 6, 3, 16)],
     build: (p, flat) => {
       const sec = tubeSection(p.m, p.d, flat);
       const xmax = Math.max(...sec.map(q => q[0]));
@@ -1191,7 +1194,7 @@ const SHAPES = [
       return sweep(path, true, sec);
     } },
   { id: "tunnel", group: "Tubi e gallerie", name: "Tunnel (galleria ad arco)", kind: "build", floorToggle: true,
-    params: [num("L", "Lunghezza (m)", 4, 0.5), num("w", "Larghezza (m)", 2.4, 0.5), num("hs", "Altezza delle pareti dritte (m)", 0.6, 0.05), int("k", "Spicchi dell'arco", 6, 2, 24)],
+    params: [num("L", "Lunghezza (m)", 4, 0.5), num("w", "Larghezza (m)", 2.4, 0.5), num("hs", "Altezza delle pareti dritte (m)", 1, 0.05), int("k", "Spicchi dell'arco", 6, 2, 24)],
     build: (p) => {
       // sezione: due pareti dritte e un arco a mezzo cerchio, spinta per tutta la lunghezza
       const r = p.w / 2, sec = [[-r, 0], [-r, p.hs]];
@@ -1200,7 +1203,7 @@ const SHAPES = [
       return sweep([[0, 0], [p.L, 0]], false, sec);
     } },
   { id: "boat", group: "Forme speciali", name: "Barca (scafo con piramide)", kind: "build", floorToggle: true,
-    params: [num("L", "Lunghezza (m)", 5, 1), num("W", "Larghezza del ponte (m)", 2.6, 0.5), num("Lp", "Lunghezza della prua (m)", 1.6, 0.2), num("h", "Altezza dello scafo (m)", 1.4, 0.3), int("f", "Fondo: larghezza in % del ponte", 60, 20, 100),
+    params: [num("L", "Lunghezza (m)", 5, 1), num("W", "Larghezza del ponte (m)", 2.6, 0.5), num("Lp", "Lunghezza della prua (m)", 1.6, 0.2), num("h", "Altezza dello scafo (m)", 2, 0.3), int("f", "Fondo: larghezza in % del ponte", 60, 20, 100),
       pick("sail", "Piramide sul ponte", [["si", "Sì"], ["no", "No"]], "si"), num("a", "Lato della piramide (m)", 1.4, 0.2), num("hp", "Altezza della piramide (m)", 1.6, 0.2)],
     build: (p) => {
       if (p.Lp >= p.L - 0.2) throw new Error("La prua è lunga quanto tutta la barca: riducete la lunghezza della prua.");
@@ -1234,7 +1237,7 @@ const SHAPES = [
       return { V, F };
     } },
   { id: "banana", group: "Forme speciali", name: "Banana", kind: "sweep",
-    params: [num("L", "Lunghezza del corpo curvo (m)", 5, 1), num("d", "Spessore del corpo (m)", 1.8, 0.3), num("a", "Quanto è curva, da un capo all'altro (gradi)", 110, 10, 5),
+    params: [num("L", "Lunghezza del corpo curvo (m)", 5, 1), num("d", "Spessore del corpo (m)", 2.8, 0.3), num("a", "Quanto è curva, da un capo all'altro (gradi)", 110, 10, 5),
       int("N", "Spicchi del corpo (dispari)", 5, 3, 15), int("m", "Facce del tubo (5 = come una banana vera)", 5, 4, 12),
       num("tl", "Lunghezza della punta (m)", 0.9, 0.2), num("sl", "Lunghezza del picciolo (m)", 1.1, 0.2), int("ps", "Spessore del picciolo (% del corpo)", 30, 10, 70),
       pick("pose", "Appoggio", [["giu", "Sdraiata, curva a terra"], ["su", "Con le punte all'insù"]], "giu")],
@@ -1246,7 +1249,7 @@ const SHAPES = [
       pick("pin", "Pinze sulla coda", [["si", "Sì"], ["no", "No"]], "si"), num("lp", "Lunghezza delle pinze (m)", 1.6, 0.2)],
     build: (p, flat) => scoloMesh(p, flat) },
   { id: "balena", group: "Forme speciali", name: "Balena", kind: "build", floorToggle: true,
-    params: [num("L", "Lunghezza del corpo (m)", 6.5, 2), num("W", "Larghezza massima (m)", 2.6, 0.5), num("H", "Altezza massima (m)", 2.4, 0.5), int("N", "Segmenti del corpo", 8, 4, 16), int("m", "Lati del tubo", 8, 5, 12),
+    params: [num("L", "Lunghezza del corpo (m)", 6.5, 2), num("W", "Larghezza massima (m)", 2.6, 0.5), num("H", "Altezza massima (m)", 2.6, 0.5), int("N", "Segmenti del corpo", 8, 4, 16), int("m", "Lati del tubo", 8, 5, 12),
       int("b", "Bocca: grandezza in % del corpo", 75, 40, 100), num("tl", "Lunghezza della coda (m)", 1.6, 0.3), pick("fin", "Pinne sul dorso e sui fianchi", [["si", "Sì"], ["no", "No"]], "si")],
     build: (p) => balenaMesh(p) },
   { id: "fungo", group: "Forme speciali", name: "Fungo", kind: "build", floorToggle: true,
@@ -1257,7 +1260,7 @@ const SHAPES = [
       pick("al", "Alette", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle alette (m)", 1.5, 0.2), pick("ob", "Oblò", [["si", "Sì"], ["no", "No"]], "si")],
     build: (p) => razzoMesh(p) },
   { id: "tarta", group: "Forme speciali", name: "Tartaruga", kind: "build", floorToggle: true, yaw: -0.6,
-    params: [num("Lg", "Lunghezza del guscio (m)", 6, 1), num("D", "Larghezza del guscio (m)", 4.4, 1), num("H", "Altezza del guscio (m)", 2.3, 0.5), num("lt", "Lunghezza di collo e testa (m)", 2, 0.3), num("lz", "Lunghezza delle zampe (m)", 1.1, 0.2), num("lc", "Lunghezza della coda (m)", 0.7, 0.1)],
+    params: [num("Lg", "Lunghezza del guscio (m)", 6, 1), num("D", "Larghezza del guscio (m)", 4.4, 1), num("H", "Altezza del guscio (m)", 2.8, 0.5), num("lt", "Lunghezza di collo e testa (m)", 2, 0.3), num("lz", "Lunghezza delle zampe (m)", 1.1, 0.2), num("lc", "Lunghezza della coda (m)", 0.7, 0.1)],
     build: (p) => tartaMesh(p) },
   { id: "ananas", group: "Forme speciali", name: "Ananas", kind: "build", floorToggle: true,
     params: [int("n", "Lati", 10, 8, 16), num("D", "Diametro (m)", 4, 1), num("H", "Altezza del corpo (m)", 3.4, 2.2), int("nf", "Foglie del ciuffo", 7, 3, 12), num("lf", "Lunghezza delle foglie (m)", 1.6, 0.3)],
@@ -1265,11 +1268,6 @@ const SHAPES = [
   { id: "pera", group: "Forme speciali", name: "Pera", kind: "build", floorToggle: true,
     params: [int("n", "Lati", 14, 8, 20), num("D", "Diametro della pancia grande (m)", 4.4, 1), num("H", "Altezza (m)", 5.2, 3.5), num("dn", "Diametro della parte alta (m)", 2.5, 0.8), num("lp", "Lunghezza del picciolo (m)", 1.1, 0.3), pick("pos", "Forma", [["incl", "Inclinata (più naturale)"], ["dritta", "Dritta (molti meno tipi di pezzo)"]], "incl")],
     build: (p) => peraMesh(p) },
-  /* uva: per ora tolta dall'elenco (da ripensare). uvaMesh e sproutBall restano pronte; per rimetterla:
-  { id: "uva", group: "Forme speciali", name: "Uva (grappolo sdraiato)", kind: "build", floorToggle: true,
-    params: [num("L", "Lunghezza del grappolo (m)", 6.5, 2), num("D", "Diametro nella parte larga (m)", 4, 1.6), num("dt", "Diametro alla punta (m)", 2.2, 2), int("n", "Lati", 10, 8, 16),
-      pick("ac", "Acini tondi", [["si", "Sì"], ["no", "No"]], "si"), num("lr", "Lunghezza del raspo (m)", 0.9, 0.2)],
-    build: (p) => uvaMesh(p) }, */
 ];
 
 /* banana: corpo curvo a spicchi (giunti a metà angolo), da un capo il picciolo stretto e lungo, dall'altro una punta corta e tozza.
@@ -1327,33 +1325,6 @@ function sproutFace(V, F, cluster, removed, fi, dir, len, k, tag) {
   F.push([...Array(n).keys()].map(j => start + j)); cluster.push(tag);
   removed.add(fi);
   return V3.add(fc, V3.mul(dir, len));
-}
-/* una palla tonda che spunta da una faccia convessa qualsiasi (gli acini dell'uva): il bordo della faccia si unisce con triangoli
-   a un ottagono più piccolo (il collo, fa il solco fra un acino e l'altro), poi anelli di ottagoni simili e allineati fanno la palla,
-   chiusa da un ottagono in cima. Triangoli e trapezi sono tutti piani. La palla sta dentro l'impronta della faccia. */
-function sproutBall(V, F, cluster, removed, fi, tag) {
-  const base = F[fi], P = base.map(i => V[i]), c = mean3(P), nn = V3.norm(newell(P)), m = base.length, k = 8;
-  const t0 = Math.abs(nn[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], u = V3.norm(V3.cross(t0, nn)), w = V3.cross(nn, u);
-  let ri = Infinity;   // raggio del cerchio dentro la faccia
-  for (let j = 0; j < m; j++) { const a = P[j], b = P[(j + 1) % m], e = V3.norm(V3.sub(b, a)), d = V3.sub(c, a); ri = Math.min(ri, V3.len(V3.sub(d, V3.mul(e, V3.dot(d, e))))); }
-  if (!(ri > 0.2)) return false;   // acini troppo piccoli: niente
-  const rb = 0.92 * ri, ring = (r, h) => { const s = V.length; for (let j = 0; j < k; j++) { const t = 2 * Math.PI * j / k; V.push(V3.add(V3.add(c, V3.mul(nn, h)), V3.add(V3.mul(u, r * Math.cos(t)), V3.mul(w, r * Math.sin(t))))); } return [...Array(k).keys()].map(j => s + j); };
-  const prof = [[0.5, 0.06], [0.8, 0.32], [1, 0.75], [0.86, 1.2], [0.5, 1.55], [0.18, 1.72]].map(([r, h]) => [r * rb, h * rb]);
-  const R0 = ring(...prof[0]);
-  // cucitura fra il bordo della faccia e il collo: si avanza sull'uno o sull'altro seguendo l'angolo attorno al centro
-  const ang = q => { const d = V3.sub(q, c); let a = Math.atan2(V3.dot(d, w), V3.dot(d, u)); return a < 0 ? a + 2 * Math.PI : a; };
-  const aA = P.map(ang), iA0 = aA.indexOf(Math.min(...aA)), A = [...Array(m).keys()].map(j => base[(iA0 + j) % m]), angA = A.map(i => ang(V[i]));
-  let i = 0, j = 0;
-  while (i < m || j < k) {
-    const nA = i < m ? (i + 1 < m ? angA[i + 1] : angA[0] + 2 * Math.PI) : Infinity, nB = j < k ? 2 * Math.PI * (j + 1) / k : Infinity;
-    if (nA <= nB) { F.push([A[i % m], A[(i + 1) % m], R0[j % k]]); i++; } else { F.push([A[i % m], R0[(j + 1) % k], R0[j % k]]); j++; }
-    cluster.push(tag);
-  }
-  let prev = R0;
-  for (const [r, h] of prof.slice(1)) { const R = ring(r, h); for (let q = 0; q < k; q++) { F.push([prev[q], prev[(q + 1) % k], R[(q + 1) % k], R[q]]); cluster.push(tag); } prev = R; }
-  F.push(prev.slice()); cluster.push(tag);
-  removed.add(fi);
-  return true;
 }
 function dropFaces(V, F, cluster, removed) {
   const keep = F.map((_, i) => !removed.has(i));
@@ -1574,41 +1545,6 @@ function peraMesh(p) {
   sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.25, 0, 1]), 0.12, 0.45, "picciolo");   // attacco stretto
   sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.25, 0, 1]), 0.6 * p.lp, 0.95, "picciolo");
   sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.75, 0, 0.66]), 0.4 * p.lp, 0.85, "picciolo");
-  return dropFaces(V, F, C, removed);
-}
-
-/* uva: grappolo sdraiato. Un cono arrotondato lungo x, largo davanti e a punta dietro, coricato per tutta la lunghezza, con i due
-   capi piani (lì le porte: si entra dalla parte larga e si esce dalla punta). Si chiude con fromPoints e si taglia sotto per il
-   pavimento. Gli acini sono cupolette tonde a tre gradini su tutti i pannelli; dal capo largo escono il raspo e una foglia. */
-function uvaMesh(p) {
-  const R = p.D / 2, rt = p.dt / 2, Lg = p.L, n = p.n, taglio = 0.35;
-  if (rt >= 0.9 * R) throw new Error("La punta deve essere più stretta della parte larga: riducete il diametro alla punta.");
-  if (2 * rt - taglio < 1.6) throw new Error("La punta è troppo bassa per farci una porta: il diametro alla punta deve essere almeno 2 m.");
-  if (Lg < 2 * R) throw new Error("Il grappolo deve essere lungo almeno quanto è largo.");
-  // anelli lungo x, ognuno tocca terra con il fondo (il grappolo è coricato per tutta la lunghezza, punta compresa). Anelli vicini sono
-  // lo stesso poligono ingrandito verso terra, quindi i pannelli fra loro sono trapezi piani, tutti simili: un acino per pannello.
-  const lato = Math.max(0.9, 2 * Math.PI * R / n), m = Math.max(5, Math.round(Lg / lato) + 1), anelli = [];   // trapezi lunghi almeno 90 cm
-  for (let q = 0; q < m; q++) { const u = q / (m - 1), r = u < 0.85 ? rt + (R - rt) * Math.sin(u / 0.85 * Math.PI / 2) : R - 0.15 * R * (u - 0.85) / 0.15; anelli.push([-Lg / 2 + u * Lg, r]); }
-  let V = [], F = [];
-  anelli.forEach(([x, r]) => { for (let j = 0; j < n; j++) { const a = -Math.PI / 2 + Math.PI / n + 2 * Math.PI * j / n; V.push([x, r * Math.cos(a), r + r * Math.sin(a)]); } });
-  for (let q = 0; q < m - 1; q++) for (let j = 0; j < n; j++) { const a = q * n + j, b = q * n + (j + 1) % n; F.push([a, a + n, b + n, b]); }   // verso fuori
-  F.push([...Array(n).keys()]); F.push([...Array(n).keys()].map(j => (m - 1) * n + n - 1 - j));   // capo a punta e capo largo
-  F = F.map(f => { const P = f.map(i => V[i]), c = mean3(P), nn = newell(P), x = c[0], k = anelli.findIndex(a => a[0] >= x - 1e-9), r = anelli[Math.max(0, k)][1];
-    const fuori = Math.abs(nn[0]) > 0.99 * V3.len(nn) ? Math.sign(x) : V3.dot(nn, [0, c[1], c[2] - r]); return fuori >= 0 ? f : f.slice().reverse(); });   // tutte le facce verso fuori
-  ({ V, F } = cutConvex(V, F, taglio));
-  V = V.map(v => [v[0], v[1], v[2] - taglio]);
-  const C = F.map(() => "grappolo"), removed = new Set(), n0 = F.length;
-  const norm = f => V3.norm(newell(f.map(i => V[i]))), centro = f => mean3(f.map(i => V[i]));
-  const capo = F.findIndex(f => norm(f)[0] > 0.95);
-  // la foglia: dal pannello più alto vicino al capo largo, larga e piatta che si apre di lato
-  const fogliaF = F.map((f, i) => i).filter(i => i !== capo && norm(F[i])[2] > 0.6 && centro(F[i])[0] > 0.2 * Lg).sort((i, j) => centro(F[j])[0] - centro(F[i])[0])[0];
-  if (capo >= 0) { sproutFace(V, F, C, removed, capo, V3.norm([0.6, 0, 0.8]), 0.25 * p.lr, 0.4, "raspo"); sproutFace(V, F, C, removed, F.length - 1, V3.norm([0.4, 0, 0.9]), 0.75 * p.lr, 0.85, "raspo"); }
-  if (fogliaF != null) sproutFace(V, F, C, removed, fogliaF, V3.norm([0.3, 0.75, 0.6]), 1.2 + p.lr, 0.12, "foglia");
-  if (p.ac === "si") for (let fi = 0; fi < n0; fi++) {
-    const f = F[fi], nn = norm(f), a = Math.sqrt(polyArea(f.map(i => V[i])));
-    if (fi === capo || fi === fogliaF || Math.abs(nn[0]) > 0.9 || nn[2] < -0.55 || centro(f)[2] < 0.7 || a < 0.6 || f.every(i => V[i][2] < 1e-6)) continue;   // non sui capi (porte), sotto o sul pavimento
-    sproutBall(V, F, C, removed, fi, "acino");   // un acino tondo, con il collo che fa il solco fra un acino e l'altro
-  }
   return dropFaces(V, F, C, removed);
 }
 
@@ -1955,7 +1891,6 @@ function analyze(V, F, floor) {
     tarta: "La tartaruga ha il guscio ovale e basso che sporge sopra il corpo, il collo con la testa ben fuori davanti, quattro zampe a pinna e la coda a punta. I due fianchi, fra le zampe, restano liberi: le porte si tagliano lì, nel corpo e nella tesa del guscio, e si attraversa da un fianco all'altro.",
     ananas: "L'ananas ha il corpo a botte, stretto a terra, largo a metà e che si richiude in alto, con un ciuffo di foglie lunghe e sottili: una al centro della cima e le altre tutte intorno. Ogni fascia del corpo è un anello di trapezi uguali, quindi i tipi di pezzo sono pochi. Le porte si tagliano in due pannelli opposti della fascia bassa.",
     pera: "La pera ha due pance, come quella vera: una grande in basso, una vita stretta e una pancia piccola e tonda in alto, da cui esce il picciolo piegato. È appena inclinata in avanti. Ogni fascia è un anello di trapezi uguali. Le porte si tagliano in due pannelli opposti della pancia grande.",
-    uva: "L'uva è un grappolo sdraiato: largo davanti e a punta dietro, coricato su un fianco tagliato piatto, coperto di acini tondi (cupolette a tre gradini), con il raspo e una foglia che escono dal capo largo. I due capi sono piani: si entra dalla parte larga e si esce dalla punta. Senza acini i pezzi sono molti di meno.",
     scolo: "La scolopendra ha il corpo a segmenti, una coppia di zampe ogni tot segmenti, due antenne davanti e due pinze sulla coda: zampe, antenne e pinze sono piramidi senza punta che spuntano dai fianchi. Con il corpo dritto i segmenti sono tutti uguali e i tipi di pezzo pochi; ondulato è più vivo, ma ogni segmento curva in modo diverso e i tipi aumentano. Larghezza e altezza del corpo sono separate: con 2 m o più di altezza ci si cammina dentro in piedi, e le porte si tagliano dove servono.",
     banana: "La banana ha il corpo curvo a 5 facce, come il frutto vero, e due capi diversi: da una parte il picciolo, stretto e lungo, dall'altra una punta corta che si chiude quasi a cono. Si appoggia sdraiata, con la curva a terra, oppure con le punte all'insù: in quel caso il pavimento è il pannello sotto lo spicchio centrale.",
     boat: "La barca ha uno scafo con la poppa dritta e la prua a punta, più stretto sul fondo che sul ponte. Sul ponte si può aggiungere una piramide, come nel modello in Blender. Senza piramide il ponte è un unico pezzo.",
@@ -2232,6 +2167,9 @@ function analyze(V, F, floor) {
   $("modeReal").addEventListener("click", () => setMode("real"));
   $("roll").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v > 0) { state.roll = v; renderPieces(); } });
   $("margin").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v >= 0) { state.margin = v; renderPieces(); renderPrep(); } });
+  // il telo si compra a rotoli: la larghezza resta salvata in questo browser (vale per tutte le forme)
+  try { const r = parseFloat(localStorage.getItem("bolle|rotolo")); if (r >= 0.5 && r <= 20) $("rotolo").value = r; } catch (e) {}
+  $("rotolo").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v >= 0.5 && v <= 20) { try { localStorage.setItem("bolle|rotolo", v); } catch (er) {} renderPrep(); } });
   $("resetSteps").addEventListener("click", () => { store.clear(shapeKey() + "|step"); renderPieces(); });
   $("resetSeams").addEventListener("click", () => { store.clear(shapeKey() + "|seam"); renderSeams(); });
   // bolla, modellino o entrambe nelle misure del Passo 2 (ricordato in questo browser)
@@ -2280,9 +2218,11 @@ function analyze(V, F, floor) {
   /* ---------- calcolo ---------- */
   /* ponte verso il configuratore (stessa cartella del sito, configuratore/), misure della bolla vera in metri.
      Una forma passa a un tipo del configuratore solo se ci entra così com'è; tutte le altre passano come forma vera (la mesh). */
-  const LIMITI_CONF = {   // copiati da TIPI in configuratore/index.html: [chiave, minimo, massimo]
+  // copiati da TIPI in configuratore/index.html: [chiave, minimo, massimo]. La piramide passa sempre come piramide (anche bassa):
+  // il configuratore la alza a 3,3 m e lo dice al ritorno, invece di ingrandire tutta la forma vera
+  const LIMITI_CONF = {
     cubo: [["W", 1, 8], ["P", 1, 8], ["H", 1.95, 4]], prisma: [["lati", 3, 12], ["D", 1.2, 8], ["H", 1.95, 4]],
-    piramide: [["lati", 3, 8], ["L", 1.2, 8], ["k", 0, 0.8], ["H", 3.3, 6]], stella: [["punte", 4, 8], ["D", 1.2, 8], ["k", 0.4, 0.8], ["H", 1.95, 4]], libera: [["H", 1.95, 4]],
+    piramide: [["lati", 3, 8], ["L", 1.2, 8], ["k", 0, 0.8], ["H", 0, 6]], stella: [["punte", 4, 8], ["D", 1.2, 8], ["k", 0.4, 0.8], ["H", 1.95, 4]], libera: [["H", 1.95, 4]],
   };
   function perConfiguratore() {
     const d = def(), p = state.params, L = (x) => +(x * (cur.k || 1)).toFixed(3), piatto = p.roof !== "punta";
@@ -2314,11 +2254,84 @@ function analyze(V, F, floor) {
   }
   /* porte realistiche: per una porta da 1,80 m la bolla deve essere alta almeno 1,95 m dove c'è la porta (come chiede il configuratore).
      Nelle piramidi la porta sta su una faccia inclinata: conta il 55% dell'altezza (72% con la cima piatta), come nel configuratore. */
+  /* dove vanno le porte e quanto possono essere alte: lo stesso calcolo del configuratore (formaOfficina, altezzaPorta e PORTE_OFF
+     in configuratore/index.html), così l'avviso qui e l'ingrandimento là dicono la stessa cosa. Se si cambia lì, va cambiato anche qui. */
+  const PORTE_FORME = {   // direzioni: x avanti, y a sinistra; il terzo valore 1 vuol dire "a metà del corpo"
+    balena: [[1, 0], [-0.5, 1]], fungo: [[1, 0], [-1, 0]], razzo: [[1, 1], [-1, -1]], tarta: [[0, 1, 1], [0, -1, 1]], scolo: [[0, 1, 1], [0, -1, 1]],
+    boat: [[-1, 0]], banana: [[0, -1, 1], [0, 1, 1]], tunnel: [[1, 0], [-1, 0]], snake: [[1, 0], [-1, 0]], torus: [[1, 0], [-1, 0]],
+    arrow: [[-1, 0], [0, 1, 1]], ananas: [[1, 0], [-1, 0]], pera: [[1, 0], [-1, 0]],
+  };
+  const DOVE_PORTA = { boat: "dalla poppa", balena: "dalla bocca", tarta: "dai fianchi", scolo: "dai fianchi", banana: "dai fianchi", tunnel: "dalle estremità", snake: "dalle estremità", razzo: "tra le alette", fungo: "dal gambo" };
+  function porteOfficina(V, F) {
+    const basso = (i) => V[i][2] < 1e-4, chiave = (a, b) => (a < b ? a + "-" + b : b + "-" + a);
+    // facce: normale (Newell) e piano, per sapere a che altezza passa il telo sopra un punto del pavimento
+    const facce = F.map((f) => { const P = f.map((i) => V[i]), n = V3.norm(newell(P)); return { f, P, n, d: V3.dot(n, P[0]), pav: f.every(basso) && n[2] < -0.99 }; });
+    const altSopra = (x, y, soloPiani) => {   // il telo più basso sopra (x, y); Infinity se non c'è niente
+      let h = Infinity;
+      for (const Fc of facce) { if (Fc.pav || Math.abs(Fc.n[2]) < (soloPiani ? 0.7 : 1e-3)) continue;
+        let dentro = false; const P = Fc.P;
+        for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < (P[j][0] - P[i][0]) * (y - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) dentro = !dentro;
+        if (!dentro) continue;
+        const z = (Fc.d - Fc.n[0] * x - Fc.n[1] * y) / Fc.n[2]; if (z > 0.05 && z < h) h = z; }
+      return h;
+    };
+    // pianta: il bordo del pavimento, o (fondo aperto) gli spigoli a terra che stanno in una faccia sola; via i punti allineati
+    const haPav = facce.some((Fc) => Fc.pav), conta = new Map();
+    for (const Fc of facce) { if (haPav && !Fc.pav) continue;
+      Fc.f.forEach((a, i) => { const b = Fc.f[(i + 1) % Fc.f.length]; if (!haPav && !(basso(a) && basso(b))) return; conta.set(chiave(a, b), (conta.get(chiave(a, b)) || 0) + 1); }); }
+    const adj = new Map(), bordo = [...conta].filter(([, n]) => n === 1).map(([c]) => c.split("-").map(Number));
+    for (const [a, b] of bordo) { (adj.get(a) || adj.set(a, []).get(a)).push(b); (adj.get(b) || adj.set(b, []).get(b)).push(a); }
+    const usati = new Set(), anelli = [];
+    for (const [a0, b0] of bordo) { if (usati.has(chiave(a0, b0))) continue; usati.add(chiave(a0, b0));
+      const an = [a0]; let prec = a0, c = b0;
+      for (let g = 0; g < 1e5 && c !== a0; g++) { an.push(c); const nx = (adj.get(c) || []).find((x) => x !== prec && !usati.has(chiave(x, c))); if (nx == null) break; usati.add(chiave(nx, c)); prec = c; c = nx; }
+      if (an.length >= 3) anelli.push(an.map((i) => [V[i][0], V[i][1]])); }
+    const areaP = (P) => P.reduce((s, a, i) => { const b = P[(i + 1) % P.length]; return s + a[0] * b[1] - b[0] * a[1]; }, 0) / 2;
+    let pianta = anelli.sort((A, B) => Math.abs(areaP(B)) - Math.abs(areaP(A)))[0];
+    if (!pianta || Math.abs(areaP(pianta)) < 0.3) return null;
+    for (let pass = 0; pass < 3; pass++) pianta = pianta.filter((q, i, P) => { const a = P[(i - 1 + P.length) % P.length], b = P[(i + 1) % P.length];
+      const u = [q[0] - a[0], q[1] - a[1]], w = [b[0] - q[0], b[1] - q[1]]; return P.length <= 3 || (Math.hypot(...u) > 0.01 && Math.abs(Math.atan2(u[0] * w[1] - u[1] * w[0], u[0] * w[0] + u[1] * w[1])) > 0.01); });
+    const verso = Math.sign(areaP(pianta)) || 1, cx = pianta.reduce((s, q) => s + q[0], 0) / pianta.length, cy = pianta.reduce((s, q) => s + q[1], 0) / pianta.length;
+    const E = pianta.map((a, i) => {
+      const b = pianta[(i + 1) % pianta.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); let n = [(b[1] - a[1]) / L, -(b[0] - a[0]) / L]; if (verso < 0) n = [-n[0], -n[1]];   // n verso fuori
+      let h = Infinity;
+      for (const u of [0.35, 0.5, 0.65]) { const x = a[0] + (b[0] - a[0]) * u, y = a[1] + (b[1] - a[1]) * u, dentro = altSopra(x - n[0] * 0.3, y - n[1] * 0.3, false);
+        h = Math.min(h, dentro === Infinity ? 0 : dentro, altSopra(x - n[0] * 0.05, y - n[1] * 0.05, true), altSopra(x - n[0] * 0.15, y - n[1] * 0.15, true)); }
+      return { L, n, m: [(a[0] + b[0]) / 2 - cx, (a[1] + b[1]) / 2 - cy], h };
+    });
+    const Rc = Math.max(...pianta.map((q) => Math.hypot(q[0] - cx, q[1] - cy))) || 1, H = Math.max(...V.map((v) => v[2]));
+    const regola = PORTE_FORME[def().id]; let conn = [];
+    if (regola) {
+      const hTop = Math.max(...E.map((e) => e.h));
+      for (const r of regola) {
+        const ld = Math.hypot(r[0], r[1]), u = [r[0] / ld, r[1] / ld], perp = [-u[1], u[0]]; let best = -1, bs = -1e9;
+        E.forEach((e, i) => { if (conn.includes(i) || e.L < 0.45 || e.h < 0.5 * hTop) return;
+          const s = e.n[0] * u[0] + e.n[1] * u[1] + 0.35 * (e.m[0] * u[0] + e.m[1] * u[1]) / Rc - (r[2] ? 0.6 * Math.abs(e.m[0] * perp[0] + e.m[1] * perp[1]) / Rc : 0);
+          if (s > bs) { bs = s; best = i; } });
+        if (best >= 0) conn.push(best);
+      }
+    }
+    if (!conn.length) {   // come nel configuratore: la porta sul lato più lungo abbastanza alto, poi quello più lontano
+      const hPorta = Math.min(1.75, 0.8 * H), buoni = E.map((e, i) => i).filter((i) => E[i].L >= 0.75 && E[i].h >= hPorta).sort((i, j) => E[j].L - E[i].L);
+      conn = buoni.length ? [buoni[0]] : [E.map((e, i) => i).sort((i, j) => E[j].L * E[j].h - E[i].L * E[i].h)[0]];
+      const lont = buoni.filter((i) => i !== conn[0]).sort((i, j) => Math.hypot(E[j].m[0] - E[conn[0]].m[0], E[j].m[1] - E[conn[0]].m[1]) - Math.hypot(E[i].m[0] - E[conn[0]].m[0], E[i].m[1] - E[conn[0]].m[1]))[0];
+      if (lont != null) conn.push(lont);
+    }
+    return { h: Math.min(...conn.map((i) => E[i].h)), n: conn.length };
+  }
+  // altezza della porta come la farà il configuratore: pareti dritte (cubo, poligono, stella, pianta), facce inclinate (piramidi), forma vera
+  function altezzaPortaConf() {
+    const r = perConfiguratore(); if (!r || r.no) return null;
+    // piramidi: la porta sta su una faccia inclinata; il configuratore le vuole alte almeno 3,3 m (e le alza lui se sono più basse)
+    if (r.tipo === "piramide") return { h: Math.min(2, (r.d.k > 0 ? 0.72 : 0.55) * r.d.H), piramide: true, H: r.d.H, basso: r.d.H < 3.3 - 1e-6 };
+    if (r.tipo !== "officina") return { h: Math.min(2, r.d.H - 0.15) };
+    const P = porteOfficina(cur.V, cur.F); return P && { h: Math.max(0, P.h - 0.15) };
+  }
   function renderAvvisi() {
-    const d = def(), hU = d.id === "pyr" ? 0.55 * cur.H : d.id === "frus" ? 0.72 * cur.H : cur.H, basso = hU < 1.95;
-    const t = d.id === "pyr" || d.id === "frus"
-      ? `La porta sta su una faccia inclinata: lì la bolla è alta circa ${mR(hU)}. Per una porta da 1,80 m (si passa in piedi) servono almeno 1,95 m: alzate la piramide.`
-      : `La bolla è alta ${mR(cur.H)}: per una porta da 1,80 m (si passa in piedi) servono almeno 1,95 m dove c'è la porta. Alzatela o aumentate le misure.`;
+    const d = def(), A = altezzaPortaConf(), basso = !!A && (A.piramide ? A.basso : A.h < 1.8 - 0.005), dove = DOVE_PORTA[d.id] ? ` (qui si entra ${DOVE_PORTA[d.id]})` : "";
+    const t = !A ? "" : A.piramide
+      ? `La porta sta su una faccia inclinata, dove la bolla è più bassa: con la piramide alta ${mR(A.H)} la porta può essere alta circa ${mR(A.h)}. Per una porta da 1,80 m (si passa in piedi) la piramide dev'essere alta almeno 3,30 m: è anche il minimo del configuratore, che altrimenti la alza da solo.`
+      : `Dove va la porta${dove} la porta può essere alta al massimo ${mR(A.h)}: si misura 30 cm dentro la porta, e sopra la soglia non ci deve essere un soffitto più basso. Per una porta da 1,80 m (si passa in piedi) alzate la bolla o aumentate le misure: il configuratore la ingrandirebbe da solo.`;
     $("avvisoPorta").hidden = !basso; $("avvisoPorta").textContent = t;
     $("heroPorta").hidden = !basso; $("heroPorta").textContent = basso ? "Troppo bassa per una porta da 1,80 m: guardate il Passo 2." : "";
     // tante sagome diverse vogliono dire tanto lavoro: si dice quali scelte di questa forma le riducono
@@ -2561,6 +2574,23 @@ function analyze(V, F, floor) {
     });
     const big = Math.max(...an.types.map(t => { const C = t.C; let m = 0; C.forEach(p => C.forEach(q => { m = Math.max(m, len2(sub2(p, q))); })); return m; }));
     const cm2 = (cur.walls + cur.floorArea) * 1e4 / sc / sc * 1.3;
+    // rotolo: ogni pezzo si gira nel verso in cui è più stretto. Se anche così è più largo del rotolo, si fa con più strisce
+    // giuntate nel senso della lunghezza: giunzioni in più, ognuna lunga al massimo quanto il pezzo, con il suo margine
+    const R = Math.max(0.5, parseFloat($("rotolo").value) || 2), utile = Math.max(0.2, R - 2 * mg);
+    let larghi = 0, giuntePiu = 0, telePiu = 0;
+    an.types.forEach(t => {
+      const H2 = hull2D(t.C); let bw = Infinity, bl = 0;
+      H2.forEach((a, i) => { const b = H2[(i + 1) % H2.length], d = sub2(b, a), L = len2(d); if (L < 1e-9) return; const u = [d[0] / L, d[1] / L];
+        let w = 0, lo = Infinity, hi = -Infinity; H2.forEach(q => { const r = sub2(q, a); w = Math.max(w, Math.abs(r[0] * u[1] - r[1] * u[0])); const x = r[0] * u[0] + r[1] * u[1]; lo = Math.min(lo, x); hi = Math.max(hi, x); });
+        if (w < bw) { bw = w; bl = hi - lo; } });
+      if (bw + 2 * mg <= R + 1e-9) return;
+      const strisce = Math.ceil((bw + 2 * mg) / utile - 1e-9);
+      larghi += t.faces.length; giuntePiu += t.faces.length * (strisce - 1) * bl; telePiu += t.faces.length * (strisce - 1) * bl * 2 * mg;
+    });
+    const metri = Math.ceil((plastic + telePiu) * 1.15 / R * 2) / 2;
+    const rotolo = `Con un rotolo largo <span class="num">${fmt(R, 1)} m</span> servono circa <strong class="num">${fmt(metri, 1)} m</strong> di rotolo.` + (larghi
+      ? ` ${plural(larghi, "pezzo è", "pezzi sono")} più ${larghi > 1 ? "larghi" : "largo"} del rotolo anche ${larghi > 1 ? "girati" : "girato"} per il verso stretto: ${larghi > 1 ? "vanno fatti" : "va fatto"} con più strisce giuntate, con circa <span class="num">${mR(giuntePiu)}</span> di giunzioni in più (contate anche nel materiale per le giunzioni qui sotto).`
+      : " Tutti i pezzi ci stanno interi, girandoli per il verso stretto.");
     $("matModel").innerHTML = [
       `Cartoncino da 200–300 g/m²: circa <span class="num">${fmt(cm2, 0)} cm²</span>, cioè ${plural(Math.max(1, Math.ceil(cm2 / 600)), "foglio A4", "fogli A4")} o un foglio grande.`,
       `Righello di metallo (il pezzo più lungo misura <span class="num">${cmM(big)}</span>), squadretta, matita dura, gomma.`,
@@ -2569,10 +2599,10 @@ function analyze(V, F, floor) {
       `Un pennarello fine per codici e lettere.`,
     ].map(t => `<li>${t}</li>`).join("");
     $("matReal").innerHTML = [
-      `Telo di plastica: circa <span class="num">${fmt(plastic, 1)} m²</span> con margini di ${fmt(state.margin, 1)} cm, più 10–15% di scarti: <strong class="num">${fmt(plastic * 1.15, 1)} m²</strong>.`,
+      `Telo di plastica: circa <span class="num">${fmt(plastic, 1)} m²</span> con margini di ${fmt(state.margin, 1)} cm, più 10–15% di scarti: <strong class="num">${fmt(plastic * 1.15, 1)} m²</strong>. ${rotolo}`,
       `Metro a nastro rigido da almeno 5 m, stadia o listello dritto, filo da muratore, squadra grande (oppure la regola 60-80-100).`,
       `Pennarello indelebile fine, nastro per fissare il telo a terra, forbici grandi o cutter.`,
-      `Materiale per le giunzioni: <span class="num">${mR(cur.seamLen)}</span> in tutto. Con il nastro calcolatene il doppio, perché va dentro e fuori.`,
+      `Materiale per le giunzioni: <span class="num">${mR(cur.seamLen + giuntePiu)}</span> in tutto${giuntePiu ? ", strisce comprese" : ""}. Con il nastro calcolatene il doppio, perché va dentro e fuori.`,
       `Porte: per ogni porta una cerniera (zip) di almeno <span class="num">1,9 m</span>, su un taglio verticale nel pannello della porta, con una striscia di nastro di rinforzo ai due lati del taglio. La bolla dev'essere alta almeno 1,95 m in quel punto.`,
       `Un pavimento pulito e piano più grande del pezzo più lungo (<span class="num">${cmR(big)}</span>).`,
     ].map(t => `<li>${t}</li>`).join("");
@@ -3246,8 +3276,13 @@ function analyze(V, F, floor) {
     $("projSave").textContent = $("projUpdate").hidden ? "Salva" : "Salva come nuovo";
   }
   function validPts(v) { return Array.isArray(v) && v.length >= 3 && v.length <= 80 && v.every(q => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite)); }
+  // una forma salvata che l'Officina non ha più (tolta dall'elenco): lo si dice, invece di "file non valido"
+  function formaTolta(p) {
+    const id = p && typeof p.shape === "string" ? p.shape.replace(/[^\w-]/g, "").slice(0, 30) : "";
+    return id && !SHAPES.some(s => s.id === id) ? `La forma «${id}» non c'è più nell'Officina, quindi non si può riaprire. Scegliete un'altra forma dal Passo 1.` : "";
+  }
   function loadProject(p) {
-    if (!applyState(p)) return;
+    if (!applyState(p)) { const t = formaTolta(p); if (t) projStatus(t); return; }
     proj.openId = p.id;
     renderProjects();
     projStatus(`Aperto "${String(p.name || "Senza nome").slice(0, 60)}".`);
@@ -3413,6 +3448,7 @@ function analyze(V, F, floor) {
     if (location.hash.startsWith("#apri=")) { try { history.replaceState(null, "", location.pathname + location.search + "#misure"); } catch (e) { /* indirizzo fisso */ } }
     if (q && SHAPES.some(s => s.id === q)) selectShape(q);
     else if (da && applyState(da)) avvisoDalConfiguratore(da);
+    else if (da && formaTolta(da)) { $("avvisoConfT").textContent = formaTolta(da); $("avvisoConf").hidden = false; }
     else { try { ultima = JSON.parse(localStorage.getItem("bolle|forma") || "null"); } catch (e) { /* niente di salvato */ } if (ultima) applyState(ultima); }
   }
   // tornando dal configuratore: se lì la forma è stata ingrandita (porte da 1,80 m) o ritoccata, qui le misure sono ancora quelle di prima
@@ -3435,8 +3471,9 @@ function analyze(V, F, floor) {
   $("projFileOpen").addEventListener("click", () => $("projFileIn").click());
   $("projFileIn").addEventListener("change", async e => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-    try { const j = JSON.parse(await f.text()); if (!applyState(j)) throw new Error("forma sconosciuta"); projStatus(`Aperto il file ${f.name}.`); }
-    catch (err) { projStatus(`Il file ${f.name} non contiene una forma dell'Officina.`); }
+    let j = null;
+    try { j = JSON.parse(await f.text()); if (!applyState(j)) throw new Error("forma sconosciuta"); projStatus(`Aperto il file ${f.name}.`); }
+    catch (err) { projStatus(formaTolta(j) || `Il file ${f.name} non contiene una forma dell'Officina.`); }
   });
   initStep(); loop();
   setTimeout(buildThumbs, 60);
