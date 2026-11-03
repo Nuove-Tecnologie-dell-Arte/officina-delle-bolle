@@ -491,7 +491,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
     </div>
     <nav class="app" aria-label="Officina delle Bolle">
       <a aria-current="page" title="Officina: la forma, i pezzi da tracciare e il modellino"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 15.5 10 3l7 12.5z"/><path d="M10 3v12.5M3 15.5l7-4 7 4"/></svg><span>Officina</span></a>
-      <a href="configuratore/" id="vaiConf" title="Configuratore: più bolle collegate, aria, persone e costi. Ritrovate la composizione su cui stavate lavorando."><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="11" r="4.5"/><circle cx="14.5" cy="8" r="3.5"/></svg><span>Configuratore</span></a>
+      <a href="configuratore/" id="vaiConf" title="Abbofficina: più bolle collegate, aria, persone e costi. Ritrovate la composizione su cui stavate lavorando."><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="11" r="4.5"/><circle cx="14.5" cy="8" r="3.5"/></svg><span>Abbofficina</span></a>
     </nav>
   </div>
   <div class="progress"><div id="progress"></div></div>
@@ -505,7 +505,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <div class="stats" id="stats"></div>
       <p class="warn" id="heroPorta" hidden></p>
       <p class="hero-shape"><span class="muted">Forma scelta:</span> <strong id="heroShape"></strong> · <a href="#forma">cambiatela</a></p>
-      <p class="hero-shape"><span class="muted">Più bolle collegate, gonfiatori, costi:</span> <a href="configuratore/">Configuratore Bolle</a></p>
+      <p class="hero-shape"><span class="muted">Più bolle collegate, gonfiatori, costi:</span> <a href="configuratore/">Abbofficina</a></p>
     </div>
     <figure class="hero-stage">
       <canvas id="view" class="pickable" aria-label="Vista 3D della forma scelta, con quote e una persona alta 1,75 m per confronto. Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."></canvas>
@@ -625,9 +625,9 @@ details.menu > summary::-webkit-details-marker { display: none; }
   <div class="keycards" id="keyCards"></div>
   <div class="note avviso" id="avvisoPorta" hidden></div>
   <div class="bridge" id="bridge">
-    <div class="txt"><b>Sta su? Provatela nel configuratore</b><span class="hint" id="bridgeNote"></span></div>
-    <div class="btnrow"><a class="btn primary" id="bridgeGo" href="configuratore/">Porta la forma nel configuratore</a>
-      <a class="btn" id="bridgeAdd" href="configuratore/" title="La forma si aggiunge alla composizione su cui stavate lavorando nel configuratore, accanto alle altre bolle">Aggiungi alla composizione aperta</a></div>
+    <div class="txt"><b>Sta su? Provatela nell'Abbofficina</b><span class="hint" id="bridgeNote"></span></div>
+    <div class="btnrow"><a class="btn primary" id="bridgeGo" href="configuratore/">Porta la forma nell'Abbofficina</a>
+      <a class="btn" id="bridgeAdd" href="configuratore/" title="La forma si aggiunge alla composizione su cui stavate lavorando nell'Abbofficina, accanto alle altre bolle">Aggiungi alla composizione aperta</a></div>
   </div>
   <details class="more">
     <summary>Tutte le misure <span class="hint" id="tblCount"></span></summary>
@@ -2250,7 +2250,7 @@ function analyze(V, F, floor) {
     a.href = "configuratore/#officina=" + encodeURIComponent(JSON.stringify(pacco));   // dopo il #: le forme grandi non passano dal server
     b.href = "configuratore/#officina=" + encodeURIComponent(JSON.stringify({ ...pacco, aggiungi: true }));   // la stessa forma, aggiunta alla composizione aperta
     for (const x of [a, b]) { x.removeAttribute("aria-disabled"); x.tabIndex = 0; }
-    $("bridgeNote").textContent = "La vedete montata con i gonfiatori del lab: pressione, quanti gonfiatori servono, materiali e budget. Potete aprirla da sola o aggiungerla alla composizione su cui state lavorando. Dal configuratore tornate qui con «Officina» in alto: la forma resta com'era.";
+    $("bridgeNote").textContent = "La vedete montata con i gonfiatori del lab: pressione, quanti gonfiatori servono, materiali e budget. Potete aprirla da sola o aggiungerla alla composizione su cui state lavorando. Dall'Abbofficina tornate qui con «Officina» in alto: la forma resta com'era.";
   }
   /* porte realistiche: per una porta da 1,80 m la bolla deve essere alta almeno 1,95 m dove c'è la porta (come chiede il configuratore).
      Nelle piramidi la porta sta su una faccia inclinata: conta il 55% dell'altezza (72% con la cima piatta), come nel configuratore. */
@@ -2330,8 +2330,8 @@ function analyze(V, F, floor) {
   function renderAvvisi() {
     const d = def(), A = altezzaPortaConf(), basso = !!A && (A.piramide ? A.basso : A.h < 1.8 - 0.005), dove = DOVE_PORTA[d.id] ? ` (qui si entra ${DOVE_PORTA[d.id]})` : "";
     const t = !A ? "" : A.piramide
-      ? `La porta sta su una faccia inclinata, dove la bolla è più bassa: con la piramide alta ${mR(A.H)} la porta può essere alta circa ${mR(A.h)}. Per una porta da 1,80 m (si passa in piedi) la piramide dev'essere alta almeno 3,30 m: è anche il minimo del configuratore, che altrimenti la alza da solo.`
-      : `Dove va la porta${dove} la porta può essere alta al massimo ${mR(A.h)}: si misura 30 cm dentro la porta, e sopra la soglia non ci deve essere un soffitto più basso. Per una porta da 1,80 m (si passa in piedi) alzate la bolla o aumentate le misure: il configuratore la ingrandirebbe da solo.`;
+      ? `La porta sta su una faccia inclinata, dove la bolla è più bassa: con la piramide alta ${mR(A.H)} la porta può essere alta circa ${mR(A.h)}. Per una porta da 1,80 m (si passa in piedi) la piramide dev'essere alta almeno 3,30 m: è anche il minimo dell'Abbofficina, che altrimenti la alza da sola.`
+      : `Dove va la porta${dove} la porta può essere alta al massimo ${mR(A.h)}: si misura 30 cm dentro la porta, e sopra la soglia non ci deve essere un soffitto più basso. Per una porta da 1,80 m (si passa in piedi) alzate la bolla o aumentate le misure: l'Abbofficina la ingrandirebbe da sola.`;
     $("avvisoPorta").hidden = !basso; $("avvisoPorta").textContent = t;
     $("heroPorta").hidden = !basso; $("heroPorta").textContent = basso ? "Troppo bassa per una porta da 1,80 m: guardate il Passo 2." : "";
     // tante sagome diverse vogliono dire tanto lavoro: si dice quali scelte di questa forma le riducono
@@ -3456,8 +3456,8 @@ function analyze(V, F, floor) {
     const k = +da.ingrandita, rit = Array.isArray(da.ritocchi) ? da.ritocchi.filter(x => typeof x === "string").slice(0, 6) : [];
     if (!(k > 1.001) && !rit.length) return;
     $("avvisoConfT").textContent = k > 1.001
-      ? `Nel configuratore questa forma è stata ingrandita ×${fmt(k, 2)} perché le porte siano alte almeno 1,80 m. Qui le misure sono ancora quelle originali: per costruire quella del configuratore ingranditela (Adatta a un pavimento più grande, o misure più grandi al Passo 1).`
-      : `Nel configuratore alcune misure di questa forma sono state cambiate: ${rit.join(", ")}. Qui sono ancora quelle originali.`;
+      ? `Nell'Abbofficina questa forma è stata ingrandita ×${fmt(k, 2)} perché le porte siano alte almeno 1,80 m. Qui le misure sono ancora quelle originali: per costruire quella dell'Abbofficina ingranditela (Adatta a un pavimento più grande, o misure più grandi al Passo 1).`
+      : `Nell'Abbofficina alcune misure di questa forma sono state cambiate: ${rit.join(", ")}. Qui sono ancora quelle originali.`;
     $("avvisoConf").hidden = false;
   }
   $("avvisoConfX").addEventListener("click", () => { $("avvisoConf").hidden = true; });

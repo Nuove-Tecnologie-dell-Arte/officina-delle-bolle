@@ -174,3 +174,8 @@ Non è una parte `[Officina]`: è una funzione nuova del configuratore, scritta 
   - le bolle nelle pareti o più alte del soffitto diventano rosse come quelle sovrapposte, con un avviso;
   - cambiando misure o posizione della stanza, o togliendola, si ricontrolla tutto.
   Il modello GLB non ha pareti note: lì niente controlli. `pareteStanza` è dentro un `try`, perché all'avvio `ST` non è ancora dichiarata.
+
+## Nuovo nome: Abbofficina (3 novembre)
+
+- Il configuratore si chiama **Abbofficina** in tutto quello che si vede: titolo della scheda, selettore in alto ("Officina | Abbofficina"), avvisi. Nell'Officina cambiano allo stesso modo il selettore, il link in cima, il riquadro e i pulsanti del Passo 2 e gli avvisi.
+- La cartella resta `configuratore/` e il codice (nomi delle funzioni, `#officina=`, commenti) non cambia, così i link già condivisi e le prove dell'altro gruppo funzionano come prima. Se arriva una loro versione nuova del file, vanno rimessi anche questi nomi.

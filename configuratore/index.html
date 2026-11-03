@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Configuratore Bolle</title>
+<title>Abbofficina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><!-- [Officina] gli stessi caratteri dell'Officina delle Bolle -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
@@ -419,7 +419,7 @@
 <header>
   <nav class="app" aria-label="Officina delle Bolle"><!-- [Officina] le due parti del sito, sempre a portata di mano -->
     <a id="vaiOfficina" href="../" title="Officina: la forma, i pezzi da tracciare e il modellino"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 15.5 10 3l7 12.5z"/><path d="M10 3v12.5M3 15.5l7-4 7 4"/></svg><span>Officina</span></a>
-    <a aria-current="page" title="Configuratore: più bolle collegate, aria, persone e costi"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="11" r="4.5"/><circle cx="14.5" cy="8" r="3.5"/></svg><span>Configuratore</span></a>
+    <a aria-current="page" title="Abbofficina: più bolle collegate, aria, persone e costi"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="11" r="4.5"/><circle cx="14.5" cy="8" r="3.5"/></svg><span>Abbofficina</span></a>
   </nav>
   <div class="comp">
     <button id="bComp" aria-haspopup="true" aria-expanded="false" title="Composizioni"><span id="compNome">Esempio</span><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
@@ -4073,7 +4073,7 @@ function daOfficina() {
       p.x = x1 + p.F.Rc + 2.5; p.z = (z0 + z1) / 2; p.ingresso = true;
       mettiSeparato(p);
       pezzi.push(p); selezionato = p; strutturaCambiata(); tabIsp = 'stato'; ispettore(); salvaPresto(); disegnaComp();
-      avviso(`${nome} aggiunta a «${dest.nome}» (${pezzi.length} bolle): trascinala vicino a un'altra bolla per collegarla, o usa l'icona a catena.` + (ritocchi.length ? ` Misure portate nei limiti del configuratore: ${ritocchi.join(', ')}.` : ''), 12000);
+      avviso(`${nome} aggiunta a «${dest.nome}» (${pezzi.length} bolle): trascinala vicino a un'altra bolla per collegarla, o usa l'icona a catena.` + (ritocchi.length ? ` Misure portate nei limiti dell'Abbofficina: ${ritocchi.join(', ')}.` : ''), 12000);
       return;
     }
   }
@@ -4089,7 +4089,7 @@ function daOfficina() {
   selezionato = p; tabIsp = 'stato'; ispettore();
   const v = valuta(p), g = ['grande', 'piccolo'].filter(k => f[k]).map(k => f[k] + ' ' + (f[k] > 1 ? (k === 'grande' ? 'grandi' : 'piccoli') : k)).join(' + ');
   const giudizio = v.c === 'ok' ? 'Sta su.' : v.c === 'mid' ? 'Sta su, ma: ' + v.cons + '.' : 'Così non sta su: ' + v.cons + '.';
-  avviso(`Dall'Officina: ${nome}. Gonfiatori consigliati: ${g || 'nessuna combinazione funziona'}. ${giudizio}` + (ritocchi.length ? ` Misure portate nei limiti del configuratore: ${ritocchi.join(', ')}.` : '') + (M.nota ? ' ' + String(M.nota).slice(0, 200) : ''), 12000);
+  avviso(`Dall'Officina: ${nome}. Gonfiatori consigliati: ${g || 'nessuna combinazione funziona'}. ${giudizio}` + (ritocchi.length ? ` Misure portate nei limiti dell'Abbofficina: ${ritocchi.join(', ')}.` : '') + (M.nota ? ' ' + String(M.nota).slice(0, 200) : ''), 12000);
 }
 daOfficina();
 caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bolle"
@@ -4203,7 +4203,7 @@ const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'sta
   par: { pianta: [[2.6, 2.2], [-34, 2.2], [-34, -1.8], [-1.75, -1.8], [-1.75, -34], [2.6, -34]], W: 12, P: 12, H: 8, fy: 0.9, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
 function stanzaPronta(S) {
   fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { Object.assign(ST, S.par); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); })
-    .catch(() => avviso('Non trovo ' + S.file + ': apri il configuratore dal sito, non come file sul computer.', 6000));
+    .catch(() => avviso('Non trovo ' + S.file + ': apri l\'Abbofficina dal sito, non come file sul computer.', 6000));
 }
 function caricaStanza(file, dalDB) {
   const nome = file.name || 'stanza', est = (nome.split('.').pop() || '').toLowerCase();
