@@ -417,6 +417,16 @@
   }
   #bSeparato { display: grid; gap: 1px; text-align: center; padding: 8px 12px; }
   #bSeparato b { font-weight: 650; } #bSeparato small { font-size: 11.5px; color: var(--mut); font-weight: 500; }
+  /* [Officina] categorie: titoli di sezione dentro Aria e Dati, Simulazione con la velocità, la pressione che apre Aria */
+  .tSez { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin: 10px 0 -4px; }
+  .tSez span { font-family: var(--body); text-transform: none; letter-spacing: 0; font-size: 12.5px; color: var(--mut); font-weight: 500; }
+  .sezDati { margin-top: 28px; }
+  .velB { font: 600 11.5px/1 var(--mono); padding: 3px 6px; border-radius: 6px; background: var(--bg); color: var(--mut); }
+  .velB.veloce { background: var(--acc); color: var(--on-acc); }
+  .velRiga { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 650; }
+  .pannelloP .apriAria { border: 0; background: none; padding: 0; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+  .pannelloP .apriAria:hover { color: var(--acc); }
+  #chipStato { cursor: pointer; }
   /* [Officina] menu che si tolgono */
   #vCostruisci.chiusoSx { grid-template-columns: 0 minmax(0, 1fr) 280px; }
   #vCostruisci.chiusoDx { grid-template-columns: 236px minmax(0, 1fr) 0; }
@@ -456,20 +466,22 @@
     </div>
   </div>
   <nav class="tabs" aria-label="Schermate">
-    <button id="tabC" aria-pressed="true">Costruisci</button>
-    <button id="tabM" aria-pressed="false">Manometri</button>
-    <button id="tabP" aria-pressed="false"><span class="dot" id="dotTab"></span>Pressione</button>
-    <button id="tabS" aria-pressed="false">Schemi</button>
-    <button id="tabB" aria-pressed="false">Materiali</button>
-    <button id="tabD" aria-pressed="false">Dati</button>
+    <button id="tabC" aria-pressed="true">Costruisci</button><!-- [Officina] quattro categorie: Manometri sta in Aria, Schemi in Dati -->
+    <button id="tabP" aria-pressed="false" title="Pressione, manometri, porte e grafico"><span class="dot" id="dotTab"></span>Aria</button>
+    <button id="tabB" aria-pressed="false" title="Budget, lista dei materiali, costo per modulo">Materiali</button>
+    <button id="tabD" aria-pressed="false" title="Gonfiatori, telo, nastro, chiusure e schemi">Dati</button>
   </nav>
   <div class="spazio"></div>
   <button id="bFoto" title="Carica la foto di una pianta e trasformala in una bolla"><svg viewBox="0 0 20 16" width="17" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 4h4l1.5-2h5L14 4h4v10H2z"/><circle cx="10" cy="9" r="3"/></svg><span class="etH">Forma da Foto</span></button><input type="file" id="fFoto" accept="image/*" hidden>
   <button id="bRipara" hidden>Ripara lo strappo</button>
   <button id="bRiacc" class="del" hidden>Riaccendi i gonfiatori</button>
   <div class="prove">
-    <button id="bProve" aria-haspopup="true" aria-expanded="false" title="Mettere alla prova la struttura">Prove<svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
-    <div class="menuProve" id="menuProve" hidden>
+    <button id="bProve" aria-haspopup="true" aria-expanded="false" title="Velocità e prove della simulazione">Simulazione<span class="velB" id="velB">×1</span><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+    <div class="menuProve" id="menuProve" hidden><!-- [Officina] Simulazione: la velocità e tutte le prove, prima divise tra l'intestazione e la scheda Pressione -->
+      <div class="velRiga"><span>Velocità</span><div class="seg" id="vel" role="group" aria-label="Velocità">
+    <button data-v="1" aria-pressed="true">×1</button><button data-v="5">×5</button><button data-v="20">×20</button>
+  </div></div>
+      <button id="bAuto"><b>Gonfiatori in automatico</b><span>Sceglie per ogni bolla quanti gonfiatori servono perché stia su.</span></button>
       <button id="bRigonfia"><b>Sgonfia e rigonfia</b><span>Svuota tutto e lo rigonfia da zero: vedi quanto ci mette.</span></button>
       <button id="bBlack"><b>Blackout</b><span>Spegne i gonfiatori: quanto restano su le bolle?</span></button>
       <button id="bEsplodi" class="del"><b>Esplodi</b><span>Fa scoppiare la bolla selezionata (o la più grande).</span></button>
@@ -486,9 +498,6 @@
       <div class="bottoni"><button id="mNascondi">Nascondi tutto</button><button id="mMostra">Mostra tutto</button></div>
     </div>
   </div>
-  <div class="velocita" title="Velocità della simulazione"><span class="etH">Velocità</span><div class="seg" id="vel" role="group" aria-label="Velocità">
-    <button data-v="1" aria-pressed="true">×1</button><button data-v="5">×5</button><button data-v="20">×20</button>
-  </div></div>
   <button id="bGuida" aria-expanded="false" title="Come si usa">Guida</button>
 </header>
 <dialog id="dlgFoto" class="dlgFoto" aria-labelledby="ffTit">
@@ -523,7 +532,7 @@
     <li><b>Aggiungi.</b> A sinistra scegli <i>Bolle</i> o <i>Corridoi</i>, poi una forma. Regola misure e porte.</li>
     <li><b>Attacca.</b> Tocca un <span class="piuMini">+</span> nella scena: il pezzo si aggancia lì. Le frecce ↺ ↻ scelgono come arriva girato.</li>
     <li><b>Modifica.</b> Tocca un pezzo: a destra trovi stato, forma, collegamenti e colore. Trascinalo per spostarlo.</li>
-    <li><b>Prova.</b> <i>Play</i> fa entrare le persone; <i>Prove</i> simula blackout e scoppi. La pressione è nel riquadro in alto a destra.</li>
+    <li><b>Prova.</b> <i>Play</i> fa entrare le persone; <i>Simulazione</i>, in alto, cambia la velocità e simula blackout e scoppi. La pressione è nel riquadro in alto a destra.</li>
   </ol>
   <div class="bottoni"><button class="pri" id="guidaOk">Ho capito</button></div>
 </div>
@@ -534,7 +543,7 @@
       <div class="testaSx">
         <h2 class="titoloSx">Aggiungi</h2>
         <div class="schede" role="tablist" aria-label="Cosa aggiungere" id="schedeAgg">
-          <button role="tab" data-cat="bolle" aria-selected="true">Bolle</button><button role="tab" data-cat="corridoi" aria-selected="false">Corridoi</button><button role="tab" data-cat="gonf" aria-selected="false">Gonfiatori</button>
+          <button role="tab" data-cat="bolle" aria-selected="true">Bolle</button><button role="tab" data-cat="corridoi" aria-selected="false">Corridoi</button>
         </div>
       </div>
       <div class="corpoSx" id="aggForma">
@@ -556,7 +565,7 @@
     <div id="scena">
       <div id="sovra"></div>
       <button class="linguetta sx" id="lingSx"><!-- [Officina] chiude e riapre i pannelli laterali --></button><button class="linguetta dx" id="lingDx"></button>
-      <div class="sinistra"><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><button class="chip" id="bSit" title="Cosa fanno gli avatar dentro ogni bolla">Situazioni</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span></div><div class="statoScena"><span class="chip" title="Come sta la struttura"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></span><button class="chip" id="chipBudget" style="pointer-events:auto;cursor:pointer" title="Apri Materiali"></button></div></div>
+      <div class="sinistra"><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><button class="chip" id="bSit" title="Cosa fanno gli avatar dentro ogni bolla">Situazioni</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span><span class="sepv"></span><button class="chip" id="chipStato" title="Apri Aria"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></button><button class="chip" id="chipBudget" title="Apri Materiali"></button></div></div><!-- [Officina] stato e materiali nella stessa barra delle persone -->
       <div class="pannelloP" id="pannelloP" aria-label="Pressione dei moduli"></div>
       <div class="lampo" id="lampo"></div>
       <div id="avviso" hidden role="status"></div>
@@ -590,12 +599,6 @@
     <aside class="dx" id="ispettore"></aside>
   </section>
 
-  <section class="vista pagina" id="vManometri" hidden>
-    <div class="dash">
-      <div class="card globale"><span class="dot" id="dotGlobM"></span><div><strong id="txtGlobM"></strong><span class="l">Pressione interna di ogni modulo, in tempo reale</span></div></div>
-      <div class="mano" id="manometri"></div>
-    </div>
-  </section>
 
   <section class="vista pagina" id="vPressione" hidden>
     <div class="dash">
@@ -607,6 +610,9 @@
         <div class="card"><b class="n" id="kVol">0</b><span class="l">volume d'aria</span></div>
         <div class="card" title="Su entrambe le facce di ogni chiusura magnetica: cornici, porte, maniche e, se magnetici, giunti tra i pannelli"><b class="n" id="kNastro">0</b><span class="l">nastro magnetico</span></div>
       </div>
+      <h2 class="tSez">Manometri <span>pressione di ogni modulo, in tempo reale · tocca un quadrante per aprire il modulo</span></h2><!-- [Officina] prima era la scheda Manometri -->
+      <div class="mano" id="manometri"></div>
+      <h2 class="tSez">Moduli <span>tocca una riga per aprire il modulo; i gonfiatori si cambiano nel pannello del pezzo</span></h2>
       <div class="card tab">
         <table>
           <thead><tr><th></th><th>Stanza</th><th>Ora</th><th>A regime</th><th>Limite</th><th>Telo</th><th>Si gonfia in</th><th>Blackout</th><th>Persone</th><th>Gonfiatori</th><th>Cosa fare</th></tr></thead>
@@ -620,32 +626,11 @@
           <tbody id="righePorte"></tbody>
         </table>
       </div>
-      <div class="due">
-        <div class="card"><h2>Pressione · ultimi 3 minuti</h2><canvas class="grafico" id="grafico"></canvas><div class="leg" id="legenda"></div></div>
-        <div class="card" style="display:grid;gap:10px;align-content:start">
-          <h2>Azioni</h2>
-          <button class="pri" id="bAuto">Sistema i gonfiatori in automatico</button>
-          <button id="bBlack2">Simula un blackout</button>
-          <button id="bRigonfia2">Sgonfia e rigonfia</button>
-        </div>
-      </div>
+      <div class="card"><h2>Pressione · ultimi 3 minuti</h2><canvas class="grafico" id="grafico"></canvas><div class="leg" id="legenda"></div></div>
+      <p class="std">Blackout, sgonfia e rigonfia, scoppio e gonfiatori in automatico sono in <b>Simulazione</b>, in alto.</p>
     </div>
   </section>
 
-  <section class="vista pagina" id="vSchemi" hidden>
-    <div class="dash">
-      <div class="card" style="display:grid;gap:10px">
-        <div class="riga"><h2>Porta · sezione vista dall'alto</h2><span>Porta <select id="selSchema"></select></span></div>
-        <svg id="schemaPorta" viewBox="0 0 1000 380" class="schema" role="img" aria-label="Sezione della porta con nastro magnetico"></svg>
-        <ul class="didascalia"><li><b>1</b>lembo lato A</li><li><b>2</b>lembo lato B</li><li><b>3</b>risvolto saldato 8 cm (bordo rinforzato)</li><li><b>4</b>nastro magnetico, polo N</li><li><b>5</b>nastro magnetico, polo S</li><li><b>6</b>sovrapposizione 13 cm</li></ul>
-        <div class="kpi" style="grid-template-columns:repeat(4,1fr)"><div><b id="sDist">0</b><span>distanza tra le strisce</span></div><div><b id="sDp">0</b><span>differenza di pressione</span></div><div><b id="sTiro">0</b><span>tiro sui lembi</span></div><div><b id="sTen">0</b><span>tenuta del nastro</span></div></div>
-      </div>
-      <div class="due" style="grid-template-columns:1fr 1fr">
-        <div class="card" style="display:grid;gap:8px"><h2>Cornice di collegamento · sezione</h2><svg id="schemaCornice" viewBox="0 0 520 360" class="schema" role="img" aria-label="Sezione della cornice magnetica tra modulo e manica"></svg><ul class="didascalia" id="notaCornice"></ul></div>
-        <div class="card" style="display:grid;gap:8px"><h2>Giunto tra due pannelli · vista dall'alto</h2><svg id="schemaGiunto" viewBox="0 0 520 360" class="schema" role="img" aria-label="Giunto d'angolo con aletta e nastro magnetico"></svg><ul class="didascalia" id="notaGiunto"></ul></div>
-      </div>
-    </div>
-  </section>
 
   <section class="vista pagina" id="vMateriali" hidden>
     <div class="dash">
@@ -684,6 +669,19 @@
         <table class="tabchiusure"><thead><tr><th>Chiusura</th><th>Fessura chiusa</th><th>Tenuta</th><th>Apri / chiudi</th></tr></thead><tbody id="tabChius"></tbody></table>
       </div>
       <div class="card"><h2>Altro</h2><div class="par" id="dAltro"></div></div>
+    </div>
+    <div class="dash sezDati"><!-- [Officina] prima era la scheda Schemi -->
+      <h2 class="tSez">Schemi delle chiusure <span>porta, cornice e giunto in sezione, con le pressioni di adesso</span></h2>
+      <div class="card" style="display:grid;gap:10px">
+        <div class="riga"><h2>Porta · sezione vista dall'alto</h2><span>Porta <select id="selSchema"></select></span></div>
+        <svg id="schemaPorta" viewBox="0 0 1000 380" class="schema" role="img" aria-label="Sezione della porta con nastro magnetico"></svg>
+        <ul class="didascalia"><li><b>1</b>lembo lato A</li><li><b>2</b>lembo lato B</li><li><b>3</b>risvolto saldato 8 cm (bordo rinforzato)</li><li><b>4</b>nastro magnetico, polo N</li><li><b>5</b>nastro magnetico, polo S</li><li><b>6</b>sovrapposizione 13 cm</li></ul>
+        <div class="kpi" style="grid-template-columns:repeat(4,1fr)"><div><b id="sDist">0</b><span>distanza tra le strisce</span></div><div><b id="sDp">0</b><span>differenza di pressione</span></div><div><b id="sTiro">0</b><span>tiro sui lembi</span></div><div><b id="sTen">0</b><span>tenuta del nastro</span></div></div>
+      </div>
+      <div class="due" style="grid-template-columns:1fr 1fr">
+        <div class="card" style="display:grid;gap:8px"><h2>Cornice di collegamento · sezione</h2><svg id="schemaCornice" viewBox="0 0 520 360" class="schema" role="img" aria-label="Sezione della cornice magnetica tra modulo e manica"></svg><ul class="didascalia" id="notaCornice"></ul></div>
+        <div class="card" style="display:grid;gap:8px"><h2>Giunto tra due pannelli · vista dall'alto</h2><svg id="schemaGiunto" viewBox="0 0 520 360" class="schema" role="img" aria-label="Giunto d'angolo con aletta e nastro magnetico"></svg><ul class="didascalia" id="notaGiunto"></ul></div>
+      </div>
     </div>
   </section>
 </main>
@@ -2907,17 +2905,17 @@ setInterval(() => disegnaSituazioni(), 500);
 $('selPov').onchange = e => { const k = +e.target.value; if (k < 0) esciPov(); else entraPov(persone.find(P => P.k === k)); e.target.blur(); };
 $('povPrima').onclick = () => cambiaPov(-1); $('povDopo').onclick = () => cambiaPov(1); $('povEsci').onclick = esciPov;
 
-function velocita(v) { D.speed = v; document.querySelectorAll('#vel button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === v)); }
+function velocita(v) { D.speed = v; document.querySelectorAll('#vel button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === v)); $('velB').textContent = '×' + v; $('velB').classList.toggle('veloce', v > 1); }
 document.querySelectorAll('#vel button').forEach(b => b.onclick = () => velocita(+b.dataset.v));
 function rigonfia() { if (pezzi.some(p => p.scoppio)) ripara(); for (const p of pezzi) p.Va = 0; for (const l of link) Object.assign(l.porta, nuovaPorta(D.porte)); D.spento = false; bottoneBlack(); if (D.speed === 1) velocita(5); }
-$('bRigonfia').onclick = rigonfia; $('bRigonfia2').onclick = rigonfia;
+$('bRigonfia').onclick = rigonfia;
 function blackout() { D.spento = !D.spento; bottoneBlack(); }
-function bottoneBlack() { const t = D.spento ? 'Riaccendi i gonfiatori' : 'Blackout'; $('bBlack').querySelector('b').textContent = t; $('bBlack2').textContent = D.spento ? t : 'Simula un blackout'; $('bBlack').classList.toggle('del', D.spento); $('bRiacc').hidden = !D.spento; }
+function bottoneBlack() { const t = D.spento ? 'Riaccendi i gonfiatori' : 'Blackout'; $('bBlack').querySelector('b').textContent = t; $('bBlack').classList.toggle('del', D.spento); $('bRiacc').hidden = !D.spento; }
 $('bRiacc').onclick = () => blackout();
 // menu Prove e guida
 function menuProve(apri) { $('menuProve').hidden = !apri; $('bProve').setAttribute('aria-expanded', apri); }
 $('bProve').onclick = e => { e.stopPropagation(); menuProve($('menuProve').hidden); };
-$('menuProve').addEventListener('click', e => { if (e.target.closest('button')) menuProve(false); });
+$('menuProve').addEventListener('click', e => { if (e.target.closest('button') && !e.target.closest('#vel')) menuProve(false); });   // [Officina] la velocità si cambia senza chiudere
 // [Officina] menu che si tolgono: i pannelli laterali (linguette sul bordo della scena), i riquadri sulla scena (×) e tutti insieme (Menu)
 function X_PAN(k, cosa) { return `<button class="xPan" data-x="${k}" title="Nascondi ${cosa}" aria-label="Nascondi ${cosa}">×</button>`; }
 const MENU = { sx: true, dx: true, persone: true, press: true, vista: true };   // [Officina] a ogni caricamento tornano tutti
@@ -2948,7 +2946,7 @@ $('guidaOk').onclick = () => guida(false);
 document.addEventListener('click', e => { if (!$('menuProve').hidden && !e.target.closest('.prove')) menuProve(false); if (!$('guida').hidden && !e.target.closest('#guida') && e.target.id !== 'bGuida') guida(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { menuProve(false); if (!$('guida').hidden) guida(false); } });
 try { if (!localStorage.getItem('bolle-guida-vista')) setTimeout(() => guida(true), 600); } catch (e) {}
-$('bBlack').onclick = blackout; $('bBlack2').onclick = blackout;
+$('bBlack').onclick = blackout;
 $('bAuto').onclick = () => {
   const visti = new Set(), punti = { ko: 100, mid: 1, ok: 0, gr: 0 }; let meglio = null;
   for (let it = 0; it < 80; it++) {
@@ -2963,12 +2961,12 @@ $('bAuto').onclick = () => {
   strutturaCambiata();
 };
 function mostra(v) {
-  for (const [k, id, tb] of [['c', 'vCostruisci', 'tabC'], ['m', 'vManometri', 'tabM'], ['p', 'vPressione', 'tabP'], ['s', 'vSchemi', 'tabS'], ['b', 'vMateriali', 'tabB'], ['d', 'vDati', 'tabD']]) { $(id).hidden = v !== k; $(tb).setAttribute('aria-pressed', v === k); }
-  if (v === 's') costruisciSchemi();
+  for (const [k, id, tb] of [['c', 'vCostruisci', 'tabC'], ['p', 'vPressione', 'tabP'], ['b', 'vMateriali', 'tabB'], ['d', 'vDati', 'tabD']]) {   /* [Officina] quattro categorie */ $(id).hidden = v !== k; $(tb).setAttribute('aria-pressed', v === k); }
+  if (v === 'd') costruisciSchemi();
   if (v === 'b') aggiornaMateriali(true);
-  if (v === 'c') ridimensiona(); if (v === 'p') costruisciRighe(); if (v === 'm') costruisciManometri();
+  if (v === 'c') ridimensiona(); if (v === 'p') { costruisciRighe(); costruisciManometri(); }
 }
-$('tabS').onclick = () => mostra('s'); $('tabB').onclick = () => mostra('b'); $('tabC').onclick = () => mostra('c'); $('tabM').onclick = () => mostra('m'); $('tabP').onclick = () => mostra('p'); $('tabD').onclick = () => mostra('d');
+$('tabB').onclick = () => mostra('b'); $('tabC').onclick = () => mostra('c'); $('tabP').onclick = () => mostra('p'); $('tabD').onclick = () => mostra('d');
 
 // --- trascinamento e selezione ---
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), piano = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -3035,9 +3033,8 @@ function costruisciManometri() {
 }
 function aggiornaManometri() {
   const g = statoGlobale();
-  for (const id of ['dotGlob3d', 'dotGlobM']) $(id).className = 'dot ' + g.c;
-  $('txtGlob3d').textContent = g.txt; $('txtGlobM').textContent = g.txt;
-  if ($('vManometri').hidden) return;
+  $('dotGlob3d').className = 'dot ' + g.c; $('txtGlob3d').textContent = g.txt;
+  if ($('vPressione').hidden) return;   // [Officina] i manometri ora stanno in Aria
   $('manometri').querySelectorAll('.card').forEach(card => {
     const p = pezzi.find(q => q.id === +card.dataset.id); if (!p) return;
     const mx = +card.dataset.mx, v = pOf(p), [x, y] = gPt(v, GA.r - 12, mx), ago = card.querySelector('.ago');
@@ -3063,10 +3060,9 @@ function costruisciRighe() {
       <td class="num" title="Quante volte il telo regge la tensione a regime">×${sf > 99 ? '99+' : fmt(sf, 0)}</td>
       <td class="num">${fmtT(r.tF)}</td><td class="num" title="Tempo prima che il tetto scenda sotto ${fmt(altezzaSicura(p.F), 2)} m">${r.tB == null ? '> 15 min' : fmtT(r.tB)}</td>
       <td class="num" title="${fmt(ric, 1)} ricambi d'aria all'ora">${pers}</td>
-      <td><div class="gtab" data-id="${p.id}"></div></td>
+      <td class="num"><span style="color:var(--gP)">${p.f.piccolo}</span> + <span style="color:var(--gG)">${p.f.grande}</span></td>
       <td class="cons ${v.c}">${v.cons}</td></tr>`; }).join('');
   $('righe').querySelectorAll('tr').forEach(tr => { const p = pezzi.find(q => q.id === +tr.dataset.id);
-    const gt = tr.querySelector('.gtab'); contaGonf(gt, p.f, () => strutturaCambiata()); gt.onclick = ev => ev.stopPropagation();
     tr.onclick = () => { selezionato = p; ispettore(); mostra('c'); }; });
   costruisciPorte();
   const g = statoGlobale();
@@ -3119,7 +3115,7 @@ function costruisciSchemi() {
   schemaCornice(); schemaGiunto(); aggiornaSchemi();
 }
 function aggiornaSchemi() {
-  if ($('vSchemi').hidden) return;
+  if ($('vDati').hidden) return;   // [Officina] gli schemi ora stanno in Dati
   const porte = link.filter(l => !l.aperta), l = porte[+$('selSchema').value || 0];
   const o = l ? clamp(l.porta.o, 0, 1.2) : 0, dp = l ? dpPorta(l) : 0, tipo = CH[l ? l.porta.tipo : D.porte];
   const pA = l && l.a ? pOf(l.a) : 0, pB = l ? pOf(l.b) : 0;
@@ -3519,7 +3515,7 @@ function pannelloPressione() {
   if (firma !== firmaPan) {
     firmaPan = firma;
     if (!pezzi.length) { el.innerHTML = '<h3><span>Pressione</span>' + X_PAN('press', 'la pressione') + '</h3><p class="vuoto" style="margin:4px">Nessun modulo</p>'; return; }
-    let h = '<h3><span>Pressione</span><span>Pa ' + X_PAN('press', 'la pressione') + '</span></h3>';   // [Officina] × per nasconderla
+    let h = '<h3><button class="apriAria" title="Apri Aria: manometri, porte e grafico">Pressione ›</button><span>Pa ' + X_PAN('press', 'la pressione') + '</span></h3>';   // [Officina] × per nasconderla
     sistemi.forEach((sis, k) => {
       if (sistemi.length > 1) h += `<h3>${nomeSistema(k)}</h3>`;
       for (const p of sis) {
@@ -3531,6 +3527,7 @@ function pannelloPressione() {
     });
     el.innerHTML = h;
     el.querySelectorAll('.rp').forEach(r => r.onclick = () => { selezionato = pezzi.find(p => p.id === +r.dataset.id); ispettore(); firmaPan = ''; });
+    el.querySelector('.apriAria').onclick = () => mostra('p');   // [Officina] il riquadro piccolo porta alla scheda Aria
   }
   const dentro = new Map(); for (const P of persone) if (P.dove) dentro.set(P.dove, (dentro.get(P.dove) || 0) + 1);
   el.querySelectorAll('.rp').forEach(r => {
@@ -3667,7 +3664,7 @@ function costruisciParBom() {
   campo(c, 'Giorni di mostra', BOM.giorni, 1, 365, 1, '', v => { BOM.giorni = v; r(); }, 0);
   $('bPav').checked = BOM.pav; $('bPav').onchange = e => { BOM.pav = e.target.checked; r(); };
   $('bAggiungi').onclick = () => { vociLibere.push({ nome: '', q: 1, u: 'pz' }); salvaBudget(); aggiornaMateriali(true); const ins = $('bomRighe').querySelectorAll('.libNome'); if (ins.length) ins[ins.length - 1].focus(); };
-  $('chipBudget').onclick = () => mostra('b');
+  $('chipBudget').onclick = () => mostra('b'); $('chipStato').onclick = () => mostra('p');
 }
 costruisciParBom(); setTimeout(() => aggiornaMateriali(), 0);
 

@@ -188,7 +188,19 @@ Stesso aspetto e stessa disposizione, con meno disordine (`[Officina]`, blocco C
   - i pulsanti non vanno più a capo ("Forma da Foto" stava su due righe);
   - sotto i 1560 px "Forma da Foto" e "Menu" restano con la sola icona (il nome resta per i lettori di schermo, nella classe `.etH`), l'etichetta "Velocità" sparisce e gli spazi si stringono;
   - sotto i 1080 px scorre di lato solo l'intestazione, non la pagina.
-- **Tendine dell'intestazione** (Composizioni, Prove, Menu): sotto i 1080 px si aprono fisse sotto l'intestazione, così non vengono tagliate, e il loro testo va a capo.
+- **Tendine dell'intestazione** (Composizioni, Simulazione, Menu): sotto i 1080 px si aprono fisse sotto l'intestazione, così non vengono tagliate, e il loro testo va a capo.
 - **"Aggiungi separato"** su due righe volute: il nome in grassetto e sotto, più piccolo, "nuovo sistema".
 - **Titoletti delle sezioni** (`h2`, `.gEt`, `.pannelloP h3`) a 11 px invece di 10,5, per leggerli meglio.
+
+## Quattro categorie al posto di sei schede (3 novembre)
+
+Le stesse cose stavano in più posti; ora ognuna sta in un posto solo (`[Officina]` nel markup, in `mostra`, nel CSS prima di "menu che si tolgono"):
+- **Schede: Costruisci · Aria · Materiali · Dati.**
+  - **Aria** è la vecchia scheda Pressione (stesso id `tabP` / `vPressione`), con dentro i manometri della vecchia scheda Manometri. Il riquadro di stato doppio dei manometri (`dotGlobM`, `txtGlobM`) non c'è più.
+  - **Dati** ha in fondo gli schemi della vecchia scheda Schemi (porta, cornice, giunto), con il titolo "Schemi delle chiusure". `aggiornaSchemi` e `aggiornaManometri` ora controllano `vDati` e `vPressione`.
+  - Le schede `tabM` e `tabS` e le sezioni `vManometri` e `vSchemi` sono tolte.
+- **Simulazione** (era "Prove", `#bProve` / `#menuProve`): la velocità ×1 ×5 ×20 (prima a parte nell'intestazione), "Gonfiatori in automatico" (`#bAuto`, prima in Pressione → Azioni), "Sgonfia e rigonfia", "Blackout" ed "Esplodi". Sul pulsante si legge la velocità (`#velB`, colorata se più di ×1); cambiando velocità il menu resta aperto. I doppioni `bBlack2` e `bRigonfia2` sono tolti.
+- **Gonfiatori di una bolla: solo nel pannello del pezzo** (`iGonf`). Nella tabella di Aria la colonna Gonfiatori mostra i numeri senza −/+. La sottoscheda "Gonfiatori" del pannello Aggiungi è tolta: ripeteva i modelli (in Dati), la bolla selezionata (nel pannello del pezzo), il prossimo pezzo (nella scheda Bolle) e il totale (in Aria). La funzione `disegnaGonfiatori` resta, ma non si vede più.
+- **Una barra sola sulla scena:** "Tutto in ordine" (`#chipStato`, apre Aria) e "Materiali" (`#chipBudget`, apre Materiali) stanno nella barra delle persone. Il titolo "Pressione ›" del riquadro della pressione apre Aria.
+- **Prove automatiche:** `test/ui.js` cliccava `[data-cat="gonf"]`, che non c'è più: quel clic va tolto.
 
