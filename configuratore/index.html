@@ -357,6 +357,9 @@
     color-scheme: dark;
   }
   body { font-family: var(--body); }
+  /* [Officina] le voci delle tendine aperte: le tendine con lo sfondo trasparente (Occhi di Sonny, persone) nel tema scuro
+     aprivano un elenco bianco con il testo chiaro, che non si leggeva */
+  select option { background: var(--card); color: var(--fg); }
   h2 { font-family: var(--mono); font-weight: 500; font-size: 10.5px; }
   .titoloPezzo, .nomeIn, .globale strong, .mano .tit, .ffGiudizio b, .guidaPop h2:first-child { font-family: var(--display); }
   .campo input[type=number], .conta b, .kpi b, .gente b, .pannelloP .v, .tabbom input.prezzo, .anteprima b, .mano .val b, .mano .val span, .mano .sub2,

@@ -179,3 +179,4 @@ Non è una parte `[Officina]`: è una funzione nuova del configuratore, scritta 
 
 - Il configuratore si chiama **Abbofficina** in tutto quello che si vede: titolo della scheda, selettore in alto ("Officina | Abbofficina"), avvisi. Nell'Officina cambiano allo stesso modo il selettore, il link in cima, il riquadro e i pulsanti del Passo 2 e gli avvisi.
 - La cartella resta `configuratore/` e il codice (nomi delle funzioni, `#officina=`, commenti) non cambia, così i link già condivisi e le prove dell'altro gruppo funzionano come prima. Se arriva una loro versione nuova del file, vanno rimessi anche questi nomi.
+- **Tendine leggibili nel tema scuro** (`[Officina]`, regola `select option` dopo i temi): le tendine con lo sfondo trasparente, come "Visuale libera / Occhi di Sonny", aprivano un elenco bianco con il testo chiaro. Ora le voci hanno lo sfondo e il colore del tema.
