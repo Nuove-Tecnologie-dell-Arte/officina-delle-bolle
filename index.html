@@ -173,6 +173,10 @@ input[type="number"]:hover, select:hover { border-color: var(--line-strong); }
 .tip { position: absolute; left: 0; top: 0; pointer-events: none; background: var(--ink); color: var(--card); font: 600 .8rem var(--mono); padding: 5px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); z-index: 3; }
 canvas.pickable { cursor: grab; touch-action: none; }
 canvas.pickable.over { cursor: pointer; }
+/* vetrina: la figura in alto mostra a turno tutte le forme */
+.vetrina { position: absolute; left: 22px; top: 20px; right: 22px; pointer-events: none; font: 500 .74rem var(--mono); letter-spacing: .02em; color: var(--muted); transition: opacity .45s ease; }
+.vetrina.cambia { opacity: 0; }
+.vetrina b { color: var(--ink); font-weight: 600; }
 
 /* ---------- galleria delle forme ---------- */
 .gallery { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: start; }
@@ -510,6 +514,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
     <figure class="hero-stage">
       <canvas id="view" class="pickable" aria-label="Vista 3D della forma scelta, con quote e una persona alta 1,75 m per confronto. Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."></canvas>
       <div class="tip" id="tipHero" hidden></div>
+      <div class="vetrina" id="vetrina" aria-live="polite"></div>
       <div class="viewopts">
         <label class="check"><input type="checkbox" id="optPerson" checked> <span>Persona da 1,75 m</span></label>
         <label class="check"><input type="checkbox" id="optColors" checked> <span>Colora per tipo di pezzo</span></label>
@@ -1919,6 +1924,9 @@ function analyze(V, F, floor) {
     renderParams(); update();
   }
   const thumbs = new Map();
+  // vetrina: la figura in alto mostra a turno, ogni 5 secondi, tutte le forme (alle misure di partenza, come le miniature).
+  // id null = la forma scelta. Numeri e guida restano sempre sulla forma scelta; cliccando la figura si sceglie quella mostrata.
+  const vetrina = { id: null, prossimo: 0, sopra: false };
   function buildThumbs() {
     let i = 0;
     const step = () => {
@@ -2343,6 +2351,7 @@ function analyze(V, F, floor) {
 
   function update() {
     const d = def();
+    vetrina.id = null; vetrina.anim = null; vetrina.prossimo = Date.now() + 5000;
     renderPlan();
     try {
       const opt = Object.assign({}, state.opt);
@@ -2413,14 +2422,26 @@ function analyze(V, F, floor) {
   }
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-  function renderStats() {
-    const tiles = [
-      ["Altezza", mR(cur.H)],
-      ["Pavimento", cur.floorArea > 0 ? fmt(cur.floorArea, 2) + " m²" : "nessuno"],
-      ["Pezzi", cur.F.length + ""],
-      ["Tipi di pezzo", cur.an.types.length + ""],
-    ];
-    $("stats").innerHTML = tiles.map(([k, v]) => `<div class="stat"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+  // i numeri in alto: della forma scelta, o di quella che la vetrina sta mostrando. Cambiando, contano fino al valore nuovo
+  const statNum = { pronto: false, H: 0, A: 0, P: 0, T: 0 }; let statAnim = 0;
+  function renderStats(m) {
+    m = m || cur;
+    const a = { H: Math.max(...m.V.map(v => v[2])), A: m.floorArea || 0, P: m.F.length, T: m.an.types.length }, da = { ...statNum };
+    const dur = reduced || !statNum.pronto ? 0 : 700, t0 = performance.now();
+    Object.assign(statNum, a, { pronto: true });
+    const scrivi = (q) => {
+      const tiles = [["Altezza", mR(q.H)], ["Pavimento", a.A > 0 ? fmt(q.A, 2) + " m²" : "nessuno"], ["Pezzi", Math.round(q.P) + ""], ["Tipi di pezzo", Math.round(q.T) + ""]];
+      $("stats").innerHTML = tiles.map(([k, v]) => `<div class="stat"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+    };
+    cancelAnimationFrame(statAnim); clearTimeout(renderStats.t);
+    if (dur) renderStats.t = setTimeout(() => { cancelAnimationFrame(statAnim); scrivi(a); }, dur + 80);   // se la pagina non disegna (scheda dietro), il valore giusto arriva lo stesso
+    const passo = (ora) => {
+      const u = dur ? Math.min(1, Math.max(0, (ora - t0) / dur)) : 1, e = 1 - Math.pow(1 - u, 3), q = {};
+      for (const k of ["H", "A", "P", "T"]) q[k] = da[k] + (a[k] - da[k]) * e;
+      scrivi(u < 1 ? q : a);
+      if (u < 1) statAnim = requestAnimationFrame(passo);
+    };
+    passo(t0);
   }
 
   function renderAbout() {
@@ -2934,9 +2955,7 @@ function analyze(V, F, floor) {
     const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, dpr = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, W, H);
     if (!m || !W || !PAL) return [];
-    const V = m.V, Ht = Math.max(...V.map(v => v[2])), zc = Ht / 2;
-    const mx = V.reduce((a, v) => a + v[0], 0) / V.length, my = V.reduce((a, v) => a + v[1], 0) / V.length;
-    const rad = Math.max(...V.map(v => Math.hypot(v[0] - mx, v[1] - my, v[2] - zc))) || 1;
+    const V = m.V, fr = o.frame || inquadra(m), Ht = Math.max(...V.map(v => v[2])), zc = fr.zc, mx = fr.mx, my = fr.my, rad = fr.rad;
     const sc = Math.min(W, H) / (2 * (o.annot ? 1.22 : 1.06) * Math.max(rad, o.person ? 1.1 : 0));
     const cy0 = H / 2 - (o.annot ? 0.05 * H : 0);
     const cyw = Math.cos(o.yaw), syw = Math.sin(o.yaw), cp = Math.cos(o.pitch), sp = Math.sin(o.pitch);
@@ -2978,6 +2997,13 @@ function analyze(V, F, floor) {
     return polys;
   }
 
+  // centro e raggio con cui si inquadra una forma (calcolati una volta per forma)
+  const _inq = new WeakMap();
+  function inquadra(m) {
+    let f = _inq.get(m.V); if (f) return f;
+    const V = m.V, zc = Math.max(...V.map(v => v[2])) / 2, mx = V.reduce((a, v) => a + v[0], 0) / V.length, my = V.reduce((a, v) => a + v[1], 0) / V.length;
+    f = { zc, mx, my, rad: Math.max(...V.map(v => Math.hypot(v[0] - mx, v[1] - my, v[2] - zc))) || 1 }; _inq.set(m.V, f); return f;
+  }
   // quote da disegno tecnico: altezza, larghezza e profondità viste da qui, linea di terra e persona
   function annotate(ctx, W, H, dpr, sc, cy0, zc, Ht, ext, o) {
     const cp = Math.cos(o.pitch), groundY = cy0 + zc * cp * sc, topY = cy0 - (Ht - zc) * cp * sc;
@@ -2999,6 +3025,8 @@ function analyze(V, F, floor) {
     ctx.strokeStyle = PAL.muted; ctx.setLineDash([6 * dpr, 5 * dpr]);
     ctx.beginPath(); ctx.moveTo(Math.max(6 * dpr, left - 40 * dpr), groundY); ctx.lineTo(Math.min(W - 6 * dpr, right + 70 * dpr), groundY); ctx.stroke();
     ctx.setLineDash([]);
+    const qa = o.quote == null ? 1 : o.quote;   // durante lo sgonfia e gonfia le quote spariscono e tornano
+    ctx.save(); ctx.globalAlpha = qa;
     ctx.strokeStyle = PAL.ink;
     const qx = Math.max(16 * dpr, left - 20 * dpr);
     arrow(qx, groundY, qx, topY);
@@ -3009,7 +3037,8 @@ function analyze(V, F, floor) {
     ctx.strokeStyle = PAL.ink;
     arrow(left, qy, right, qy);
     label("larghezza " + mR(ext.x1 - ext.x0), cx, qy, "center");
-    ctx.save(); ctx.globalAlpha = 0.8; label("profondità " + mR(ext.y1 - ext.y0), cx, qy + 22 * dpr, "center"); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.8 * qa; label("profondità " + mR(ext.y1 - ext.y0), cx, qy + 22 * dpr, "center"); ctx.restore();
+    ctx.restore();
     if (o.person) {
       const ph = 1.75 * cp * sc, px = Math.min(W - 18 * dpr, right + 26 * dpr), u = ph / 7.5, bw = u * 1.5, top = groundY - ph;
       ctx.fillStyle = PAL.muted; ctx.globalAlpha = 0.85;
@@ -3034,11 +3063,13 @@ function analyze(V, F, floor) {
   function drawView(name) {
     const v = views[name];
     if (!cur || !PAL || !fitCanvas(v.cv)) return;
-    const o = { yaw: v.rot.yaw, pitch: v.rot.pitch, colors: state.colors };
-    if (name === "hero") Object.assign(o, { annot: true, person: state.person, hlFace: v.hover });
+    const o = { yaw: v.rot.yaw, pitch: v.rot.pitch, colors: state.colors }, altra = name === "hero" && inVetrina();
+    if (name === "hero") Object.assign(o, { annot: true, person: state.person, hlFace: altra ? null : v.hover });
     if (name === "mini") o.hlFace = v.hover;
     if (name === "seam") Object.assign(o, { hlSeam: seamSel ? { key: seamSel.key, faces: [seamSel.p.fi, seamSel.q.fi] } : null, done: doneSeams() });
-    v.polys = renderView(v.cv, cur, o);
+    let m = altra ? thumbs.get(vetrina.id) : cur;
+    if (name === "hero" && vetrina.anim) { const g = gonfia(); m = g.m; Object.assign(o, { frame: g.frame, quote: g.quote, hlFace: null }); }
+    v.polys = renderView(v.cv, m, o);
   }
   function drawWhere() {
     document.querySelectorAll("#pieces canvas.where").forEach(cv => { if (fitCanvas(cv)) renderView(cv, cur, { yaw: 0.6, pitch: 0.42, thin: true, hlType: +cv.dataset.t }); });
@@ -3062,10 +3093,11 @@ function analyze(V, F, floor) {
       if (drag) {
         const dx = e.clientX - lx, dy = e.clientY - ly;
         moved += Math.abs(dx) + Math.abs(dy);
-        if (moved > 4) { spin = false; v.target = null; v.rot.yaw += dx * 0.01; v.rot.pitch = Math.max(-0.2, Math.min(1.2, v.rot.pitch + dy * 0.01)); hideTip(); redraw(name); }
+        if (moved > 4) { spin = false; v.target = null; if (name === "hero") vetrina.prossimo = Date.now() + 8000; v.rot.yaw += dx * 0.01; v.rot.pitch = Math.max(-0.2, Math.min(1.2, v.rot.pitch + dy * 0.01)); hideTip(); redraw(name); }
         lx = e.clientX; ly = e.clientY; return;
       }
       if (name === "seam" || !cur) return;
+      if (name === "hero" && inVetrina()) { cv.classList.add("over"); hideTip(); return; }   // un'altra forma: si sceglie col clic
       const fi = pick(v, e);
       cv.classList.toggle("over", fi != null);
       if (fi !== v.hover) { v.hover = fi; redraw(name); }
@@ -3078,18 +3110,76 @@ function analyze(V, F, floor) {
     cv.addEventListener("pointerup", e => {
       const click = drag && moved <= 4;
       drag = false;
+      if (click && name === "hero" && inVetrina()) { const id = vetrina.id; selectShape(id); vetrina.prossimo = Date.now() + 15000; scriviVetrina(); return; }
       if (click && name !== "seam" && cur) { const fi = pick(v, e); if (fi != null) { hideTip(); goToPiece(cur.an.faceInfo[fi].type); } }
     });
     cv.addEventListener("pointercancel", () => { drag = false; });
     cv.addEventListener("pointerleave", () => { if (v.hover != null) { v.hover = null; redraw(name); } hideTip(); cv.classList.remove("over"); });
   }
   Object.keys(views).forEach(attach);
+
+  function inVetrina() { return !!vetrina.id && vetrina.id !== state.shape && thumbs.has(vetrina.id); }
+  function scriviVetrina() {
+    const id = inVetrina() ? vetrina.id : state.shape, sd = SHAPES.find(x => x.id === id), nome = sd ? esc(shortName(sd)) : "";
+    $("vetrina").innerHTML = !nome ? "" : inVetrina() ? `<b>${nome}</b> · cliccate per sceglierla` : `La vostra forma: <b>${nome}</b>`;
+    views.hero.cv.setAttribute("aria-label", `Vista 3D: ${sd ? shortName(sd) : "forma"}, con quote e una persona alta 1,75 m per confronto. ` +
+      (inVetrina() ? "Cliccate per scegliere questa forma." : "Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."));
+  }
+  function avantiVetrina() {
+    const ids = SHAPES.map(x => x.id), da = ids.indexOf(inVetrina() ? vetrina.id : state.shape);
+    for (let k = 1; k <= ids.length; k++) {
+      const id = ids[(da + k) % ids.length];
+      if (id === state.shape || thumbs.has(id)) return id === state.shape ? null : id;
+    }
+    return null;
+  }
+  const cvHero = views.hero.cv;
+  cvHero.addEventListener("pointerenter", () => { vetrina.sopra = true; });
+  cvHero.addEventListener("pointerdown", () => { vetrina.prossimo = Math.max(vetrina.prossimo, Date.now() + 3000); });
+  cvHero.addEventListener("pointerleave", () => { vetrina.sopra = false; vetrina.prossimo = Math.max(vetrina.prossimo, Date.now() + 3000); });
+  setInterval(() => {
+    if (vetrina.anim) { drawView("hero"); return; }   // un cambio in corso: si porta avanti anche se la pagina non disegna da sola
+    const qui = inVetrina() ? vetrina.id : state.shape; if (qui !== vetrina.scritto) { vetrina.scritto = qui; scriviVetrina(); }   // la didascalia segue anche i cambi di forma
+    if (reduced || !cur || vetrina.sopra || document.hidden || !views.hero.visible || Date.now() < vetrina.prossimo) return;
+    vetrina.prossimo = Date.now() + 5000;
+    const id = avantiVetrina(); if (id === vetrina.id || (id == null && !inVetrina())) return;
+    cambiaVetrina(id);
+  }, 500);
+  // sgonfia e gonfia, come una bolla vera: la forma di prima si affloscia verso terra (allargandosi un po', come un telo che
+  // perde aria), a metà si cambia forma, e la nuova si gonfia dal pavimento fino alla sua altezza. 1,2 secondi in tutto
+  const DUR_GONFIA = 1200;
+  function cambiaVetrina(id) {
+    vetrina.anim = { t0: performance.now(), id, da: inVetrina() ? thumbs.get(vetrina.id) : cur, a: id ? thumbs.get(id) : cur, fatto: false };
+    $("vetrina").classList.add("cambia");
+    views.hero.hover = null; $("tipHero").hidden = true; cvHero.classList.remove("over");
+  }
+  function scambiaVetrina(id) {   // a metà, con la forma a terra: arriva la nuova, con nome e numeri
+    vetrina.id = id;
+    const sd = SHAPES.find(x => x.id === (id || state.shape)); if (sd && sd.yaw != null) rot.yaw = sd.yaw;   // la tartaruga di profilo, come nella galleria
+    renderStats(inVetrina() ? thumbs.get(id) : cur);
+    vetrina.scritto = id || state.shape; scriviVetrina(); $("vetrina").classList.remove("cambia");
+  }
+  function gonfia() {
+    const A = vetrina.anim, t = Math.min(1, (performance.now() - A.t0) / DUR_GONFIA);
+    if (t >= 0.5 && !A.fatto) { A.fatto = true; scambiaVetrina(A.id); }
+    if (t >= 1) vetrina.anim = null;
+    const m = t < 0.5 ? A.da : A.a, fm = inquadra(m), f0 = inquadra(A.da), f1 = inquadra(A.a);
+    // l'inquadratura passa da una forma all'altra mentre la bolla è a terra: pavimento e persona scivolano, non saltano
+    const u = Math.min(1, Math.max(0, (t - 0.3) / 0.4)), k = u * u * (3 - 2 * u), fr = {};
+    for (const c of ["zc", "mx", "my", "rad"]) fr[c] = f0[c] + (f1[c] - f0[c]) * k;
+    // altezza: si affloscia accelerando, resta a terra un attimo, poi si gonfia e rallenta arrivando in cima
+    const sz = t < 0.44 ? 1 - 0.97 * Math.pow(t / 0.44, 2) : t < 0.5 ? 0.03 : 0.03 + 0.97 * (1 - Math.pow(1 - (t - 0.5) / 0.5, 3));
+    const xy = 1 + 0.08 * (1 - sz);
+    const V = m.V.map(v => [fm.mx + (v[0] - fm.mx) * xy, fm.my + (v[1] - fm.my) * xy, v[2] * sz]);
+    return { m: { ...m, V }, frame: fr, quote: t < 0.5 ? Math.max(0, 1 - t / 0.15) : Math.max(0, (t - 0.82) / 0.18) };
+  }
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(es => es.forEach(en => { const v = Object.values(views).find(x => x.cv === en.target); if (v) v.visible = en.isIntersecting; }));
     Object.values(views).forEach(v => io.observe(v.cv));
   } else Object.values(views).forEach(v => { v.visible = true; });
   function loop() {
     if (cur && spin) { rot.yaw += 0.005; if (views.hero.visible) drawView("hero"); if (views.mini.visible) drawView("mini"); }
+    else if (cur && vetrina.anim && views.hero.visible) drawView("hero");   // sgonfia e gonfia anche a figura ferma
     const sv = views.seam;
     if (cur && sv.target != null) {
       let d = sv.target - sv.rot.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
