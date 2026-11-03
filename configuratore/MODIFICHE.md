@@ -104,7 +104,7 @@ Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 17 forme dell'O
 - **Linguette `#lingSx` e `#lingDx`** sui bordi della scena: chiudono e riaprono i pannelli laterali (`#vCostruisci.chiusoSx` / `.chiusoDx`, colonne fissate con `grid-column`).
 - **`X_PAN()`** mette una × su Persone, Pressione (nell'intestazione del riquadro) e Vista.
 - **Pulsante "Menu" (`#bMenu`, `#menuMenu`)** nell'intestazione: le spunte per ogni menu, più "Nascondi tutto" e "Mostra tutto".
-- **Salvataggio.** Lo stato si salva in `bolle-menu`.
+- **Niente salvataggio.** I menu tolti tornano tutti a ogni caricamento della pagina. Le versioni di prima li ricordavano in `bolle-menu`, che ora si cancella all'avvio.
 - **Scena.** `ridimensiona()` non sposta più la scena quando la Pressione è nascosta.
 
 ## Pulsante "Notte" nascosto
@@ -180,3 +180,15 @@ Non è una parte `[Officina]`: è una funzione nuova del configuratore, scritta 
 - Il configuratore si chiama **Abbofficina** in tutto quello che si vede: titolo della scheda, selettore in alto ("Officina | Abbofficina"), avvisi. Nell'Officina cambiano allo stesso modo il selettore, il link in cima, il riquadro e i pulsanti del Passo 2 e gli avvisi.
 - La cartella resta `configuratore/` e il codice (nomi delle funzioni, `#officina=`, commenti) non cambia, così i link già condivisi e le prove dell'altro gruppo funzionano come prima. Se arriva una loro versione nuova del file, vanno rimessi anche questi nomi.
 - **Tendine leggibili nel tema scuro** (`[Officina]`, regola `select option` dopo i temi): le tendine con lo sfondo trasparente, come "Visuale libera / Occhi di Sonny", aprivano un elenco bianco con il testo chiaro. Ora le voci hanno lo sfondo e il colore del tema.
+
+## Interfaccia sistemata (3 novembre)
+
+Stesso aspetto e stessa disposizione, con meno disordine (`[Officina]`, blocco CSS prima di "menu che si tolgono"):
+- **Intestazione nella finestra.** Prima, a 1280 px era larga 1460 e tutta la pagina scorreva di lato. Ora:
+  - i pulsanti non vanno più a capo ("Forma da Foto" stava su due righe);
+  - sotto i 1560 px "Forma da Foto" e "Menu" restano con la sola icona (il nome resta per i lettori di schermo, nella classe `.etH`), l'etichetta "Velocità" sparisce e gli spazi si stringono;
+  - sotto i 1080 px scorre di lato solo l'intestazione, non la pagina.
+- **Tendine dell'intestazione** (Composizioni, Prove, Menu): sotto i 1080 px si aprono fisse sotto l'intestazione, così non vengono tagliate, e il loro testo va a capo.
+- **"Aggiungi separato"** su due righe volute: il nome in grassetto e sotto, più piccolo, "nuovo sistema".
+- **Titoletti delle sezioni** (`h2`, `.gEt`, `.pannelloP h3`) a 11 px invece di 10,5, per leggerli meglio.
+

@@ -396,6 +396,27 @@
   .cons.mid { color: var(--mid); }
   #oMsg { background: color-mix(in srgb, var(--mid) 12%, var(--card)); border-color: color-mix(in srgb, var(--mid) 40%, var(--line)); }
   svg.schema { background: #fff; } svg.schema text { fill: #16221e; } svg.schema .m { fill: #55665f; }   /* gli schemi restano un foglio bianco, anche col tema scuro */
+  /* [Officina] intestazione che sta nella finestra: niente a capo nei pulsanti, e sotto i 1560 px Forma da Foto e Menu
+     restano solo icona (il nome nel title e per i lettori di schermo), l'etichetta Velocità sparisce, gli spazi si stringono */
+  header > :not(.spazio), header button { flex: none; white-space: nowrap; }
+  .menuComp, .menuProve, .menuComp button, .menuProve button { white-space: normal; }   /* le tendine vanno a capo */
+  h2, .gEt, .pannelloP h3 { font-size: 11px; }   /* titoletti delle sezioni: 11 px, non meno, per leggerli */
+  .tabs button { padding: 8px 12px; }
+  @media (max-width: 1560px) {
+    header { gap: 8px; }
+    .etH { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    #bFoto, #bMenu, .velocita { position: relative; } #bFoto, #bMenu { gap: 5px; padding: 8px 10px; }
+    .tabs { gap: 2px; } .tabs button { padding: 8px 10px; }
+  }
+  @media (max-width: 1180px) { .tabs button { padding: 7px 8px; font-size: 13.5px; } header { padding: 0 10px; } }
+  /* sotto i 1080 px l'intestazione scorre di lato (la pagina no): le tendine si aprono fisse sotto di lei, se no verrebbero tagliate */
+  @media (max-width: 1080px) {
+    header { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+    .menuComp, .menuProve { position: fixed; top: 60px; left: 10px; right: 10px; width: auto; max-width: 360px; margin-left: auto; }
+    .menuComp { margin: 0; }
+  }
+  #bSeparato { display: grid; gap: 1px; text-align: center; padding: 8px 12px; }
+  #bSeparato b { font-weight: 650; } #bSeparato small { font-size: 11.5px; color: var(--mut); font-weight: 500; }
   /* [Officina] menu che si tolgono */
   #vCostruisci.chiusoSx { grid-template-columns: 0 minmax(0, 1fr) 280px; }
   #vCostruisci.chiusoDx { grid-template-columns: 236px minmax(0, 1fr) 0; }
@@ -443,7 +464,7 @@
     <button id="tabD" aria-pressed="false">Dati</button>
   </nav>
   <div class="spazio"></div>
-  <button id="bFoto" title="Carica la foto di una pianta e trasformala in una bolla"><svg viewBox="0 0 20 16" width="17" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 4h4l1.5-2h5L14 4h4v10H2z"/><circle cx="10" cy="9" r="3"/></svg>Forma da Foto</button><input type="file" id="fFoto" accept="image/*" hidden>
+  <button id="bFoto" title="Carica la foto di una pianta e trasformala in una bolla"><svg viewBox="0 0 20 16" width="17" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 4h4l1.5-2h5L14 4h4v10H2z"/><circle cx="10" cy="9" r="3"/></svg><span class="etH">Forma da Foto</span></button><input type="file" id="fFoto" accept="image/*" hidden>
   <button id="bRipara" hidden>Ripara lo strappo</button>
   <button id="bRiacc" class="del" hidden>Riaccendi i gonfiatori</button>
   <div class="prove">
@@ -455,7 +476,7 @@
     </div>
   </div>
   <div class="menuMenu"><!-- [Officina] mostra o nasconde i menu, uno per uno o tutti -->
-    <button id="bMenu" aria-haspopup="true" aria-expanded="false" title="Mostra o nascondi i menu"><svg viewBox="0 0 20 14" width="16" height="12" aria-hidden="true"><path d="M1 7s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="7" r="2.6" fill="currentColor"/></svg>Menu<svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+    <button id="bMenu" aria-haspopup="true" aria-expanded="false" title="Mostra o nascondi i menu"><svg viewBox="0 0 20 14" width="16" height="12" aria-hidden="true"><path d="M1 7s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="7" r="2.6" fill="currentColor"/></svg><span class="etH">Menu</span><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
     <div class="menuProve" id="menuMenu" hidden>
       <label class="voceMenu"><input type="checkbox" data-m="sx"> Pannello Aggiungi (sinistra)</label>
       <label class="voceMenu"><input type="checkbox" data-m="dx"> Pannello del pezzo (destra)</label>
@@ -465,7 +486,7 @@
       <div class="bottoni"><button id="mNascondi">Nascondi tutto</button><button id="mMostra">Mostra tutto</button></div>
     </div>
   </div>
-  <div class="velocita" title="Velocità della simulazione"><span>Velocità</span><div class="seg" id="vel" role="group" aria-label="Velocità">
+  <div class="velocita" title="Velocità della simulazione"><span class="etH">Velocità</span><div class="seg" id="vel" role="group" aria-label="Velocità">
     <button data-v="1" aria-pressed="true">×1</button><button data-v="5">×5</button><button data-v="20">×20</button>
   </div></div>
   <button id="bGuida" aria-expanded="false" title="Come si usa">Guida</button>
@@ -528,7 +549,7 @@
       <div class="piedeSx" id="piedeAgg">
         <p class="std" id="hintPiu"></p>
         <button class="pri" id="bPrimo" hidden>Metti al centro</button>
-        <button id="bSeparato">Aggiungi separato (nuovo sistema)</button>
+        <button id="bSeparato"><b>Aggiungi separato</b><small>nuovo sistema</small></button>
       </div>
     </aside>
 
@@ -2899,29 +2920,28 @@ $('bProve').onclick = e => { e.stopPropagation(); menuProve($('menuProve').hidde
 $('menuProve').addEventListener('click', e => { if (e.target.closest('button')) menuProve(false); });
 // [Officina] menu che si tolgono: i pannelli laterali (linguette sul bordo della scena), i riquadri sulla scena (×) e tutti insieme (Menu)
 function X_PAN(k, cosa) { return `<button class="xPan" data-x="${k}" title="Nascondi ${cosa}" aria-label="Nascondi ${cosa}">×</button>`; }
-const MENU = { sx: true, dx: true, persone: true, press: true, vista: true };
-try { Object.assign(MENU, JSON.parse(localStorage.getItem('bolle-menu') || '{}')); } catch (e) {}
-function applicaMenu(salva) {
+const MENU = { sx: true, dx: true, persone: true, press: true, vista: true };   // [Officina] a ogni caricamento tornano tutti
+try { localStorage.removeItem('bolle-menu'); } catch (e) {}   // le versioni di prima li ricordavano
+function applicaMenu() {
   const v = $('vCostruisci'); v.classList.toggle('chiusoSx', !MENU.sx); v.classList.toggle('chiusoDx', !MENU.dx);
   box.classList.toggle('noPersone', !MENU.persone); box.classList.toggle('noPress', !MENU.press); box.classList.toggle('noVista', !MENU.vista);
   $('lingSx').textContent = MENU.sx ? '‹' : '›'; $('lingSx').title = (MENU.sx ? 'Chiudi' : 'Apri') + ' il pannello Aggiungi';
   $('lingDx').textContent = MENU.dx ? '›' : '‹'; $('lingDx').title = (MENU.dx ? 'Chiudi' : 'Apri') + ' il pannello del pezzo';
   $('menuMenu').querySelectorAll('[data-m]').forEach(c => { c.checked = MENU[c.dataset.m]; });
-  if (salva) try { localStorage.setItem('bolle-menu', JSON.stringify(MENU)); } catch (e) {}
   requestAnimationFrame(ridimensiona);
 }
 function menuMenu(apri) { $('menuMenu').hidden = !apri; $('bMenu').setAttribute('aria-expanded', apri); }
 $('bMenu').onclick = e => { e.stopPropagation(); menuMenu($('menuMenu').hidden); };
-$('menuMenu').querySelectorAll('[data-m]').forEach(c => { c.onchange = () => { MENU[c.dataset.m] = c.checked; applicaMenu(true); }; });
-$('mNascondi').onclick = () => { for (const k in MENU) MENU[k] = false; applicaMenu(true); menuMenu(false); };
-$('mMostra').onclick = () => { for (const k in MENU) MENU[k] = true; applicaMenu(true); menuMenu(false); };
-$('lingSx').onclick = () => { MENU.sx = !MENU.sx; applicaMenu(true); };
-$('lingDx').onclick = () => { MENU.dx = !MENU.dx; applicaMenu(true); };
-document.addEventListener('click', e => { const x = e.target.closest('.xPan'); if (x) { MENU[x.dataset.x] = false; applicaMenu(true); }
+$('menuMenu').querySelectorAll('[data-m]').forEach(c => { c.onchange = () => { MENU[c.dataset.m] = c.checked; applicaMenu(); }; });
+$('mNascondi').onclick = () => { for (const k in MENU) MENU[k] = false; applicaMenu(); menuMenu(false); };
+$('mMostra').onclick = () => { for (const k in MENU) MENU[k] = true; applicaMenu(); menuMenu(false); };
+$('lingSx').onclick = () => { MENU.sx = !MENU.sx; applicaMenu(); };
+$('lingDx').onclick = () => { MENU.dx = !MENU.dx; applicaMenu(); };
+document.addEventListener('click', e => { const x = e.target.closest('.xPan'); if (x) { MENU[x.dataset.x] = false; applicaMenu(); }
   if (!$('menuMenu').hidden && !e.target.closest('.menuMenu')) menuMenu(false); });
 document.querySelector('.sinistra .gruppo').insertAdjacentHTML('beforeend', X_PAN('persone', 'persone e stato'));
 $('barraScena').insertAdjacentHTML('beforeend', X_PAN('vista', 'la barra Vista'));
-applicaMenu(false);
+applicaMenu();
 function guida(apri) { $('guida').hidden = !apri; $('bGuida').setAttribute('aria-expanded', apri); if (!apri) try { localStorage.setItem('bolle-guida-vista', '1'); } catch (e) {} }
 $('bGuida').onclick = e => { e.stopPropagation(); guida($('guida').hidden); };
 $('guidaOk').onclick = () => guida(false);
