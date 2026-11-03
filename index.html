@@ -174,9 +174,6 @@ input[type="number"]:hover, select:hover { border-color: var(--line-strong); }
 canvas.pickable { cursor: grab; touch-action: none; }
 canvas.pickable.over { cursor: pointer; }
 /* vetrina: la figura in alto mostra a turno tutte le forme */
-.vetrina { position: absolute; left: 22px; top: 20px; right: 22px; pointer-events: none; font: 500 .74rem var(--mono); letter-spacing: .02em; color: var(--muted); transition: opacity .45s ease; }
-.vetrina.cambia { opacity: 0; }
-.vetrina b { color: var(--ink); font-weight: 600; }
 
 /* ---------- galleria delle forme ---------- */
 .gallery { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: start; }
@@ -508,13 +505,11 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <p class="lede">Scegliete una forma e le sue misure reali: la pagina prepara la guida completa per costruirla, prima come modellino in scala e poi come bolla vera in plastica, con i numeri giusti in ogni passaggio.</p>
       <div class="stats" id="stats"></div>
       <p class="warn" id="heroPorta" hidden></p>
-      <p class="hero-shape"><span class="muted">Forma scelta:</span> <strong id="heroShape"></strong> · <a href="#forma">cambiatela</a></p>
-      <p class="hero-shape"><span class="muted">Più bolle collegate, gonfiatori, costi:</span> <a href="configuratore/">Abbofficina</a></p>
+      <p class="hero-shape"><span class="muted">Forma scelta:</span> <strong id="heroShape"></strong></p>
     </div>
     <figure class="hero-stage">
       <canvas id="view" class="pickable" aria-label="Vista 3D della forma scelta, con quote e una persona alta 1,75 m per confronto. Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."></canvas>
       <div class="tip" id="tipHero" hidden></div>
-      <div class="vetrina" id="vetrina" aria-live="polite"></div>
       <div class="viewopts">
         <label class="check"><input type="checkbox" id="optPerson" checked> <span>Persona da 1,75 m</span></label>
         <label class="check"><input type="checkbox" id="optColors" checked> <span>Colora per tipo di pezzo</span></label>
@@ -3120,8 +3115,7 @@ function analyze(V, F, floor) {
 
   function inVetrina() { return !!vetrina.id && vetrina.id !== state.shape && thumbs.has(vetrina.id); }
   function scriviVetrina() {
-    const id = inVetrina() ? vetrina.id : state.shape, sd = SHAPES.find(x => x.id === id), nome = sd ? esc(shortName(sd)) : "";
-    $("vetrina").innerHTML = !nome ? "" : inVetrina() ? `<b>${nome}</b> · cliccate per sceglierla` : `La vostra forma: <b>${nome}</b>`;
+    const id = inVetrina() ? vetrina.id : state.shape, sd = SHAPES.find(x => x.id === id);   // il nome serve a chi legge con lo screen reader
     views.hero.cv.setAttribute("aria-label", `Vista 3D: ${sd ? shortName(sd) : "forma"}, con quote e una persona alta 1,75 m per confronto. ` +
       (inVetrina() ? "Cliccate per scegliere questa forma." : "Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."));
   }
@@ -3150,14 +3144,13 @@ function analyze(V, F, floor) {
   const DUR_GONFIA = 1200;
   function cambiaVetrina(id) {
     vetrina.anim = { t0: performance.now(), id, da: inVetrina() ? thumbs.get(vetrina.id) : cur, a: id ? thumbs.get(id) : cur, fatto: false };
-    $("vetrina").classList.add("cambia");
     views.hero.hover = null; $("tipHero").hidden = true; cvHero.classList.remove("over");
   }
   function scambiaVetrina(id) {   // a metà, con la forma a terra: arriva la nuova, con nome e numeri
     vetrina.id = id;
     const sd = SHAPES.find(x => x.id === (id || state.shape)); if (sd && sd.yaw != null) rot.yaw = sd.yaw;   // la tartaruga di profilo, come nella galleria
     renderStats(inVetrina() ? thumbs.get(id) : cur);
-    vetrina.scritto = id || state.shape; scriviVetrina(); $("vetrina").classList.remove("cambia");
+    vetrina.scritto = id || state.shape; scriviVetrina();
   }
   function gonfia() {
     const A = vetrina.anim, t = Math.min(1, (performance.now() - A.t0) / DUR_GONFIA);
