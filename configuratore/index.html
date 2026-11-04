@@ -3357,6 +3357,9 @@ $('bRipara').onclick = () => ripara();
 // --- composizioni: più progetti, salvati nel browser ---
 const CHIAVE_COMP = 'bolle-composizioni', CHIAVI_D = ['mat', 'gsm', 't', 'sigma', 'pMin', 'manW', 'manL', 'manH', 'manMax', 'nW', 'nT', 'nFile', 'porte', 'coll', 'giunti', 'bleed', 'aPersona', 'sfogo'];
 let comp = { attiva: null, lista: [] }, caricando = false;
+// [Officina] ogni composizione ha la sua stanza (o nessuna). stanzaVoluta: quella da mettere quando la pagina è pronta;
+// stanzaAttesa: quella che si sta caricando, così un salvataggio a metà non la perde
+let stanzaVoluta = null, stanzaAttesa = null, stanzaPronti = false, genStanza = 0;
 try { const c = JSON.parse(localStorage.getItem(CHIAVE_COMP) || 'null'); if (c && Array.isArray(c.lista)) comp = c; } catch (e) {}
 const salvaComp = () => { try { localStorage.setItem(CHIAVE_COMP, JSON.stringify(comp)); } catch (e) {} };
 const compAttiva = () => comp.lista.find(c => c.id === comp.attiva);
@@ -3365,7 +3368,12 @@ const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 function fotografa() {
   return { v: 1, pezzi: pezzi.map(p => ({ tipo: p.tipo, d: { ...p.d }, f: { ...p.f }, porte: [...p.porte], x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: p.ang, nome: p.nome, ingresso: !!p.ingresso, tinta: p.tinta || null, stelle: p.stelle ? { ...p.stelle } : null, colore: p.colore, situazione: p.situazione || 'auto', nRes: p.nRes || 0 })),
     manuali: manuali.map(m => [pezzi.indexOf(m.a), m.ea, pezzi.indexOf(m.b), m.eb]), staccati: staccati.map(m => [pezzi.indexOf(m.a), m.ea, pezzi.indexOf(m.b), m.eb]),
-    D: Object.fromEntries(CHIAVI_D.map(k => [k, D[k]])), GONF: Object.fromEntries(['piccolo', 'grande'].map(k => [k, { W: GONF[k].W, Q: GONF[k].Q, Pmax: GONF[k].Pmax }])) };
+    D: Object.fromEntries(CHIAVI_D.map(k => [k, D[k]])), GONF: Object.fromEntries(['piccolo', 'grande'].map(k => [k, { W: GONF[k].W, Q: GONF[k].Q, Pmax: GONF[k].Pmax }])),
+    stanza: statoStanza() };
+}
+function statoStanza() {   // [Officina] la stanza della composizione aperta: tipo, nome e misure, o null
+  try { if (ST.tipo) return { pronta: ST.pronta || null, nome: ST.nome, par: parStanza() }; } catch (e) {}   // all'avvio ST non è ancora dichiarata
+  return stanzaAttesa;
 }
 function salvaPresto() {
   if (caricando) return; clearTimeout(salvaPresto.t);
@@ -3395,6 +3403,7 @@ function carica(dati) {
   for (const p of pezzi) { p.Va = p.V0 * 1.002; p.hist = []; }
   { const r = { pezzi, link }; for (let i = 0; i < 6000; i++) passoRete(r, 0.05, false); }
   mettiPersona(); caricando = false; disegnaComp();
+  stanzaVoluta = { id: comp.attiva, s: dati.stanza || null }; applicaStanza();   // [Officina] si parte sempre senza stanza, poi arriva quella salvata
 }
 function apriComp(id) {
   const c = comp.lista.find(x => x.id === id); if (!c || id === comp.attiva) return;
@@ -3424,7 +3433,7 @@ function disegnaComp() {
     };
     r.querySelector('.via').onclick = () => {
       if (daEliminare !== id) { daEliminare = id; disegnaComp(); return; }
-      daEliminare = null; comp.lista = comp.lista.filter(q => q.id !== id);
+      daEliminare = null; comp.lista = comp.lista.filter(q => q.id !== id); stanzaDB('del', id);
       if (comp.attiva === id) { const altra = comp.lista.slice().sort((a, b) => (b.agg || 0) - (a.agg || 0))[0]; comp.attiva = null; salvaComp(); if (altra) { comp.attiva = altra.id; carica(altra.dati || { pezzi: [] }); } }
       salvaComp(); disegnaComp();
     };
@@ -3454,8 +3463,8 @@ document.addEventListener('keydown', e => {   // R: gira il pezzo selezionato
   const d = e.shiftKey ? -1 : 1, g0 = genitore(p);
   if (g0 && p.porte.length > 1) giraSulCollegamento(p, d); else ruotaPezzo(p, -15 * d);
 });
-$('cNuova').onclick = () => { nuovaComp('Composizione ' + (comp.lista.length + 1), { ...fotografa(), pezzi: [] }); disegnaComp(); };
-$('cDuplica').onclick = () => { const c = compAttiva(); nuovaComp((c ? c.nome : 'Composizione') + ' (copia)', fotografa()); disegnaComp(); };
+$('cNuova').onclick = () => { nuovaComp('Composizione ' + (comp.lista.length + 1), { ...fotografa(), pezzi: [], stanza: null }); disegnaComp(); };
+$('cDuplica').onclick = () => { const c = compAttiva(), d = fotografa(); if (d.stanza && c) d.stanza = { ...d.stanza, da: c.id }; nuovaComp((c ? c.nome : 'Composizione') + ' (copia)', d); disegnaComp(); };
 $('cEsporta').onclick = () => {
   const c = compAttiva(); if (!c) return; c.dati = fotografa();
   const blob = new Blob([JSON.stringify({ app: 'bolle', versione: 1, composizioni: [{ nome: c.nome, dati: c.dati }] }, null, 1)], { type: 'application/json' });
@@ -4106,11 +4115,11 @@ function daOfficina() {
       return;
     }
   }
-  const titolo = 'Dall\'Officina · ' + nome, dati = { ...fotografa(), pezzi: [{ tipo, d, f, nome, ingresso: true }], manuali: [], staccati: [] };
+  const titolo = 'Dall\'Officina · ' + nome, dati = { ...fotografa(), pezzi: [{ tipo, d, f, nome, ingresso: true }], manuali: [], staccati: [], stanza: null };
   const uguale = comp.lista.find(c => c.nome === titolo && c.officina && (!c.dati || (c.dati.pezzi || []).length <= 1));
   if (uguale) {   // la stessa forma rimandata dopo un ritocco: si aggiorna la sua composizione invece di farne un'altra
     const att = compAttiva(); if (att && att !== uguale) { att.dati = fotografa(); att.agg = Date.now(); }
-    uguale.dati = dati; uguale.agg = Date.now(); uguale.officina = src || uguale.officina; comp.attiva = uguale.id; salvaComp(); carica(dati);
+    uguale.dati = { ...dati, stanza: (uguale.dati && uguale.dati.stanza) || null }; uguale.agg = Date.now(); uguale.officina = src || uguale.officina; comp.attiva = uguale.id; salvaComp(); carica(uguale.dati);
   } else { let t = titolo; for (let i = 2; comp.lista.some(c => c.nome === t); i++) t = titolo + ' (' + i + ')';
     const c = nuovaComp(t, dati); c.officina = src || true; salvaComp(); }
   disegnaComp();
@@ -4175,7 +4184,7 @@ function geoPianta(pt, k, H, cx, cz, rotF) {
 function togliStanza(salva) {
   if (ST.grp) { scena.remove(ST.grp); ST.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
   ST.grp = null; ST.mats = []; ST.tipo = null; ST.file = null; ST.nome = ''; if (salva !== false) ST.pronta = null;
-  if (salva !== false) stanzaDB('del'); disegnaStanza();
+  if (salva !== false) { stanzaDB('del'); stanzaAttesa = null; genStanza++; salvaPresto(); } disegnaStanza();
   if (salva !== false) aggiornaStanza();   // [Officina] via la stanza: le bolle nelle pareti tornano normali
 }
 function aggiornaStanza() {   // misure, posizione, luce, facce visibili
@@ -4230,16 +4239,18 @@ function stanzaDaModello(gltf, nome) {
 // (porta verde a destra, porta aperta e il pilastro d'angolo con le finestre). Misure in multipli dell'altezza di scatto.
 const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'stanze/corridoio.jpg', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · ricostruito in 3D',
   par: { pianta: [[2.6, 2.2], [-34, 2.2], [-34, -1.8], [-1.75, -1.8], [-1.75, -34], [2.6, -34]], W: 12, P: 12, H: 8, fy: 0.9, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
-function stanzaPronta(S) {
-  fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { Object.assign(ST, S.par); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); })
+function stanzaPronta(S, par) {   // [Officina] par: le misure salvate nella composizione, sopra quelle della stanza pronta
+  const g0 = genStanza;
+  fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { if (g0 !== genStanza) return; Object.assign(ST, S.par, par || {}); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); })
     .catch(() => avviso('Non trovo ' + S.file + ': apri l\'Abbofficina dal sito, non come file sul computer.', 6000));
 }
 function caricaStanza(file, dalDB) {
   const nome = file.name || 'stanza', est = (nome.split('.').pop() || '').toLowerCase();
-  const fine = ok => { if (ok && !dalDB) { ST.file = file; stanzaDB('put'); } if (!ok) avviso('Non riesco ad aprire ' + nome + '.', 5000); };
+  const g0 = genStanza, vale = () => g0 === genStanza;   // [Officina] cambiando composizione a metà caricamento, questa stanza non arriva più
+  const fine = ok => { if (!vale()) return; stanzaAttesa = null; if (ok && !dalDB && !ST.pronta) { ST.file = file; stanzaDB('put'); } if (ok) salvaPresto(); if (!ok) avviso('Non riesco ad aprire ' + nome + '.', 5000); };
   if (est === 'glb') {
     if (!THREE.GLTFLoader) { avviso('Il lettore dei modelli GLB non è stato caricato: serve internet per il CDN.', 5000); return; }
-    file.arrayBuffer().then(buf => new THREE.GLTFLoader().parse(buf, '', g => { stanzaDaModello(g, nome); ST.file = file; fine(true); }, () => fine(false))).catch(() => fine(false));
+    file.arrayBuffer().then(buf => new THREE.GLTFLoader().parse(buf, '', g => { if (!vale()) return; stanzaDaModello(g, nome); ST.file = file; fine(true); }, () => fine(false))).catch(() => fine(false));
   } else if (est === 'gltf') avviso('Esporta il modello come GLB (glTF binario), con le texture dentro al file.', 6000);
   else if (est === 'hdr') {
     if (!THREE.RGBELoader) { avviso('Il lettore HDR non è stato caricato: serve internet per il CDN, oppure usa un JPG.', 5000); return; }
@@ -4256,26 +4267,56 @@ function caricaStanza(file, dalDB) {
         t = new THREE.DataTexture(dt, d.width, d.height, ch === 3 ? THREE.RGBFormat : THREE.RGBAFormat, THREE.HalfFloatType); t.encoding = THREE.LinearEncoding;
         if (!renderer.capabilities.isWebGL2 && !renderer.extensions.get('OES_texture_half_float_linear')) { t.minFilter = t.magFilter = THREE.NearestFilter; }
       }
-      t.flipY = true; t.needsUpdate = true; stanzaDaFoto(t, nome, mx > 1.02); ST.file = file; fine(true); }).catch(() => fine(false));
+      if (!vale()) return; t.flipY = true; t.needsUpdate = true; stanzaDaFoto(t, nome, mx > 1.02); ST.file = file; fine(true); }).catch(() => fine(false));
   } else {
     const url = URL.createObjectURL(file);
-    new THREE.TextureLoader().load(url, t => { t.encoding = THREE.sRGBEncoding; URL.revokeObjectURL(url); stanzaDaFoto(t, nome); ST.file = file; fine(true); }, undefined, () => { URL.revokeObjectURL(url); fine(false); });
+    new THREE.TextureLoader().load(url, t => { URL.revokeObjectURL(url); if (!vale()) return; t.encoding = THREE.sRGBEncoding; stanzaDaFoto(t, nome); ST.file = file; fine(true); }, undefined, () => { URL.revokeObjectURL(url); fine(false); });
   }
 }
-// la stanza resta salvata in questo browser (IndexedDB: le foto 360° sono troppo grandi per localStorage)
-function stanzaDB(az) {
+// la stanza resta salvata in questo browser (IndexedDB: le foto 360° sono troppo grandi per localStorage).
+// [Officina] una voce per composizione, "stanza:" + id; le misure stanno anche nella composizione (fotografa)
+const parStanza = () => ({ pronta: ST.pronta || null, pianta: ST.pianta || null, W: ST.W, P: ST.P, H: ST.H, fy: ST.fy, fx: ST.fx, fz: ST.fz, frot: ST.frot, rot: ST.rot, x: ST.x, z: ST.z, scala: ST.scala, luce: ST.luce, interne: ST.interne });
+function stanzaDB(az, id, da) {
+  id = id || comp.attiva; if (!id && az !== 'vecchia') return;
+  const chiave = 'stanza:' + id, g0 = genStanza;
   try {
     const rq = indexedDB.open('bolle-stanza', 1);
     rq.onupgradeneeded = () => rq.result.createObjectStore('s');
-    rq.onsuccess = () => { const db = rq.result, tx = db.transaction('s', az === 'get' ? 'readonly' : 'readwrite'), os = tx.objectStore('s');
-      const par = { pronta: ST.pronta || null, pianta: ST.pianta || null, W: ST.W, P: ST.P, H: ST.H, fy: ST.fy, fx: ST.fx, fz: ST.fz, frot: ST.frot, rot: ST.rot, x: ST.x, z: ST.z, scala: ST.scala, luce: ST.luce, interne: ST.interne };
-      if (az === 'put' && ST.file) os.put({ file: ST.file, nome: ST.nome, par }, 'stanza');
-      else if (az === 'par') { const g = os.get('stanza'); g.onsuccess = () => { if (g.result) { g.result.par = par; os.put(g.result, 'stanza'); } }; }
-      else if (az === 'del') os.delete('stanza');
-      else if (az === 'get') { const g = os.get('stanza'); g.onsuccess = () => { const r = g.result; if (!r || !r.file) return; Object.assign(ST, r.par || {}); const f = r.file; if (!f.name) try { Object.defineProperty(f, 'name', { value: r.nome }); } catch (e) {} caricaStanza(f, true); }; } };
+    rq.onsuccess = () => { const db = rq.result, tx = db.transaction('s', 'readwrite'), os = tx.objectStore('s');
+      const par = ST.tipo ? parStanza() : null;
+      if (az === 'put' && ST.file) os.put({ file: ST.file, nome: ST.nome, par }, chiave);
+      else if (az === 'par' && par) { const g = os.get(chiave); g.onsuccess = () => { if (g.result) { g.result.par = par; os.put(g.result, chiave); } }; }
+      else if (az === 'del') os.delete(chiave);
+      else if (az === 'vecchia') os.delete('stanza');   // la stanza unica delle versioni di prima, uguale per tutte le composizioni
+      else if (az === 'get') {
+        const g = os.get(chiave);
+        g.onsuccess = () => {
+          if (g0 !== genStanza) return;
+          let r = g.result;
+          const usa = r => { const f = r.file; if (!f.name) try { Object.defineProperty(f, 'name', { value: r.nome }); } catch (e) {} caricaStanza(f, true); };
+          if (r && r.file) { usa(r); return; }
+          if (!da) { stanzaAttesa = null; avviso('La stanza di questa composizione non è in questo browser: rimettila da «Stanza».', 6000); return; }
+          const g2 = os.get('stanza:' + da);   // composizione duplicata: il file è ancora sotto l'originale, e si copia
+          g2.onsuccess = () => { r = g2.result; if (g0 !== genStanza) return; if (!r || !r.file) { stanzaAttesa = null; return; } os.put(r, chiave); usa(r); };
+        };
+      } };
   } catch (e) {}
 }
-let tParSt = 0; const salvaParStanza = () => { clearTimeout(tParSt); tParSt = setTimeout(() => stanzaDB('par'), 400); };
+let tParSt = 0; const salvaParStanza = () => { clearTimeout(tParSt); tParSt = setTimeout(() => { stanzaDB('par'); salvaPresto(); }, 400); };
+// [Officina] mette la stanza della composizione aperta: prima la toglie, poi carica quella salvata (pronta o dal browser)
+function applicaStanza() {
+  if (!stanzaPronti || !stanzaVoluta) return;
+  const v = stanzaVoluta; stanzaVoluta = null; genStanza++;
+  togliStanza(false); Object.assign(ST, { pronta: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true }); stanzaAttesa = null;   // misure di partenza
+  const s = v.s;
+  if (s && s.par) {
+    stanzaAttesa = s;
+    const S = s.pronta && STANZE.find(S => S.id === s.pronta);
+    if (S) stanzaPronta(S, s.par);
+    else { Object.assign(ST, s.par); stanzaDB('get', v.id, s.da); }
+  }
+  aggiornaStanza();
+}
 function disegnaStanza() {
   const el = $('pannelloSt'); if (!el) return;
   $('stPronte').innerHTML = STANZE.map((S, i) => `<button class="stPronta" data-i="${i}" aria-pressed="${ST.tipo && ST.pronta === S.id}"><img src="${S.mini}" alt=""><span><b>${S.nome}</b><span>${S.sotto}</span></span></button>`).join('');
@@ -4303,7 +4344,11 @@ $('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; 
   caricaStanza(f); } };
 $('stTogli').onclick = () => togliStanza();
 $('stInterne').onchange = e => { ST.interne = e.target.checked; aggiornaStanza(); salvaParStanza(); };
-addEventListener('load', () => stanzaDB('get'));   // dopo il caricamento dei lettori GLB e HDR
+addEventListener('load', () => {   // dopo il caricamento dei lettori GLB e HDR
+  stanzaPronti = true; stanzaDB('vecchia');
+  if (!stanzaVoluta) stanzaVoluta = { id: comp.attiva, s: (compAttiva() && compAttiva().dati && compAttiva().dati.stanza) || null };
+  applicaStanza();
+});
 
 window.cfg = { ST, caricaStanza, togliStanza, aggiornaStanza, FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, metriNastro, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
   giro: () => faiEntrare(), GENTE, scoppia, ripara, comp: () => comp, fotografa, carica, apriComp, nuovaComp, persone: () => persone, unoAdesso, fermaTutti, eseguiCopione, muoviPersona, aggancia, liberaLati, collega, tipo: t => { tipoScelto = t; }, pLim, capTelo, tensione, simT: () => simT };

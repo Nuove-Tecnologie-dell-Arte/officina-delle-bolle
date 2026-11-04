@@ -212,3 +212,18 @@ Le stesse cose stavano in più posti; ora ognuna sta in un posto solo (`[Officin
 - **Composizioni salvate:** riaprendole, situazione e residenti tornano automatici.
 - **Prove automatiche:** `test/sit.js` e `test/multi.js` cliccavano `#bSit` e `#sPopola`. Quei clic vanno tolti, perché i residenti ci sono già.
 
+## Una stanza per composizione (4 novembre)
+
+Prima la stanza di sfondo era una sola, salvata nel browser e uguale per tutte le composizioni. Ora (`[Officina]`):
+- **Aprendo una composizione si parte sempre senza stanza.** Se quella composizione era stata lasciata con una stanza, la stanza torna, con le sue misure, la posizione e la luce (`applicaStanza`, chiamata alla fine di `carica`).
+- **Dove sta:**
+  - le misure stanno nella composizione (`dati.stanza`, scritto da `fotografa` con `statoStanza`);
+  - il file (foto 360° o GLB) sta in IndexedDB, una voce per composizione: `stanza:` + id;
+  - le stanze pronte (il Corridoio) non salvano il file, perché si riprendono da `stanze/`.
+- **Nuova** e le composizioni nuove dall'Officina partono senza stanza.
+- **Duplica** tiene la stanza: il file si copia dalla composizione originale (`da`) la prima volta che si apre la copia. Rimandando la stessa forma dall'Officina, "Dall'Officina · …" tiene la sua stanza.
+- **Elimina** cancella anche il file della stanza di quella composizione.
+- **Importa:** una stanza pronta torna. Per una foto o un modello caricati da un altro browser compare un avviso: il file non viaggia con l'export, e va rimesso da «Stanza».
+- **Cambi a metà:** se si cambia composizione mentre una stanza si sta caricando, quella stanza non arriva più (`genStanza`).
+- **Stanza vecchia:** la voce unica `stanza` delle versioni di prima si cancella all'avvio.
+
