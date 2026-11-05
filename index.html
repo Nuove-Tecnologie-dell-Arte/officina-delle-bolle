@@ -82,6 +82,23 @@ section { display: grid; gap: 22px; scroll-margin-top: 84px; }
 .progress div { height: 100%; width: 0; background: var(--green); transition: width .15s linear; }
 @media (max-width: 420px) { .brand { display: none; } .steps-nav { margin-left: 0; } }
 /* selettore Officina | Configuratore, uguale nelle due pagine */
+/* barra di ricerca */
+.cercaBtn { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; min-height: 36px; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); color: var(--muted); font: 600 .86rem/1 var(--body); cursor: pointer; }
+.cercaBtn:hover { color: var(--ink); background: var(--green-soft); }
+.cercaBtn kbd, .cercaRiga kbd { font: 600 .72rem var(--mono); color: var(--muted); border: 1px solid var(--rule); border-radius: 5px; padding: 1px 5px; background: var(--paper); }
+.cercaBtn kbd, .cercaBtn span { display: none; } .cercaBtn { padding: 7px 9px; }   /* solo la lente: la barra è larga al massimo 1120 px e i sei passi devono restare interi */
+.cercaVelo { position: fixed; inset: 0; z-index: 60; background: rgba(10, 20, 16, .38); display: flex; justify-content: center; align-items: flex-start; padding: 9vh 12px 12px; }
+.cercaPop { width: min(600px, 100%); max-height: 78vh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--r-l); box-shadow: var(--shadow), 0 24px 60px rgba(0,0,0,.25); overflow: hidden; }
+.cercaRiga { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--rule); color: var(--muted); }
+.cercaRiga input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: 400 1rem var(--body); padding: 4px 0; }
+.cercaLista { list-style: none; margin: 0; padding: 6px; overflow-y: auto; display: grid; gap: 1px; align-content: start; }
+.cercaLista li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 9px 10px; border-radius: var(--r-s); cursor: pointer; }
+.cercaLista li b { font-weight: 600; font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .cercaLista li span { font-size: .76rem; color: var(--muted); white-space: nowrap; }
+.cercaLista li[aria-selected="true"] { background: var(--green-soft); } .cercaLista li[aria-selected="true"] b { color: var(--green); }
+.cercaLista .vuoto { cursor: default; color: var(--muted); font-size: .85rem; }
+.cercaPiede { margin: 0; padding: 8px 14px; border-top: 1px solid var(--rule); font-size: .76rem; color: var(--muted); }
+@media (max-width: 520px) { .cercaLista li { grid-template-columns: 1fr; gap: 0; } .cercaPiede { display: none; } }
+.trovato { outline: 3px solid var(--green) !important; outline-offset: 3px; border-radius: var(--r-s); }
 nav.app { flex: none; display: flex; gap: 2px; padding: 3px; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
 nav.app a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 7px; font-size: .86rem; font-weight: 600; line-height: 1; color: var(--muted); text-decoration: none; white-space: nowrap; min-height: 34px; }
 nav.app a[href]:hover { color: var(--ink); background: var(--green-soft); }
@@ -491,6 +508,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <a href="#modellino"><i>5</i><span>Modellino</span></a>
       <a href="#montaggio"><i>6</i><span>Montaggio</span></a>
     </div>
+    <button type="button" id="bCerca" class="cercaBtn" aria-haspopup="dialog" aria-label="Cerca un'opzione" title="Cerca un'opzione scrivendo con la tastiera"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg><span>Cerca</span><kbd id="cercaTasto">⌘K</kbd></button>
     <nav class="app" aria-label="Officina delle Bolle">
       <a aria-current="page" title="Officina: la forma, i pezzi da tracciare e il modellino"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 15.5 10 3l7 12.5z"/><path d="M10 3v12.5M3 15.5l7-4 7 4"/></svg><span>Officina</span></a>
       <a href="configuratore/" id="vaiConf" title="Abbofficina: più bolle collegate, aria, persone e costi. Ritrovate la composizione su cui stavate lavorando."><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="11" r="4.5"/><circle cx="14.5" cy="8" r="3.5"/></svg><span>Abbofficina</span></a>
@@ -498,6 +516,15 @@ details.menu > summary::-webkit-details-marker { display: none; }
   </div>
   <div class="progress"><div id="progress"></div></div>
 </nav>
+
+<div id="cerca" class="cercaVelo" hidden><!-- barra di ricerca: ogni opzione della guida, scrivendo -->
+  <div class="cercaPop" role="dialog" aria-modal="true" aria-label="Cerca un'opzione">
+    <div class="cercaRiga"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>
+      <input id="cercaIn" type="text" placeholder="Cerca: cupola, rotolo, cantiere, giunzioni…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="cercaLista" aria-autocomplete="list"><kbd>Esc</kbd></div>
+    <ul id="cercaLista" class="cercaLista" role="listbox" aria-label="Risultati"></ul>
+    <p class="cercaPiede">↑ ↓ per scegliere · Invio per aprire · Esc per chiudere</p>
+  </div>
+</div>
 
 <header class="heroband">
   <div class="gutter"><div class="hero-in">
@@ -1863,8 +1890,12 @@ function analyze(V, F, floor) {
 
 (function () {
   const $ = (id) => document.getElementById(id);
-  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const fmt = (x, d) => { const v = Number(x.toFixed(d)); return (v === 0 ? 0 : v).toLocaleString("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d }); };
+  // i colori del tema si leggono una volta sola (leggerli costringe il browser a ricalcolare gli stili); themeChange svuota la memoria
+  const cssMemo = new Map();
+  const css = (n) => { let v = cssMemo.get(n); if (v === undefined) { v = getComputedStyle(document.documentElement).getPropertyValue(n).trim(); cssMemo.set(n, v); } return v; };
+  // stesso risultato di toLocaleString("it-IT", …), ma con un formattatore solo per ogni numero di decimali invece di uno nuovo a ogni numero
+  const fmtNF = [];
+  const fmt = (x, d) => { const v = Number(x.toFixed(d)); return (fmtNF[d] || (fmtNF[d] = new Intl.NumberFormat("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d }))).format(v === 0 ? 0 : v); };
   const mR = (x) => (Math.abs(x) < 1 ? fmt(x * 100, 1) + " cm" : fmt(x, 3) + " m");
   const cmR = (x) => fmt(x * 100, 1) + " cm";
   const cmM = (x) => fmt(x * 100 / state.scale, 2) + " cm";
@@ -3535,7 +3566,7 @@ function analyze(V, F, floor) {
       <text x="4.4" y="-3.2" font-size="0.32" fill="${muted}" font-family="IBM Plex Mono, monospace">sul piede è retto</text>`;
   }
 
-  function themeChange() { palette(); rule345(); renderPlan(); if (cur) { renderAbout(); renderPieces(); renderNet(); renderSeams(); drawAll(); } SHAPES.forEach(s => drawThumb(s.id)); }
+  function themeChange() { cssMemo.clear(); palette(); rule345(); renderPlan(); if (cur) { renderAbout(); renderPieces(); renderNet(); renderSeams(); drawAll(); } SHAPES.forEach(s => drawThumb(s.id)); }
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themeChange);
   new MutationObserver(themeChange).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
@@ -3583,5 +3614,119 @@ function analyze(V, F, floor) {
   initStep(); loop();
   setTimeout(buildThumbs, 60);
   initProjects();
+
+  /* ---------- barra di ricerca: si trova e si apre ogni opzione scrivendo (pulsante Cerca, ⌘K / Ctrl+K o /) ---------- */
+  const normCerca = (t) => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  function evidenzia(el) {   // porta l'opzione in vista e la fa lampeggiare
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+    el.classList.add("trovato"); clearTimeout(el._trovato); el._trovato = setTimeout(() => el.classList.remove("trovato"), 1800);
+    if (/^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(el.tagName)) el.focus({ preventScroll: true });
+  }
+  const nelPasso = (id, f) => () => { if (document.body.dataset.step !== id) goStep(id); if (f) f(); };   // showStep cambia passo e torna in cima subito: si può proseguire
+  const apriDettagli = (el) => { if (el) { el.open = true; evidenzia(el); } };
+  const sezioneCon = (id) => { const el = $(id); return el && el.closest("details"); };
+  function vociCerca() {
+    const V = [], add = (t, s, f, k, base) => V.push({ t, s, f, base, k: normCerca(t + " " + s + " " + (k || "")) });
+    // i sei passi e l'Abbofficina
+    [["forma", "1 · Forma", "scegli la forma misure"], ["misure", "2 · Numeri", "controlla misure porta altezza"], ["prepara", "3 · Materiale", "telo rotolo comprare"],
+      ["pezzi", "4 · Pezzi", "traccia dime cartamodello"], ["modellino", "5 · Modellino", "cartoncino sviluppo scala"], ["montaggio", "6 · Montaggio", "giunzioni monta unisci"]]
+      .forEach(([id, t, k]) => add(t, "Passo", nelPasso(id), k, 1));
+    add("Abbofficina", "Più bolle, aria, persone e costi", () => $("vaiConf").click(), "simulazione aria pressione configuratore", 1);
+    add("Porta la forma nell'Abbofficina", "Passo 2 · Numeri", () => $("bridgeGo").click(), "prova simulazione aria");
+    add("Aggiungi alla composizione aperta", "Passo 2 · Numeri", () => $("bridgeAdd").click(), "abbofficina altre bolle");
+    // le forme
+    SHAPES.forEach(sh => add(sh.name, "Forma · " + sh.group, nelPasso("forma", () => { selectShape(sh.id); evidenzia(document.querySelector(`#gallery [data-id="${sh.id}"]`)); }), "scegli forma"));
+    // le misure della forma scelta e le altre opzioni del passo 1
+    def().params.filter(p => p.type !== "pts").forEach(p => add(p.label, "Misura · " + def().name, nelPasso("forma", () => evidenzia($("p_" + p.key))), "misura dimensione"));
+    if (def().params.some(p => p.type === "pts")) add("Disegnate la pianta", "Passo 1 · Forma", nelPasso("forma", () => evidenzia($("planEditor"))), "punti griglia pianta");
+    add("Adatta la forma a un pavimento", "Passo 1 · Pavimento", nelPasso("forma", () => evidenzia($("fit"))), "area pavimento m2");
+    add("Area del pavimento", "Passo 1 · Pavimento", nelPasso("forma", () => evidenzia($("fitArea"))), "m2 metri quadri");
+    add("Altre opzioni", "Passo 1 · Forma", nelPasso("forma", () => apriDettagli($("moreOpts"))), "base orientamento taglio appoggio");
+    add("Partite dal modellino", "Passo 1 · Altre opzioni", nelPasso("forma", () => { $("moreOpts").open = true; evidenzia($("modelRef")); }), "misura sul modellino cm");
+    add("Scala del modellino", "Passo 1 · Altre opzioni", nelPasso("forma", () => { $("moreOpts").open = true; evidenzia($("scale")); }), "1:20 rapporto");
+    add("Progetti del gruppo", "Passo 1 · Forma", nelPasso("forma", () => apriDettagli($("projects"))), "salva riapri progetto");
+    add("Salva su file", "Progetti", nelPasso("forma", () => { $("projects").open = true; $("projFileSave").click(); }), "scarica json progetto");
+    add("Apri da file", "Progetti", nelPasso("forma", () => { $("projects").open = true; $("projFileOpen").click(); }), "carica json progetto");
+    // passo 2
+    [["both", "Mostra entrambe le misure"], ["real", "Mostra le misure della bolla vera"], ["model", "Mostra le misure del modellino"]]
+      .forEach(([v, t]) => add(t, "Passo 2 · Numeri", nelPasso("misure", () => setView(v)), "misure vista"));
+    add("Tutte le misure", "Passo 2 · Numeri", nelPasso("misure", () => apriDettagli(sezioneCon("tbl"))), "tabella grandezze");
+    add("Consigli per la bolla vera", "Passo 2 · Numeri", nelPasso("misure", () => apriDettagli(sezioneCon("realNotes"))), "stabilità angoli aperture");
+    // passo 3
+    add("Larghezza del rotolo di telo", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("rotolo"))), "metri comprare strisce");
+    add("Materiale per il modellino", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("matModel").closest(".box"))), "cartoncino scotch");
+    add("Materiale per la bolla vera", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("matReal").closest(".box"))), "telo plastica comprare");
+    // passo 4
+    add("Misure per il modellino", "Passo 4 · Pezzi", nelPasso("pezzi", () => { $("modeModel").click(); evidenzia($("modeModel")); }), "cartoncino scala");
+    add("Misure per la bolla vera", "Passo 4 · Pezzi", nelPasso("pezzi", () => { $("modeReal").click(); evidenzia($("modeReal")); }), "plastica telo reale");
+    add("Margine per saldare o cucire", "Passo 4 · Pezzi", nelPasso("pezzi", () => { if (!isReal()) $("modeReal").click(); evidenzia($("margin")); }), "cm bordo");
+    add("Larghezza del rotolo (pezzi)", "Passo 4 · Pezzi", nelPasso("pezzi", () => { if (!isReal()) $("modeReal").click(); evidenzia($("roll")); }), "cm telo");
+    add("Modalità cantiere dei pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("sitePieces").click()), "schermo intero telefono tracciare");
+    add("Apri tutti i pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("openAll").click()), "espandi");
+    add("Chiudi tutti i pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("closeAll").click()), "comprimi");
+    add("Azzera le spunte dei pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => { const m = $("resetSteps").closest("details"); if (m) m.open = true; evidenzia($("resetSteps")); }), "cancella reset");
+    add("Come si traccia un pezzo senza compasso", "Passo 4 · Pezzi", nelPasso("pezzi", () => apriDettagli(sezioneCon("rule345"))), "metodo regola 3-4-5 speculari due metri");
+    if (cur && cur.an) cur.an.types.forEach((t, i) => add(`Pezzo ${i + 1}: ${pieceName(t.C)}`, "Passo 4 · Pezzi · × " + t.faces.length, () => goToPiece(i), "pezzo tipo dima P" + (i + 1)));
+    // passo 5
+    add("Modellino a pezzi separati", "Passo 5 · Modellino", nelPasso("modellino", () => setBuild("pieces")), "cartoncino dime");
+    add("Modellino con lo sviluppo", "Passo 5 · Modellino", nelPasso("modellino", () => { setBuild("net"); evidenzia($("netwrap")); }), "ritagliare piegare stampa");
+    add("Ingrandisci lo sviluppo", "Passo 5 · Modellino", nelPasso("modellino", () => { setBuild("net"); $("zoomNet").click(); }), "zoom");
+    // passo 6
+    add("Modalità cantiere delle giunzioni", "Passo 6 · Montaggio", nelPasso("montaggio", () => $("siteSeams").click()), "schermo intero telefono montare");
+    add("Elenco di tutte le giunzioni", "Passo 6 · Montaggio", nelPasso("montaggio", () => apriDettagli(sezioneCon("seams"))), "tabella cuciture");
+    add("Azzera le giunzioni", "Passo 6 · Montaggio", nelPasso("montaggio", () => { $("seams").closest("details").open = true; evidenzia($("resetSeams")); }), "cancella reset");
+    add("Come si monta", "Passo 6 · Montaggio", nelPasso("montaggio", () => apriDettagli([...document.querySelectorAll("#montaggio details.more")].pop())), "ordine lettere saldatura nastro unire plastica");
+    if (cur && cur.an) cur.an.seams.forEach(s => add("Giunzione " + s.no, "Passo 6 · Montaggio", nelPasso("montaggio", () => { selectSeam(s.no); evidenzia($("nextSeam")); }), "cucitura unione"));
+    // vista 3D
+    add("Persona da 1,75 m", "Vista 3D", () => evidenzia($("optPerson")), "sonny confronto altezza");
+    add("Colora per tipo di pezzo", "Vista 3D", () => evidenzia($("optColors")), "colori");
+    return V;
+  }
+  let vociAperte = [], sceltaCerca = 0, risultatiCerca = [];
+  function filtraCerca(q) {
+    const parole = normCerca(q).split(/\s+/).filter(Boolean);
+    if (!parole.length) return vociAperte.filter(v => v.base);
+    const r = [];
+    for (const v of vociAperte) {
+      const tn = normCerca(v.t); let pt = 0;
+      for (const w of parole) { if (!v.k.includes(w)) { pt = -1; break; } pt += tn.startsWith(w) ? 4 : tn.includes(" " + w) ? 3 : tn.includes(w) ? 2 : 1; }
+      if (pt > 0) r.push([pt, v]);
+    }
+    return r.sort((a, b) => b[0] - a[0]).slice(0, 14).map(x => x[1]);
+  }
+  function disegnaCerca() {
+    const L = $("cercaLista"); risultatiCerca = filtraCerca($("cercaIn").value);
+    sceltaCerca = Math.min(sceltaCerca, Math.max(0, risultatiCerca.length - 1));
+    L.innerHTML = risultatiCerca.length ? risultatiCerca.map((v, i) => `<li role="option" id="cv${i}" aria-selected="${i === sceltaCerca}" data-i="${i}"><b>${esc(v.t)}</b><span>${esc(v.s)}</span></li>`).join("")
+      : `<li class="vuoto">Nessuna opzione con queste parole. Prova con un'altra: cupola, rotolo, cantiere, giunzioni…</li>`;
+    $("cercaIn").setAttribute("aria-activedescendant", risultatiCerca.length ? "cv" + sceltaCerca : "");
+    L.querySelectorAll("li[data-i]").forEach(li => { li.onclick = () => eseguiCerca(risultatiCerca[+li.dataset.i]); li.onmousemove = () => { if (sceltaCerca !== +li.dataset.i) { sceltaCerca = +li.dataset.i; segnaScelta(); } }; });
+  }
+  function segnaScelta() {
+    $("cercaLista").querySelectorAll("li[data-i]").forEach(li => li.setAttribute("aria-selected", String(+li.dataset.i === sceltaCerca)));
+    const s = $("cv" + sceltaCerca); if (s) { s.scrollIntoView({ block: "nearest" }); $("cercaIn").setAttribute("aria-activedescendant", s.id); }
+  }
+  function apriCerca() { vociAperte = vociCerca(); sceltaCerca = 0; $("cercaIn").value = ""; $("cerca").hidden = false; disegnaCerca(); $("cercaIn").focus(); }
+  function chiudiCerca() { $("cerca").hidden = true; }
+  function eseguiCerca(v) { if (!v) return; chiudiCerca(); try { v.f(); } catch (e) { console.error(e); } }
+  $("bCerca").addEventListener("click", e => { e.stopPropagation(); apriCerca(); });
+  $("cercaTasto").textContent = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K";
+  $("bCerca").title = "Cerca un'opzione scrivendo con la tastiera (" + $("cercaTasto").textContent + " o /)";
+  $("cercaIn").addEventListener("input", () => { sceltaCerca = 0; disegnaCerca(); });
+  $("cercaIn").addEventListener("keydown", e => {
+    const n = risultatiCerca.length;
+    if (e.key === "ArrowDown" && n) { e.preventDefault(); sceltaCerca = (sceltaCerca + 1) % n; segnaScelta(); }
+    else if (e.key === "ArrowUp" && n) { e.preventDefault(); sceltaCerca = (sceltaCerca - 1 + n) % n; segnaScelta(); }
+    else if (e.key === "Enter") { e.preventDefault(); eseguiCerca(risultatiCerca[sceltaCerca]); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); chiudiCerca(); }
+  });
+  $("cerca").addEventListener("mousedown", e => { if (e.target === $("cerca")) chiudiCerca(); });
+  document.addEventListener("keydown", e => {
+    if (e.defaultPrevented || !$("site").hidden) return;   // in modalità cantiere i tasti servono ai passi
+    const scrive = e.target.closest && e.target.closest("input, textarea, select, [contenteditable='true']");
+    if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey) && !e.altKey) { e.preventDefault(); if ($("cerca").hidden) apriCerca(); else chiudiCerca(); }
+    else if (e.key === "/" && !scrive && !e.metaKey && !e.ctrlKey && !e.altKey && $("cerca").hidden) { e.preventDefault(); apriCerca(); }
+  });
 })();
 </script>

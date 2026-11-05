@@ -297,3 +297,21 @@ Tutto segnato `[Officina]`:
 - **Nell'Officina** c'è `calcio`, «Pallone (pentagoni ed esagoni)»: l'icosaedro troncato, con i punti `PTS.tico` che il motore aveva già. Appoggiato su un esagono (`defOrient: "faccia"`), senza taglio.
 - **Qui:** `['calcio', 'Pallone']` in `FORME_OFF`, l'icona `of:calcio`, nel gruppo «Solidi». I 6 lati del pavimento vanno tutti bene per una porta da 1,80 m.
 
+## Dal branch dei colleghi: ricerca, oggetti 3D, Aria e Dati, più leggera (5 novembre)
+
+Dal branch `abbofficina-ricerca-oggetti-3d` (thaaby) sono state prese le parti che non si scontrano con l'interfaccia di adesso (Costruisci/Prova, pannello a sinistra, Annulla). Tutte segnate `[Officina]`.
+- **Preso così com'era:**
+  - **Sonny compresso senza perdite** (`const SONNY` con il campo `zip`, `inflaRaw`, `sbloccaSonny`, `dec0`/`dec` in `costruisciSonny`): da 2,32 a 1,79 MB, dati decompressi identici;
+  - **`stimaRegime` e `stimaSingola` si fermano a regime** (`regimeRaggiunto`): stessi risultati, molto più veloci;
+  - **Aria:** una scheda per bolla (`costruisciManometri`, con "quando è stabile" come nel resto della pagina), la tabella sotto "Dettagli" (`details#dettagliBolle`, colonna "Bolla"), niente nastro magnetico nei riquadri in cima (`#kNastro` tolto);
+  - **Dati:** il materiale del lab in alto (`#riassTelo`, `#riassNastro`, `#riassGonf`, `riassuntoLab()`), i numeri sotto "Avanzate" (`#avanzate`) con "Rimetti i valori del lab" (`#bValoriLab`, `D_LAB`, `GONF_LAB`), gli schemi sotto "Schemi delle chiusure" (`#schemiChiusure`);
+  - **pannello della bolla in tre schede** (Stato, Forma, Collega): Aspetto è `details.aspetto` in fondo a Forma (`ispAspetto`). La riga in cima dice "Gruppo A · 3 collegati insieme" o "Senza collegamenti";
+  - **"Sistema" diventa "Gruppo"** (`nomeSistema`, "Ruota tutto il gruppo", "in 2 gruppi");
+  - **oggetti 3D** (blocco `OGGETTI 3D`, `#pannelloO`, CSS "oggetti 3D"), salvati con la composizione (`dati.oggetti`, IndexedDB `oggetto:` + composizione + `:` + oggetto). Toccare un oggetto nella scena lo sceglie (`toccaOggetto`), toccare una bolla lo lascia;
+  - **barra di ricerca** (`#bCerca`, `#cerca`, `vociCerca`, `filtraCerca`, `apriCerca`).
+- **Adattato al main:**
+  - il pulsante **Oggetti 3D** (`#bOggetti`) sta nella barra Vista, accanto a Stanza, invece che nel menu Vista;
+  - nella ricerca, le voci di persone, pressione e simulazione passano a **Prova** (`inProva`), quelle per aggiungere una forma a **Costruisci**; il pannello si riapre con `MENU.sx`, la barra Vista con `MENU.vista`. In più ci sono le voci Prova, Annulla, Ripeti e "Mostra o nascondi i menu"; "Forma da foto" usa `#bDaFoto` e "Metti a parte" `#bSeparato`;
+  - **`lettore()`** scarica solo i lettori degli oggetti 3D (OBJ, STL, PLY, TransformControls) la prima volta che servono. **GLTFLoader e RGBELoader restano nei `<script>` in fondo**, come prima: il computer del lab spesso è offline, e così la stanza da GLB o HDR funziona anche lì se la pagina è già stata aperta una volta con internet.
+- **Non preso, perché rifà in un altro modo quello che c'è già:** il pannello a destra con la barra sola in basso e il menu Vista, il pulsante Menu tolto, "Simulazione" chiamata "Prove", i gonfiatori della bolla nuova scelti solo dalla pagina (qui sono in "Più opzioni"), "Fai scoppiare" tolto dal pannello della bolla, "Aggiungi da sola", la guida riscritta e i gruppi di forme Semplici / Dall'Officina / Figure e frutti (qui ci sono le prime sei più "Altre forme").
+- **Nell'Officina** (`../index.html`, fuori dal motore) è entrato tutto: la barra di ricerca e il cambio di forma più veloce (`cssMemo`, `fmtNF`). Il motore non cambia: le prove con node danno gli stessi numeri.
