@@ -187,6 +187,7 @@ input[type="number"]:hover, select:hover { border-color: var(--line-strong); }
 .hero-text .stat:nth-child(odd) { border-left: 0; padding-left: 2px; }
 .hero-text .stat .v { font-size: 1.75rem; }
 .hero-shape { font-size: .95rem; }
+.hero-azione { color: var(--green); font-weight: 600; }
 .hero-stage { position: relative; background: var(--card); border-radius: var(--r-l); box-shadow: var(--shadow); padding: 12px; display: grid; gap: 8px; }
 .tip { position: absolute; left: 0; top: 0; pointer-events: none; background: var(--ink); color: var(--card); font: 600 .8rem var(--mono); padding: 5px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); z-index: 3; }
 canvas.pickable { cursor: grab; touch-action: none; }
@@ -196,7 +197,15 @@ canvas.pickable.over { cursor: pointer; }
 /* ---------- galleria delle forme ---------- */
 .gallery { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: start; }
 .gal-group { display: grid; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 100%; }
-.gal-group h4 { font-family: var(--mono); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.gal-group h3 { font-family: var(--mono); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+/* per cominciare 4 forme; le altre si aprono sotto */
+.gal-piu { flex: 1 1 100%; }
+.altreForme { display: inline-flex; align-items: center; gap: 10px; }
+.altreForme svg { transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
+.altreForme[aria-expanded="true"] svg { transform: rotate(180deg); }
+.gal-altre { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: start; }
+.gal-altre[hidden] { display: none; }
+@media (max-width: 640px) { .gal-prime .gal-row { display: grid; grid-template-columns: 1fr 1fr; overflow: visible; } .gal-prime .gal-row .tile { width: auto; } .gal-prime .tile canvas { max-width: 120px; } }   /* sul telefono le quattro per cominciare si vedono tutte, due per riga */
 .gal-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .gal-row .tile { width: 122px; }
 @media (max-width: 640px) {
@@ -533,7 +542,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <p class="lede">Scegliete una forma e le sue misure reali: la pagina prepara la guida completa per costruirla, prima come modellino in scala e poi come bolla vera in plastica, con i numeri giusti in ogni passaggio.</p>
       <div class="stats" id="stats"></div>
       <p class="warn" id="heroPorta" hidden></p>
-      <p class="hero-shape"><span class="muted">Forma scelta:</span> <strong id="heroShape"></strong></p>
+      <p class="hero-shape"><span class="muted" id="heroShapeEt">Forma scelta:</span> <strong id="heroShape"></strong><span class="hero-azione" id="heroAzione" hidden> · cliccate la figura per sceglierla</span></p>
     </div>
     <figure class="hero-stage">
       <canvas id="view" class="pickable" aria-label="Vista 3D della forma scelta, con quote e una persona alta 1,75 m per confronto. Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."></canvas>
@@ -541,7 +550,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <div class="viewopts">
         <label class="check"><input type="checkbox" id="optPerson" checked> <span>Persona da 1,75 m</span></label>
         <label class="check"><input type="checkbox" id="optColors" checked> <span>Colora per tipo di pezzo</span></label>
-        <span class="muted">Trascinate per girarla · cliccate un pannello per vedere il suo pezzo.</span>
+        <span class="muted" id="heroHint">Trascinate per girarla · cliccate un pannello per vedere il suo pezzo.</span>
       </div>
       <div class="ruler" aria-hidden="true"></div>
     </figure>
@@ -701,7 +710,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
       </div>
     </div>
     <div class="field" id="scaleF"><label for="scale2">Scala del modellino (1 : …)</label><input id="scale2" type="number" step="any" min="1" value="20"></div>
-    <div class="field" id="rollF" hidden><label for="roll">Larghezza del rotolo (cm)</label><input id="roll" type="number" min="20" step="5" value="150"></div>
+    <div class="field" id="rollF" hidden><label for="roll">Larghezza del rotolo di telo (m)</label><input id="roll" type="number" min="0.5" max="20" step="0.1" value="2"></div><!-- è lo stesso rotolo del Passo 3: i due campi restano uguali -->
     <div class="field" id="marginF" hidden><label for="margin">Margine per saldare o cucire (cm)</label><input id="margin" type="number" min="0" step="0.5" value="3"></div>
     <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center">
       <details class="menu">
@@ -1913,7 +1922,7 @@ function analyze(V, F, floor) {
     clear(prefix) { [...memo.keys()].forEach(k => { if (k.startsWith(prefix)) memo.delete(k); }); try { Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k)); } catch (e) { /* niente */ } },
   };
 
-  const state = { shape: "d20", params: {}, opt: { cut: true, fit: true, fitArea: 6.25, orient: null, level: null }, scale: 20, mode: "model", roll: 150, margin: 3, person: true, colors: true };
+  const state = { shape: "d20", params: {}, opt: { cut: true, fit: true, fitArea: 6.25, orient: null, level: null }, scale: 20, mode: "model", roll: 200, margin: 3, person: true, colors: true };
   let cur = null;
   const isReal = () => state.mode === "real";
   const Lx = (m) => (isReal() ? cmR(m) : cmM(m));
@@ -1955,12 +1964,27 @@ function analyze(V, F, floor) {
 
   /* galleria: un riquadro con la miniatura vera di ogni forma */
   const shortName = (s) => s.name.split(" (")[0];
+  // per cominciare: quattro forme collaudate, con pochi tipi di pezzo; le altre stanno sotto «Altre forme», per gruppi
+  const PRIME = ["d20", "d6", "geo", "calcio"].filter(id => SHAPES.some(s => s.id === id));
+  let altreAperte = false;
   function buildGallery() {
+    const tile = s => `<button type="button" class="tile" data-id="${s.id}" aria-pressed="${s.id === state.shape}"><canvas data-thumb="${s.id}" aria-hidden="true"></canvas><span>${esc(shortName(s))}</span></button>`;
     const groups = new Map();
-    SHAPES.forEach(s => { if (!groups.has(s.group)) groups.set(s.group, []); groups.get(s.group).push(s); });
-    $("gallery").innerHTML = [...groups].map(([name, list]) => `<div class="gal-group"><h4>${esc(name)}</h4><div class="gal-row">${list.map(s =>
-      `<button type="button" class="tile" data-id="${s.id}" aria-pressed="${s.id === state.shape}" title="${esc(s.name)}"><canvas data-thumb="${s.id}" aria-hidden="true"></canvas><span>${esc(shortName(s))}</span></button>`).join("")}</div></div>`).join("");
-    $("gallery").addEventListener("click", e => { const b = e.target.closest(".tile"); if (b) { fermaVetrina(); selectShape(b.dataset.id); drawView("hero"); } });
+    SHAPES.filter(s => !PRIME.includes(s.id)).forEach(s => { if (!groups.has(s.group)) groups.set(s.group, []); groups.get(s.group).push(s); });
+    $("gallery").innerHTML = `<div class="gal-group gal-prime"><h3>Per cominciare</h3><div class="gal-row">${PRIME.map(id => tile(SHAPES.find(s => s.id === id))).join("")}</div></div>`
+      + `<div class="gal-piu"><button type="button" class="btn altreForme" id="altreForme" aria-expanded="false" aria-controls="galAltre"><span></span><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div>`
+      + `<div class="gal-altre" id="galAltre" hidden>${[...groups].map(([name, list]) => `<div class="gal-group"><h3>${esc(name)}</h3><div class="gal-row">${list.map(tile).join("")}</div></div>`).join("")}</div>`;
+    $("gallery").addEventListener("click", e => {
+      if (e.target.closest("#altreForme")) { apriAltre(!altreAperte); return; }
+      const b = e.target.closest(".tile"); if (b) { fermaVetrina(); selectShape(b.dataset.id); drawView("hero"); }
+    });
+    apriAltre(!PRIME.includes(state.shape));
+  }
+  function apriAltre(v) {
+    const b = $("altreForme"); if (!b) return;
+    altreAperte = v; $("galAltre").hidden = !v; b.setAttribute("aria-expanded", String(v));
+    b.firstElementChild.textContent = v ? "Meno forme" : `Altre forme (${SHAPES.length - PRIME.length})`;
+    if (v) requestAnimationFrame(() => SHAPES.forEach(s => { if (!PRIME.includes(s.id)) drawThumb(s.id); }));   // nascoste non si disegnano: si disegnano quando si aprono
   }
   function selectShape(id) {
     if (id === state.shape) return;
@@ -2223,11 +2247,17 @@ function analyze(V, F, floor) {
   }
   $("modeModel").addEventListener("click", () => setMode("model"));
   $("modeReal").addEventListener("click", () => setMode("real"));
-  $("roll").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v > 0) { state.roll = v; renderPieces(); } });
+  // un rotolo solo, in metri: lo stesso valore per il materiale (Passo 3) e per i pezzi (Passo 4); state.roll è in cm per i pezzi
+  function impostaRotolo(v, da) {
+    if (!(v >= 0.5 && v <= 20)) return false;
+    state.roll = v * 100; for (const id of ["rotolo", "roll"]) if (id !== da) $(id).value = v;
+    return true;
+  }
+  $("roll").addEventListener("input", e => { if (impostaRotolo(parseFloat(e.target.value), "roll")) { try { localStorage.setItem("bolle|rotolo", e.target.value); } catch (er) {} renderPrep(); renderPieces(); } });
   $("margin").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v >= 0) { state.margin = v; renderPieces(); renderPrep(); } });
   // il telo si compra a rotoli: la larghezza resta salvata in questo browser (vale per tutte le forme)
-  try { const r = parseFloat(localStorage.getItem("bolle|rotolo")); if (r >= 0.5 && r <= 20) $("rotolo").value = r; } catch (e) {}
-  $("rotolo").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v >= 0.5 && v <= 20) { try { localStorage.setItem("bolle|rotolo", v); } catch (er) {} renderPrep(); } });
+  try { impostaRotolo(parseFloat(localStorage.getItem("bolle|rotolo"))); } catch (e) {}
+  $("rotolo").addEventListener("input", e => { if (impostaRotolo(parseFloat(e.target.value), "rotolo")) { try { localStorage.setItem("bolle|rotolo", e.target.value); } catch (er) {} renderPrep(); renderPieces(); } });
   $("resetSteps").addEventListener("click", () => { store.clear(shapeKey() + "|step"); renderPieces(); });
   $("resetSeams").addEventListener("click", () => { store.clear(shapeKey() + "|seam"); renderSeams(); });
   // bolla, modellino o entrambe nelle misure del Passo 2 (ricordato in questo browser)
@@ -2389,9 +2419,9 @@ function analyze(V, F, floor) {
     const d = def(), A = altezzaPortaConf(), basso = !!A && (A.piramide ? A.basso : A.h < 1.8 - 0.005), dove = DOVE_PORTA[d.id] ? ` (qui si entra ${DOVE_PORTA[d.id]})` : "";
     const t = !A ? "" : A.piramide
       ? `La porta sta su una faccia inclinata, dove la bolla è più bassa: con la piramide alta ${mR(A.H)} la porta può essere alta circa ${mR(A.h)}. Per una porta da 1,80 m (si passa in piedi) la piramide dev'essere alta almeno 3,30 m: è anche il minimo dell'Abbofficina, che altrimenti la alza da sola.`
-      : `Dove va la porta${dove} la porta può essere alta al massimo ${mR(A.h)}: si misura 30 cm dentro la porta, e sopra la soglia non ci deve essere un soffitto più basso. Per una porta da 1,80 m (si passa in piedi) alzate la bolla o aumentate le misure: l'Abbofficina la ingrandirebbe da sola.`;
+      : `La porta${dove} può essere alta al massimo ${mR(A.h)}: si misura 30 cm dentro la porta, e sopra la soglia non ci deve essere un soffitto più basso. Per una porta da 1,80 m (si passa in piedi) alzate la bolla o aumentate le misure: l'Abbofficina la ingrandirebbe da sola.`;
     $("avvisoPorta").hidden = !basso; $("avvisoPorta").textContent = t;
-    $("heroPorta").hidden = !basso; $("heroPorta").textContent = basso ? "Troppo bassa per una porta da 1,80 m: guardate il Passo 2." : "";
+    $("heroPorta").textContent = basso ? "Troppo bassa per una porta da 1,80 m: guardate il Passo 2." : ""; $("heroPorta").hidden = !basso || inVetrina();
     // tante sagome diverse vogliono dire tanto lavoro: si dice quali scelte di questa forma le riducono
     const nt = cur.an.types.length, piu = CONSIGLI_TIPI[d.id], molti = nt > 40;
     $("consiglioTipi").hidden = !molti;
@@ -2431,7 +2461,7 @@ function analyze(V, F, floor) {
       ? `Le misure sopra sono state adattate per avere ${fmt(cur.floorArea, 2)} m² di pavimento. Se scrivete un lato a mano, l'adattamento si spegne e l'area si ricalcola.`
       : (cur.floorArea > 0 ? "" : "Questa forma non ha un pavimento piatto, quindi non si può adattare all'area: attivate la base o il fondo piatto.");
     $("navShape").textContent = d.name;
-    $("heroShape").textContent = d.name;
+    scriviVetrina(); if (!PRIME.includes(state.shape) && !altreAperte) apriAltre(true);
     renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll(); syncModelRef(); renderBridge(true); renderAvvisi();
     ricordaForma();
   }
@@ -2750,7 +2780,7 @@ function analyze(V, F, floor) {
     if (real) {
       const mw = minWidth(C), need = mw.w * 100 + 2 * mg;
       warn = need > state.roll
-        ? `<p class="note">Con i margini questo pezzo è largo almeno <span class="num">${fmt(need, 1)} cm</span> e non entra in un rotolo da ${fmt(state.roll, 0)} cm. Prima di tracciarlo unite due strisce di telo con una saldatura dritta, oppure dividete il pezzo in due lungo una diagonale (aggiungendo una giunzione).</p>`
+        ? `<p class="note">Con i margini questo pezzo è largo almeno <span class="num">${fmt(need, 1)} cm</span> e non entra in un rotolo largo ${fmt(state.roll / 100, 1)} m. Prima di tracciarlo unite due strisce di telo con una saldatura dritta, oppure dividete il pezzo in due lungo una diagonale (aggiungendo una giunzione).</p>`
         : `<p class="okbox">Entra nel rotolo: con il lato lungo lungo il rotolo occupa <span class="num">${fmt(need, 1)} cm</span> di larghezza e <span class="num">${fmt(mw.l * 100 + 2 * mg, 1)} cm</span> di lunghezza.</p>`;
     }
     const key = shapeKey() + "|step|" + state.mode + "|" + i + "|";
@@ -3170,7 +3200,11 @@ function analyze(V, F, floor) {
 
   function inVetrina() { return !!vetrina.id && vetrina.id !== state.shape && thumbs.has(vetrina.id); }
   function scriviVetrina() {
-    const id = inVetrina() ? vetrina.id : state.shape, sd = SHAPES.find(x => x.id === id);   // il nome serve a chi legge con lo screen reader
+    const altra = inVetrina(), id = altra ? vetrina.id : state.shape, sd = SHAPES.find(x => x.id === id);   // il nome serve a chi legge con lo screen reader
+    // sotto i numeri: «In vetrina» quando si vede un'altra forma (i numeri sono i suoi), «Forma scelta» quando si vede la vostra
+    $("heroShapeEt").textContent = altra ? "In vetrina:" : "Forma scelta:"; $("heroShape").textContent = sd ? sd.name : ""; $("heroAzione").hidden = !altra;
+    $("heroPorta").hidden = altra || !$("heroPorta").textContent;
+    $("heroHint").textContent = altra ? "Cliccate la figura per scegliere questa forma, o aspettate la prossima." : "Trascinate per girarla · cliccate un pannello per vedere il suo pezzo.";
     views.hero.cv.setAttribute("aria-label", `Vista 3D: ${sd ? shortName(sd) : "forma"}, con quote e una persona alta 1,75 m per confronto. ` +
       (inVetrina() ? "Cliccate per scegliere questa forma." : "Trascinate per ruotarla, cliccate un pannello per andare al suo pezzo."));
   }
@@ -3511,7 +3545,8 @@ function analyze(V, F, floor) {
     foot.className = "stepfoot";
     foot.innerHTML = (prev ? `<a class="btn back" href="#${prev.id}">‹ Indietro</a>` : "") +
       (next ? `<a class="btn big primary next" href="#${next.id}">Avanti: ${esc(title(next))} ›</a>` : `<a class="btn big next" href="#forma">Fatto! Ricominciate con un'altra forma</a>`);
-    s.appendChild(foot);
+    const dopo = s.querySelector(":scope > #projects");   // al Passo 1 i progetti vengono dopo «Avanti»: prima si sceglie e si misura
+    if (dopo) s.insertBefore(foot, dopo); else s.appendChild(foot);
   });
   function showStep(id) {
     const idx = Math.max(0, stepIds.indexOf(id)), sid = stepIds[idx];
@@ -3664,7 +3699,7 @@ function analyze(V, F, floor) {
     add("Misure per il modellino", "Passo 4 · Pezzi", nelPasso("pezzi", () => { $("modeModel").click(); evidenzia($("modeModel")); }), "cartoncino scala");
     add("Misure per la bolla vera", "Passo 4 · Pezzi", nelPasso("pezzi", () => { $("modeReal").click(); evidenzia($("modeReal")); }), "plastica telo reale");
     add("Margine per saldare o cucire", "Passo 4 · Pezzi", nelPasso("pezzi", () => { if (!isReal()) $("modeReal").click(); evidenzia($("margin")); }), "cm bordo");
-    add("Larghezza del rotolo (pezzi)", "Passo 4 · Pezzi", nelPasso("pezzi", () => { if (!isReal()) $("modeReal").click(); evidenzia($("roll")); }), "cm telo");
+    add("Larghezza del rotolo (pezzi)", "Passo 4 · Pezzi", nelPasso("pezzi", () => { if (!isReal()) $("modeReal").click(); evidenzia($("roll")); }), "metri telo");
     add("Modalità cantiere dei pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("sitePieces").click()), "schermo intero telefono tracciare");
     add("Apri tutti i pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("openAll").click()), "espandi");
     add("Chiudi tutti i pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("closeAll").click()), "comprimi");

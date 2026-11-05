@@ -2,7 +2,11 @@
 
 Un generatore di guide per costruire bolle gonfiabili in plastica fatte di pannelli piatti: cupola, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, ciambella, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera) e piante disegnate a mano.
 
-In cima, la figura mostra a turno tutte le forme, una ogni 5 secondi (si ferma mentre ci passate sopra o la girate a mano): cliccandola si sceglie quella che si sta vedendo. I numeri accanto restano sempre sulla forma scelta. Appena si sceglie una forma (dalla galleria, cliccando la figura, con la ricerca, aprendo un progetto o un file, da un link o tornando dall'Abbofficina) il giro si ferma e la figura resta su quella, fino alla prossima visita.
+In cima, la figura mostra a turno tutte le forme, una ogni 5 secondi (si ferma mentre ci passate sopra o la girate a mano): cliccandola si sceglie quella che si sta vedendo. I numeri accanto restano sempre sulla forma scelta. Appena si sceglie una forma (dalla galleria, cliccando la figura, con la ricerca, aprendo un progetto o un file, da un link o tornando dall'Abbofficina) il giro si ferma e la figura resta su quella, fino alla prossima visita. Mentre la figura mostra un'altra forma, sotto i numeri c'è scritto «In vetrina: …» (i numeri sono di quella forma) e l'avviso della porta si nasconde; sulla vostra forma torna «Forma scelta».
+
+**Passo 1**: in cima ci sono 4 forme per cominciare (cupola, cubo, sfera geodetica, pallone); le altre 23 si aprono con «Altre forme», e si aprono da sole se la forma scelta è una di quelle. I Progetti del gruppo stanno dopo «Avanti».
+
+**Rotolo**: la larghezza del rotolo di telo è una sola, in metri. Si scrive al Passo 3 (materiale) o al Passo 4 (pezzi, con la bolla vera) e i due campi restano uguali.
 
 Si sceglie la forma e la misura, e la pagina prepara tutto il resto:
 - le misure della bolla vera e del modellino in scala;
