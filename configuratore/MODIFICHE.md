@@ -228,3 +228,117 @@ Prima la stanza di sfondo era una sola, salvata nel browser e uguale per tutte l
 - **Pareti ricontrollate solo se serve:** aprendo una composizione, le pareti si ricontrollano contro le bolle solo se prima c'era una stanza. Una stanza nuova lo fa da sé quando arriva.
 - **Stanza vecchia:** la voce unica `stanza` delle versioni di prima si cancella all'avvio.
 
+
+## Un pannello solo e una barra sola (5 novembre)
+
+Interfaccia semplificata (opzione C): la scena è più grande e ogni cosa sta in un posto solo (`[Officina]` nel markup, nel CSS dopo "Interfaccia sistemata" e nello script).
+- **Un pannello solo, a destra.** I due pannelli laterali stanno nella stessa colonna (`grid-column: 2`) e se ne vede uno alla volta:
+  - senza nessuna bolla scelta si vede **Aggiungi** (`aside.sx`);
+  - toccando una bolla si vede **la bolla** (`aside.dx`). `ispettore()` mette o toglie la classe `conPezzo` su `#vCostruisci`;
+  - in cima al pannello della bolla c'è **"← Aggiungi"** (`#iIndietro`), che toglie la scelta; lo fa anche un tocco nel vuoto della scena, come prima;
+  - mentre una bolla è scelta i "+" nella scena non si vedono (`#vCostruisci.conPezzo #sovra .piu`).
+  - Sotto i 980 px il pannello va sotto la scena (`order: 2`).
+- **Una linguetta sola** (`#lingDx`), che chiude e riapre il pannello (`MENU.pan`, classe `chiusoPan`). La linguetta di sinistra (`#lingSx`) è tolta.
+- **Una barra sola, in basso sulla scena** (`.sinistra`, ora con `bottom: 12px`): Play, persone, stato, materiali e il nuovo **menu Vista** (`#bVista`, `#menuVista`, si apre verso l'alto). Nel menu Vista:
+  - la visuale (occhi di Sonny, `#selPov`, spostato qui dalla barra);
+  - **Riquadro della pressione** (`#vPress`, `MENU.press`): il riquadro in alto a destra ora parte spento e si accende da qui; la sua × lo rispegne;
+  - **Stanza di sfondo…** (`#bStanza`, prima nella barra Vista);
+  - la legenda dei gonfiatori.
+
+  La barra Vista (`#barraScena`) e le × delle barre (`X_PAN('persone')`, `X_PAN('vista')`) sono tolte. Il pulsante `#bNotte`, già nascosto, resta nella scena.
+- **Niente pulsante "Menu"** nell'intestazione (`#bMenu`, `#menuMenu`, `mNascondi`, `mMostra` tolti): con un pannello solo non serve più nascondere i menu uno per uno.
+- **"Simulazione" si chiama "Prove"** (`#bProve`). Anche la guida e la nota in fondo ad Aria lo dicono.
+- **Gonfiatori della bolla nuova scelti dalla pagina** (`gonfNuovoAuto`, `testoGonf`): nel pannello Aggiungi non ci sono più i −/+, ma una riga che dice quali gonfiatori ha scelto `gonfConsigliati` (i meno potenti che la tengono su; il risultato resta in `cacheGonf` per forma e misure). Si cambiano dopo, nel pannello della bolla. Se nessuna combinazione basta, restano quelli di `TIPI` e la riga lo dice.
+- **"Fai scoppiare" tolto dal pannello della bolla**: lo scoppio si prova da Prove → Esplodi. Nel pannello, se la bolla è scoppiata, resta "Ripara lo strappo" (`#iScoppia`).
+- **"Aggiungi separato · nuovo sistema"** si chiama **"Aggiungi da sola · staccata dalle altre"** (`#bSeparato`, stessa funzione).
+- **Guida** riscritta per il pannello a destra, la barra in basso e il menu Vista.
+- La visuale "Occhi di Sonny" (`#povInfo`) ora sta in alto, per non coprire la barra.
+- **Prove automatiche:** chi cliccava `#bMenu`, `#lingSx`, `[data-m]` o `#barraScena` deve usare `#lingDx`, `#bVista` e `#vPress`. Per vedere il pannello Aggiungi non deve esserci nessuna bolla scelta (`cfg` → `selezionato = null`, oppure `#iIndietro`).
+
+## Pannello, forme, Aria e Dati più semplici (5 novembre)
+
+Quattro ritocchi dopo "Un pannello solo" (`[Officina]` nel markup, nel CSS prima di "gruppi di forme" e nello script).
+- **Pannello della bolla con tre schede: Stato · Forma · Collega.**
+  - La quarta scheda, Aspetto, ora è in fondo a Forma, chiusa: `details.aspetto`, con Colore e Soffitto stellato. Resta aperta o chiusa passando da una bolla all'altra (`ispAspetto`). Se qualcosa chiede `tabIsp = 'aspetto'`, si apre Forma.
+  - La riga in cima dice "Gruppo A · 3 collegati insieme" oppure "Senza collegamenti", più "è l'ingresso". Prima diceva "Sistema A · 1 modulo da solo · ingresso".
+  - **"Sistema" diventa "Gruppo"** dappertutto: `nomeSistema()` (anche nelle porte di Aria e nel riquadro della pressione), "Ruota tutto il gruppo", "2 bolle in 2 gruppi". Nel codice le variabili restano `sistemi` e `p.sistema`.
+- **Forme in gruppi apribili** nel pannello Aggiungi, scheda Bolle (`GRUPPI_FORME`, `gruppiAperti`, in `disegnaTipi`):
+  - **Semplici**: le 5 del configuratore;
+  - **Dall'Officina**: cupola, dodecaedro, L, C, freccia, serpente, ciambella, tunnel;
+  - **Figure e frutti**: le altre forme dell'Officina.
+
+  All'inizio è aperto solo Semplici. Il gruppo della forma scelta si apre da solo, e i gruppi restano come li si lascia. Se c'è un gruppo solo (configuratore aperto senza l'Officina) e nei Corridoi, la griglia è quella di prima (`#tipi` senza la classe `aGruppi`).
+- **Aria più leggibile:**
+  - **Una scheda per bolla** (`costruisciManometri`). Contiene il manometro, la pressione di adesso, "a regime", "si gonfia in" e cosa fare ("Va bene", il consiglio di `valuta()`, o "Scoppiata"). Il limite delle cuciture è nel `title` della scheda. Il titolo della sezione ora è "Bolle".
+  - **La tabella completa sta sotto "Dettagli"**, chiusa (`details.dettagliBolle`). La sua colonna "Stanza" ora si chiama "Bolla".
+  - **Il nastro magnetico non è più nei riquadri in cima** (`#kNastro` tolto: resta in Materiali). "moduli" diventa "bolle".
+- **Dati: il materiale del lab in alto, i numeri chiusi sotto.**
+  - In alto, "Il materiale del lab", con tre schede:
+    - Telo: la tendina del materiale e un riassunto (`#riassTelo`);
+    - Chiusure: porte, cornici e giunti, più il riassunto del nastro (`#riassNastro`);
+    - Gonfiatori del lab, in sola lettura (`#riassGonf`).
+
+    I riassunti si aggiornano in `riassuntoLab()`, chiamata da `tabellaChiusure()`.
+  - **"Avanzate"**, chiusa: tutti i cursori di prima (gonfiatori, telo, nastro, tabella delle chiusure e "Maniche e aria", che prima si chiamava "Altro"). Contiene anche il pulsante **"Rimetti i valori del lab"** (`#bValoriLab`), che rimette `D` e i dati dei gonfiatori ai valori scritti nel codice (`D_LAB`, `GONF_LAB`, presi all'avvio) dopo una conferma.
+  - **"Schemi delle chiusure"**, chiusa: gli schemi di prima, con gli stessi id.
+  - Sul telefono le schede vanno a capo, la tabella delle chiusure scorre dentro la sua scheda e gli schemi stanno uno sotto l'altro.
+- **Prove automatiche:**
+  - la tabella di Aria è dentro `details.dettagliBolle`: per vederla va aperta;
+  - `#kNastro` non c'è più;
+  - nel pannello della bolla non c'è più `[data-sc="aspetto"]`: colore e stelle sono in `details.aspetto`, dentro la scheda Forma;
+  - i bottoni delle forme sono sempre `#tipi button[data-t]`, ma quelli dei gruppi chiusi non si vedono.
+
+## Più leggera e più veloce, e la barra di ricerca (5 novembre)
+
+Tutte le parti sono segnate `[Officina]`. Le misure sono fatte prima e dopo, nelle stesse condizioni.
+- **Sonny compresso senza perdite** (`const SONNY`, `inflaRaw`, `sbloccaSonny`, in `costruisciSonny`):
+  - posizioni, uv, normali, ossa e triangoli sono compressi con deflate. Per posizioni, uv e indici i numeri a 16 bit sono salvati come differenze dal precedente, con i byte bassi separati da quelli alti;
+  - il campo `zip` dice, per ogni dato, quanti byte ha e se va ricostruito;
+  - `inflaRaw` è un lettore deflate in JavaScript, sincrono perché Sonny serve subito all'avvio;
+  - provato byte per byte: i dati decompressi sono identici a quelli di prima;
+  - il file passa da 2,32 a 1,79 MB (da 1,31 a 1,17 MB scaricati con gzip). L'avvio costa circa 30 ms in più per decomprimere;
+  - se si cambia Sonny, va ricompresso: senza il campo `zip`, `costruisciSonny` legge anche i dati non compressi di prima.
+- **GLTFLoader e RGBELoader solo quando servono** (`LETTORI`, `lettore()`): non sono più nei `<script>` in fondo alla pagina (109 KB a ogni apertura). Si scaricano quando si apre il pannello Stanza, o quando si carica un GLB o un HDR. Il Corridoio, che è un JPG, non ne ha bisogno.
+- **`stimaRegime` e `stimaSingola` si fermano a regime** (`regimeRaggiunto`):
+  - smettono di simulare quando, per 10 s simulati, nessuna bolla cambia il suo volume d'aria di più di un miliardesimo;
+  - la parte del blackout si ferma anche quando tutte le bolle hanno il loro tempo `tB`;
+  - confrontati con la versione di prima su 4 composizioni da 8 bolle e su 20 bolle singole, `tF` e `tB` sono identici e la pressione differisce al massimo di 0,0000003 Pa;
+  - `strutturaCambiata` (a ogni ritocco) con 8 bolle passa da circa 146 a 63–91 ms; `stimaSingola` (anteprima e gonfiatori scelti da soli) da 59 a 16 ms per 20 bolle.
+- **Barra di ricerca** (`#bCerca`, `#cerca`, `vociCerca`, `filtraCerca`, `apriCerca`; CSS "barra di ricerca"):
+  - si apre con il pulsante "Cerca" in alto, con ⌘K / Ctrl+K, oppure con / quando non si sta scrivendo in un campo;
+  - si sceglie con le frecce e Invio, si chiude con Esc o con un clic fuori;
+  - trova le schede, le forme da aggiungere, le bolle della composizione, le schede della bolla scelta, le prove, persone e vista, le composizioni salvate, e le sezioni di Aria, Materiali e Dati;
+  - ogni voce usa i pulsanti e le funzioni che ci sono già (per esempio `$('bBlack').click()`, `sceltaCat`, `mostra`). L'opzione trovata viene evidenziata con un contorno (classe `.trovato`);
+  - l'elenco si ricostruisce a ogni apertura, così contiene le bolle e le composizioni del momento;
+  - non conta maiuscole e accenti: "velocita 20" trova "Velocità ×20";
+  - le sezioni Avanzate e Schemi di Dati ora hanno un id (`#avanzate`, `#schemiChiusure`).
+- **Nell'Officina** (`../index.html`, fuori dal motore) i colori del tema per i disegni dei pezzi si leggono una volta sola (`cssMemo`, che `themeChange` svuota), e i numeri si formattano con un `Intl.NumberFormat` per ogni numero di decimali (`fmtNF`). Il risultato è identico; il cambio di forma per la pera e la scolopendra è circa due volte più veloce.
+
+## Oggetti 3D, di nuovo (5 novembre)
+
+La sezione Oggetti tolta il 2 novembre è stata riscritta, più leggera (`[Officina]`, blocco `OGGETTI 3D` prima della barra di ricerca; CSS "oggetti 3D"):
+- **Dove:** menu Vista → **Oggetti 3D…** (`#bOggetti`), che apre il pannello `#pannelloO` a sinistra della scena. Stanza di sfondo e oggetti non si aprono insieme. La ricerca trova "Oggetti 3D", "Carica un modello 3D" e ogni oggetto per nome.
+- **Formati:** GLB, OBJ, STL e PLY, anche con i colori dei vertici. Un PLY senza facce diventa una nuvola di punti, con la grandezza dei punti calcolata dalla densità.
+  - `OBJLoader`, `STLLoader`, `PLYLoader` e `TransformControls` si scaricano solo quando servono (aggiunti a `LETTORI`, con `lettore()`).
+  - Lo splat e la scena Municipalità_4 di prima non ci sono.
+- **Misure:**
+  - alla prima apertura, un modello lungo più di 300 unità viene considerato in millimetri e uno lungo più di 30 in centimetri (`primaScala`);
+  - poi si regola con "Altezza dell'oggetto", o con "Lato più lungo" per le cose piatte, in metri;
+  - "Alzalo (gira di 90°)" raddrizza le scansioni che arrivano sdraiate (asse Z in alto);
+  - ogni oggetto è centrato in pianta e appoggiato a terra, quindi ruota su se stesso (gerarchia `g` → `off` → `perno` → `mod`).
+- **Spostare:**
+  - con le maniglie (Sposta, Ruota, Scala): la rotazione è solo attorno all'asse verticale e la scala resta uguale nelle tre direzioni;
+  - il quadratino centrale e le maniglie orizzontali fanno scorrere l'oggetto sul pavimento;
+  - oppure con i campi del pannello;
+  - toccando un oggetto nella scena lo si sceglie, se è più vicino delle bolle (`toccaOggetto`, chiamata nel `pointerdown` della scena);
+  - toccando il vuoto, o una bolla, l'oggetto scelto si lascia; anche con Esc.
+- **Duplica e Togli.** Le copie usano le stesse geometrie. Togli cancella anche il file dal browser, se nessun'altra composizione lo usa.
+- **Con la composizione:**
+  - le misure stanno in `dati.oggetti` (scritto da `fotografa` con `statoOggetti`, letto alla fine di `carica` con `applicaOggetti`);
+  - il file sta in IndexedDB (`bolle-stanza`, chiave `oggetto:` + composizione + `:` + oggetto);
+  - ogni oggetto ricorda in `fileDi` la composizione che ha il suo file: aprendo una copia, o una composizione importata, il file si copia sotto quella nuova;
+  - **Elimina** cancella i file della composizione che non servono più ad altre (`togliFileOggetti`); **Nuova** parte senza oggetti;
+  - come per la stanza, il file non viaggia con Esporta: se manca, l'oggetto resta in elenco con "Scegli il file…".
+- **Avvio:** `oggettiPronti` e `oggettiAttesi` sono `var` senza valore iniziale, perché all'avvio `carica()` e `fotografa()` arrivano prima che il blocco sia letto.
+- **Avatar:** `window.oggetti.elenco()` dà il centro `c` e il raggio `r` di ogni oggetto, e `occupato()` dice se si sta usando una maniglia. Così torna la situazione "Attorno agli oggetti", quando un oggetto è dentro una bolla.
+- Il legame tra i pezzi del modello e il loro oggetto sta in una `WeakMap` (`oggettoDi`), non in `userData`: `clone()` copia `userData` come testo, e il legame è circolare.
