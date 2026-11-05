@@ -474,7 +474,20 @@
   .suggScena b { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%; background: var(--acc-soft); color: var(--acc); font-size: 12px; vertical-align: 1px; }
   .suggScena .piuMini { vertical-align: -4px; }
   .xSugg { border: 0; background: none; padding: 2px 6px; font-size: 18px; line-height: 1; color: var(--mut); }
-  @media (max-width: 980px) { .sinistra, #vCostruisci.costr .sinistra { right: 12px; } .suggScena { bottom: 68px; font-size: 13px; width: max-content; flex-direction: column; align-items: flex-start; gap: 2px; padding-right: 34px; } .xSugg { position: absolute; top: 6px; right: 6px; } }
+  .storia { box-shadow: var(--ombra); flex: none; }
+  .storia button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; font-weight: 600; }
+  .storia button:disabled { opacity: .38; }
+  #avviso.conAzione { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+  #avviso.conAzione button { border: 0; padding: 4px 10px; border-radius: 7px; background: rgba(255,255,255,.16); color: #fff; font-weight: 650; }
+  #avviso.conAzione button:hover { background: rgba(255,255,255,.28); }
+  .piuOpz { border-top: 1px solid var(--line); }
+  .piuOpz > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 8px; padding: 12px 14px; font-weight: 650; font-size: 13.5px; }
+  .piuOpz > summary::-webkit-details-marker { display: none; }
+  .piuOpz > summary::before { content: ""; width: 7px; height: 7px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: translateY(-2px) rotate(-45deg); transition: transform .15s ease; flex: none; }
+  .piuOpz[open] > summary::before { transform: translateY(-3px) rotate(45deg); }
+  .piuOpz > summary span { font-weight: 500; font-size: 12.5px; color: var(--mut); }
+  .piuOpz > summary:hover { color: var(--acc); }
+  @media (max-width: 980px) { .sinistra, #vCostruisci.costr .sinistra { right: 12px; } .storia button span { display: none; } .suggScena { bottom: 68px; font-size: 13px; width: max-content; flex-direction: column; align-items: flex-start; gap: 2px; padding-right: 34px; } .xSugg { position: absolute; top: 6px; right: 6px; } }
 </style>
 </head>
 <body>
@@ -556,9 +569,9 @@
 <div id="guida" class="guidaPop" hidden role="dialog" aria-labelledby="guidaTit">
   <h3 id="guidaTit">Come si usa</h3>
   <ol>
-    <li><b>Aggiungi.</b> A sinistra scegli <i>Bolle</i> o <i>Corridoi</i>, poi una forma: le sei più usate sono in cima, le altre in <i>Altre forme</i>. Regola misure e porte. Con <i>Stanza</i>, in basso, metti le bolle dentro uno spazio vero.</li>
+    <li><b>Aggiungi.</b> A sinistra scegli <i>Bolle</i> o <i>Corridoi</i>, poi una forma: le sei più usate sono in cima, le altre in <i>Altre forme</i>. Regola le misure; porte e gonfiatori sono in <i>Più opzioni</i>. Con <i>Stanza</i>, in basso, metti le bolle dentro uno spazio vero.</li>
     <li><b>Attacca.</b> Tocca un <span class="piuMini">+</span> nella scena: il pezzo si aggancia lì. Le frecce ↺ ↻ scelgono come arriva girato.</li>
-    <li><b>Modifica.</b> Tocca un pezzo: il pannello a sinistra diventa la sua scheda, con stato, forma, collegamenti e colore. <i>Aggiungi un altro pezzo</i> (o Esc) torna indietro. Trascina un pezzo per spostarlo.</li>
+    <li><b>Modifica.</b> Sbagliato qualcosa? <i>Annulla</i> sopra la scena, o Ctrl+Z. Tocca un pezzo: il pannello a sinistra diventa la sua scheda, con stato, forma, collegamenti e colore. <i>Aggiungi un altro pezzo</i> (o Esc) torna indietro. Trascina un pezzo per spostarlo.</li>
     <li><b>Prova.</b> Passa a <i>Prova</i>, sopra la scena: <i>Play</i> fa entrare le persone, il riquadro <i>Pressione</i> mostra come sta l'aria, <i>Simulazione</i> in alto cambia la velocità e simula blackout e scoppi. </li>
   </ol>
   <div class="bottoni"><button class="pri" id="guidaOk">Ho capito</button></div>
@@ -574,11 +587,14 @@
         </div>
       </div>
       <div class="corpoSx" id="aggForma">
-        <p class="guidaRiga" id="guidaAgg">Scegli una forma, regola misure e porte, poi tocca un <span class="piuMini">+</span> nella scena.</p>
+        <p class="guidaRiga" id="guidaAgg">Scegli una forma e le misure, poi tocca un <span class="piuMini">+</span> nella scena.</p>
         <section class="sez"><h2>Forma</h2><div id="tipi"></div></section>
         <section class="sez"><div class="sezTesta"><h2>Misure</h2><button id="bStd" class="link">Ripristina</button></div><div class="par" id="parNuovo"></div></section>
-        <section class="sez"><h2>Porte</h2><div id="porteNuove"></div><div id="attNuovo"></div></section>
-        <section class="sez"><h2>Gonfiatori</h2><div id="gonfNuovo" class="par"></div></section>
+        <details class="piuOpz" id="piuOpz"><!-- [Officina] porte e gonfiatori: i valori di partenza vanno già bene -->
+          <summary>Più opzioni<span>porte, verso e gonfiatori</span></summary>
+          <section class="sez"><h2>Porte</h2><div id="porteNuove"></div><div id="attNuovo"></div></section>
+          <section class="sez"><h2>Gonfiatori</h2><div id="gonfNuovo" class="par"></div></section>
+        </details>
         <div class="anteprima" id="anteprima"></div>
       </div>
       <div class="corpoSx" id="aggGonf" hidden></div>
@@ -593,7 +609,9 @@
       <div id="sovra"></div>
       <button class="linguetta sx" id="lingSx"><!-- [Officina] chiude e riapre i pannelli laterali --></button><button class="linguetta dx" id="lingDx"></button>
       <div class="sinistra"><div class="seg modoScena" id="modoScena" role="group" aria-label="Modalità"><!-- [Officina] costruire o provare: in Costruisci restano solo forme, pannello e + -->
-        <button data-modo="costruisci" aria-pressed="true" title="Aggiungi e modifica i pezzi">Costruisci</button><button data-modo="prova" aria-pressed="false" title="Persone, pressione, simulazione, stanza">Prova</button></div><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span><span class="sepv"></span><button class="chip" id="chipStato" title="Apri Aria"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></button><button class="chip" id="chipBudget" title="Apri Materiali"></button></div></div><!-- [Officina] stato e materiali nella stessa barra delle persone -->
+        <button data-modo="costruisci" aria-pressed="true" title="Aggiungi e modifica i pezzi">Costruisci</button><button data-modo="prova" aria-pressed="false" title="Persone, pressione, simulazione">Prova</button></div>
+        <div class="seg storia" role="group" aria-label="Annulla e ripeti"><!-- [Officina] annulla e ripeti le modifiche -->
+          <button id="bAnnulla" title="Annulla l'ultima modifica (Ctrl+Z)" disabled><svg viewBox="0 0 16 14" width="15" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1.5 1.5 5 5 8.5"/><path d="M1.5 5H10a4.5 4.5 0 0 1 0 9H7"/></svg><span>Annulla</span></button><button id="bRipeti" title="Ripeti (Ctrl+Y)" aria-label="Ripeti" disabled><svg viewBox="0 0 16 14" width="15" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1.5 14.5 5 11 8.5"/><path d="M14.5 5H6a4.5 4.5 0 0 0 0 9h3"/></svg></button></div><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span><span class="sepv"></span><button class="chip" id="chipStato" title="Apri Aria"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></button><button class="chip" id="chipBudget" title="Apri Materiali"></button></div></div><!-- [Officina] stato e materiali nella stessa barra delle persone -->
       <div class="pannelloP" id="pannelloP" aria-label="Pressione dei moduli"></div>
       <div class="suggScena" id="suggScena" role="note" hidden><!-- [Officina] la guida dentro il lavoro, finché non si attacca il primo pezzo -->
         <span><b>1</b> Scegli una forma nel pannello <span class="soloLargo">a sinistra</span><span class="soloStretto">qui sotto</span></span><span><b>2</b> Tocca un <span class="piuMini">+</span> su una bolla per attaccarla lì</span>
@@ -2701,7 +2719,8 @@ function latiPerCollegare(A, B) {
       if (!meglio || sc < meglio.sc) meglio = { ea, eb, d, sc }; } }
   return meglio;
 }
-function avviso(t, ms) { const el = $('avviso'); if (!el) return; el.textContent = t; el.hidden = !t; clearTimeout(avviso.t); if (t && ms) avviso.t = setTimeout(() => { el.hidden = true; }, ms); }
+function avviso(t, ms, azione) { const el = $('avviso'); if (!el) return; el.textContent = t; el.hidden = !t; el.classList.toggle('conAzione', !!azione);
+  if (t && azione) { const b = document.createElement('button'); b.textContent = azione[0]; b.onclick = () => { el.hidden = true; azione[1](); }; el.append(' ', b); }   /* [Officina] un pulsante nell'avviso */ clearTimeout(avviso.t); if (t && ms) avviso.t = setTimeout(() => { el.hidden = true; }, ms); }
 function collegaAMano(A, B) {
   if (link.some(l => l.a && ((l.a === A && l.b === B) || (l.a === B && l.b === A)))) { avviso(`${A.nome} e ${B.nome} sono già collegate.`, 3500); return false; }
   const m = latiPerCollegare(A, B);
@@ -2899,7 +2918,8 @@ function ispettore(nuovo) {
   { const g0 = genitore(p); sceltaPorte($('iPorte'), p.F, p.porte, p.usati, () => strutturaCambiata(), g0 && p.porte.length > 1 ? g0.ef : undefined); }
   disegnaTinte($('iTinte'), p); disegnaStelle($('iStelle'), p);
   $('iNome').oninput = e => { p.nome = e.target.value || TIPI[p.tipo].nome; costruisciRighe(); costruisciManometri(); salvaPresto(); };
-  $('iTogli').onclick = () => { const ing = p.ingresso; pezzi = pezzi.filter(q => q !== p); if (ing && pezzi[0]) pezzi[0].ingresso = true; selezionato = null; strutturaCambiata(); };
+  $('iTogli').onclick = () => { const ing = p.ingresso; pezzi = pezzi.filter(q => q !== p); if (ing && pezzi[0]) pezzi[0].ingresso = true; selezionato = null; strutturaCambiata();
+    avviso(p.nome + ' eliminato.', 6000, ['Annulla', annulla]); };   // [Officina] si può riavere
   {   // collegamenti: quelli che ci sono (si possono staccare) e le bolle vicine a cui collegarla
     const el = $('iColl'), miei = link.filter(l => l.a && (l.a === p || l.b === p));
     const vicine = pezzi.filter(q => q !== p && !miei.some(l => l.a === q || l.b === q)).map(q => ({ q, m: latiPerCollegare(p, q) })).filter(x => x.m && x.m.d <= D.manMax + 1.5).sort((a, b) => a.m.d - b.m.d).slice(0, 6);
@@ -3048,6 +3068,12 @@ function impostaModo(m) {
   requestAnimationFrame(ridimensiona);
 }
 $('modoScena').querySelectorAll('[data-modo]').forEach(b => b.onclick = () => impostaModo(b.dataset.modo));
+$('bAnnulla').onclick = () => annulla(); $('bRipeti').onclick = () => ripeti();
+document.addEventListener('keydown', e => {   // [Officina] Ctrl+Z annulla, Ctrl+Y o Ctrl+Maiusc+Z ripete (nei campi di testo resta quello del browser)
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || /INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); annulla(); } else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); ripeti(); }
+});
 impostaModo('costruisci');
 function mostra(v) {
   for (const [k, id, tb] of [['c', 'vCostruisci', 'tabC'], ['p', 'vPressione', 'tabP'], ['b', 'vMateriali', 'tabB'], ['d', 'vDati', 'tabD']]) {   /* [Officina] quattro categorie */ $(id).hidden = v !== k; $(tb).setAttribute('aria-pressed', v === k); }
@@ -3438,6 +3464,8 @@ $('bRipara').onclick = () => ripara();
 // --- composizioni: più progetti, salvati nel browser ---
 const CHIAVE_COMP = 'bolle-composizioni', CHIAVI_D = ['mat', 'gsm', 't', 'sigma', 'pMin', 'manW', 'manL', 'manH', 'manMax', 'nW', 'nT', 'nFile', 'porte', 'coll', 'giunti', 'bleed', 'aPersona', 'sfogo'];
 let comp = { attiva: null, lista: [] }, caricando = false;
+// [Officina] annulla / ripeti: ogni modifica salvata (salvaPresto) lascia l'istantanea di prima in storia.indietro
+const storia = { indietro: [], avanti: [], ora: null }, MAX_STORIA = 30;
 // [Officina] ogni composizione ha la sua stanza (o nessuna). stanzaVoluta: quella da mettere quando la pagina è pronta;
 // stanzaAttesa: quella che si sta caricando, così un salvataggio a metà non la perde
 let stanzaVoluta = null, stanzaAttesa = null, stanzaPronti = false, genStanza = 0;
@@ -3458,9 +3486,27 @@ function statoStanza() {   // [Officina] la stanza della composizione aperta: ti
 }
 function salvaPresto() {
   if (caricando) return; clearTimeout(salvaPresto.t);
-  salvaPresto.t = setTimeout(() => { const c = compAttiva(); if (!c) return; c.dati = fotografa(); c.agg = Date.now(); salvaComp(); disegnaComp(); }, 400);
+  salvaPresto.t = setTimeout(() => { registraStoria(); const c = compAttiva(); if (!c) return; c.dati = fotografa(); c.agg = Date.now(); salvaComp(); disegnaComp(); }, 400);
 }
-function carica(dati) {
+function statoStoria() { const { stanza, ...d } = fotografa(); return JSON.stringify(d); }   // [Officina] la stanza non si annulla: ha il suo pannello
+function registraStoria() {
+  const ora = statoStoria();
+  if (storia.ora == null) { storia.ora = ora; return; }
+  if (ora === storia.ora) return;
+  storia.indietro.push(storia.ora); if (storia.indietro.length > MAX_STORIA) storia.indietro.shift();
+  storia.avanti = []; storia.ora = ora; aggiornaStoria();
+}
+function aggiornaStoria() { $('bAnnulla').disabled = !storia.indietro.length; $('bRipeti').disabled = !storia.avanti.length; }
+function passoStoria(da, a, msg) {
+  clearTimeout(salvaPresto.t); registraStoria();   // una modifica appena fatta, non ancora registrata, entra prima nella storia
+  if (!storia[da].length) return;
+  const sel = pezzi.indexOf(selezionato);
+  storia[a].push(storia.ora); storia.ora = storia[da].pop();
+  carica(JSON.parse(storia.ora), { storia: true, sel });
+  salvaPresto(); aggiornaStoria(); avviso(msg, 1400);
+}
+const annulla = () => passoStoria('indietro', 'avanti', 'Modifica annullata'), ripeti = () => passoStoria('avanti', 'indietro', 'Modifica ripetuta');
+function carica(dati, opz = {}) {   // [Officina] opz.storia: da Annulla / Ripeti (niente stanza, l'inquadratura resta); opz.sel: il pezzo da riselezionare
   caricando = true; fermaTutti(); clearTimeout(salvaPresto.t);
   for (const k of CHIAVI_D) if (dati.D && dati.D[k] != null) D[k] = dati.D[k];
   if (dati.GONF) for (const k of ['piccolo', 'grande']) Object.assign(GONF[k], dati.GONF[k] || {});
@@ -3480,11 +3526,14 @@ function carica(dati) {
   for (const P of persone) P.dove = null;
   const coppie = a => (a || []).map(([ia, ea, ib, eb]) => ({ a: pezzi[ia], ea, b: pezzi[ib], eb })).filter(m => m.a && m.b);
   manuali = coppie(dati.manuali); staccati = coppie(dati.staccati);
-  costruisciDati(); inquadra.L = 0; strutturaCambiata();
+  if (opz.sel >= 0 && pezzi[opz.sel]) selezionato = pezzi[opz.sel];
+  costruisciDati(); if (!opz.storia) inquadra.L = 0; strutturaCambiata();
   for (const p of pezzi) { p.Va = p.V0 * 1.002; p.hist = []; }
   { const r = { pezzi, link }; for (let i = 0; i < 6000; i++) passoRete(r, 0.05, false); }
   mettiPersona(); caricando = false; disegnaComp();
+  if (opz.storia) return;
   stanzaVoluta = { id: comp.attiva, s: dati.stanza || null }; applicaStanza();   // [Officina] si parte sempre senza stanza, poi arriva quella salvata
+  storia.indietro = []; storia.avanti = []; storia.ora = statoStoria(); aggiornaStoria();   // [Officina] ogni composizione ha la sua storia
 }
 function apriComp(id) {
   const c = comp.lista.find(x => x.id === id); if (!c || id === comp.attiva) return;
@@ -3885,6 +3934,7 @@ disegnaTipi(); costruisciDati(); ridimensiona();
   { const r = { pezzi, link }; for (let i = 0; i < 12000; i++) passoRete(r, 0.05, false); }
   mettiPersona(); caricando = false;
   const c = { id: nuovoIdComp(), nome: 'Cubo iniziale', agg: Date.now(), dati: fotografa() }; comp.lista.push(c); comp.attiva = c.id; salvaComp(); disegnaComp();
+  storia.ora = statoStoria();   // [Officina] da qui si può annullare
   // [Officina] tornando dall'Officina (o riaprendo la pagina) si ritrova la composizione su cui si stava lavorando, non un cubo nuovo
   if (prec && prec.nome !== 'Ultima sessione' && prec.dati && (prec.dati.pezzi || []).length) {
     comp.lista = comp.lista.filter(x => x !== c); comp.attiva = null; apriComp(prec.id); disegnaComp(); }

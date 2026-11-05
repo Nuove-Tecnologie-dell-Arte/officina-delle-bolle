@@ -247,3 +247,13 @@ Per chi la apre la prima volta (oggi il lab, poi tutti gli studenti dell'Accadem
 - **Guida:** "Come si usa" non si apre più da sola. Finché non si attacca il primo pezzo, in Costruisci c'è un suggerimento nella scena (`#suggScena`: «Scegli una forma… Tocca un +…»). Sparisce al primo pezzo o con la ×, e si ricorda in `bolle-primo-pezzo`. Il testo di "Guida" parla delle modalità e del pannello unico.
 - **Prove automatiche:** Play (`#bGiro`) e Simulazione (`#bProve`) si vedono solo in Prova: prima di cliccarli va cliccato `[data-modo="prova"]`. Con un pezzo selezionato il pannello Aggiungi è nascosto, quindi `[data-cat="corridoi"]` e `#attP` vanno cliccati via JavaScript (`element.click()`). La stella ora sta in «Altre forme».
 
+## Annulla / Ripeti e pannello Aggiungi più corto (5 novembre)
+
+- **Annulla e Ripeti** (`[Officina]`, `storia`, `registraStoria`, `passoStoria`, `annulla`, `ripeti`).
+  - Sopra la scena, accanto a Costruisci / Prova, ci sono «Annulla» e la freccia di Ripeti. Da tastiera: Ctrl+Z, e Ctrl+Y o Ctrl+Maiusc+Z (dentro i campi di testo resta l'annulla del browser).
+  - **Come funziona:** ogni modifica che arriva a `salvaPresto` lascia nella storia l'istantanea di prima, cioè `fotografa()` senza la stanza, che ha il suo pannello. Ne tiene al massimo 30.
+  - Annullare ricarica l'istantanea con `carica(dati, { storia: true, sel })`: niente stanza, l'inquadratura resta, e il pezzo che era selezionato torna selezionato.
+  - Ogni composizione ha la sua storia: aprendone un'altra si riparte da zero.
+- **Elimina** mostra l'avviso «Cubo 3 eliminato.» con il pulsante «Annulla» (`avviso(t, ms, [etichetta, funzione])`).
+- **Pannello Aggiungi più corto:** porte (con il verso ↺ ↻) e gonfiatori stanno in «Più opzioni» (`#piuOpz`, un `<details>` chiuso), perché i valori di partenza vanno già bene. Restano visibili forma, misure e i numeri della bolla.
+
