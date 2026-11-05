@@ -2511,10 +2511,11 @@ function muovi(P, passi) { P.copione = spostati(P, passi); P.attesa = null; P.tC
 function nuovoResidente(p) { const usati = new Set(persone.map(P => P.k)); let k = 1; while (usati.has(k)) k++;
   const P = creaPersona(k); P.casa = P.residente = P.dove = p; P.tAqui = 0; persone.push(P); mettiUna(P); return P; }
 function togliAvatar(P) { if (P === persona) return; if (pov === P) esciPov(); for (const l of link) if (l.porta.uso === P) l.porta.uso = null; scena.remove(P.g); persone = persone.filter(q => q !== P); }
-// [Officina] residenti di ogni bolla, sempre: 1 nei corridoi, nelle bolle uno ogni 6 m² (da 1 a 4). Un numero scritto a mano
-// (p.nRes > 0, dalle prove automatiche) vale di più. In tutto ne restano almeno 6 liberi per i visitatori di Play
+// [Officina] le bolle nuove sono vuote: niente residenti da soli. Le situazioni capitano con i visitatori di Play che si fermano
+// in una bolla (inSosta). Solo un numero scritto a mano (p.nRes > 0, dalle prove automatiche) mette dei residenti; in tutto
+// ne restano almeno 6 liberi per i visitatori
 function residentiVoluti() {
-  const V = new Map(); for (const p of pezzi) V.set(p, p.nRes > 0 ? p.nRes : p.tipo === 'corridoio' || p.F.corr ? 1 : clamp(Math.round(areaUtile(p) / 6), 1, 4));
+  const V = new Map(); for (const p of pezzi) V.set(p, p.nRes > 0 ? p.nRes : 0);
   let tot = [...V.values()].reduce((a, b) => a + b, 0);
   while (tot > MAX_AVATAR - 6) { let m = null; for (const [p, n] of V) if (!m || n > V.get(m)) m = p; if (!m || V.get(m) <= 0) break; V.set(m, V.get(m) - 1); tot--; }
   return V;
@@ -2903,7 +2904,7 @@ function disegnaSituazioni(forza) {
 }
 function pannelloSit(v) { const pn = $('pannelloS'); pn.hidden = !v; const sb = document.querySelector('.sinistra .gruppo'); if (v && sb) pn.style.top = (sb.getBoundingClientRect().bottom - box.getBoundingClientRect().top + 8) + 'px'; $('bSit').classList.toggle('attivo', v);
   if (v) disegnaSituazioni(true); }
-// [Officina] niente più pulsante Situazioni: le situazioni capitano da sole (vedi residentiVoluti e situazioneDi)
+// [Officina] niente più pulsante Situazioni: le situazioni capitano da sole, con chi è nella bolla (vedi situazioneDi)
 $('sSosta').onchange = e => { GENTE.sosta = +e.target.value; };
 $('sVisite').onchange = e => { GENTE.visite = e.target.checked; };
 $('sPopola').onclick = () => { for (const p of pezzi) p.nRes = p.tipo === 'corridoio' || p.F.corr ? 1 : clamp(Math.round(areaUtile(p) / 6), 1, 4);
@@ -4307,6 +4308,7 @@ let tParSt = 0; const salvaParStanza = () => { clearTimeout(tParSt); tParSt = se
 function applicaStanza() {
   if (!stanzaPronti || !stanzaVoluta) return;
   const v = stanzaVoluta; stanzaVoluta = null; genStanza++;
+  const cera = !!ST.tipo;   // ricontrollare le pareti serve solo se una stanza c'era (quella nuova lo fa da sé quando arriva)
   togliStanza(false); Object.assign(ST, { pronta: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true }); stanzaAttesa = null;   // misure di partenza
   const s = v.s;
   if (s && s.par) {
@@ -4315,7 +4317,7 @@ function applicaStanza() {
     if (S) stanzaPronta(S, s.par);
     else { Object.assign(ST, s.par); stanzaDB('get', v.id, s.da); }
   }
-  aggiornaStanza();
+  if (cera) aggiornaStanza();
 }
 function disegnaStanza() {
   const el = $('pannelloSt'); if (!el) return;

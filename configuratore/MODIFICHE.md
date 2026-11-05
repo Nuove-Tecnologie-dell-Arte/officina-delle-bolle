@@ -207,10 +207,10 @@ Le stesse cose stavano in più posti; ora ognuna sta in un posto solo (`[Officin
 ## Situazioni da sole (3 novembre)
 
 - **Niente più pulsante "Situazioni"** nella barra delle persone. Il pannello `#pannelloS` resta nel codice, ma non si apre più.
-- **Residenti in ogni bolla, sempre** (`[Officina]`, `residentiVoluti`, usata da `syncResidenti`): 1 nei corridoi, nelle bolle uno ogni 6 m² di pavimento utile (da 1 a 4), come faceva "Popola tutte le bolle". In tutto ne restano almeno 6 liberi per i visitatori di Play (massimo 24 avatar). Un `p.nRes` maggiore di 0, scritto dalle prove automatiche, vale di più.
+- **Niente residenti da soli** (`[Officina]`, `residentiVoluti`, usata da `syncResidenti`): le bolle nuove sono vuote. All'inizio (3 novembre) ogni bolla si riempiva da sola, come con "Popola tutte le bolle", ma non deve succedere (5 novembre). Le situazioni capitano con i visitatori di Play che si fermano in una bolla. Solo un `p.nRes` maggiore di 0, scritto dalle prove automatiche, mette dei residenti, lasciando almeno 6 posti liberi per i visitatori (massimo 24 avatar).
 - **Situazioni a caso** (`situazioneDi`): la prima si sceglie a caso fra quelle possibili, e ogni 35–55 secondi ne arriva un'altra, mai la stessa due volte di fila. Prima andavano sempre nello stesso ordine.
 - **Composizioni salvate:** riaprendole, situazione e residenti tornano automatici.
-- **Prove automatiche:** `test/sit.js` e `test/multi.js` cliccavano `#bSit` e `#sPopola`. Quei clic vanno tolti, perché i residenti ci sono già.
+- **Prove automatiche:** `test/sit.js` e `test/multi.js` cliccavano `#bSit` e `#sPopola`. Al loro posto va messo `p.nRes` a mano su ogni pezzo, poi `cfg.syncResidenti()`.
 
 ## Una stanza per composizione (4 novembre)
 
@@ -225,5 +225,6 @@ Prima la stanza di sfondo era una sola, salvata nel browser e uguale per tutte l
 - **Elimina** cancella anche il file della stanza di quella composizione.
 - **Importa:** una stanza pronta torna. Per una foto o un modello caricati da un altro browser compare un avviso: il file non viaggia con l'export, e va rimesso da «Stanza».
 - **Cambi a metà:** se si cambia composizione mentre una stanza si sta caricando, quella stanza non arriva più (`genStanza`).
+- **Pareti ricontrollate solo se serve:** aprendo una composizione, le pareti si ricontrollano contro le bolle solo se prima c'era una stanza. Una stanza nuova lo fa da sé quando arriva.
 - **Stanza vecchia:** la voce unica `stanza` delle versioni di prima si cancella all'avvio.
 
