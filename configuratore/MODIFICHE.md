@@ -275,3 +275,25 @@ Tutto segnato `[Officina]`:
   - prima la scena scorreva via verso l'alto mentre si sceglieva una forma.
 - **Scena in Costruisci:** non si sposta più a sinistra per far posto al riquadro Pressione, che lì non c'è (`ridimensiona`).
 
+## Sfera geodetica (5 novembre)
+
+- **Nell'Officina** (`../index.html`) c'è una forma nuova, `geo`, «Sfera geodetica (tipo d100)».
+  - Usa `geodesicPoints`, che il motore aveva già: l'icosaedro diviso e portato sulla sfera.
+  - Parametri: diametro e «Quanto è tonda» (80, 180 o 320 triangoli).
+  - Appoggiata su un vertice e tagliata a circa un quarto dell'altezza (`defCut: 0.25`: ora `defCut` può essere anche una frazione, oltre a "half").
+  - Se cambia il numero di livelli di taglio, come passando da 80 a 180 triangoli, il taglio torna quello di partenza (`opt._nLev`).
+- **Qui:** `['geo', 'Sfera']` in `FORME_OFF`, l'icona `of:geo`, ed è la prima del gruppo «Solidi» in «Altre forme». Non serve una regola delle porte: con 4 m di diametro tutti i lati del pavimento sono alti abbastanza per una porta da 1,80 m.
+
+## Sfera di triangoli uguali (5 novembre)
+
+- **Nell'Officina** c'è `sferaU`, «Sfera di triangoli uguali».
+  - Il solido viene da `catalanPoints` (nuova, nel motore): i vertici dell'icosaedro (o dell'ottaedro), i centri delle sue facce e le metà dei suoi spigoli, tutti sulla sfera.
+  - Ne escono 120 (o 48) triangoli uguali, che sono il disdiakis triacontaedro (o il disdiakis dodecaedro).
+  - Si parte tagliata a un quinto (`defCut: 0.2`); a metà resta di triangoli tutti uguali.
+- **Qui:** `['sferaU', 'Sfera a triangoli']` in `FORME_OFF`, l'icona `of:sferaU`, nel gruppo «Solidi». Con il taglio di partenza tutti i 16 lati del pavimento vanno bene per una porta da 1,80 m.
+
+## Pallone (5 novembre)
+
+- **Nell'Officina** c'è `calcio`, «Pallone (pentagoni ed esagoni)»: l'icosaedro troncato, con i punti `PTS.tico` che il motore aveva già. Appoggiato su un esagono (`defOrient: "faccia"`), senza taglio.
+- **Qui:** `['calcio', 'Pallone']` in `FORME_OFF`, l'icona `of:calcio`, nel gruppo «Solidi». I 6 lati del pavimento vanno tutti bene per una porta da 1,80 m.
+

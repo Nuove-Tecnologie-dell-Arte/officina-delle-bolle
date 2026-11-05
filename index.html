@@ -1066,6 +1066,14 @@ function geodesicPoints(freq) {
   });
   return dedupePoints(pts);
 }
+/* punti di un solido a triangoli tutti uguali (disdiakis): vertici del solido di partenza, centri delle sue facce e metà dei suoi spigoli,
+   tutti sulla sfera. Con l'icosaedro: 120 triangoli; con l'ottaedro: 48. I punti di metà spigolo vengono prima: appoggiato su uno di quelli,
+   il piano a metà altezza è un piano di simmetria, passa lungo gli spigoli e taglia il solido in due metà senza spezzare nessun triangolo */
+function catalanPoints(base) {
+  const B = fromPoints(base.map(V3.norm)), cen = B.F.map(f => V3.norm(f.reduce((t, i) => V3.add(t, B.V[i]), [0, 0, 0]))), mid = [];
+  B.F.forEach(f => f.forEach((a, i) => { const b = f[(i + 1) % f.length]; if (a < b) mid.push(V3.norm(V3.add(B.V[a], B.V[b]))); }));
+  return [...mid, ...B.V.map(V3.norm), ...cen];
+}
 function ngon(n, R, z, rot) {
   const out = [];
   for (let i = 0; i < n; i++) { const a = rot + 2 * Math.PI * i / n; out.push([R * Math.cos(a), R * Math.sin(a), z]); }
@@ -1159,6 +1167,14 @@ const pick = (key, label, options, def) => ({ key, label, options, def, type: "p
 const SHAPES = [
   { id: "d20", group: "Solidi regolari", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2.2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
   { id: "d6", group: "Solidi regolari", name: "Cubo (6 quadrati)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
+  { id: "geo", group: "Solidi regolari", name: "Sfera geodetica (tipo d100)", kind: "convex",
+    params: [num("D", "Diametro (m)", 4, 0.5), pick("f", "Quanto è tonda", [["2", "80 triangoli"], ["3", "180 triangoli"], ["4", "320 triangoli"]], "2")],
+    points: p => geodesicPoints(+p.f || 2).map(v => V3.mul(v, p.D / 2)), defOrient: "vertice", defCut: 0.25 },   // tagliata a un quarto: resta circa tre quarti di sfera
+  { id: "sferaU", group: "Solidi regolari", name: "Sfera di triangoli uguali", kind: "convex",
+    params: [num("D", "Diametro (m)", 5, 0.5), pick("n", "Triangoli (sfera intera)", [["120", "120 triangoli"], ["48", "48 triangoli"]], "120")],
+    points: p => catalanPoints(p.n === "48" ? PTS.oct() : PTS.ico()).map(v => V3.mul(v, p.D / 2)), defOrient: "vertice", defCut: 0.2 },   // tagliata in basso, a un quinto: resta quasi tutta la sfera
+  { id: "calcio", group: "Solidi regolari", name: "Pallone (pentagoni ed esagoni)", kind: "convex", params: [num("D", "Diametro (m)", 6, 0.5)],
+    points: p => PTS.tico().map(v => V3.mul(V3.norm(v), p.D / 2)), defOrient: "faccia" },   // la palla da calcio: appoggiata su un esagono, senza taglio
   { id: "d12", group: "Solidi regolari", name: "Dodecaedro (12 pentagoni)", kind: "convex", params: [num("s", "Lato (m)", 1.2, 0.1)], points: p => PTS.dod().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
   { id: "prism", group: "Prismi e piramidi", name: "Prisma (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 6, 3, 24), num("s", "Lato della base (m)", 1.5, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.s), p.h, ngRot(p.n))] },
   { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
@@ -1586,8 +1602,10 @@ function buildShape(def, p, opt) {
     const top = zs[zs.length - 1];
     if (V.filter(v => v[2] < 1e-6).length >= 3) levels.push({ z: 0, label: "Nessun taglio (appoggiata su una faccia)" });
     zs.slice(1, -1).forEach((z, i) => levels.push({ z, label: `Taglio ${i + 1}: toglie il ${Math.round(z / top * 100)}% dell'altezza` }));
+    if (opt._nLev != null && opt._nLev !== levels.length) opt.level = null;   // cambiano i livelli (la sfera da 80 a 180 triangoli): si riparte dal taglio di partenza
+    opt._nLev = levels.length;
     if (opt.level == null || opt.level >= levels.length) {
-      if (def.defCut === "half") { let best = 0; levels.forEach((L, i) => { if (Math.abs(L.z - top / 2) < Math.abs(levels[best].z - top / 2)) best = i; }); opt.level = best; }
+      if (def.defCut === "half" || typeof def.defCut === "number") { const zc = top * (def.defCut === "half" ? 0.5 : def.defCut); let best = 0; levels.forEach((L, i) => { if (Math.abs(L.z - zc) < Math.abs(levels[best].z - zc)) best = i; }); opt.level = best; }
       else opt.level = levels.length && levels[0].z === 0 && levels.length > 1 ? 1 : 0;
     }
     if (opt.cut && levels.length && levels[opt.level].z > 0) {
@@ -1875,6 +1893,9 @@ function analyze(V, F, floor) {
   const ABOUT = {
     d6: "Il cubo ha 6 quadrati tutti uguali. Appoggiato su una faccia è una stanza; appoggiato su un vertice e tagliato diventa una forma più dinamica.",
     d12: "Il dodecaedro è la forma del dado d12: 12 pentagoni regolari tutti uguali. Appoggiato su una faccia ha già un pavimento pentagonale; l'altezza è circa 2,2 volte il lato, quindi con lati piccoli diventa comunque alto.",
+    calcio: "Il pallone è la palla da calcio: 12 pentagoni e 20 esagoni regolari, tutti con lo stesso lato. Appoggiato su un esagono non serve tagliarlo: il pavimento è uno degli esagoni, e ci sono solo due pezzi da tracciare, il pentagono e l'esagono.",
+    sferaU: "Questa sfera è fatta di triangoli tutti uguali: 120 (o 48), con tre lati diversi. Metà sono lo stesso triangolo rovesciato: si usa la stessa dima, girata. È la forma più tonda che si può fare con un solo triangolo. Per appoggiarla a terra si taglia in basso: tagliata a un quinto resta quasi tutta la sfera, ma i triangoli dell'ultimo giro, tagliati dal pavimento, diventano di forme diverse. Tagliata esattamente a metà (in «Altre opzioni», Altezza del taglio) il taglio passa lungo gli spigoli e i triangoli restano tutti uguali, ma vicino al bordo il soffitto scende e la porta viene bassa.",
+    geo: "La sfera geodetica è un icosaedro con ogni triangolo diviso in triangoli più piccoli, spinti fuori fino a toccare una sfera: con 80 triangoli somiglia a un dado d100. Più triangoli la rendono più tonda, ma ci sono più pezzi e più tipi da tracciare. Appoggiata su un vertice e tagliata a circa un quarto dell'altezza, resta tre quarti di sfera su un pavimento quasi rotondo.",
     d20: "La cupola è un icosaedro, la forma del dado d20: 20 triangoli equilateri tutti uguali. Appoggiata su un vertice e tagliata al primo livello perde la punta in basso e prende un pavimento pentagonale: è la forma della vostra bolla.",
     prism: "Il prisma ha una base con il numero di lati che volete e pareti rettangolari dritte. Con tanti lati diventa quasi un cilindro.",
     pyr: "La piramide ha una base con il numero di lati che volete e pareti triangolari che si incontrano in una punta.",
@@ -2352,7 +2373,7 @@ function analyze(V, F, floor) {
     try {
       const opt = Object.assign({}, state.opt);
       cur = buildShape(d, state.params, opt);
-      state.opt.orient = opt.orient; state.opt.level = opt.level;
+      state.opt.orient = opt.orient; state.opt.level = opt.level; state.opt._nLev = opt._nLev;
       cur.an = analyze(cur.V, cur.F, cur.floor);
       cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster);
       cur.H = Math.max(...cur.V.map(v => v[2]));
