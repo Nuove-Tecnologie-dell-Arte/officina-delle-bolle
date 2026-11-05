@@ -447,6 +447,34 @@
   .voceMenu:hover { background: var(--acc-soft); } .voceMenu input { accent-color: var(--acc); width: 16px; height: 16px; }
   .menuMenu .bottoni { padding: 6px 4px 2px; }
   @media (max-width: 980px) { .linguetta { display: none; } #vCostruisci.chiusoSx, #vCostruisci.chiusoDx, #vCostruisci.chiusoSx.chiusoDx { grid-template-columns: 1fr; } }
+  /* [Officina] interfaccia più semplice: modalità Costruisci / Prova, un pannello solo, forme a gruppi, suggerimento nella scena */
+  @media (min-width: 981px) {
+    #vCostruisci, #vCostruisci.chiusoDx { grid-template-columns: 272px minmax(0, 1fr); }
+    #vCostruisci.chiusoSx, #vCostruisci.chiusoSx.chiusoDx { grid-template-columns: 0 minmax(0, 1fr); }
+    #vCostruisci > aside.dx { grid-column: 1; grid-row: 1; border-left: 0; border-right: 1px solid var(--line); }
+  }
+  .soloStretto { display: none; }
+  @media (max-width: 980px) { .soloLargo { display: none; } .soloStretto { display: inline; } }
+  #vCostruisci.conSel > aside.sx, #vCostruisci:not(.conSel) > aside.dx, #vCostruisci.chiusoSx > aside.dx { display: none; }
+  #lingDx { display: none; }
+  .sinistra { right: 262px; }
+  #vCostruisci.costr .sinistra { right: 12px; }
+  .modoScena { box-shadow: var(--ombra); flex: none; }
+  .modoScena button { padding: 8px 14px; font-weight: 650; }
+  #vCostruisci.costr #pannelloP, #vCostruisci.costr #pannelloS { display: none !important; }   /* la Stanza resta: serve per costruire dentro lo spazio vero */
+  #vCostruisci.costr .gruppo > :not(#chipStato):not(#chipBudget) { display: none; }
+  body.costrAttiva .prove { display: none; }
+  .indietro { justify-self: start; display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; padding: 2px 0; color: var(--acc); font-weight: 650; font-size: 13px; }
+  .indietro:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .altreForme { width: 100%; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 650; font-size: 13px; color: var(--fg); }
+  .gTipi { margin: 14px 0 6px; font: 650 12px/1.2 var(--body); color: var(--mut); }
+  .suggScena { position: absolute; left: 50%; bottom: 72px; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; justify-content: center;
+    max-width: calc(100% - 32px); padding: 10px 12px 10px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--ombra); font-size: 13.5px; }
+  .suggScena > span { display: block; line-height: 1.7; }
+  .suggScena b { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%; background: var(--acc-soft); color: var(--acc); font-size: 12px; vertical-align: 1px; }
+  .suggScena .piuMini { vertical-align: -4px; }
+  .xSugg { border: 0; background: none; padding: 2px 6px; font-size: 18px; line-height: 1; color: var(--mut); }
+  @media (max-width: 980px) { .sinistra, #vCostruisci.costr .sinistra { right: 12px; } .suggScena { bottom: 68px; font-size: 13px; width: max-content; flex-direction: column; align-items: flex-start; gap: 2px; padding-right: 34px; } .xSugg { position: absolute; top: 6px; right: 6px; } }
 </style>
 </head>
 <body>
@@ -490,8 +518,7 @@
   <div class="menuMenu"><!-- [Officina] mostra o nasconde i menu, uno per uno o tutti -->
     <button id="bMenu" aria-haspopup="true" aria-expanded="false" title="Mostra o nascondi i menu"><svg viewBox="0 0 20 14" width="16" height="12" aria-hidden="true"><path d="M1 7s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="7" r="2.6" fill="currentColor"/></svg><span class="etH">Menu</span><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
     <div class="menuProve" id="menuMenu" hidden>
-      <label class="voceMenu"><input type="checkbox" data-m="sx"> Pannello Aggiungi (sinistra)</label>
-      <label class="voceMenu"><input type="checkbox" data-m="dx"> Pannello del pezzo (destra)</label>
+      <label class="voceMenu"><input type="checkbox" data-m="sx"> Pannello a sinistra</label>
       <label class="voceMenu"><input type="checkbox" data-m="persone"> Persone e stato</label>
       <label class="voceMenu"><input type="checkbox" data-m="press"> Pressione</label>
       <label class="voceMenu"><input type="checkbox" data-m="vista"> Vista</label>
@@ -529,10 +556,10 @@
 <div id="guida" class="guidaPop" hidden role="dialog" aria-labelledby="guidaTit">
   <h3 id="guidaTit">Come si usa</h3>
   <ol>
-    <li><b>Aggiungi.</b> A sinistra scegli <i>Bolle</i> o <i>Corridoi</i>, poi una forma. Regola misure e porte.</li>
+    <li><b>Aggiungi.</b> A sinistra scegli <i>Bolle</i> o <i>Corridoi</i>, poi una forma: le sei più usate sono in cima, le altre in <i>Altre forme</i>. Regola misure e porte. Con <i>Stanza</i>, in basso, metti le bolle dentro uno spazio vero.</li>
     <li><b>Attacca.</b> Tocca un <span class="piuMini">+</span> nella scena: il pezzo si aggancia lì. Le frecce ↺ ↻ scelgono come arriva girato.</li>
-    <li><b>Modifica.</b> Tocca un pezzo: a destra trovi stato, forma, collegamenti e colore. Trascinalo per spostarlo.</li>
-    <li><b>Prova.</b> <i>Play</i> fa entrare le persone; <i>Simulazione</i>, in alto, cambia la velocità e simula blackout e scoppi. La pressione è nel riquadro in alto a destra.</li>
+    <li><b>Modifica.</b> Tocca un pezzo: il pannello a sinistra diventa la sua scheda, con stato, forma, collegamenti e colore. <i>Aggiungi un altro pezzo</i> (o Esc) torna indietro. Trascina un pezzo per spostarlo.</li>
+    <li><b>Prova.</b> Passa a <i>Prova</i>, sopra la scena: <i>Play</i> fa entrare le persone, il riquadro <i>Pressione</i> mostra come sta l'aria, <i>Simulazione</i> in alto cambia la velocità e simula blackout e scoppi. </li>
   </ol>
   <div class="bottoni"><button class="pri" id="guidaOk">Ho capito</button></div>
 </div>
@@ -548,7 +575,7 @@
       </div>
       <div class="corpoSx" id="aggForma">
         <p class="guidaRiga" id="guidaAgg">Scegli una forma, regola misure e porte, poi tocca un <span class="piuMini">+</span> nella scena.</p>
-        <section class="sez"><h2>Forma</h2><div class="tipi" id="tipi"></div></section>
+        <section class="sez"><h2>Forma</h2><div id="tipi"></div></section>
         <section class="sez"><div class="sezTesta"><h2>Misure</h2><button id="bStd" class="link">Ripristina</button></div><div class="par" id="parNuovo"></div></section>
         <section class="sez"><h2>Porte</h2><div id="porteNuove"></div><div id="attNuovo"></div></section>
         <section class="sez"><h2>Gonfiatori</h2><div id="gonfNuovo" class="par"></div></section>
@@ -565,8 +592,12 @@
     <div id="scena">
       <div id="sovra"></div>
       <button class="linguetta sx" id="lingSx"><!-- [Officina] chiude e riapre i pannelli laterali --></button><button class="linguetta dx" id="lingDx"></button>
-      <div class="sinistra"><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span><span class="sepv"></span><button class="chip" id="chipStato" title="Apri Aria"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></button><button class="chip" id="chipBudget" title="Apri Materiali"></button></div></div><!-- [Officina] stato e materiali nella stessa barra delle persone -->
+      <div class="sinistra"><div class="seg modoScena" id="modoScena" role="group" aria-label="Modalità"><!-- [Officina] costruire o provare: in Costruisci restano solo forme, pannello e + -->
+        <button data-modo="costruisci" aria-pressed="true" title="Aggiungi e modifica i pezzi">Costruisci</button><button data-modo="prova" aria-pressed="false" title="Persone, pressione, simulazione, stanza">Prova</button></div><div class="gruppo" role="group" aria-label="Persone"><span class="gEt">Persone</span><button class="pri" id="bGiro">▶ Play</button><span class="chip gente" title="Quante persone entrano e ogni quanto"><button class="mini" id="pMeno" aria-label="Una persona in meno">−</button><b id="pN">1</b><button class="mini" id="pPiu" aria-label="Una persona in più">+</button><svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><circle cx="6" cy="3" r="2.4" fill="currentColor"/><path d="M1.5 14v-4a4.5 4.5 0 0 1 9 0v4z" fill="currentColor"/></svg><span class="sepv"></span><label for="pOgni">ogni</label><select id="pOgni"><option value="0">insieme</option><option value="5">5 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option></select></span><button id="bUnoOra" hidden>+1 adesso</button><span class="chip pov" title="Guarda con gli occhi di un avatar"><svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M8 0C4.4 0 1.5 2.3 0 5c1.5 2.7 4.4 5 8 5s6.5-2.3 8-5c-1.5-2.7-4.4-5-8-5z" fill="currentColor"/><circle cx="8" cy="5" r="2.3" fill="#fff"/></svg><select id="selPov" aria-label="Visuale"></select></span><span class="sepv"></span><button class="chip" id="chipStato" title="Apri Aria"><span class="dot" id="dotGlob3d"></span><span id="txtGlob3d"></span></button><button class="chip" id="chipBudget" title="Apri Materiali"></button></div></div><!-- [Officina] stato e materiali nella stessa barra delle persone -->
       <div class="pannelloP" id="pannelloP" aria-label="Pressione dei moduli"></div>
+      <div class="suggScena" id="suggScena" role="note" hidden><!-- [Officina] la guida dentro il lavoro, finché non si attacca il primo pezzo -->
+        <span><b>1</b> Scegli una forma nel pannello <span class="soloLargo">a sinistra</span><span class="soloStretto">qui sotto</span></span><span><b>2</b> Tocca un <span class="piuMini">+</span> su una bolla per attaccarla lì</span>
+        <button class="xSugg" id="xSugg" aria-label="Chiudi il suggerimento">×</button></div>
       <div class="lampo" id="lampo"></div>
       <div id="avviso" hidden role="status"></div>
       <div id="pannelloS" hidden>
@@ -615,7 +646,7 @@
       <h2 class="tSez">Moduli <span>tocca una riga per aprire il modulo; i gonfiatori si cambiano nel pannello del pezzo</span></h2>
       <div class="card tab">
         <table>
-          <thead><tr><th></th><th>Stanza</th><th>Ora</th><th>A regime</th><th>Limite</th><th>Telo</th><th>Si gonfia in</th><th>Blackout</th><th>Persone</th><th>Gonfiatori</th><th>Cosa fare</th></tr></thead>
+          <thead><tr><th></th><th>Stanza</th><th>Ora</th><th title="La pressione quando l'aria che entra pareggia quella che esce">Stabile</th><th title="Oltre questa pressione il telo o le chiusure cedono">Limite</th><th>Telo</th><th>Si gonfia in</th><th>Blackout</th><th>Persone</th><th>Gonfiatori</th><th>Cosa fare</th></tr></thead>
           <tbody id="righe"></tbody>
         </table>
       </div>
@@ -2607,7 +2638,7 @@ function aggiornaPovUI() {
 // =====================================================================
 //  INTERFACCIA
 // =====================================================================
-let tipoScelto = 'stella', selezionato = null, seguita = null, attNuovo = 0;
+let tipoScelto = 'cubo', selezionato = null, seguita = null, attNuovo = 0;
 // con quale porta il nuovo pezzo si attacca a quello che c'è già: cambiandola il pezzo arriva girato in un altro modo
 function disegnaAttacco() {
   const el = $('attNuovo'); if (!el) return; const n = porteNuove.length;
@@ -2701,7 +2732,7 @@ function campo(cont, etichetta, val, mn, mx, st, unita, onCambio, dec) {
   l.append(sp, num, rng); cont.appendChild(l);
   return { set: v => { num.value = +(+v).toFixed(dec ?? 2); rng.value = v; } };
 }
-let dimNuovo = standard('stella'), fNuovo = { ...TIPI.stella.f }, porteNuove = forma('stella', standard('stella')).conn.slice();
+let dimNuovo = standard('cubo'), fNuovo = { ...TIPI.cubo.f }, porteNuove = forma('cubo', standard('cubo')).conn.slice();   // [Officina] si parte dal cubo
 // piantina del poligono: tocca un lato per mettere o togliere una porta
 function sceltaPorte(cont, F, porte, occupati, onCambio, attacco) {
   const R = F.Rc * 1.18, sc = 80 / R, X = v => 100 + v[0] * sc, Y = v => 100 + v[1] * sc;
@@ -2726,7 +2757,7 @@ function contaGonf(cont, f, onCambio) {
 // il pannello Aggiungi è diviso in tre schede: bolle, corridoi e gonfiatori
 const CAT = { bolle: ['stella', 'cubo', 'prisma', 'cilindro', 'piramide'], corridoi: ['corridoio', 'curva', 'angolo', 'ipsilon', 'croce'] };
 const ETI_TIPO = { corridoio: 'Dritto' };
-let catAgg = 'bolle'; const ultimoTipo = { bolle: 'stella', corridoi: 'corridoio' };
+let catAgg = 'bolle'; const ultimoTipo = { bolle: 'cubo', corridoi: 'corridoio' };
 function sceltaCat(c) {
   catAgg = c; $('schedeAgg').querySelectorAll('[data-cat]').forEach(b => b.setAttribute('aria-selected', b.dataset.cat === c));
   $('aggForma').hidden = c === 'gonf'; $('aggGonf').hidden = c !== 'gonf';
@@ -2749,12 +2780,36 @@ function disegnaGonfiatori() {
   contaGonf($('gNuovo'), fNuovo, () => { nuovoCambiato(); disegnaGonfiatori(); });
 }
 function disegnaTipi() {
-  $('tipi').innerHTML = (CAT[catAgg] || CAT.bolle).map(k => [k, TIPI[k]]).map(([k, t]) => `<button data-t="${k}" aria-pressed="${k === tipoScelto}"><svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">${ICONE[k]}</svg>${ETI_TIPO[k] || t.nome}</button>`).join('');
-  $('tipi').querySelectorAll('button').forEach(b => b.onclick = () => { tipoScelto = b.dataset.t; ultimoTipo[catAgg] = tipoScelto; attNuovo = 0; dimNuovo = standard(tipoScelto); fNuovo = { ...TIPI[tipoScelto].f }; porteNuove = forma(tipoScelto, dimNuovo).conn.slice(); disegnaTipi(); });
+  disegnaGriglia();
   const cont = $('parNuovo'); cont.innerHTML = '';
   for (const [k, lab, mn, mx, st, , u] of TIPI[tipoScelto].par) campo(cont, lab, dimNuovo[k], mn, mx, st, u, v => { dimNuovo[k] = v; nuovoCambiato(); }, u === 'm' || u === '×' ? 2 : 0);
   for (const s of TIPI[tipoScelto].scelte || []) sceltaRiga(cont, s, dimNuovo[s.key], v => { dimNuovo[s.key] = v; nuovoCambiato(); });   // [Officina]
   nuovoCambiato();
+}
+// [Officina] le forme: prima le sei più usate, poi «Altre forme» divise per gruppo (si aprono con un clic)
+const PRIME_FORME = ['cubo', 'of:d20', 'cilindro', 'piramide', 'of:tunnel', 'of:L'];
+const GRUPPI_FORME = [['Solidi', ['stella', 'prisma', 'of:d12']], ['In pianta', ['of:C', 'of:arrow']], ['Tubi e gallerie', ['of:snake', 'of:torus']]];   // il resto: Forme speciali
+let altreAperte = false;
+function disegnaGriglia() {
+  const L = (CAT[catAgg] || CAT.bolle).filter(k => TIPI[k]), b = k => { const t = TIPI[k]; return `<button data-t="${k}" aria-pressed="${k === tipoScelto}"><svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">${ICONE[k]}</svg>${ETI_TIPO[k] || t.nome}</button>`; };
+  let h;
+  if (catAgg !== 'bolle') h = `<div class="tipi">${L.map(b).join('')}</div>`;
+  else {
+    const prime = [...PRIME_FORME.filter(k => L.includes(k)), ...L.filter(k => !PRIME_FORME.includes(k))].slice(0, 6), altre = L.filter(k => !prime.includes(k));
+    if (altre.includes(tipoScelto)) altreAperte = true;
+    h = `<div class="tipi">${prime.map(b).join('')}</div>`;
+    if (altre.length) {
+      h += `<button class="altreForme" id="bAltre" aria-expanded="${altreAperte}">${altreAperte ? 'Meno forme' : 'Altre forme (' + altre.length + ')'}<svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="${altreAperte ? 'M1 5l4-4 4 4' : 'M1 1l4 4 4-4'}" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>`;
+      if (altreAperte) {
+        const usati = new Set();
+        for (const [nome, ks] of GRUPPI_FORME) { const g = ks.filter(k => altre.includes(k)); g.forEach(k => usati.add(k)); if (g.length) h += `<h3 class="gTipi">${nome}</h3><div class="tipi">${g.map(b).join('')}</div>`; }
+        const resto = altre.filter(k => !usati.has(k)); if (resto.length) h += `<h3 class="gTipi">Forme speciali</h3><div class="tipi">${resto.map(b).join('')}</div>`;
+      }
+    }
+  }
+  $('tipi').innerHTML = h;
+  $('tipi').querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tipoScelto = b.dataset.t; ultimoTipo[catAgg] = tipoScelto; attNuovo = 0; dimNuovo = standard(tipoScelto); fNuovo = { ...TIPI[tipoScelto].f }; porteNuove = forma(tipoScelto, dimNuovo).conn.slice(); disegnaTipi(); });
+  const ba = $('bAltre'); if (ba) ba.onclick = () => { altreAperte = !altreAperte; disegnaGriglia(); };
 }
 function sceltaRiga(cont, s, val, onCambio) {   // [Officina] un parametro a scelta delle forme dell'Officina (posa, pinne, antenne…)
   const l = document.createElement('label'); l.className = 'riga';
@@ -2771,7 +2826,7 @@ function nuovoCambiato() {
   nuovoCambiato.t = setTimeout(() => {
     const st = stimaSingola(tipoScelto, dimNuovo, fNuovo);
     $('anteprima').innerHTML = `<div><b>${fmt(st.F.vol, 1)} m³</b><span>volume</span></div><div><b>${fmt(st.F.area, 1)} m²</b><span>pianta</span></div>
-      <div><b>${fmtT(st.tF)}</b><span>per gonfiarsi da solo</span></div><div><b>${fmt(st.p, 1)} Pa</b><span>a regime</span></div>`;
+      <div><b>${fmtT(st.tF)}</b><span>per gonfiarsi da solo</span></div><div title="La pressione quando l'aria che entra pareggia quella che esce"><b>${fmt(st.p, 1)} Pa</b><span>quando è stabile</span></div>`;
     aggiornaPiu();
   }, 120);
 }
@@ -2800,6 +2855,7 @@ let tabIsp = 'stato';
 function ispettore(nuovo) {
   const el = $('ispettore'), p = selezionato;
   try { disegnaGonfiatori(); } catch (e) {}
+  $('vCostruisci').classList.toggle('conSel', !!(p && pezzi.includes(p)));   // [Officina] un pannello solo: Aggiungi o Modifica
   if (!p || !pezzi.includes(p)) { selezionato = null;
     el.innerHTML = `<h2 class="titoloSx">Pezzo</h2>
       <div class="vuotoIsp"><p><b>Nessun pezzo selezionato.</b> Tocca una bolla o un corridoio nella scena, oppure sceglilo qui:</p>
@@ -2811,13 +2867,14 @@ function ispettore(nuovo) {
   if (nuovo) tabIsp = 'forma';
   const SCHEDE = [['stato', 'Stato'], ['forma', 'Forma'], ['coll', 'Collega'], ['aspetto', 'Aspetto']];
   el.innerHTML = `<div class="ispTesta">
-      <p class="sistemaRiga">${nomeSistema(p.sistema)} · ${sistemi[p.sistema].length} ${sistemi[p.sistema].length > 1 ? 'moduli uniti' : 'modulo da solo'}${p.ingresso ? ' · ingresso' : ''}</p>
+      <button class="indietro" id="iIndietro" title="Torna ad Aggiungi (Esc)"><svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M6.5 1 1.5 6l5 5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Aggiungi un altro pezzo</button>
+      <p class="sistemaRiga" title="Un sistema è un gruppo di bolle collegate che si scambiano l'aria">${nomeSistema(p.sistema)} · ${sistemi[p.sistema].length} ${sistemi[p.sistema].length > 1 ? 'moduli uniti' : 'modulo da solo'}${p.ingresso ? ' · ingresso' : ''}</p>
       <div class="titoloPezzo"><span class="dot ${v.c}"></span><input class="nomeIn" id="iNome" aria-label="Nome del modulo" value="${p.nome.replace(/"/g, '&quot;')}"></div>
       ${p.scoppio ? `<div class="consiglio ko">Scoppiata · strappo di ${fmt(p.scoppio.Amax, 1)} m², i gonfiatori non bastano</div>` : `<div class="consiglio ${v.c}">${v.c === 'ok' ? 'Funziona' : v.cons}</div>`}
     </div>
     <div class="schede" role="tablist" aria-label="Sezioni del pezzo">${SCHEDE.map(([k, t]) => `<button role="tab" data-sc="${k}" aria-selected="${k === tabIsp}">${t}${k === 'coll' && nColl ? ` <small>${nColl}</small>` : ''}</button>`).join('')}</div>
     <div class="scheda" data-pane="stato"${tabIsp === 'stato' ? '' : ' hidden'}>
-      <div class="kpi"><div><b id="iP">0</b><span>Pa adesso</span></div><div><b>${fmt(r.p, 1)}</b><span>Pa a regime</span></div><div><b>${fmt(p.F.vol, 1)}</b><span>m³</span></div><div><b>${fmtT(r.tF)}</b><span>per gonfiarsi</span></div></div>
+      <div class="kpi"><div title="Pressione dell'aria dentro la bolla, in pascal"><b id="iP">0</b><span>pressione adesso (Pa)</span></div><div title="La pressione quando l'aria che entra pareggia quella che esce"><b>${fmt(r.p, 1)}</b><span>quando è stabile (Pa)</span></div><div><b>${fmt(p.F.vol, 1)}</b><span>m³</span></div><div><b>${fmtT(r.tF)}</b><span>per gonfiarsi</span></div></div>
       <section class="sez"><h2>Gonfiatori</h2><div class="par" id="iGonf"></div></section>
       <section class="sez"><h2>Azioni</h2><div class="bottoni"><button id="iIng" ${p.ingresso ? 'disabled' : ''}>${p.ingresso ? 'È l\'ingresso' : 'Metti qui l\'ingresso'}</button><button id="iScoppia" ${p.scoppio ? '' : 'class="del"'}>${p.scoppio ? 'Ripara lo strappo' : 'Fai scoppiare'}</button><button class="del" id="iTogli">Elimina</button></div></section>
     </div>
@@ -2834,6 +2891,7 @@ function ispettore(nuovo) {
   el.querySelectorAll('[data-sc]').forEach(b => b.onclick = () => { tabIsp = b.dataset.sc;
     el.querySelectorAll('[data-sc]').forEach(x => x.setAttribute('aria-selected', x === b)); el.querySelectorAll('[data-pane]').forEach(x => x.hidden = x.dataset.pane !== tabIsp); });
   $('iScoppia').onclick = () => p.scoppio ? ripara(p) : scoppia(p);
+  $('iIndietro').onclick = () => { selezionato = null; firmaPan = ''; ispettore(); };   // [Officina] il pannello torna ad Aggiungi
   const cont = $('parSel'); let t;
   for (const [k, lab, mn, mx, st, , u] of TIPI[p.tipo].par) campo(cont, lab, p.d[k], mn, mx, st, u, val => { const legami = legamiAttuali(); p.d[k] = val; clearTimeout(t); t = setTimeout(() => { p.F = forma(p.tipo, p.d); avvisaIngrandita(); riallinea(p, legami); strutturaCambiata(); }, 140); }, u === 'm' || u === '×' ? 2 : 0);
   for (const s of TIPI[p.tipo].scelte || []) sceltaRiga(cont, s, p.d[s.key], v => { const legami = legamiAttuali(); p.d[s.key] = v; p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); });   // [Officina]
@@ -2848,7 +2906,7 @@ function ispettore(nuovo) {
     el.innerHTML = (miei.length ? miei.map((l, i) => `<div class="orienta"><span>↔ ${esc((l.a === p ? l.b : l.a).nome)} · manica ${fmt(l.len || 0, 1)} m${l.manuale ? ' · a mano' : ''}</span><span class="bottoni"><button data-st="${i}">Stacca</button></span></div>`).join('') : '<p class="vuoto" style="margin:0">Non è collegata a niente.</p>')
       + (vicine.length ? `<div class="bottoni">${vicine.map((x, i) => `<button data-co="${i}">Collega a ${esc(x.q.nome)} · ${fmt(x.m.d, 1)} m</button>`).join('')}</div>` : '')
       + `<div class="bottoni"><button id="iScegli" class="${collegaDa === p ? 'attivo' : ''}">${collegaDa === p ? 'Annulla scelta' : 'Scegli nella scena…'}</button></div>`
-      + `<p class="std" style="margin:0">La manica arriva fino a ${fmt(D.manMax, 0)} m e può collegare anche lati che non si guardano dritti. Puoi usare anche l'icona a catena sull'etichetta della bolla.</p>`;
+      + `<p class="std" style="margin:0">Il collegamento (una manica di telo) arriva fino a ${fmt(D.manMax, 0)} m e può collegare anche lati che non si guardano dritti. Puoi usare anche l'icona a catena sull'etichetta della bolla.</p>`;
     el.querySelectorAll('[data-st]').forEach(b => b.onclick = () => stacca(miei[+b.dataset.st]));
     el.querySelectorAll('[data-co]').forEach(b => b.onclick = () => collegaAMano(p, vicine[+b.dataset.co].q));
     $('iScegli').onclick = () => collegaDa === p ? fineCollega(null) : iniziaCollega(p);
@@ -2955,7 +3013,17 @@ $('bGuida').onclick = e => { e.stopPropagation(); guida($('guida').hidden); };
 $('guidaOk').onclick = () => guida(false);
 document.addEventListener('click', e => { if (!$('menuProve').hidden && !e.target.closest('.prove')) menuProve(false); if (!$('guida').hidden && !e.target.closest('#guida') && e.target.id !== 'bGuida') guida(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { menuProve(false); if (!$('guida').hidden) guida(false); } });
-try { if (!localStorage.getItem('bolle-guida-vista')) setTimeout(() => guida(true), 600); } catch (e) {}
+// [Officina] niente riquadro all'avvio: finché non si attacca il primo pezzo, un suggerimento nella scena (in Costruisci)
+let suggBase = null;
+const suggVisto = () => { try { return !!localStorage.getItem('bolle-primo-pezzo'); } catch (e) { return false; } };
+function fineSugg() { $('suggScena').hidden = true; try { localStorage.setItem('bolle-primo-pezzo', '1'); } catch (e) {} }
+$('xSugg').onclick = fineSugg;
+setInterval(() => {
+  if (suggVisto()) { $('suggScena').hidden = true; return; }
+  if (caricando) return; if (suggBase == null) suggBase = pezzi.length;
+  if (pezzi.length > suggBase) { fineSugg(); return; }
+  $('suggScena').hidden = modo !== 'costruisci';
+}, 600);
 $('bBlack').onclick = blackout;
 $('bAuto').onclick = () => {
   const visti = new Set(), punti = { ko: 100, mid: 1, ok: 0, gr: 0 }; let meglio = null;
@@ -2970,9 +3038,21 @@ $('bAuto').onclick = () => {
   if (meglio) pezzi.forEach((p, i) => p.f = meglio.f[i]);
   strutturaCambiata();
 };
+// [Officina] modalità della scena: in Costruisci restano forme, pannello, +, lo stato e la Stanza; in Prova anche persone, pressione e simulazione
+let modo = 'costruisci';
+function impostaModo(m) {
+  modo = m; $('vCostruisci').classList.toggle('costr', m === 'costruisci');
+  $('modoScena').querySelectorAll('[data-modo]').forEach(b => b.setAttribute('aria-pressed', b.dataset.modo === m));
+  if (m === 'costruisci') { try { pannelloSit(false); } catch (e) {} }
+  document.body.classList.toggle('costrAttiva', m === 'costruisci' && !$('vCostruisci').hidden);
+  requestAnimationFrame(ridimensiona);
+}
+$('modoScena').querySelectorAll('[data-modo]').forEach(b => b.onclick = () => impostaModo(b.dataset.modo));
+impostaModo('costruisci');
 function mostra(v) {
   for (const [k, id, tb] of [['c', 'vCostruisci', 'tabC'], ['p', 'vPressione', 'tabP'], ['b', 'vMateriali', 'tabB'], ['d', 'vDati', 'tabD']]) {   /* [Officina] quattro categorie */ $(id).hidden = v !== k; $(tb).setAttribute('aria-pressed', v === k); }
   if (v === 'd') costruisciSchemi();
+  document.body.classList.toggle('costrAttiva', v === 'c' && modo === 'costruisci');   // [Officina] Simulazione solo dove serve
   if (v === 'b') aggiornaMateriali(true);
   if (v === 'c') ridimensiona(); if (v === 'p') { costruisciRighe(); costruisciManometri(); }
 }
@@ -3457,6 +3537,10 @@ $('bComp').onclick = () => menuComp($('menuComp').hidden);
 document.addEventListener('pointerdown', e => { if (!$('menuComp').hidden && !e.target.closest('.comp')) menuComp(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('menuComp').hidden) menuComp(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && collegaDa) fineCollega(null); });
+document.addEventListener('keydown', e => {   // [Officina] Esc: dal pannello Modifica si torna ad Aggiungi
+  if (e.key !== 'Escape' || collegaDa || pov || !selezionato || $('vCostruisci').hidden || /INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) return;
+  if (!$('menuComp').hidden || !$('menuProve').hidden || !$('guida').hidden) return;
+  selezionato = null; firmaPan = ''; ispettore(); });
 document.addEventListener('keydown', e => {   // R: gira il pezzo selezionato
   if (e.key.toLowerCase() !== 'r' || e.metaKey || e.ctrlKey || e.altKey || pov || $('vCostruisci').hidden) return;
   if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) return;

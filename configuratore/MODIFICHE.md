@@ -228,3 +228,22 @@ Prima la stanza di sfondo era una sola, salvata nel browser e uguale per tutte l
 - **Pareti ricontrollate solo se serve:** aprendo una composizione, le pareti si ricontrollano contro le bolle solo se prima c'era una stanza. Una stanza nuova lo fa da sé quando arriva.
 - **Stanza vecchia:** la voce unica `stanza` delle versioni di prima si cancella all'avvio.
 
+## Interfaccia più semplice (5 novembre)
+
+Per chi la apre la prima volta (oggi il lab, poi tutti gli studenti dell'Accademia). Tutto è segnato `[Officina]`, con il CSS in fondo allo `<style>`:
+- **Modalità Costruisci / Prova** (`#modoScena`, `impostaModo`, classe `costr` su `#vCostruisci`).
+  - Si parte da **Costruisci**: forme, pannello, «+», lo stato ("Tutto in ordine", "Materiali") e la barra Vista con la **Stanza**, che serve per costruire il percorso dentro lo spazio vero.
+  - **Prova** aggiunge la barra delle persone (Play, Situazioni, Visuale), il riquadro Pressione e il menu **Simulazione** nell'intestazione.
+  - Nelle altre schede (Aria, Materiali, Dati) Simulazione si vede sempre (`body.costrAttiva`).
+- **Un pannello solo, a sinistra.** Senza niente selezionato è "Aggiungi". Toccando un pezzo diventa la sua scheda: `#ispettore` (aside.dx) prende la colonna 1 e aside.sx si nasconde, con la classe `conSel` messa da `ispettore()`.
+  - In cima c'è «Aggiungi un altro pezzo» (`#iIndietro`); anche Esc torna indietro.
+  - La colonna di destra e la sua linguetta non ci sono più; nel menu "Menu" resta solo "Pannello a sinistra".
+- **Forme:** si parte dal **Cubo**, non più dalla Stella (`tipoScelto`, `dimNuovo`, `ultimoTipo`). `disegnaGriglia` mostra prima `PRIME_FORME` (Cubo, Cupola, Cilindro, Piramide, Tunnel, Forma a L), poi il pulsante «Altre forme (n)». Questo apre `GRUPPI_FORME`: Solidi, In pianta, Tubi e gallerie, e Forme speciali per tutto il resto. Se la forma scelta è fra le altre, il gruppo resta aperto.
+- **Parole:**
+  - "Pa adesso" → "pressione adesso (Pa)";
+  - "a regime" → "quando è stabile" (pannello del pezzo, Aggiungi, colonna "Stabile" in Aria), con la spiegazione al passaggio del mouse;
+  - "La manica" → "Il collegamento (una manica di telo)";
+  - spiegazione di "Sistema" sulla riga in cima al pezzo.
+- **Guida:** "Come si usa" non si apre più da sola. Finché non si attacca il primo pezzo, in Costruisci c'è un suggerimento nella scena (`#suggScena`: «Scegli una forma… Tocca un +…»). Sparisce al primo pezzo o con la ×, e si ricorda in `bolle-primo-pezzo`. Il testo di "Guida" parla delle modalità e del pannello unico.
+- **Prove automatiche:** Play (`#bGiro`) e Simulazione (`#bProve`) si vedono solo in Prova: prima di cliccarli va cliccato `[data-modo="prova"]`. Con un pezzo selezionato il pannello Aggiungi è nascosto, quindi `[data-cat="corridoi"]` e `#attP` vanno cliccati via JavaScript (`element.click()`). La stella ora sta in «Altre forme».
+
