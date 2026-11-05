@@ -257,3 +257,21 @@ Per chi la apre la prima volta (oggi il lab, poi tutti gli studenti dell'Accadem
 - **Elimina** mostra l'avviso «Cubo 3 eliminato.» con il pulsante «Annulla» (`avviso(t, ms, [etichetta, funzione])`).
 - **Pannello Aggiungi più corto:** porte (con il verso ↺ ↻) e gonfiatori stanno in «Più opzioni» (`#piuOpz`, un `<details>` chiuso), perché i valori di partenza vanno già bene. Restano visibili forma, misure e i numeri della bolla.
 
+## Anteprima col tocco, consigli che si applicano, foto in Aggiungi, nomi, pannello del telefono (5 novembre)
+
+Tutto segnato `[Officina]`:
+- **Anteprima sul «+» col tocco** (`piuScelto` in `aggiornaPiu`).
+  - Col mouse, l'anteprima passandoci sopra c'era già.
+  - Col dito, il primo tocco mostra dove arriva la bolla (contorno e porta in arancione): il «+» diventa una spunta, e un avviso dice «Tocca di nuovo per attaccarla qui». Il secondo tocco la attacca; toccare altrove annulla.
+- **Il consiglio come pulsante** (`testoFix`, `applicaFix`). Quando una bolla non funziona o è da migliorare e il rimedio è un gonfiatore in più o in meno, ci sono un pulsante «Aggiungi un gonfiatore grande» (o «Togli…») nel pannello del pezzo e uno nella colonna «Cosa fare» di Aria. L'avviso che segue ha «Annulla».
+- **«Da una foto della pianta…»** sta in Aggiungi, sotto le forme delle Bolle (`#bDaFoto`). L'icona nell'intestazione (`#bFoto`) resta nel codice, ma nascosta.
+- **Nomi:**
+  - «Aggiungi separato · nuovo sistema» → **«Metti a parte · non collegata alle altre»**;
+  - «Cubo iniziale» → **«Nuova composizione»** (`NOME_INIZIO`);
+  - «Ultima sessione» → **«Lavoro precedente»** (`NOME_PREC`). Le composizioni salvate con il nome vecchio si rinominano all'avvio.
+- **Telefono** (sotto i 980 px):
+  - la scena resta sempre in alto e il pannello sta sotto, con un **manico** (`#manico`) e uno scorrimento tutto suo;
+  - un tocco sul manico passa da medio (46%) ad alto (72%) a basso (30%); trascinandolo si sceglie l'altezza, che poi si aggancia alla più vicina (`altezzaFoglio`);
+  - prima la scena scorreva via verso l'alto mentre si sceglieva una forma.
+- **Scena in Costruisci:** non si sposta più a sinistra per far posto al riquadro Pressione, che lì non c'è (`ridimensiona`).
+

@@ -487,6 +487,24 @@
   .piuOpz[open] > summary::before { transform: translateY(-3px) rotate(45deg); }
   .piuOpz > summary span { font-weight: 500; font-size: 12.5px; color: var(--mut); }
   .piuOpz > summary:hover { color: var(--acc); }
+  .fix { border: 1px solid var(--acc); background: var(--acc); color: var(--on-acc); border-radius: 7px; padding: 5px 10px; font-size: 12.5px; font-weight: 650; white-space: nowrap; }
+  .fix:hover { filter: brightness(1.08); }
+  .consiglio:has(.fix) { flex-wrap: wrap; row-gap: 8px; } .consiglio .fix { flex-basis: 100%; }
+  td.cons .fix { padding: 4px 9px; }
+  .daFoto { width: 100%; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--fg); }
+  #bFoto { display: none; }
+  .piu.scelto { background: var(--on-acc); color: var(--acc); border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft); }
+  .piu svg { display: block; margin: auto; }
+  .manico { display: none; }
+  @media (max-width: 980px) {
+    #vCostruisci { display: flex; flex-direction: column; overflow: hidden; }
+    #vCostruisci > #scena { order: -1; flex: 1 1 auto; height: auto; min-height: 0; }
+    .manico { display: block; order: 0; flex: none; height: 24px; padding: 0; border: 0; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; margin-top: -16px; position: relative; z-index: 4;
+      background: var(--pan); box-shadow: 0 -6px 18px rgba(0,0,0,.10); touch-action: none; cursor: ns-resize; }
+    .manico::after { content: ""; position: absolute; left: 50%; top: 9px; width: 42px; height: 5px; margin-left: -21px; border-radius: 3px; background: var(--mut); opacity: .45; }
+    #vCostruisci > aside { order: 1; flex: none; height: var(--foglio, 46%); overflow-y: auto; overscroll-behavior: contain; border-top: 0; position: relative; z-index: 4; background: var(--pan); }
+    .testaSx { position: sticky; top: 0; } .piedeSx { position: sticky; bottom: 0; }
+  }
   @media (max-width: 980px) { .sinistra, #vCostruisci.costr .sinistra { right: 12px; } .storia button span { display: none; } .suggScena { bottom: 68px; font-size: 13px; width: max-content; flex-direction: column; align-items: flex-start; gap: 2px; padding-right: 34px; } .xSugg { position: absolute; top: 6px; right: 6px; } }
 </style>
 </head>
@@ -579,6 +597,7 @@
 
 <main>
   <section class="vista" id="vCostruisci">
+    <button class="manico" id="manico" aria-label="Allarga o riduci il pannello" title="Tocca o trascina per allargare o ridurre il pannello"></button><!-- [Officina] solo sul telefono -->
     <aside class="sx">
       <div class="testaSx">
         <h2 class="titoloSx">Aggiungi</h2>
@@ -588,7 +607,8 @@
       </div>
       <div class="corpoSx" id="aggForma">
         <p class="guidaRiga" id="guidaAgg">Scegli una forma e le misure, poi tocca un <span class="piuMini">+</span> nella scena.</p>
-        <section class="sez"><h2>Forma</h2><div id="tipi"></div></section>
+        <section class="sez"><h2>Forma</h2><div id="tipi"></div>
+          <button class="daFoto" id="bDaFoto" title="Carica la foto di una pianta e trasformala in una bolla"><svg viewBox="0 0 20 16" width="17" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 4h4l1.5-2h5L14 4h4v10H2z"/><circle cx="10" cy="9" r="3"/></svg>Da una foto della pianta…</button></section><!-- [Officina] prima era un'icona nell'intestazione -->
         <section class="sez"><div class="sezTesta"><h2>Misure</h2><button id="bStd" class="link">Ripristina</button></div><div class="par" id="parNuovo"></div></section>
         <details class="piuOpz" id="piuOpz"><!-- [Officina] porte e gonfiatori: i valori di partenza vanno già bene -->
           <summary>Più opzioni<span>porte, verso e gonfiatori</span></summary>
@@ -601,7 +621,7 @@
       <div class="piedeSx" id="piedeAgg">
         <p class="std" id="hintPiu"></p>
         <button class="pri" id="bPrimo" hidden>Metti al centro</button>
-        <button id="bSeparato"><b>Aggiungi separato</b><small>nuovo sistema</small></button>
+        <button id="bSeparato" title="Mette la bolla in uno spazio libero, senza collegarla alle altre"><b>Metti a parte</b><small>non collegata alle altre</small></button>
       </div>
     </aside>
 
@@ -1482,6 +1502,11 @@ function soglie(p) { const peso = Math.max(p.F.peso(), 0.8 * pesoTelo()); return
 function piu(p) { return p.F.vol > 12 && p.f.grande < 4 ? { k: 'grande', d: 1 } : p.f.piccolo < 6 ? { k: 'piccolo', d: 1 } : p.f.grande < 4 ? { k: 'grande', d: 1 } : null; }
 function meno(p) { return p.f.piccolo > 0 ? { k: 'piccolo', d: -1 } : p.f.grande > 0 ? { k: 'grande', d: -1 } : null; }
 const testoAz = a => a ? (a.d > 0 ? '+1 gonfiatore ' : '−1 gonfiatore ') + a.k : '';
+const testoFix = a => (a.d > 0 ? 'Aggiungi un gonfiatore ' : 'Togli un gonfiatore ') + a.k;   // [Officina] il consiglio come pulsante
+function applicaFix(p, a) {
+  if (!p || !a) return; p.f[a.k] = Math.max(0, (p.f[a.k] || 0) + a.d); strutturaCambiata();
+  avviso((a.d > 0 ? 'Aggiunto un gonfiatore ' + a.k + ' a ' : 'Tolto un gonfiatore ' + a.k + ' da ') + p.nome + '.', 5000, ['Annulla', annulla]);
+}
 function valuta(p) {
   const r = p.reg; if (!r) return { c: 'gr', cons: '' };
   const S = soglie(p), lim = S.lim, sf = capTelo() / Math.max(1e-6, tensione(p.F, r.p));
@@ -2778,7 +2803,7 @@ const CAT = { bolle: ['stella', 'cubo', 'prisma', 'cilindro', 'piramide'], corri
 const ETI_TIPO = { corridoio: 'Dritto' };
 let catAgg = 'bolle'; const ultimoTipo = { bolle: 'cubo', corridoi: 'corridoio' };
 function sceltaCat(c) {
-  catAgg = c; $('schedeAgg').querySelectorAll('[data-cat]').forEach(b => b.setAttribute('aria-selected', b.dataset.cat === c));
+  catAgg = c; $('schedeAgg').querySelectorAll('[data-cat]').forEach(b => b.setAttribute('aria-selected', b.dataset.cat === c)); $('bDaFoto').hidden = c !== 'bolle';
   $('aggForma').hidden = c === 'gonf'; $('aggGonf').hidden = c !== 'gonf';
   if (c !== 'gonf' && !CAT[c].includes(tipoScelto)) { tipoScelto = ultimoTipo[c]; attNuovo = 0; dimNuovo = standard(tipoScelto); fNuovo = { ...TIPI[tipoScelto].f }; porteNuove = forma(tipoScelto, dimNuovo).conn.slice(); }
   if (c === 'gonf') disegnaGonfiatori(); else disegnaTipi();
@@ -2854,8 +2879,21 @@ let piuCache = [];
 function aggiornaPiu() { piuCache = pezzi.length ? candidati(tipoScelto, dimNuovo, porteNuove, attNuovo) : []; $('bPrimo').hidden = pezzi.length > 0; fantasmi(performance.now() < fantasmiFino ? piuCache : []);
   $('hintPiu').textContent = pezzi.length ? (piuCache.length ? 'Tocca un + nella scena per attaccarlo lì.' : 'Nessun lato libero dove entra: rimpicciolisci o sposta un pezzo.') : '';
   const sv = $('sovra'); sv.querySelectorAll('.piu').forEach(e => e.remove());
-  for (const c of piuCache) { const b = document.createElement('button'); b.className = 'piu'; b.textContent = '+'; b.title = 'Attacca ' + TIPI[tipoScelto].nome.toLowerCase(); b._c = c; b.onclick = () => { fantasmi([]); aggiungi(c); };
-    b.onpointerenter = () => { fantasmiFino = -1; fantasmi([c]); }; b.onpointerleave = () => fantasmi([]); sv.appendChild(b); } }
+  piuScelto = null;
+  for (const c of piuCache) { const b = document.createElement('button'); b.className = 'piu'; b.textContent = '+'; b.title = 'Attacca ' + TIPI[tipoScelto].nome.toLowerCase(); b._c = c;
+    // [Officina] col tocco non c'è il passaggio del mouse: il primo tocco mostra dove arriva la bolla, il secondo la attacca
+    b.onpointerdown = e => { b._tocco = e.pointerType !== 'mouse'; };
+    b.onclick = () => {
+      if (b._tocco && piuScelto !== c) {
+        piuScelto = c; sv.querySelectorAll('.piu.scelto').forEach(x => { x.classList.remove('scelto'); x.textContent = '+'; });
+        b.classList.add('scelto'); b.innerHTML = '<svg viewBox="0 0 14 12" width="13" height="11" aria-hidden="true"><path d="M1.5 6.5 5 10l7.5-8.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        b.setAttribute('aria-label', 'Conferma: attacca qui'); fantasmiFino = -1; fantasmi([c]); avviso('Ecco dove arriva. Tocca di nuovo per attaccarla qui.', 3500); return;
+      }
+      piuScelto = null; fantasmi([]); aggiungi(c);
+    };
+    b.onpointerenter = () => { fantasmiFino = -1; fantasmi([c]); }; b.onpointerleave = () => { if (piuScelto !== c) fantasmi([]); }; sv.appendChild(b); } }
+let piuScelto = null;   // [Officina] il «+» toccato una volta, in attesa di conferma
+box.addEventListener('pointerdown', e => { if (piuScelto && !e.target.closest('.piu')) { piuScelto = null; fantasmi([]); aggiornaPiu(); } });
 function aggiungi(c) {
   const p = nuovoPezzo(tipoScelto, dimNuovo, fNuovo, porteNuove);
   if (c) Object.assign(p, piazzaCon(p, c.h, c.eh, c.ef ?? p.porte[0])); else p.ingresso = true;
@@ -2889,7 +2927,7 @@ function ispettore(nuovo) {
       <button class="indietro" id="iIndietro" title="Torna ad Aggiungi (Esc)"><svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M6.5 1 1.5 6l5 5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Aggiungi un altro pezzo</button>
       <p class="sistemaRiga" title="Un sistema è un gruppo di bolle collegate che si scambiano l'aria">${nomeSistema(p.sistema)} · ${sistemi[p.sistema].length} ${sistemi[p.sistema].length > 1 ? 'moduli uniti' : 'modulo da solo'}${p.ingresso ? ' · ingresso' : ''}</p>
       <div class="titoloPezzo"><span class="dot ${v.c}"></span><input class="nomeIn" id="iNome" aria-label="Nome del modulo" value="${p.nome.replace(/"/g, '&quot;')}"></div>
-      ${p.scoppio ? `<div class="consiglio ko">Scoppiata · strappo di ${fmt(p.scoppio.Amax, 1)} m², i gonfiatori non bastano</div>` : `<div class="consiglio ${v.c}">${v.c === 'ok' ? 'Funziona' : v.cons}</div>`}
+      ${p.scoppio ? `<div class="consiglio ko">Scoppiata · strappo di ${fmt(p.scoppio.Amax, 1)} m², i gonfiatori non bastano</div>` : `<div class="consiglio ${v.c}">${v.c === 'ok' ? 'Funziona' : v.azione ? `<span>${v.c === 'ko' ? 'Non funziona' : 'Da migliorare'}</span><button class="fix" id="iFix">${testoFix(v.azione)}</button>` : v.cons}</div>`}
     </div>
     <div class="schede" role="tablist" aria-label="Sezioni del pezzo">${SCHEDE.map(([k, t]) => `<button role="tab" data-sc="${k}" aria-selected="${k === tabIsp}">${t}${k === 'coll' && nColl ? ` <small>${nColl}</small>` : ''}</button>`).join('')}</div>
     <div class="scheda" data-pane="stato"${tabIsp === 'stato' ? '' : ' hidden'}>
@@ -2911,6 +2949,7 @@ function ispettore(nuovo) {
     el.querySelectorAll('[data-sc]').forEach(x => x.setAttribute('aria-selected', x === b)); el.querySelectorAll('[data-pane]').forEach(x => x.hidden = x.dataset.pane !== tabIsp); });
   $('iScoppia').onclick = () => p.scoppio ? ripara(p) : scoppia(p);
   $('iIndietro').onclick = () => { selezionato = null; firmaPan = ''; ispettore(); };   // [Officina] il pannello torna ad Aggiungi
+  if ($('iFix')) $('iFix').onclick = () => applicaFix(p, v.azione);
   const cont = $('parSel'); let t;
   for (const [k, lab, mn, mx, st, , u] of TIPI[p.tipo].par) campo(cont, lab, p.d[k], mn, mx, st, u, val => { const legami = legamiAttuali(); p.d[k] = val; clearTimeout(t); t = setTimeout(() => { p.F = forma(p.tipo, p.d); avvisaIngrandita(); riallinea(p, legami); strutturaCambiata(); }, 140); }, u === 'm' || u === '×' ? 2 : 0);
   for (const s of TIPI[p.tipo].scelte || []) sceltaRiga(cont, s, p.d[s.key], v => { const legami = legamiAttuali(); p.d[s.key] = v; p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); });   // [Officina]
@@ -3069,6 +3108,20 @@ function impostaModo(m) {
 }
 $('modoScena').querySelectorAll('[data-modo]').forEach(b => b.onclick = () => impostaModo(b.dataset.modo));
 $('bAnnulla').onclick = () => annulla(); $('bRipeti').onclick = () => ripeti();
+// [Officina] telefono: il pannello sta sotto la scena e il manico lo allarga o lo riduce (un tocco: medio → alto → basso; o trascinandolo)
+const FOGLIO = [0.3, 0.46, 0.72]; let foglio = 1;
+function altezzaFoglio(px) { $('vCostruisci').style.setProperty('--foglio', px == null ? FOGLIO[foglio] * 100 + '%' : px + 'px'); requestAnimationFrame(ridimensiona); }
+{
+  const m = $('manico'); let y0 = null, h0 = 0, mosso = false;
+  m.onpointerdown = e => { const a = document.querySelector('#vCostruisci > aside.' + ($('vCostruisci').classList.contains('conSel') ? 'dx' : 'sx')); y0 = e.clientY; h0 = a ? a.getBoundingClientRect().height : 0; mosso = false; m.setPointerCapture(e.pointerId); };
+  m.onpointermove = e => { if (y0 == null) return; const dy = y0 - e.clientY; if (Math.abs(dy) > 4) mosso = true; if (!mosso) return;
+    const H = $('vCostruisci').clientHeight; altezzaFoglio(Math.round(clamp(h0 + dy, H * 0.18, H * 0.82))); };
+  m.onpointerup = () => { if (y0 == null) return; y0 = null;
+    if (!mosso) foglio = foglio === 1 ? 2 : foglio === 2 ? 0 : 1;
+    else { const a = document.querySelector('#vCostruisci > aside.' + ($('vCostruisci').classList.contains('conSel') ? 'dx' : 'sx')), r = a ? a.getBoundingClientRect().height / $('vCostruisci').clientHeight : FOGLIO[foglio];
+      foglio = FOGLIO.reduce((b, v, i) => Math.abs(v - r) < Math.abs(FOGLIO[b] - r) ? i : b, 0); }
+    altezzaFoglio(); };
+}
 document.addEventListener('keydown', e => {   // [Officina] Ctrl+Z annulla, Ctrl+Y o Ctrl+Maiusc+Z ripete (nei campi di testo resta quello del browser)
   if (!(e.ctrlKey || e.metaKey) || e.altKey || /INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) return;
   const k = e.key.toLowerCase();
@@ -3177,9 +3230,10 @@ function costruisciRighe() {
       <td class="num">${fmtT(r.tF)}</td><td class="num" title="Tempo prima che il tetto scenda sotto ${fmt(altezzaSicura(p.F), 2)} m">${r.tB == null ? '> 15 min' : fmtT(r.tB)}</td>
       <td class="num" title="${fmt(ric, 1)} ricambi d'aria all'ora">${pers}</td>
       <td class="num"><span style="color:var(--gP)">${p.f.piccolo}</span> + <span style="color:var(--gG)">${p.f.grande}</span></td>
-      <td class="cons ${v.c}">${v.cons}</td></tr>`; }).join('');
+      <td class="cons ${v.c}">${v.azione ? `<button class="fix" data-fix="1">${testoFix(v.azione)}</button>` : v.cons}</td></tr>`; }).join('');
   $('righe').querySelectorAll('tr').forEach(tr => { const p = pezzi.find(q => q.id === +tr.dataset.id);
-    tr.onclick = () => { selezionato = p; ispettore(); mostra('c'); }; });
+    tr.onclick = () => { selezionato = p; ispettore(); mostra('c'); };
+    const fb = tr.querySelector('[data-fix]'); if (fb) fb.onclick = ev => { ev.stopPropagation(); applicaFix(p, valuta(p).azione); }; });
   costruisciPorte();
   const g = statoGlobale();
   for (const id of ['dotGlob', 'dotTab']) $(id).className = 'dot ' + g.c;
@@ -3462,6 +3516,7 @@ $('bEsplodi').onclick = () => scoppia(selezionato && !selezionato.scoppio ? sele
 $('bRipara').onclick = () => ripara();
 
 // --- composizioni: più progetti, salvati nel browser ---
+const NOME_INIZIO = 'Nuova composizione', NOME_PREC = 'Lavoro precedente';   // [Officina] prima "Cubo iniziale" e "Ultima sessione"
 const CHIAVE_COMP = 'bolle-composizioni', CHIAVI_D = ['mat', 'gsm', 't', 'sigma', 'pMin', 'manW', 'manL', 'manH', 'manMax', 'nW', 'nT', 'nFile', 'porte', 'coll', 'giunti', 'bleed', 'aPersona', 'sfogo'];
 let comp = { attiva: null, lista: [] }, caricando = false;
 // [Officina] annulla / ripeti: ogni modifica salvata (salvaPresto) lascia l'istantanea di prima in storia.indietro
@@ -3912,7 +3967,7 @@ function inquadra() {
 }
 function ridimensiona() {
   const w = box.clientWidth, h = box.clientHeight; if (!w || !h) return; renderer.setSize(w, h); camera.aspect = w / h;
-  const off = w > 700 && !box.classList.contains('noPress') ? 135 : 0;   // sposta la scena a sinistra del pannello della pressione ([Officina] solo se c'è)
+  const off = w > 700 && !box.classList.contains('noPress') && !$('vCostruisci').classList.contains('costr') ? 135 : 0;   // [Officina] in Costruisci il riquadro non c'è   // sposta la scena a sinistra del pannello della pressione ([Officina] solo se c'è)
   if (off) camera.setViewOffset(w + off, h, off, 0, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
@@ -3927,16 +3982,17 @@ function esempio() {
 }
 disegnaTipi(); costruisciDati(); ridimensiona();
 {
-  const prec = compAttiva();   // la sessione iniziale precedente resta recuperabile come "Ultima sessione"
-  if (prec && prec.nome === 'Cubo iniziale') { prec.nome = 'Ultima sessione'; comp.lista = comp.lista.filter(c => c === prec || c.nome !== 'Ultima sessione'); }
+  for (const x of comp.lista) if (x.nome === 'Ultima sessione') x.nome = NOME_PREC;   // [Officina] i nomi delle versioni di prima
+  const prec = compAttiva();   // la sessione iniziale precedente resta recuperabile come "Lavoro precedente"
+  if (prec && (prec.nome === NOME_INIZIO || prec.nome === 'Cubo iniziale')) { prec.nome = NOME_PREC; comp.lista = comp.lista.filter(c => c === prec || c.nome !== NOME_PREC); }
   caricando = true; esempio(); strutturaCambiata();
   for (const p of pezzi) p.Va = p.V0 * 1.002;
   { const r = { pezzi, link }; for (let i = 0; i < 12000; i++) passoRete(r, 0.05, false); }
   mettiPersona(); caricando = false;
-  const c = { id: nuovoIdComp(), nome: 'Cubo iniziale', agg: Date.now(), dati: fotografa() }; comp.lista.push(c); comp.attiva = c.id; salvaComp(); disegnaComp();
+  const c = { id: nuovoIdComp(), nome: NOME_INIZIO, agg: Date.now(), dati: fotografa() }; comp.lista.push(c); comp.attiva = c.id; salvaComp(); disegnaComp();
   storia.ora = statoStoria();   // [Officina] da qui si può annullare
   // [Officina] tornando dall'Officina (o riaprendo la pagina) si ritrova la composizione su cui si stava lavorando, non un cubo nuovo
-  if (prec && prec.nome !== 'Ultima sessione' && prec.dati && (prec.dati.pezzi || []).length) {
+  if (prec && prec.nome !== NOME_PREC && prec.dati && (prec.dati.pezzi || []).length) {
     comp.lista = comp.lista.filter(x => x !== c); comp.attiva = null; apriComp(prec.id); disegnaComp(); }
 }
 
@@ -3970,7 +4026,7 @@ requestAnimationFrame(anima);
 // =====================================================================
 const FF = { img: null, tol: 0.012, inv: false, auto: 'libera', tipo: 'libera', manuale: false, unita: 'cm', scala: 10, H: 2.2, f: { piccolo: 1, grande: 1 }, mis: {}, prop: true, raw: null, poli: null, st: null };
 const FF_TIPI = { rettangolo: 'Rettangolo', cerchio: 'Cerchio', ellisse: 'Ovale', triangolo: 'Triangolo', regolare: 'Poligono regolare', libera: 'Forma libera' };
-$('bFoto').onclick = () => $('fFoto').click();
+$('bFoto').onclick = () => $('fFoto').click(); $('bDaFoto').onclick = () => $('fFoto').click();
 $('fFoto').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) caricaFoto(f); };
 function caricaFoto(file) {
   const url = URL.createObjectURL(file), im = new Image();
@@ -4233,7 +4289,7 @@ function daOfficina() {
     if (d.k > k0) ritocchi.push(`ingrandita ×${fmt(d.k, 2)} perché le porte siano alte almeno ${fmt(PORTA_MIN, 2)} m`);
   }
   const f = gonfConsigliati({ tipo, d }) || { ...TIPI[tipo].f };
-  const ini = compAttiva(); if (ini && ini.nome === 'Cubo iniziale') { comp.lista = comp.lista.filter(c => c !== ini); comp.attiva = null; }   // il cubo d'esempio di questa apertura non serve
+  const ini = compAttiva(); if (ini && ini.nome === NOME_INIZIO) { comp.lista = comp.lista.filter(c => c !== ini); comp.attiva = null; }   // il cubo d'esempio di questa apertura non serve
   const src = M.src && typeof M.src === 'object' && JSON.stringify(M.src).length < 20000 ? M.src : null;   // com'era nell'Officina: per tornarci con il selettore in alto
   if (src) { delete src.ingrandita; delete src.ritocchi;   // [Officina] tornando all'Officina si sa se qui la forma è stata ingrandita o ritoccata
     if (tipo === 'officina' && d.k > 1.001) src.ingrandita = d.k; else if (ritocchi.length) src.ritocchi = ritocchi.slice(0, 6); }
