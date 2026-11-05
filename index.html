@@ -1960,7 +1960,7 @@ function analyze(V, F, floor) {
     SHAPES.forEach(s => { if (!groups.has(s.group)) groups.set(s.group, []); groups.get(s.group).push(s); });
     $("gallery").innerHTML = [...groups].map(([name, list]) => `<div class="gal-group"><h4>${esc(name)}</h4><div class="gal-row">${list.map(s =>
       `<button type="button" class="tile" data-id="${s.id}" aria-pressed="${s.id === state.shape}" title="${esc(s.name)}"><canvas data-thumb="${s.id}" aria-hidden="true"></canvas><span>${esc(shortName(s))}</span></button>`).join("")}</div></div>`).join("");
-    $("gallery").addEventListener("click", e => { const b = e.target.closest(".tile"); if (b) selectShape(b.dataset.id); });
+    $("gallery").addEventListener("click", e => { const b = e.target.closest(".tile"); if (b) { fermaVetrina(); selectShape(b.dataset.id); drawView("hero"); } });
   }
   function selectShape(id) {
     if (id === state.shape) return;
@@ -1974,7 +1974,9 @@ function analyze(V, F, floor) {
   const thumbs = new Map();
   // vetrina: la figura in alto mostra a turno, ogni 5 secondi, tutte le forme (alle misure di partenza, come le miniature).
   // id null = la forma scelta. Numeri e guida restano sempre sulla forma scelta; cliccando la figura si sceglie quella mostrata.
-  const vetrina = { id: null, prossimo: 0, sopra: false };
+  const vetrina = { id: null, prossimo: 0, sopra: false, ferma: false };
+  // appena si sceglie una forma (galleria, figura, ricerca, progetto, file, link o ritorno dall'Abbofficina) il giro si ferma su quella
+  function fermaVetrina() { vetrina.ferma = true; vetrina.id = null; vetrina.anim = null; }
   function buildThumbs() {
     let i = 0;
     const step = () => {
@@ -3158,7 +3160,7 @@ function analyze(V, F, floor) {
     cv.addEventListener("pointerup", e => {
       const click = drag && moved <= 4;
       drag = false;
-      if (click && name === "hero" && inVetrina()) { const id = vetrina.id; selectShape(id); vetrina.prossimo = Date.now() + 15000; scriviVetrina(); return; }
+      if (click && name === "hero" && inVetrina()) { const id = vetrina.id; fermaVetrina(); selectShape(id); scriviVetrina(); return; }
       if (click && name !== "seam" && cur) { const fi = pick(v, e); if (fi != null) { hideTip(); goToPiece(cur.an.faceInfo[fi].type); } }
     });
     cv.addEventListener("pointercancel", () => { drag = false; });
@@ -3187,7 +3189,7 @@ function analyze(V, F, floor) {
   setInterval(() => {
     if (vetrina.anim) { drawView("hero"); return; }   // un cambio in corso: si porta avanti anche se la pagina non disegna da sola
     const qui = inVetrina() ? vetrina.id : state.shape; if (qui !== vetrina.scritto) { vetrina.scritto = qui; scriviVetrina(); }   // la didascalia segue anche i cambi di forma
-    if (reduced || !cur || vetrina.sopra || document.hidden || !views.hero.visible || Date.now() < vetrina.prossimo) return;
+    if (vetrina.ferma || reduced || !cur || vetrina.sopra || document.hidden || !views.hero.visible || Date.now() < vetrina.prossimo) return;
     vetrina.prossimo = Date.now() + 5000;
     const id = avantiVetrina(); if (id === vetrina.id || (id == null && !inVetrina())) return;
     cambiaVetrina(id);
@@ -3419,6 +3421,7 @@ function analyze(V, F, floor) {
   }
   function loadProject(p) {
     if (!applyState(p)) { const t = formaTolta(p); if (t) projStatus(t); return; }
+    fermaVetrina();
     proj.openId = p.id;
     renderProjects();
     projStatus(`Aperto "${String(p.name || "Senza nome").slice(0, 60)}".`);
@@ -3582,8 +3585,8 @@ function analyze(V, F, floor) {
     try { q = new URLSearchParams(location.search).get("forma"); } catch (e) { /* indirizzo senza parametri */ }
     try { if (location.hash.startsWith("#apri=")) da = JSON.parse(decodeURIComponent(location.hash.slice(6))); } catch (e) { da = null; }
     if (location.hash.startsWith("#apri=")) { try { history.replaceState(null, "", location.pathname + location.search + "#misure"); } catch (e) { /* indirizzo fisso */ } }
-    if (q && SHAPES.some(s => s.id === q)) selectShape(q);
-    else if (da && applyState(da)) avvisoDalConfiguratore(da);
+    if (q && SHAPES.some(s => s.id === q)) { fermaVetrina(); selectShape(q); }
+    else if (da && applyState(da)) { fermaVetrina(); avvisoDalConfiguratore(da); }
     else if (da && formaTolta(da)) { $("avvisoConfT").textContent = formaTolta(da); $("avvisoConf").hidden = false; }
     else { try { ultima = JSON.parse(localStorage.getItem("bolle|forma") || "null"); } catch (e) { /* niente di salvato */ } if (ultima) applyState(ultima); }
   }
@@ -3608,7 +3611,7 @@ function analyze(V, F, floor) {
   $("projFileIn").addEventListener("change", async e => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
     let j = null;
-    try { j = JSON.parse(await f.text()); if (!applyState(j)) throw new Error("forma sconosciuta"); projStatus(`Aperto il file ${f.name}.`); }
+    try { j = JSON.parse(await f.text()); if (!applyState(j)) throw new Error("forma sconosciuta"); fermaVetrina(); projStatus(`Aperto il file ${f.name}.`); }
     catch (err) { projStatus(formaTolta(j) || `Il file ${f.name} non contiene una forma dell'Officina.`); }
   });
   initStep(); loop();
@@ -3636,7 +3639,7 @@ function analyze(V, F, floor) {
     add("Porta la forma nell'Abbofficina", "Passo 2 · Numeri", () => $("bridgeGo").click(), "prova simulazione aria");
     add("Aggiungi alla composizione aperta", "Passo 2 · Numeri", () => $("bridgeAdd").click(), "abbofficina altre bolle");
     // le forme
-    SHAPES.forEach(sh => add(sh.name, "Forma · " + sh.group, nelPasso("forma", () => { selectShape(sh.id); evidenzia(document.querySelector(`#gallery [data-id="${sh.id}"]`)); }), "scegli forma"));
+    SHAPES.forEach(sh => add(sh.name, "Forma · " + sh.group, nelPasso("forma", () => { fermaVetrina(); selectShape(sh.id); evidenzia(document.querySelector(`#gallery [data-id="${sh.id}"]`)); }), "scegli forma"));
     // le misure della forma scelta e le altre opzioni del passo 1
     def().params.filter(p => p.type !== "pts").forEach(p => add(p.label, "Misura · " + def().name, nelPasso("forma", () => evidenzia($("p_" + p.key))), "misura dimensione"));
     if (def().params.some(p => p.type === "pts")) add("Disegnate la pianta", "Passo 1 · Forma", nelPasso("forma", () => evidenzia($("planEditor"))), "punti griglia pianta");
