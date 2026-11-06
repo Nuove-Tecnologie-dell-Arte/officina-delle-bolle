@@ -319,3 +319,8 @@ Dal branch `abbofficina-ricerca-oggetti-3d` (thaaby) sono state prese le parti c
 ## Porte su lati corti (6 novembre)
 
 - **Cornice della porta intera anche sui lati corti** (`posParete`, `[Officina]`): la porta è larga almeno 50 cm, quindi su un lato più corto, come quelli di una «Forma da un'immagine» con la base stretta, la cornice esce dal lato. Il seno diventava negativo e `Math.pow` dava NaN: la cornice si disegnava solo in parte, con gli avvisi di three.js in console. Ora il valore si ferma a zero.
+
+## La sfera di triangoli piccoli (6 novembre)
+
+- Una forma nuova dell'Officina, `sferaP`: la sfera di 120 triangoli uguali con ogni triangolo diviso in 4 o in 9 (480 o 1080 triangoli, tutti uguali).
+- Qui tre righe segnate `[Officina]`: la voce in `FORME_OFF`, l'icona `of:sferaP` e il posto nel gruppo «Solidi» di `GRUPPI_FORME`.
