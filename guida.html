@@ -233,7 +233,13 @@ section[data-t="dime"] .due { grid-template-columns: minmax(0, 1fr); }
 /* montaggio */
 .giunta { display: grid; gap: 14px; }
 .giunta h2 .num { color: var(--green); }
-.giunta .coppia { width: 100%; height: auto; max-height: 340px; display: block; background: var(--paper); border-radius: var(--r-m); }
+/* a sinistra la spiegazione scritta, a destra quella disegnata (i due pezzi sopra, la bolla in 3D sotto), che resta in vista mentre si legge */
+.montaggio .grafica { display: grid; gap: 14px; align-content: start; position: sticky; top: 76px; }
+.coppia-box { display: grid; gap: 8px; padding: 14px; }
+.coppia-box figcaption { text-align: center; }
+.coppia { width: 100%; height: auto; max-height: min(340px, 34vh); display: block; background: var(--paper); border-radius: var(--r-m); }
+.montaggio .vista canvas { aspect-ratio: 16 / 10; max-height: 27vh; }
+@media (max-width: 860px) { .montaggio .grafica { position: static; order: -1; } }
 .giunta .passi span { color: var(--ink); font-size: .98rem; }
 .giunta .lt { font: 700 1.05rem var(--mono); color: var(--cut); }
 .codici summary { cursor: pointer; color: var(--green); font-weight: 600; font-size: .92rem; }
@@ -401,9 +407,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <!-- 7 · Montaggio -->
 <section class="tappa" data-t="montaggio" hidden>
   <div class="tit"><span class="occhiello">Tappa 7 · la bolla vera</span><h2>Montate la bolla, una giunzione alla volta</h2><p>Una <button class="gl" data-g="giunzione">giunzione</button> è il punto in cui due pezzi si uniscono lungo un lato. Seguite l'ordine: prima il pavimento, poi dal basso verso l'alto.</p></div>
-  <div class="due">
+  <div class="due montaggio">
     <div class="card giunta" id="giunta"></div>
-    <figure class="vista" style="margin:0"><canvas id="cvMontaggio" aria-label="La bolla in 3D con i due pezzi da unire colorati e il lato in rosso"></canvas><figcaption>In colore i due pezzi da unire, in rosso il lato · trascinate per girarla</figcaption></figure>
+    <div class="grafica">
+      <figure class="card coppia-box" style="margin:0"><div id="coppia"></div><figcaption class="hint">I due pezzi stesi a terra, accostati lungo il lato rosso da unire</figcaption></figure>
+      <figure class="vista" style="margin:0"><canvas id="cvMontaggio" aria-label="La bolla in 3D con i due pezzi da unire colorati e il lato in rosso"></canvas><figcaption>Dove sono nella bolla: in colore i due pezzi, in rosso il lato · trascinate per girarla</figcaption></figure>
+    </div>
   </div>
   <div class="box-info"><b>La porta</b><span id="porta"></span></div>
 </section>
@@ -1158,7 +1167,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const fase = s.floor ? "Prima il pavimento e le pareti basse" : "Ora le pareti, dal basso verso l'alto";
     $("giunta").innerHTML = `<span class="occhiello">${fase}</span>
       <h2>Giunzione <span class="num">${s.no}</span> di <span class="num">${N}</span></h2>
-      ${coppiaSVG(s, sopra, sotto, stato)}
       <ol class="passi">
         <li><div><b>Trovate i pezzi</b><span>${prendi}</span></div></li>
         <li><div><b>Accostateli come nel disegno</b><span>Il lato rosso di un pezzo contro il lato rosso dell'altro. È lungo <b class="num">${metri(s.len)}</b>.</span></div></li>
@@ -1169,6 +1177,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       <div class="prog"><div style="width:${f.giunte.length / N * 100}%"></div></div>
       <p class="hint">${plural(f.giunte.length, "giunzione fatta", "giunzioni fatte")} su ${N}</p>
       <div class="btnrow"><button type="button" class="btn" id="gPrima"${giuntaQui === 0 ? " disabled" : ""} aria-label="Giunzione prima">←</button><button type="button" class="btn primary big" id="gFatta">${fatta ? "Fatta ✓ · avanti" : "Fatta! Avanti"}</button><button type="button" class="btn" id="gDopo"${giuntaQui >= N - 1 ? " disabled" : ""} aria-label="Giunzione dopo">→</button></div>`;
+    $("coppia").innerHTML = coppiaSVG(s, sopra, sotto, stato);
     const P = porteForma(cur.V, cur.F, S.shape), hp = P ? Math.max(0, P.h - 0.15) : 0;
     $("porta").textContent = `Alla fine tagliate la porta: un taglio verticale in un pannello basso, dove la bolla è più alta (qui fino a ${metri(Math.min(hp, 2))}). Fissate la cerniera ai due bordi del taglio, con nastro o saldatura, e rinforzateli con il nastro. La porta è anche l'uscita: deve aprirsi facilmente.`;
     vista("cvMontaggio", () => cur && { m: cur, o: { hl: [s.p.fi, s.q.fi], lato: s.key.split("_").map(Number) } });
