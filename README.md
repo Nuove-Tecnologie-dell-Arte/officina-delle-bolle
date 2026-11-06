@@ -4,7 +4,7 @@ Un generatore di guide per costruire bolle gonfiabili in plastica fatte di panne
 
 In cima, la figura mostra a turno tutte le forme, una ogni 5 secondi (si ferma mentre ci passate sopra o la girate a mano): cliccandola si sceglie quella che si sta vedendo. I numeri accanto restano sempre sulla forma scelta. Appena si sceglie una forma (dalla galleria, cliccando la figura, con la ricerca, aprendo un progetto o un file, da un link o tornando dall'Abbofficina) il giro si ferma e la figura resta su quella, fino alla prossima visita. Mentre la figura mostra un'altra forma, sotto i numeri c'è scritto «In vetrina: …» (i numeri sono di quella forma) e l'avviso della porta si nasconde; sulla vostra forma torna «Forma scelta».
 
-**Passo 1**: in cima ci sono 4 forme per cominciare (cupola, cubo, sfera geodetica, pallone); le altre 23 si aprono con «Altre forme», e si aprono da sole se la forma scelta è una di quelle. I Progetti del gruppo stanno dopo «Avanti».
+**Passo 1**: in cima ci sono 4 forme per cominciare (cupola, cubo, sfera geodetica, pallone); le altre 24 si aprono con «Altre forme» (compresa la forma da un'immagine), e si aprono da sole se la forma scelta è una di quelle. I Progetti del gruppo stanno dopo «Avanti».
 
 **Rotolo**: la larghezza del rotolo di telo è una sola, in metri. Si scrive al Passo 3 (materiale) o al Passo 4 (pezzi, con la bolla vera) e i due campi restano uguali.
 
@@ -22,6 +22,32 @@ Avvisi e consigli: se la bolla è troppo bassa per una porta da 1,80 m la pagina
 **Barra di ricerca**: la lente in alto, accanto ai passi (o ⌘K / Ctrl+K, o il tasto /), apre una casella in cui si scrive cosa si cerca, per esempio "cupola", "rotolo", "cantiere", "pezzo 3" o "giunzione 12". Si arriva subito a quell'opzione, anche se sta in un altro passo. I pulsanti che cancellano ("Azzera le spunte", "Azzera le giunzioni") vengono solo mostrati, non premuti.
 
 Il sito è un unico file, `index.html`, che non ha bisogno di un server: basta aprirlo nel browser.
+
+## Bolla da un'immagine
+
+In cima al Passo 1 c'è il riquadro **Crea una bolla da un'immagine**. Si carica una foto, un disegno, uno schizzo o una sagoma: si può anche trascinare l'immagine sulla pagina o incollarla con Ctrl+V. Tutto succede nel browser, senza server.
+- **La sagoma**, in tre modi:
+  - **Intelligente** (si parte da qui): un modello di intelligenza artificiale riconosce il soggetto, senza ombra e sfondo. È SAM («Segment Anything», di Meta, licenza Apache 2.0), nella versione leggera SlimSAM, eseguito nel browser con Transformers.js (`@xenova/transformers@2.17.2` da jsdelivr, modello `Xenova/slimsam-77-uniform` da Hugging Face).
+    - Si scarica solo la prima volta (circa 13 MB), poi resta nel browser.
+    - Gira in un worker, così la pagina non si blocca; se il browser non lo permette, gira nella pagina.
+    - Il modello tocca da solo il punto più interno del soggetto. Ogni tocco «+ È soggetto» o «− È sfondo» (anche col tasto destro o con Maiusc) corregge la sagoma in mezzo secondo.
+    - Senza internet il pulsante si spegne e la pagina passa ad Automatico.
+  - **Automatico**, senza internet: uno scontorno sul modello di GrabCut, scritto dentro la pagina.
+    - Soggetto e sfondo hanno ciascuno un modello dei colori, così uno sfondo a puntini come il sughero conta come un unico sfondo.
+    - La luce pesa poco, così un'ombra è sfondo più scuro e non un oggetto.
+    - I pixel vicini e simili stanno dalla stessa parte, e una chiusura leggera toglie le fessure lungo il bordo.
+    - Per aiutarlo si trascina un riquadro attorno al soggetto e si usano gli stessi tocchi «+» e «−». Con un PNG trasparente il contorno viene dalla trasparenza.
+  - **Punti a mano**, per quando serve la massima precisione (vedi sotto).
+- **Punti a mano:** per le foto difficili (oggetti lucidi, sfondi pieni di cose, ombre) il contorno lo mettete voi. Si tocca l'immagine attorno alla forma, un punto dopo l'altro; toccando vicino a un lato il punto va lì. I punti si trascinano, e con doppio clic (o il dito tenuto premuto) si tolgono; ci sono Annulla e Ricomincia da zero. «Parti dal contorno automatico» trasforma il contorno trovato in punti da correggere, e «Specchia» copia la metà sinistra da quella destra, per gli oggetti simmetrici.
+- **Forme geometriche:** cerchi, ovali, rettangoli, poligoni regolari e stelle vengono resi precisi, così i pezzi sono di pochi tipi.
+- **Come la legge**, scelto da sola e cambiabile con un clic:
+  - **oggetto tondo** visto di lato (vaso, fungo, pera): gira attorno all'asse, a fasce di trapezi uguali;
+  - **sagoma con spessore** vista di lato (animale, lettera);
+  - **pianta** vista dall'alto, con pareti e tetto piatto, a punta o a cupola.
+
+  Se la lettura scelta non si può costruire, la pagina ne propone un'altra.
+- **Anteprima e giudizio** si aggiornano a ogni ritocco: il modellino 3D con le quote e una persona per la scala, e un giudizio «Si può fare / con qualche accorgimento / Così non si può fare» che guarda porta da 1,80 m, pavimento, tipi di pezzo, lati troppo corti, punte strette, stabilità, modellino, telo e giunzioni.
+- **Usa questa forma** la mette nell'Officina come «Forma da un'immagine»: misure, pezzi, modellino, giunzioni, cantiere e Abbofficina come per le altre forme, e il giudizio resta nella scheda della forma. La sagoma si salva con il progetto (anche su file); l'ultima immagine resta in questo browser per «Ritocca l'ultima immagine».
 
 ## Sfera geodetica
 
