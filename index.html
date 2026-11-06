@@ -154,6 +154,19 @@ canvas#view:active { cursor: grabbing; }
 /* nelle file di campi le caselle restano allineate in basso anche se un'etichetta va a capo */
 .fields .field { align-content: space-between; }
 .field label, .flabel { font-size: .82rem; color: var(--muted); line-height: 1.3; }
+/* misure: gruppi, campo toccato, bolla vera o modellino */
+.fgruppo { grid-column: 1 / -1; font: 650 .84rem/1.3 var(--body); color: var(--ink); padding-top: 10px; border-top: 1px solid var(--rule); }
+.fgruppo:first-child { padding-top: 0; border-top: 0; }
+.field.attivo label { color: var(--green); font-weight: 650; }
+.field.attivo input, .field.attivo select { border-color: var(--green); }
+.conv { font: 500 .76rem/1.3 var(--mono); color: var(--muted); }
+.conv:empty { display: none; }
+.misureBarra { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; justify-content: space-between; }
+.misureBarra .seg button { padding: 8px 10px; min-height: 40px; font-size: .86rem; }
+.scalaTop { display: inline-flex; align-items: center; gap: 5px; font-size: .86rem; color: var(--muted); white-space: nowrap; }
+.scalaTop input[type="number"] { width: 4.2em; padding-inline: 8px; min-height: 40px; padding-block: 6px; }
+#miniNota { min-height: 3.9em; line-height: 1.3; }
+#miniNota b { color: var(--green); font-weight: 650; }
 input[type="number"], select {
   font: 500 1rem var(--mono); color: var(--ink); background: var(--paper);
   border: 1px solid var(--rule); border-radius: var(--r-s); padding: 9px 10px; width: 100%; min-height: 44px;
@@ -222,7 +235,7 @@ canvas.pickable.over { cursor: pointer; }
 .mini-stage { position: sticky; top: 76px; }
 canvas#mini { width: 100%; aspect-ratio: 1 / 1; display: block; }
 .controls2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; align-items: start; }
-@media (max-width: 760px) { .bench2 { grid-template-columns: 1fr; } .mini-stage { position: static; } canvas#mini { aspect-ratio: 4 / 3; } }
+@media (max-width: 760px) { .bench2 { grid-template-columns: 1fr; } .mini-stage { top: 62px; z-index: 5; padding: 8px 10px; gap: 6px; } canvas#mini { aspect-ratio: 16 / 9; max-height: 27vh; } #miniNota { min-height: 3.9em; font-size: .8rem; } }   /* sul telefono l'anteprima resta in vista mentre si scorrono i campi */
 
 /* ---------- intestazioni dei passi ---------- */
 .sechead { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 20px; align-items: start; }
@@ -639,12 +652,16 @@ details.menu > summary::-webkit-details-marker { display: none; }
       <figure class="stage mini-stage">
         <canvas id="mini" class="pickable" aria-label="Anteprima 3D della forma con le misure scelte."></canvas>
         <div class="tip" id="tipMini" hidden></div>
-        <figcaption>Anteprima: cambia mentre scrivete i valori.</figcaption>
+        <figcaption id="miniNota" aria-live="polite"></figcaption>
         <p class="warn" id="error" hidden></p>
       </figure>
       <div class="controls2">
         <div class="ctl">
-          <div class="ctl-h"><i>1</i>Misure della bolla vera</div>
+          <div class="ctl-h"><i>1</i><span id="titoloMisure">Misure della bolla vera</span></div>
+          <div class="misureBarra">
+            <div class="seg" id="unita" role="group" aria-label="In che misure scrivere"><button type="button" data-u="real" aria-pressed="true">Bolla vera</button><button type="button" data-u="model" aria-pressed="false">Modellino</button></div>
+            <label class="scalaTop" for="scale">Scala 1 : <input id="scale" type="number" step="any" min="1" value="20"></label>
+          </div>
           <div class="fields" id="params"></div>
         </div>
         <div class="ctl">
@@ -661,15 +678,12 @@ details.menu > summary::-webkit-details-marker { display: none; }
             <div id="baseCtl" style="display:grid;gap:10px"></div>
             <p class="hint" id="baseNote"></p>
             <div class="modelref">
-              <span class="flabel">Partite dal modellino</span>
+              <span class="flabel">Trovate la scala dal modellino</span>
               <div class="fields">
                 <div class="field"><label for="modelRef">Misura</label><select id="modelRef"></select></div>
                 <div class="field"><label for="modelCm">Sul modellino (cm)</label><input id="modelCm" type="number" step="any" min="0.1"></div>
               </div>
               <p class="hint" id="modelNote"></p>
-            </div>
-            <div class="fields">
-              <div class="field"><label for="scale">Scala del modellino (1 : …)</label><input id="scale" type="number" step="any" min="1" value="20"></div>
             </div>
           </div>
         </details>
@@ -2192,7 +2206,9 @@ function analyze(V, F, floor) {
     clear(prefix) { [...memo.keys()].forEach(k => { if (k.startsWith(prefix)) memo.delete(k); }); try { Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k)); } catch (e) { /* niente */ } },
   };
 
-  const state = { shape: "d20", params: {}, opt: { cut: true, fit: true, fitArea: 6.25, orient: null, level: null }, scale: 20, mode: "model", roll: 200, margin: 3, person: true, colors: true };
+  // il campo delle misure che si sta toccando: disp = quanto si sposta ogni vertice, alt = la forma con un valore diverso se cambiano i pezzi
+  const campo = { key: null, disp: null, accento: null, alt: null, t0: 0 };
+  const state = { unita: "real", shape: "d20", params: {}, opt: { cut: true, fit: true, fitArea: 6.25, orient: null, level: null }, scale: 20, mode: "model", roll: 200, margin: 3, person: true, colors: true };
   let cur = null;
   const isReal = () => state.mode === "real";
   const Lx = (m) => (isReal() ? cmR(m) : cmM(m));
@@ -2233,6 +2249,61 @@ function analyze(V, F, floor) {
 
   /* ---------- controlli ---------- */
   const def = () => SHAPES.find(s => s.id === state.shape);
+
+  // per ogni forma: cosa vuol dire ogni campo, i gruppi e i campi che servono solo con certe scelte (fuori dal motore: l'Abbofficina non ne ha bisogno)
+  const A_LATI = "Quanti lati ha la base: più lati, più è tonda, ma ci sono più pezzi.";
+  const A_TUBO = "Quante facce ha il tubo: più facce, più è tondo, ma ci sono più pezzi.";
+  const A_TETTO = "Da terra al tetto piatto.";
+  const A_PARETI = "Le pareti dritte, da terra fin dove parte il tetto.";
+  const A_ROOF = "Piatto, oppure con un triangolo per ogni lato che sale fino a una punta.";
+  const A_RH = "Quanto sale la punta del tetto sopra le pareti.";
+  const MISURE = {
+    d20: { aiuto: { s: "Lo spigolo di ogni triangolo: sono tutti uguali, quindi cambia tutta la cupola." } },
+    d6: { aiuto: { s: "Lo spigolo del cubo: cambiano insieme larghezza, profondità e altezza." } },
+    geo: { aiuto: { D: "Da un lato all'altro della sfera intera, prima del taglio in basso.", f: "Più triangoli la fanno più tonda, ma ci sono più pezzi da tracciare." } },
+    sferaU: { aiuto: { D: "Da un lato all'altro della sfera intera, prima del taglio in basso.", n: "120 triangoli la fanno più tonda; con 48 ci sono meno pezzi." } },
+    calcio: { aiuto: { D: "Da un lato all'altro del pallone." } },
+    d12: { aiuto: { s: "Lo spigolo di ogni pentagono: sono tutti uguali, quindi cambia tutta la forma." } },
+    prism: { aiuto: { n: A_LATI, s: "La lunghezza di ogni lato del pavimento.", h: A_TETTO } },
+    pyr: { aiuto: { n: A_LATI, s: "La lunghezza di ogni lato del pavimento.", h: "Da terra alla punta." } },
+    frus: { aiuto: { n: A_LATI, s: "Ogni lato del pavimento.", t: "Ogni lato del tetto: più è piccolo, più la forma si stringe in alto.", h: A_TETTO } },
+    box: { aiuto: { a: "Un lato del pavimento.", b: "L'altro lato del pavimento.", h: A_TETTO } },
+    L: { aiuto: { a: "Il lato esterno più lungo della L.", b: "L'altro lato esterno della L.", w: "Quanto sono larghi i due bracci: è lo spazio in cui si cammina.", h: A_TETTO } },
+    C: { aiuto: { b: "Il lato dritto che unisce i due bracci, misurato all'esterno.", a: "Quanto sporgono i due bracci, misurati all'esterno.", w: "Quanto sono larghi schiena e bracci: è lo spazio in cui si cammina.", h: A_TETTO } },
+    arrow: { aiuto: { L: "Dal fondo dell'asta alla punta della freccia.", w: "Quanto è larga l'asta.", W: "Quanto è larga la punta nel punto più largo.", Lh: "Quanto è lunga la sola punta: è compresa nella lunghezza totale.", h: A_TETTO } },
+    custom: { aiuto: { h: A_PARETI, roof: A_ROOF, rh: A_RH }, quando: { rh: p => p.roof === "punta" } },
+    star: { gruppi: [["La stella vista dall'alto", ["n", "R", "r"]], ["Pareti e tetto", ["h", "roof", "rh"]]],
+      aiuto: { n: "Quante punte ha la stella.", R: "Dal centro a ogni punta.", r: "Dal centro alle rientranze fra una punta e l'altra.", h: A_PARETI, roof: A_ROOF, rh: A_RH }, quando: { rh: p => p.roof === "punta" } },
+    snake: { gruppi: [["Il tubo", ["d", "m"]], ["Il percorso", ["s", "c", "k", "a"]]],
+      aiuto: { d: "Quanto è largo il tubo in cui si cammina.", m: A_TUBO, s: "Ogni tratto dritto del tubo: più è lungo, più il serpente si allunga.", c: "Quante volte il serpente cambia direzione.", k: "Quanti tratti ci sono in ogni curva: più tratti, curva più morbida.", a: "Di quanti gradi gira ogni curva." } },
+    torus: { gruppi: [["L'anello", ["D", "N"]], ["Il tubo", ["d", "m"]]],
+      aiuto: { D: "Da un lato all'altro della ciambella, all'esterno.", N: "Quanti pezzi di tubo fanno il giro: più spicchi, anello più tondo.", d: "Quanto è largo il tubo in cui si cammina.", m: A_TUBO } },
+    tunnel: { aiuto: { L: "Da un fondo all'altro della galleria.", w: "Da una parete all'altra.", hs: "Le pareti verticali, prima che parta l'arco.", k: "Quanti spicchi fanno l'arco: più spicchi, arco più tondo." } },
+    boat: { gruppi: [["Lo scafo", ["L", "W", "Lp", "h", "f"]], ["La piramide sul ponte", ["sail", "a", "hp"]]],
+      aiuto: { L: "Dalla poppa dritta alla punta della prua.", W: "Quanto è largo il ponte, cioè la parte alta dello scafo.", Lp: "La sola parte a punta: è compresa nella lunghezza.", h: "Dal fondo al ponte.", f: "Il fondo è più stretto del ponte: con 100 i fianchi sono dritti.", sail: "Se sul ponte c'è una piramide; senza, il ponte è un pezzo solo.", a: "Ogni lato della base della piramide.", hp: "Dal ponte alla punta della piramide." },
+      quando: { a: p => p.sail === "si", hp: p => p.sail === "si" } },
+    banana: { gruppi: [["Il corpo", ["L", "d", "a", "N", "m"]], ["Le due estremità", ["tl", "sl", "ps"]], ["Come sta a terra", ["pose"]]],
+      aiuto: { L: "Il corpo misurato lungo la curva, senza punta e picciolo.", d: "Quanto è grosso il corpo.", a: "Di quanti gradi gira il corpo da un capo all'altro: più gradi, più è curva.", N: "In quanti spicchi è diviso il corpo lungo la curva.", m: "Quante facce ha il corpo: con 5 somiglia a una banana vera.", tl: "La punta corta che chiude un capo.", sl: "Il picciolo lungo e stretto dall'altro capo.", ps: "Quanto è grosso il picciolo rispetto al corpo.", pose: "Sdraiata con la curva a terra, oppure con le punte in alto." } },
+    scolo: { gruppi: [["Il corpo", ["body", "N", "s", "d", "h", "m", "a"]], ["Le zampe", ["e", "lz"]], ["Le antenne", ["ant", "la"]], ["Le pinze", ["pin", "lp"]]],
+      aiuto: { body: "Ondulato come un serpente, oppure dritto: con il corpo dritto i segmenti sono tutti uguali.", N: "Quanti segmenti fanno il corpo, dalla testa alla coda.", s: "Quanto è lungo ogni segmento.", d: "Da un fianco all'altro del corpo.", h: "Da terra al dorso.", m: A_TUBO, a: "Di quanti gradi gira il corpo a ogni ondulazione.", e: "Con 1 c'è una coppia di zampe a ogni segmento, con 2 a un segmento sì e uno no.", lz: "Quanto sporgono le zampe dai fianchi.", ant: "Se davanti ci sono le due antenne.", la: "Quanto sono lunghe le antenne.", pin: "Se sulla coda ci sono le due pinze.", lp: "Quanto sono lunghe le pinze." },
+      quando: { a: p => p.body === "onda", la: p => p.ant === "si", lp: p => p.pin === "si" } },
+    balena: { gruppi: [["Il corpo", ["L", "W", "H", "N", "m", "b"]], ["Coda e pinne", ["tl", "fin"]]],
+      aiuto: { L: "Dalla bocca all'attacco della coda.", W: "Da un fianco all'altro, nel punto più largo.", H: "Da terra al dorso, nel punto più alto.", N: "In quanti segmenti è diviso il corpo.", m: A_TUBO, b: "Quanto è grande la bocca rispetto al corpo: è da lì che si entra.", tl: "Quanto è lunga la coda orizzontale.", fin: "Se ci sono la pinna sul dorso e le due sui fianchi." } },
+    fungo: { gruppi: [["Tutta la forma", ["n"]], ["Il gambo", ["dg", "hg"]], ["Il cappello", ["dc", "hc"]]],
+      aiuto: { n: "Quanti lati hanno gambo e cappello: più lati, più sono tondi.", dg: "Quanto è largo il gambo, che fa da stanza.", hg: "Da terra a dove parte il cappello.", dc: "Da un bordo all'altro del cappello.", hc: "Quanto sale il cappello sopra il gambo." } },
+    razzo: { gruppi: [["Il corpo", ["n", "d", "H", "hp"]], ["Le alette", ["al", "la"]], ["L'oblò", ["ob"]]],
+      aiuto: { n: "Quanti lati ha il corpo: più lati, più è tondo. Deve essere un multiplo di 4.", d: "Quanto è largo il corpo.", H: "Il corpo, senza la punta.", hp: "La punta arrotondata, sopra il corpo.", al: "Se ci sono le quattro alette che scendono a terra.", la: "Quanto sporgono le alette dal corpo.", ob: "Se sul corpo c'è l'oblò che sporge." },
+      quando: { la: p => p.al === "si" } },
+    tarta: { gruppi: [["Il guscio", ["Lg", "D", "H"]], ["Testa, zampe e coda", ["lt", "lz", "lc"]]],
+      aiuto: { Lg: "Il guscio da davanti a dietro.", D: "Il guscio da un fianco all'altro.", H: "Da terra alla cima del guscio.", lt: "Quanto sporgono collo e testa davanti al guscio.", lz: "Quanto sporgono le quattro zampe.", lc: "Quanto sporge la coda dietro al guscio." } },
+    ananas: { gruppi: [["Il corpo", ["n", "D", "H"]], ["Il ciuffo", ["nf", "lf"]]],
+      aiuto: { n: "Quanti lati ha il corpo: più lati, più è tondo.", D: "Quanto è largo il corpo nel punto più largo.", H: "Il corpo, senza il ciuffo di foglie.", nf: "Quante foglie ha il ciuffo: una al centro e le altre intorno.", lf: "Quanto sono lunghe le foglie." } },
+    pera: { gruppi: [["Il corpo", ["n", "D", "H", "dn", "pos"]], ["Il picciolo", ["lp"]]],
+      aiuto: { n: "Quanti lati ha ogni fascia: più lati, più è tonda.", D: "La pancia in basso, nel punto più largo.", H: "Da terra alla cima, senza il picciolo.", dn: "La pancia piccola in alto, nel punto più largo.", pos: "Inclinata è più naturale; dritta ha molti meno tipi di pezzo.", lp: "Quanto esce il picciolo dalla cima." } },
+    foto: { gruppi: [["Come leggere l'immagine", ["modo", "det"]], ["Misure", ["H", "L", "h", "roof", "rh", "n", "s", "cut"]]],
+      aiuto: { modo: "Di lato si gira attorno all'asse o si alza come un'insegna; dall'alto è il pavimento.", det: "Più dettaglio segue meglio il contorno, ma ci sono più pezzi.", H: "Da terra alla cima.", L: "La pianta nel suo lato più largo.", h: A_PARETI, roof: "La forma del tetto sopra le pareti.", rh: "Quanto sale il tetto sopra le pareti.", n: "Quanti lati ha ogni fascia: più lati, più è tonda.", s: "Quanto è spessa la sagoma.", cut: "Quanta parte in basso si toglie per fare un pavimento piatto." } },
+  };
+  const metaDi = (id) => MISURE[id] || {};
 
   /* galleria: un riquadro con la miniatura vera di ogni forma */
   const shortName = (s) => s.name.split(" (")[0];
@@ -2425,18 +2496,25 @@ function analyze(V, F, floor) {
     state.params = {};
     d.params.forEach(p => { const v = values && values[p.key] !== undefined ? values[p.key] : p.def; state.params[p.key] = p.type === "pts" || p.type === "sagoma" ? v.map(q => q.slice()) : v; });
     const fields = d.params.filter(p => p.type !== "pts" && p.type !== "sagoma");
-    $("params").innerHTML = fields.map(p => {
+    fineCampo();
+    const htmlCampo = p => {
       const val = state.params[p.key];
-      if (p.type === "pick") return `<div class="field"><label for="p_${p.key}">${esc(p.label)}</label><select id="p_${p.key}">${p.options.map(([v, l]) => `<option value="${v}"${v === val ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>`;
+      if (p.type === "pick") return `<div class="field" data-k="${p.key}"><label for="p_${p.key}">${esc(p.label)}</label><select id="p_${p.key}" aria-describedby="miniNota">${p.options.map(([v, l]) => `<option value="${v}"${v === val ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>`;
       const step = p.type === "int" ? 1 : (p.step || 0.05);
-      return `<div class="field"><label for="p_${p.key}">${esc(p.label)}</label><input id="p_${p.key}" type="number" step="${step}" min="${p.min}"${p.max ? ` max="${p.max}"` : ""} value="${val}"></div>`;
-    }).join("");
+      return `<div class="field" data-k="${p.key}"><label for="p_${p.key}">${esc(p.label)}</label><input id="p_${p.key}" type="number" step="${step}" min="${p.min}"${p.max ? ` max="${p.max}"` : ""} value="${val}" aria-describedby="miniNota">${isLength(p) ? `<span class="conv" id="c_${p.key}"></span>` : ""}</div>`;
+    };
+    // a gruppi, se la forma ne ha; un campo non elencato va nell'ultimo gruppo
+    const gruppi = (metaDi(d.id).gruppi || [[null, fields.map(f => f.key)]]).map(([n, ks]) => [n, ks.map(k => fields.find(f => f.key === k)).filter(Boolean)]);
+    const messi = new Set(gruppi.flatMap(g => g[1]));
+    gruppi[gruppi.length - 1][1].push(...fields.filter(f => !messi.has(f)));
+    $("params").innerHTML = gruppi.map(([n, fs]) => (n ? `<h3 class="fgruppo">${esc(n)}</h3>` : "") + fs.map(htmlCampo).join("")).join("");
     $("planEditor").hidden = !d.params.some(p => p.type === "pts");
     plan.undo = [];
     renderPlan();
     fields.forEach(p => {
       $("p_" + p.key).addEventListener(p.type === "pick" ? "change" : "input", (e) => {
         let v = p.type === "pick" ? e.target.value : parseFloat(e.target.value);
+        if (isLength(p) && state.unita === "model") v = +(v * state.scale / 100).toFixed(4);   // scritto in cm sul modellino: dentro restano i metri della bolla vera
         if (p.type !== "pick") { if (!(v >= p.min)) return; if (p.type === "int") v = Math.round(v); if (p.max && v > p.max) return; }
         if (state.opt.fit && isLength(p) && cur && cur.k !== 1) {
           // scrivere un lato a mano vuol dire scegliere le misure: l'area si ricalcola da sola, come nella guida del D20
@@ -2447,7 +2525,7 @@ function analyze(V, F, floor) {
         state.params[p.key] = v; if (p.type === "pick") syncWhen(); schedule();
       });
     });
-    syncWhen();
+    syncWhen(); etichetteCampi();
     if (values) return;   // un progetto salvato porta già base e taglio
     state.opt.orient = null; state.opt.level = null;
     state.opt.cut = d.kind !== "convex" || d.defOrient === "vertice";
@@ -2455,7 +2533,21 @@ function analyze(V, F, floor) {
 
   // campi che servono solo con certe scelte (forma da un'immagine: l'altezza totale per le viste di lato, le pareti per la pianta)
   function syncWhen() {
-    def().params.forEach(p => { const el = p.when && $("p_" + p.key); if (el) el.closest(".field").hidden = !p.when(state.params); });
+    const d = def(), q = metaDi(d.id).quando || {};
+    d.params.forEach(p => { const w = p.when || q[p.key], el = w && $("p_" + p.key); if (el) el.closest(".field").hidden = !w(state.params); });
+  }
+  // etichette e passi dei campi di lunghezza: metri della bolla vera o centimetri del modellino
+  function etichetteCampi() {
+    const mod = state.unita === "model";
+    def().params.filter(isLength).forEach(p => {
+      const el = $("p_" + p.key), lb = document.querySelector(`label[for="p_${p.key}"]`); if (!el || !lb) return;
+      lb.textContent = mod ? p.label.replace("(m)", "(cm)") : p.label;
+      el.step = mod ? 0.1 : (p.step || 0.05); el.min = mod ? +(p.min * 100 / state.scale).toFixed(2) : p.min;
+      if (p.max) el.max = mod ? +(p.max * 100 / state.scale).toFixed(2) : p.max;
+    });
+    $("titoloMisure").textContent = mod ? "Misure del modellino" : "Misure della bolla vera";
+    $("unita").querySelectorAll("[data-u]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.u === state.unita)));
+    if (cur) syncFields();
   }
 
   function renderBaseCtl() {
@@ -2484,10 +2576,26 @@ function analyze(V, F, floor) {
   $("fit").addEventListener("change", e => { state.opt.fit = e.target.checked; update(); });
   $("fitArea").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v > 0) { state.opt.fitArea = v; state.opt.fit = true; schedule(); } });
   // la scala si può cambiare sia dal banco di lavoro sia sopra i pezzi: i due campi restano uguali
+  // con le misure in Modellino, la scala in alto tiene fermi i cm e cambia la bolla vera (dal modellino alla realtà)
+  let scalaBase = null;
   ["scale", "scale2"].forEach(id => $(id).addEventListener("input", e => {
     const v = parseFloat(e.target.value);
-    if (v > 0) { state.scale = v; $(id === "scale" ? "scale2" : "scale").value = e.target.value; syncModelRef(); schedule(); }
+    if (!(v > 0)) return;
+    if (id === "scale" && state.unita === "model" && cur) {
+      if (!scalaBase) { const k = state.opt.fit ? cur.k : 1, d = def(); scalaBase = { scala: state.scale, val: Object.fromEntries(d.params.filter(isLength).map(p => [p.key, state.params[p.key] * k])), pts: state.params.pts ? state.params.pts.map(q => q.map(c => c * k)) : null }; state.opt.fit = false; }
+      const r = v / scalaBase.scala;
+      for (const k in scalaBase.val) state.params[k] = +(scalaBase.val[k] * r).toFixed(4);
+      if (scalaBase.pts) state.params.pts = scalaBase.pts.map(q => q.map(c => +(c * r).toFixed(3)));
+    }
+    state.scale = v; $(id === "scale" ? "scale2" : "scale").value = e.target.value; etichetteCampi(); syncModelRef(); schedule();
   }));
+  $("scale").addEventListener("blur", () => { scalaBase = null; });
+  $("unita").addEventListener("click", e => {
+    const b = e.target.closest("[data-u]"); if (!b || b.dataset.u === state.unita) return;
+    state.unita = b.dataset.u; try { localStorage.setItem("bolle|unita", state.unita); } catch (er) { /* solo per questa visita */ }
+    etichetteCampi();
+  });
+  try { if (localStorage.getItem("bolle|unita") === "model") state.unita = "model"; } catch (er) { /* niente di salvato */ }
   // "partite dal modellino": una misura della bolla vera e quanto è lunga sul modellino danno la scala, e viceversa
   function modelRefs() {
     if (!cur) return [];
@@ -2713,7 +2821,7 @@ function analyze(V, F, floor) {
     renderPlan();
     try {
       const opt = Object.assign({}, state.opt);
-      cur = buildShape(d, state.params, opt);
+      cur = buildShape(d, state.params, opt); campo.disp = campo.alt = null;
       state.opt.orient = opt.orient; state.opt.level = opt.level; state.opt._nLev = opt._nLev;
       cur.an = analyze(cur.V, cur.F, cur.floor);
       cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster);
@@ -2741,6 +2849,7 @@ function analyze(V, F, floor) {
     $("navShape").textContent = d.name;
     scriviVetrina(); if (!PRIME.includes(state.shape) && !altreAperte) apriAltre(true);
     if (d.id === "foto") { thumbs.set("foto", cur); drawThumb("foto"); }   // la miniatura mostra la vostra immagine, non l'esempio
+    if (campo.key) preparaCampo(campo.key);
     renderStats(); renderAbout(); renderTable(); renderNotes(); renderPrep(); renderPieces(); renderNet(); renderSeams(); drawAll(); syncModelRef(); renderBridge(true); renderAvvisi();
     ricordaForma();
   }
@@ -2748,10 +2857,13 @@ function analyze(V, F, floor) {
   /* i campi mostrano sempre le misure effettive: lati moltiplicati per il fattore dell'area, oppure l'area che risulta dai lati */
   function syncFields() {
     const d = def(), act = document.activeElement;
+    const mod = state.unita === "model";
     d.params.forEach(p => {
       const el = $("p_" + p.key);
-      if (!el || el === act || !isLength(p)) return;
-      el.value = +(state.params[p.key] * (state.opt.fit ? cur.k : 1)).toFixed(3);
+      if (!el || !isLength(p)) return;
+      const reale = state.params[p.key] * (state.opt.fit ? cur.k : 1), c = $("c_" + p.key);
+      if (c) c.textContent = mod ? "= " + mR(reale) + " nella bolla vera" : "";
+      if (el !== act) el.value = mod ? +(reale * 100 / state.scale).toFixed(2) : +reale.toFixed(3);
     });
     if (!state.opt.fit && cur.floorArea > 0 && $("fitArea") !== act) { state.opt.fitArea = +cur.floorArea.toFixed(4); $("fitArea").value = +cur.floorArea.toFixed(2); }
   }
@@ -3300,7 +3412,7 @@ function analyze(V, F, floor) {
   let PAL = null, seamSel = null, spin = !reduced;
   function palette() {
     const t = []; for (let i = 0; i < 8; i++) t.push(rgb(css(`--t${i + 1}`)));
-    PAL = { t, plain: rgb(css("--t1")), floor: rgb(css("--t8")), grey: rgb(css("--muted")), ink: css("--ink"), muted: css("--muted"), card: css("--card"), cut: css("--cut"), green: css("--green") };
+    PAL = { accento: rgb(css("--green")), t, plain: rgb(css("--t1")), floor: rgb(css("--t8")), grey: rgb(css("--muted")), ink: css("--ink"), muted: css("--muted"), card: css("--card"), cut: css("--cut"), green: css("--green") };
   }
   function fitCanvas(cv) {
     const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
@@ -3335,6 +3447,7 @@ function analyze(V, F, floor) {
         let base = o.colors === false ? (m.floor[fi] ? PAL.floor : PAL.plain) : PAL.t[ty % 8], alpha = 0.94;
         if (o.hlType != null && ty !== o.hlType) { base = PAL.grey; alpha = 0.28; }
         if (o.hlSeam && !o.hlSeam.faces.includes(fi)) { base = PAL.grey; alpha = 0.28; }
+        if (o.accento) { if (o.accento[fi]) base = PAL.accento; else { base = PAL.grey; alpha = 0.28; } }
         const c = base.map(v => Math.min(255, Math.round(v * lit)));
         const pts = p.map(S);
         poly(ctx, pts);
@@ -3430,7 +3543,69 @@ function analyze(V, F, floor) {
     if (name === "seam") Object.assign(o, { hlSeam: seamSel ? { key: seamSel.key, faces: [seamSel.p.fi, seamSel.q.fi] } : null, done: doneSeams() });
     let m = altra ? thumbs.get(vetrina.id) : cur;
     if (name === "hero" && vetrina.anim) { const g = gonfia(); m = g.m; Object.assign(o, { frame: g.frame, quote: g.quote, hlFace: null }); }
+    if (name === "mini" && (campo.disp || campo.alt)) { const g = faseCampo(); m = g.m; Object.assign(o, { frame: inquadra(cur), accento: g.accento, hlFace: null }); }
     v.polys = renderView(v.cv, m, o);
+  }
+  // il campo toccato: la pagina ricalcola la forma con quel valore un po' cambiato e guarda quali vertici si spostano.
+  // Così funziona da sola su tutte le forme: la parte che cambia si colora e cresce e cala piano, il resto resta grigio e fermo.
+  const NOTA_MINI = "Toccate una misura: qui si colora e si muove la parte che cambia.";
+  function notaCampo(p) {
+    const a = p && metaDi(state.shape).aiuto && metaDi(state.shape).aiuto[p.key];
+    if (!p) { $("miniNota").textContent = NOTA_MINI; return; }
+    const nome = p.label.replace(/\s*\((m|gradi)\)\s*$/, "");
+    $("miniNota").innerHTML = `<b>${esc(nome)}.</b> ${esc(a || "")}`;
+  }
+  function preparaCampo(key) {
+    const d = def(), p = d.params.find(q => q.key === key);
+    campo.key = key; campo.disp = campo.alt = campo.accento = null; campo.t0 = performance.now();
+    document.querySelectorAll("#params .field").forEach(f => f.classList.toggle("attivo", f.dataset.k === key));
+    notaCampo(p);
+    if (!cur || !p || (p.type !== "num" && p.type !== "int")) { drawView("mini"); return; }
+    const o0 = { ...state.opt, fit: false }, k = state.opt.fit ? cur.k : 1, v0 = state.params[key];
+    const prova = v => { if (!(v >= p.min) || (p.max && v > p.max)) return null; try { return buildShape(d, { ...state.params, [key]: v }, { ...o0 }); } catch (e) { return null; } };
+    let base = null; try { base = buildShape(d, state.params, { ...o0 }); } catch (e) { drawView("mini"); return; }
+    const passi = p.type === "int" ? [v0 + 1, v0 + 2, v0 + 4, v0 - 1, v0 - 2] : [v0 * 1.12, v0 * 0.88], r1 = passi.map(prova).find(Boolean);
+    if (!r1) { drawView("mini"); return; }
+    const rad = inquadra(cur).rad;
+    if (r1.V.length === cur.V.length && base.V.length === cur.V.length && r1.F.length === cur.F.length) {
+      let dV = base.V.map((v, i) => [0, 1, 2].map(c => (r1.V[i][c] - v[c]) * k));
+      const mediana = c => { const a = dV.map(q => q[c]).sort((x, y) => x - y); return a[a.length >> 1]; }, m0 = [mediana(0), mediana(1), mediana(2)];
+      dV = dV.map(q => [q[0] - m0[0], q[1] - m0[1], q[2] - m0[2]]);   // se la forma si ricentra tutta, quello non è un cambiamento
+      const len = dV.map(q => Math.hypot(q[0], q[1], q[2])), mx = Math.max(...len);
+      if (mx > 1e-6 && mx < 1.5 * rad) {
+        const f = Math.min(3, Math.max(0.4, 0.1 * rad / mx));   // si vede bene su ogni forma, grande o piccola
+        campo.disp = dV.map(q => q.map(c => c * f));
+        campo.accento = cur.F.map(fa => fa.some(i => len[i] > 0.15 * mx));
+        drawView("mini"); return;
+      }
+      if (mx <= 1e-6) { drawView("mini"); return; }
+    }
+    // cambiano i pezzi (più lati, più segmenti): la forma si alterna con quella col valore nuovo
+    campo.alt = { ...r1, V: r1.V.map(v => v.map(c => c * k)), an: { faceInfo: r1.F.map(() => ({ type: 0 })) } };
+    drawView("mini");
+  }
+  function faseCampo() {
+    const t = (performance.now() - campo.t0) / 1800;
+    if (campo.disp) {
+      const u = reduced ? 1 : 0.5 - 0.5 * Math.cos(2 * Math.PI * t);
+      return { m: { ...cur, V: cur.V.map((v, i) => { const q = campo.disp[i]; return [v[0] + q[0] * u, v[1] + q[1] * u, v[2] + q[2] * u]; }) }, accento: campo.accento };
+    }
+    const nuova = reduced || t % 1 >= 0.5;
+    return nuova ? { m: campo.alt, accento: campo.alt.F.map(() => true) } : { m: cur, accento: cur.F.map(() => true) };
+  }
+  function fineCampo() {
+    if (!campo.key && $("miniNota").textContent) return;
+    campo.key = null; campo.disp = campo.alt = campo.accento = null;
+    document.querySelectorAll("#params .field.attivo").forEach(f => f.classList.remove("attivo"));
+    notaCampo(null); if (cur && PAL) drawView("mini");
+  }
+  {
+    const P = $("params"), kDi = (e) => { const f = e.target.closest && e.target.closest(".field"); return f ? f.dataset.k : null; };
+    const inFuoco = () => { const a = document.activeElement, f = a && a.closest && P.contains(a) ? a.closest(".field") : null; return f ? f.dataset.k : null; };
+    P.addEventListener("focusin", e => { const k = kDi(e); if (k && k !== campo.key) preparaCampo(k); });
+    P.addEventListener("focusout", () => setTimeout(() => { const k = inFuoco(); if (!k) fineCampo(); else if (k !== campo.key) preparaCampo(k); }, 0));
+    P.addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const k = kDi(e); if (k && k !== campo.key) preparaCampo(k); });
+    P.addEventListener("pointerleave", e => { if (e.pointerType !== "mouse") return; const k = inFuoco(); if (!k) fineCampo(); else if (k !== campo.key) preparaCampo(k); });
   }
   function drawWhere() {
     document.querySelectorAll("#pieces canvas.where").forEach(cv => { if (fitCanvas(cv)) renderView(cv, cur, { yaw: 0.6, pitch: 0.42, thin: true, hlType: +cv.dataset.t }); });
@@ -3541,7 +3716,8 @@ function analyze(V, F, floor) {
     Object.values(views).forEach(v => io.observe(v.cv));
   } else Object.values(views).forEach(v => { v.visible = true; });
   function loop() {
-    if (cur && spin) { rot.yaw += 0.005; if (views.hero.visible) drawView("hero"); if (views.mini.visible) drawView("mini"); }
+    if (cur && spin && !campo.key) { rot.yaw += 0.005; if (views.hero.visible) drawView("hero"); if (views.mini.visible) drawView("mini"); }   // ferma mentre si tocca una misura: si vede solo quello che cambia
+    else if (cur && campo.key && !reduced && (campo.disp || campo.alt) && views.mini.visible) drawView("mini");
     else if (cur && vetrina.anim && views.hero.visible) drawView("hero");   // sgonfia e gonfia anche a figura ferma
     const sv = views.seam;
     if (cur && sv.target != null) {
@@ -4704,13 +4880,14 @@ function analyze(V, F, floor) {
     // le forme
     SHAPES.forEach(sh => add(sh.name, "Forma · " + sh.group, nelPasso("forma", () => { fermaVetrina(); selectShape(sh.id); evidenzia(document.querySelector(`#gallery [data-id="${sh.id}"]`)); }), "scegli forma"));
     // le misure della forma scelta e le altre opzioni del passo 1
-    def().params.filter(p => p.type !== "pts" && p.type !== "sagoma" && (!p.when || p.when(state.params))).forEach(p => add(p.label, "Misura · " + def().name, nelPasso("forma", () => evidenzia($("p_" + p.key))), "misura dimensione"));
+    def().params.filter(p => p.type !== "pts" && p.type !== "sagoma" && (!p.when || p.when(state.params)) && !(metaDi(def().id).quando && metaDi(def().id).quando[p.key] && !metaDi(def().id).quando[p.key](state.params))).forEach(p => add(p.label, "Misura · " + def().name, nelPasso("forma", () => evidenzia($("p_" + p.key))), "misura dimensione"));
     if (def().params.some(p => p.type === "pts")) add("Disegnate la pianta", "Passo 1 · Forma", nelPasso("forma", () => evidenzia($("planEditor"))), "punti griglia pianta");
     add("Adatta la forma a un pavimento", "Passo 1 · Pavimento", nelPasso("forma", () => evidenzia($("fit"))), "area pavimento m2");
     add("Area del pavimento", "Passo 1 · Pavimento", nelPasso("forma", () => evidenzia($("fitArea"))), "m2 metri quadri");
     add("Altre opzioni", "Passo 1 · Forma", nelPasso("forma", () => apriDettagli($("moreOpts"))), "base orientamento taglio appoggio");
-    add("Partite dal modellino", "Passo 1 · Altre opzioni", nelPasso("forma", () => { $("moreOpts").open = true; evidenzia($("modelRef")); }), "misura sul modellino cm");
-    add("Scala del modellino", "Passo 1 · Altre opzioni", nelPasso("forma", () => { $("moreOpts").open = true; evidenzia($("scale")); }), "1:20 rapporto");
+    add("Misure del modellino in cm", "Passo 1 · Misure", nelPasso("forma", () => { evidenzia($("unita")); }), "scala inversa dal modellino alla bolla vera centimetri");
+    add("Trovate la scala dal modellino", "Passo 1 · Altre opzioni", nelPasso("forma", () => { $("moreOpts").open = true; evidenzia($("modelRef")); }), "misura sul modellino cm");
+    add("Scala del modellino", "Passo 1 · Misure", nelPasso("forma", () => { evidenzia($("scale")); }), "1:20 rapporto");
     add("Progetti del gruppo", "Passo 1 · Forma", nelPasso("forma", () => apriDettagli($("projects"))), "salva riapri progetto");
     add("Salva su file", "Progetti", nelPasso("forma", () => { $("projects").open = true; $("projFileSave").click(); }), "scarica json progetto");
     add("Apri da file", "Progetti", nelPasso("forma", () => { $("projects").open = true; $("projFileOpen").click(); }), "carica json progetto");

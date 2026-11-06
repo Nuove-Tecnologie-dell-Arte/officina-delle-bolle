@@ -6,6 +6,10 @@ In cima, la figura mostra a turno tutte le forme, una ogni 5 secondi (si ferma m
 
 **Passo 1**: in cima ci sono 4 forme per cominciare (cupola, cubo, sfera geodetica, pallone); le altre 24 si aprono con «Altre forme» (compresa la forma da un'immagine), e si aprono da sole se la forma scelta è una di quelle. I Progetti del gruppo stanno dopo «Avanti».
 
+**Misure**: toccando un campo, nell'anteprima la parte che cambia si colora e cresce e cala piano, il resto resta grigio e fermo; sotto, una riga spiega cosa vuol dire quella misura. Lo calcola la pagina ricostruendo la forma con il valore un po' cambiato, quindi vale per tutte le forme (se cambiano i pezzi, come con più lati, la forma si alterna con quella nuova). Nelle forme con tanti campi le misure sono a gruppi (Corpo, Zampe, Antenne…), e i campi che non servono si nascondono: senza antenne non c'è la loro lunghezza. Sul telefono l'anteprima resta in vista mentre si scorrono i campi.
+
+**Dal modellino alla bolla vera**: sopra le misure c'è l'interruttore **Bolla vera | Modellino**, con la scala sempre in vista. In Modellino si scrive in centimetri e sotto ogni campo si legge la misura vera; cambiando la scala i centimetri restano fermi e cambia la bolla vera. In Bolla vera, invece, restano fermi i metri. «Trovate la scala dal modellino», in «Altre opzioni», fa il contrario: da una misura sul modellino ricava la scala.
+
 **Rotolo**: la larghezza del rotolo di telo è una sola, in metri. Si scrive al Passo 3 (materiale) o al Passo 4 (pezzi, con la bolla vera) e i due campi restano uguali.
 
 Si sceglie la forma e la misura, e la pagina prepara tutto il resto:
