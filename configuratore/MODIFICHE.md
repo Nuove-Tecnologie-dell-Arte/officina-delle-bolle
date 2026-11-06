@@ -315,3 +315,7 @@ Dal branch `abbofficina-ricerca-oggetti-3d` (thaaby) sono state prese le parti c
   - **`lettore()`** scarica solo i lettori degli oggetti 3D (OBJ, STL, PLY, TransformControls) la prima volta che servono. **GLTFLoader e RGBELoader restano nei `<script>` in fondo**, come prima: il computer del lab spesso è offline, e così la stanza da GLB o HDR funziona anche lì se la pagina è già stata aperta una volta con internet.
 - **Non preso, perché rifà in un altro modo quello che c'è già:** il pannello a destra con la barra sola in basso e il menu Vista, il pulsante Menu tolto, "Simulazione" chiamata "Prove", i gonfiatori della bolla nuova scelti solo dalla pagina (qui sono in "Più opzioni"), "Fai scoppiare" tolto dal pannello della bolla, "Aggiungi da sola", la guida riscritta e i gruppi di forme Semplici / Dall'Officina / Figure e frutti (qui ci sono le prime sei più "Altre forme").
 - **Nell'Officina** (`../index.html`, fuori dal motore) è entrato tutto: la barra di ricerca e il cambio di forma più veloce (`cssMemo`, `fmtNF`). Il motore non cambia: le prove con node danno gli stessi numeri.
+
+## Porte su lati corti (6 novembre)
+
+- **Cornice della porta intera anche sui lati corti** (`posParete`, `[Officina]`): la porta è larga almeno 50 cm, quindi su un lato più corto, come quelli di una «Forma da un'immagine» con la base stretta, la cornice esce dal lato. Il seno diventava negativo e `Math.pow` dava NaN: la cornice si disegnava solo in parte, con gli avvisi di three.js in console. Ora il valore si ferma a zero.

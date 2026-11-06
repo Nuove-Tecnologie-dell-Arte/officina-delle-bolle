@@ -1948,13 +1948,14 @@ function statoForma(p) {
   return { f, p: pr, hk: hOf(f), fl: Math.max(0, 1 - Math.min(f, 1)), gon: f >= 1 ? Math.min(1.4, Math.sqrt(Math.max(0, pr) / 10)) : 0, tet: f >= 1 ? Math.min(1.5, Math.sqrt(Math.max(0, pr - peso) / 6)) : 0 };
 }
 let tempo = 0;
+// [Officina] Math.max: su un lato più corto della porta la cornice esce dal lato (u fuori da 0..1), e una potenza di un numero negativo darebbe NaN
 function posParete(p, st, i, u, v, o, fuori, meta) {
   const F = p.F, e = F.E[i], H = F.H * st.hk, amp = 0.12 * Math.min(e.rL || e.L, F.H);
   let cr = 0, sb = 0; if (meta && p.scoppio) { const t = strappo(p, u, meta); u = t.ue; cr = t.curl; sb = t.sbatte; }
   const s = Math.sin(Math.PI * (e.rL ? (e.r0 + u * e.L) / e.rL : u)) * Math.sin(Math.PI * v), ib = imbarco(p, st, i, u, v);
   let bx = e.a[0] + (e.b[0] - e.a[0]) * u, bz = e.a[1] + (e.b[1] - e.a[1]) * u, nx = e.n[0], nz = e.n[1], ka = 1;
   if (F.tondo) { const th = e.th0 + e.dth * u; nx = Math.cos(th); nz = Math.sin(th); bx = F.R * nx; bz = F.R * nz; ka = 0.35; }
-  const d = ka * amp * st.gon * Math.pow(s, 0.8) + (st.fl * 0.12 * Math.sin(17 * u + 11 * v + i) * Math.sin(Math.PI * u) - st.fl * 0.22 * v * v) * (1 - 0.85 * ib.win) + ib.b
+  const d = ka * amp * st.gon * Math.pow(Math.max(0, s), 0.8) + (st.fl * 0.12 * Math.sin(17 * u + 11 * v + i) * Math.sin(Math.PI * u) - st.fl * 0.22 * v * v) * (1 - 0.85 * ib.win) + ib.b
     + (D.spento ? 0 : 0.004 * Math.sin(tempo * 2 + i + 3 * u) * s * st.gon) + fuori + cr * (0.55 * (0.2 + v) + sb);
   o[0] = bx + nx * d; o[1] = Math.max(0.004, v * H - cr * 0.35 * v * v * F.H); o[2] = bz + nz * d;
 }
