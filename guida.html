@@ -203,7 +203,7 @@ details.altro[open] { padding-bottom: 18px; }
 .passi { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: s; }
 .passi li { counter-increment: s; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; }
 .passi li::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: grid; place-items: center; font: 700 .95rem var(--mono); }
-.passi b { display: block; }
+.passi li > div > b { display: block; }
 .fogli { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
 .foglio { background: #fff; border-radius: 4px; box-shadow: var(--shadow); aspect-ratio: 210 / 297; padding: 4%; }
 .foglio svg { width: 100%; height: 100%; display: block; }
@@ -233,6 +233,11 @@ section[data-t="dime"] .due { grid-template-columns: minmax(0, 1fr); }
 /* montaggio */
 .giunta { display: grid; gap: 14px; }
 .giunta h2 .num { color: var(--green); }
+.giunta .coppia { width: 100%; height: auto; max-height: 340px; display: block; background: var(--paper); border-radius: var(--r-m); }
+.giunta .passi span { color: var(--ink); font-size: .98rem; }
+.giunta .lt { font: 700 1.05rem var(--mono); color: var(--cut); }
+.codici summary { cursor: pointer; color: var(--green); font-weight: 600; font-size: .92rem; }
+.codici p { margin-top: 6px; }
 .pezzo { display: inline-flex; align-items: center; gap: 6px; font: 700 1rem var(--mono); padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--c) 18%, transparent); }
 .pezzo i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
 .prog { height: 10px; background: var(--rule); border-radius: 999px; overflow: hidden; }
@@ -1087,23 +1092,83 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
   /* ---------- 7 · montaggio: una giunzione alla volta ---------- */
   let giuntaQui = null;
+  /* i due pezzi stesi a terra, accostati lungo il lato da unire: sopra quello già montato (o il primo), sotto l'altro.
+     Ogni pezzo è disegnato con la sua forma vera, il codice in mezzo e le lettere negli angoli: così si vede subito
+     quale lato va contro quale, e quali angoli si toccano. */
+  function coppiaSVG(s, sopra, sotto, stato) {
+    const V = cur.V, v1 = s.p.a, v2 = s.p.b, o = V[v1], ex = V3.norm(V3.sub(V[v2], o));
+    const piano = (fi, lato) => {   // il pezzo nel suo piano: il lato da unire sull'asse x, il pezzo da una parte (lato = +1 sopra, -1 sotto)
+      const f = cur.F[fi], n = V3.norm(newell(f.map(i => V[i]))), ey = V3.norm(V3.cross(n, ex));
+      let P = f.map(i => { const d = V3.sub(V[i], o); return [V3.dot(d, ex), V3.dot(d, ey)]; });
+      let a2 = 0; P.forEach((p, i) => { const q = P[(i + 1) % P.length]; a2 += p[0] * q[1] - q[0] * p[1]; });
+      const j = f.indexOf(v1), avanti = f[(j + 1) % f.length] === v2, dentro = Math.sign(a2) * (avanti ? 1 : -1);   // da che parte del lato sta il pezzo
+      if (dentro !== lato) P = P.map(([x, y]) => [x, -y]);
+      return P.map(([x, y]) => [x, -y]);   // nello SVG la y va in giù
+    };
+    const A = piano(sopra, 1), B = piano(sotto, -1), tutti = A.concat(B);
+    const xs = tutti.map(p => p[0]), ys = tutti.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys);
+    const W = 420, H = 330, pad = 34, k = Math.min((W - 2 * pad) / ((Math.max(...xs) - x0) || 1), (H - 2 * pad) / ((Math.max(...ys) - y0) || 1));
+    const ox = (W - (Math.max(...xs) - x0) * k) / 2, oy = (H - (Math.max(...ys) - y0) * k) / 2;
+    const T = (p) => [ox + (p[0] - x0) * k, oy + (p[1] - y0) * k];
+    let svg = "";
+    const dentroP = (Q, x, y) => { let c = false; for (let i = 0, j = Q.length - 1; i < Q.length; j = i++) if ((Q[i][1] > y) !== (Q[j][1] > y) && x < (Q[j][0] - Q[i][0]) * (y - Q[i][1]) / (Q[j][1] - Q[i][1]) + Q[i][0]) c = !c; return c; };
+    const distLati = (Q, x, y) => Math.min(...Q.map((a, i) => { const b = Q[(i + 1) % Q.length], ab = [b[0] - a[0], b[1] - a[1]], L2 = ab[0] * ab[0] + ab[1] * ab[1] || 1, t = Math.max(0, Math.min(1, ((x - a[0]) * ab[0] + (y - a[1]) * ab[1]) / L2)); return Math.hypot(x - a[0] - ab[0] * t, y - a[1] - ab[1] * t); }));
+    [[sopra, A], [sotto, B]].forEach(([fi, P], w) => {
+      const inf = cur.an.faceInfo[fi], col = tinta(inf.type), Q = P.map(T), f = cur.F[fi];
+      // il punto del pezzo più lontano dai bordi, per il codice (anche nei pezzi a L il codice resta dentro)
+      const qx = Q.map(p => p[0]), qy = Q.map(p => p[1]); let cx = qx.reduce((a, v) => a + v, 0) / Q.length, cy = qy.reduce((a, v) => a + v, 0) / Q.length, bd = dentroP(Q, cx, cy) ? distLati(Q, cx, cy) : -1;
+      for (let gx = 1; gx < 24; gx++) for (let gy = 1; gy < 24; gy++) { const x = Math.min(...qx) + (Math.max(...qx) - Math.min(...qx)) * gx / 24, y = Math.min(...qy) + (Math.max(...qy) - Math.min(...qy)) * gy / 24;
+        if (!dentroP(Q, x, y)) continue; const d = distLati(Q, x, y); if (d > bd * 1.15) { bd = d; cx = x; cy = y; } }
+      let a2 = 0; Q.forEach((p, i) => { const q = Q[(i + 1) % Q.length]; a2 += p[0] * q[1] - q[0] * p[1]; });
+      svg += `<polygon points="${Q.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" style="fill:${col};fill-opacity:.2;stroke:${col};stroke-width:2.5;stroke-linejoin:round"/>`;
+      Q.forEach((p, i) => {   // la lettera dentro il pezzo, sulla bisettrice del suo angolo (anche negli angoli rientranti)
+        const a = Q[(i - 1 + Q.length) % Q.length], b = Q[(i + 1) % Q.length], la = Math.hypot(a[0] - p[0], a[1] - p[1]) || 1, lb = Math.hypot(b[0] - p[0], b[1] - p[1]) || 1;
+        let dx = (a[0] - p[0]) / la + (b[0] - p[0]) / lb, dy = (a[1] - p[1]) / la + (b[1] - p[1]) / lb, d = Math.hypot(dx, dy);
+        if (d < 1e-6) { dx = -(b[1] - p[1]) / lb; dy = (b[0] - p[0]) / lb; d = 1; }
+        const rientra = Math.sign((p[0] - a[0]) * (b[1] - p[1]) - (p[1] - a[1]) * (b[0] - p[0])) !== Math.sign(a2);
+        if (rientra) { dx = -dx; dy = -dy; }
+        const r = Math.max(9, Math.min(19, Math.min(la, lb) * 0.4)), suLato = f[i] === v1 || f[i] === v2;
+        svg += `<text x="${(p[0] + dx / d * r).toFixed(1)}" y="${(p[1] + dy / d * r).toFixed(1)}" font-size="${suLato ? 17 : 13}" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="fill:${suLato ? "var(--cut)" : "var(--muted)"}" font-family="IBM Plex Mono, monospace">${lettera(inf.letters[i])}</text>`;
+      });
+      svg += `<text x="${cx.toFixed(1)}" y="${(cy + (w ? 6 : -6)).toFixed(1)}" font-size="20" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="fill:var(--ink)" font-family="IBM Plex Mono, monospace">${inf.id}</text>`;
+      // «già nella bolla» / «pezzo nuovo» fuori dal pezzo: sopra quello in alto, sotto quello in basso
+      const yy = w ? Math.max(...Q.map(p => p[1])) + 18 : Math.min(...Q.map(p => p[1])) - 14;
+      svg += `<text x="${cx.toFixed(1)}" y="${yy.toFixed(1)}" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle" style="fill:var(--muted)" font-family="IBM Plex Sans, sans-serif">${inf.id} · ${stato[w]}</text>`;
+    });
+    const a = T([0, 0]), b = T([V3.len(V3.sub(V[v2], o)), 0]);
+    svg += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" style="stroke:var(--cut);stroke-width:5;stroke-linecap:round"/>`;
+    return `<svg class="coppia" viewBox="0 0 ${W} ${H}" role="img" aria-label="I due pezzi accostati lungo il lato da unire, in rosso">${svg}</svg>`;
+  }
   function rendiMontaggio() {
     if (!cur) return;
     const an = cur.an, N = an.seams.length, f = fatte();
     if (giuntaQui == null || giuntaQui >= N) { giuntaQui = 0; while (giuntaQui < N - 1 && f.giunte.includes(an.seams[giuntaQui].no)) giuntaQui++; }
     const s = an.seams[giuntaQui], fatta = f.giunte.includes(s.no);
-    // le lettere dei due pezzi negli stessi due angoli: A va su E, B va su D
+    // quali pezzi sono già nella bolla: quelli uniti nelle giunzioni prima di questa
+    const montati = new Set(); an.seams.slice(0, giuntaQui).forEach(x => { montati.add(x.p.fi); montati.add(x.q.fi); });
+    const mp = montati.has(s.p.fi), mq = montati.has(s.q.fi);
+    const [sopra, sotto] = mq && !mp ? [s.q.fi, s.p.fi] : [s.p.fi, s.q.fi];   // sopra il pezzo già montato
     const let_ = (fi, v) => lettera(an.faceInfo[fi].letters[cur.F[fi].indexOf(v)]);
     const pz = (fi) => { const inf = an.faceInfo[fi]; return `<span class="pezzo" style="--c:${tinta(inf.type)}"><i></i>${inf.id}</span>`; };
     const v1 = s.p.a, v2 = s.p.b;
+    const stato = mp && mq ? ["già nella bolla", "già nella bolla"] : mp || mq ? ["già nella bolla", "pezzo nuovo"] : ["pezzo nuovo", "pezzo nuovo"];
+    const prendi = mp && mq ? `I pezzi ${pz(sopra)} e ${pz(sotto)} sono <b>già tutti e due nella bolla</b>: ora si chiude il lato tra loro.`
+      : mp || mq ? `Prendete il <b>pezzo nuovo</b> ${pz(sotto)} e attaccatelo a ${pz(sopra)}, che è <b>già nella bolla</b>.`
+      : `Prendete <b>due pezzi nuovi</b>: ${pz(sopra)} e ${pz(sotto)}.`;
     const fase = s.floor ? "Prima il pavimento e le pareti basse" : "Ora le pareti, dal basso verso l'alto";
     $("giunta").innerHTML = `<span class="occhiello">${fase}</span>
       <h2>Giunzione <span class="num">${s.no}</span> di <span class="num">${N}</span></h2>
-      <p style="font-size:1.1rem">Unite ${pz(s.p.fi)} lato <b class="num">${let_(s.p.fi, v1)}–${let_(s.p.fi, v2)}</b><br>con ${pz(s.q.fi)} lato <b class="num">${let_(s.q.fi, v1)}–${let_(s.q.fi, v2)}</b></p>
-      <p class="hint">Il lato è lungo <b class="num">${metri(s.len)}</b>. L'angolo <b>${let_(s.p.fi, v1)}</b> del primo pezzo va sull'angolo <b>${let_(s.q.fi, v1)}</b> del secondo, e <b>${let_(s.p.fi, v2)}</b> su <b>${let_(s.q.fi, v2)}</b>.</p>
+      ${coppiaSVG(s, sopra, sotto, stato)}
+      <ol class="passi">
+        <li><div><b>Trovate i pezzi</b><span>${prendi}</span></div></li>
+        <li><div><b>Accostateli come nel disegno</b><span>Il lato rosso di un pezzo contro il lato rosso dell'altro. È lungo <b class="num">${metri(s.len)}</b>.</span></div></li>
+        <li><div><b>Controllate gli angoli</b><span>Si devono toccare <b class="lt">${let_(sopra, v1)}</b> con <b class="lt">${let_(sotto, v1)}</b> e <b class="lt">${let_(sopra, v2)}</b> con <b class="lt">${let_(sotto, v2)}</b>. Se non tornano, avete preso il lato sbagliato o un pezzo rovesciato.</span></div></li>
+        <li><div><b>Unite il lato</b><span>Nastro biadesivo nel margine, poi nastro trasparente sopra, dentro e fuori.</span></div></li>
+      </ol>
+      <details class="codici"><summary>Come leggere i codici e le lettere</summary><p class="hint">Il codice <b>${an.faceInfo[sotto].id}</b> vuol dire pezzo di tipo <b>${an.faceInfo[sotto].type + 1}</b> (la dima ${an.faceInfo[sotto].type + 1}), copia numero <b>${an.faceInfo[sotto].copy + 1}</b>: è quello che avete scritto sul pezzo quando l'avete tagliato. Le lettere sono gli angoli, scritti anche loro sul pezzo, come sulla dima.</p></details>
       <div class="prog"><div style="width:${f.giunte.length / N * 100}%"></div></div>
       <p class="hint">${plural(f.giunte.length, "giunzione fatta", "giunzioni fatte")} su ${N}</p>
-      <div class="btnrow"><button type="button" class="btn" id="gPrima"${giuntaQui === 0 ? " disabled" : ""}>←</button><button type="button" class="btn primary big" id="gFatta">${fatta ? "Fatta ✓ · avanti" : "Fatta! Avanti"}</button><button type="button" class="btn" id="gDopo"${giuntaQui >= N - 1 ? " disabled" : ""}>→</button></div>`;
+      <div class="btnrow"><button type="button" class="btn" id="gPrima"${giuntaQui === 0 ? " disabled" : ""} aria-label="Giunzione prima">←</button><button type="button" class="btn primary big" id="gFatta">${fatta ? "Fatta ✓ · avanti" : "Fatta! Avanti"}</button><button type="button" class="btn" id="gDopo"${giuntaQui >= N - 1 ? " disabled" : ""} aria-label="Giunzione dopo">→</button></div>`;
     const P = porteForma(cur.V, cur.F, S.shape), hp = P ? Math.max(0, P.h - 0.15) : 0;
     $("porta").textContent = `Alla fine tagliate la porta: un taglio verticale in un pannello basso, dove la bolla è più alta (qui fino a ${metri(Math.min(hp, 2))}). Fissate la cerniera ai due bordi del taglio, con nastro o saldatura, e rinforzateli con il nastro. La porta è anche l'uscita: deve aprirsi facilmente.`;
     vista("cvMontaggio", () => cur && { m: cur, o: { hl: [s.p.fi, s.q.fi], lato: s.key.split("_").map(Number) } });
