@@ -61,8 +61,8 @@ Pezzi aggiunti:
 
 ## Le forme dell'Officina nella griglia "Bolle"
 Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 17 forme dell'Officina che il configuratore non aveva: Cupola, Dodecaedro, Forma a L, Forma a C, Freccia, Serpente, Ciambella, Tunnel, Barca, Banana, Scolopendra, Balena, Fungo, Razzo, Tartaruga, Ananas, Pera. Per ogni forma speciale `PORTE_OFF` dice dove si entra.
-- **Motore.** `caricaMotoreOfficina()` legge `../index.html` (la pagina dell'Officina, stesso sito), prende il codice tra `// ENGINE START` e `// ENGINE END` e lo esegue. Non c'è codice copiato.
-  - Se si cambiano o si tolgono quei due segnaposto nell'Officina, il configuratore non trova più le forme.
+- **Motore.** `caricaMotoreOfficina()` legge `../motore.js` (il motore dell'Officina, stesso sito; fino al 6 novembre stava dentro `../index.html`), prende il codice tra `// ENGINE START` e `// ENGINE END` e lo esegue. Non c'è codice copiato.
+  - Se si cambiano o si tolgono quei due segnaposto in `motore.js`, il configuratore non trova più le forme.
   - Aperto da solo, il configuratore mostra solo le bolle originali.
 - **Tipi `of:<id>`.** Sono creati da `FORME_OFF`:
   - `par` sono i parametri numerici dell'Officina tradotti da `parOff()`;
@@ -315,3 +315,9 @@ Dal branch `abbofficina-ricerca-oggetti-3d` (thaaby) sono state prese le parti c
   - **`lettore()`** scarica solo i lettori degli oggetti 3D (OBJ, STL, PLY, TransformControls) la prima volta che servono. **GLTFLoader e RGBELoader restano nei `<script>` in fondo**, come prima: il computer del lab spesso è offline, e così la stanza da GLB o HDR funziona anche lì se la pagina è già stata aperta una volta con internet.
 - **Non preso, perché rifà in un altro modo quello che c'è già:** il pannello a destra con la barra sola in basso e il menu Vista, il pulsante Menu tolto, "Simulazione" chiamata "Prove", i gonfiatori della bolla nuova scelti solo dalla pagina (qui sono in "Più opzioni"), "Fai scoppiare" tolto dal pannello della bolla, "Aggiungi da sola", la guida riscritta e i gruppi di forme Semplici / Dall'Officina / Figure e frutti (qui ci sono le prime sei più "Altre forme").
 - **Nell'Officina** (`../index.html`, fuori dal motore) è entrato tutto: la barra di ricerca e il cambio di forma più veloce (`cssMemo`, `fmtNF`). Il motore non cambia: le prove con node danno gli stessi numeri.
+
+## Il motore in motore.js (6 novembre)
+
+- Il motore dell'Officina è uscito da `index.html` ed è in `../motore.js`, con gli stessi segnaposto `// ENGINE START` e `// ENGINE END`: lo usano anche `index.html` e la nuova guida `guida.html`.
+- Qui è cambiata solo una riga, segnata `[Officina]`: `caricaMotoreOfficina()` fa `fetch('../motore.js')` invece di `fetch('../index.html')`.
+- Dopo `// ENGINE END`, in `motore.js` ci sono `porteForma` e `giudizioForma`, che servono alle pagine dell'Officina e qui non vengono letti.
