@@ -83,16 +83,19 @@ select option { background: var(--card); color: var(--ink); }
 /* testata: marchio, tappe, parole, modalità completa */
 .testa { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
 .testa-in { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 14px; min-height: 60px; }
-.marchio { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.05rem; text-decoration: none; color: var(--ink); white-space: nowrap; }
+.marchio { flex: none; display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.05rem; text-decoration: none; color: var(--ink); white-space: nowrap; }
 .marchio i { width: 30px; height: 30px; border-radius: 50%; background: var(--green); display: grid; place-items: center; color: var(--card); font-style: normal; }
-.tappe { flex: 1; display: flex; justify-content: center; gap: 6px; min-width: 0; }
+.tappe { flex: 1; display: flex; justify-content: safe center; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+/* il nome si legge solo sulla tappa in cui si è; le altre sono numeri (il nome compare passandoci sopra): così la barra non deborda mai */
+.tappe button span { display: none; }
+.tappe button[aria-current="step"] span { display: inline; }
 .tappe button { display: flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--muted); font: 600 .82rem var(--body); padding: 6px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
 .tappe button i { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font: 600 .7rem var(--mono); font-style: normal; flex: none; }
 .tappe button[aria-current="step"] { color: var(--green); background: var(--green-soft); }
 .tappe button[aria-current="step"] i, .tappe button.fatta i { background: var(--green); border-color: var(--green); color: var(--card); }
 .tappe button:disabled { opacity: .45; cursor: default; }
 .tappe .sep { width: 14px; height: 1.5px; background: var(--rule); align-self: center; flex: none; }
-.testa-az { display: flex; gap: 6px; }
+.testa-az { flex: none; display: flex; gap: 6px; }
 .testa-az .btn { min-height: 38px; padding: 6px 12px; font-size: .85rem; }
 .barra { height: 3px; background: var(--rule); }
 .barra div { height: 100%; width: 0; background: var(--green); transition: width .3s; }
