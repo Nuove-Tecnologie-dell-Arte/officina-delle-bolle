@@ -190,6 +190,42 @@ function cutConvex(V, F, z0) {
   return weld(NV, NF);
 }
 
+/* ogni triangolo diviso in n×n triangoli più piccoli, unendo i punti che dividono i lati in n parti: i triangoli piccoli sono
+   tutti uguali tra loro (quelli «a punta in giù» sono gli stessi girati di mezzo giro) e stanno nel piano del triangolo grande.
+   Con z0 > 0 si taglia in basso come cutConvex: restano interi i triangoli sopra il taglio, quelli a cavallo si accorciano
+   e il pavimento prende tutti i punti del taglio, così non restano lati spezzati a metà. */
+function subdivideTri(V, F, n, z0) {
+  const eps = 1e-6, NV = [], keys = new Map(), ring = [], NF = [];
+  const id = (p) => { const k = p.map(c => Math.round(c * 1e6)).join(","); if (!keys.has(k)) { keys.set(k, NV.length); NV.push(p); } return keys.get(k); };
+  const snap = (p) => (z0 > 0 && Math.abs(p[2] - z0) <= eps ? [p[0], p[1], z0] : p);
+  const add = (tri) => {
+    let pts = tri.map(snap);
+    if (z0 > 0) {
+      const out = [];
+      for (let j = 0; j < pts.length; j++) {
+        const a = pts[j], b = pts[(j + 1) % pts.length];
+        if (a[2] >= z0) { out.push(a); if (a[2] === z0) ring.push(a); }
+        if ((a[2] > z0 && b[2] < z0) || (a[2] < z0 && b[2] > z0)) { const t = (z0 - a[2]) / (b[2] - a[2]), p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, z0]; out.push(p); ring.push(p); }
+      }
+      pts = out;
+    }
+    if (pts.length >= 3 && polyArea(pts) > 1e-10) NF.push(pts.map(id));
+  };
+  for (const f of F) for (let t = 1; t + 1 < f.length; t++) {   // (le facce sono già triangoli; per sicurezza un poligono si divide a ventaglio)
+    const a = V[f[0]], b = V[f[t]], c = V[f[t + 1]], P = (i, j) => V3.add(a, V3.add(V3.mul(V3.sub(b, a), i / n), V3.mul(V3.sub(c, a), j / n)));
+    for (let i = 0; i < n; i++) for (let j = 0; i + j < n; j++) {
+      add([P(i, j), P(i + 1, j), P(i, j + 1)]);
+      if (i + j < n - 1) add([P(i + 1, j), P(i + 1, j + 1), P(i, j + 1)]);
+    }
+  }
+  if (z0 > 0) {   // il pavimento: tutti i punti del taglio, in giro (stanno tutti sul bordo, perché la forma è convessa)
+    const R = dedupePoints(ring), cx = R.reduce((s, p) => s + p[0], 0) / R.length, cy = R.reduce((s, p) => s + p[1], 0) / R.length;
+    R.sort((p, q) => Math.atan2(q[1] - cy, q[0] - cx) - Math.atan2(p[1] - cy, p[0] - cx));
+    if (R.length >= 3) NF.push(R.map(p => id([p[0], p[1], z0])));
+  }
+  return weld(NV, NF);
+}
+
 /* ---------- generatori di forme ---------- */
 const signs = (v) => {
   let out = [[]];
@@ -338,6 +374,10 @@ const SHAPES = [
   { id: "sferaU", group: "Solidi regolari", name: "Sfera di triangoli uguali", kind: "convex",
     params: [num("D", "Diametro (m)", 5, 0.5), pick("n", "Triangoli (sfera intera)", [["120", "120 triangoli"], ["48", "48 triangoli"]], "120")],
     points: p => catalanPoints(p.n === "48" ? PTS.oct() : PTS.ico()).map(v => V3.mul(v, p.D / 2)), defOrient: "vertice", defCut: 0.2 },   // tagliata in basso, a un quinto: resta quasi tutta la sfera
+  // la stessa sfera da 120, con ogni triangolo diviso in 4 o in 9 triangoli più piccoli, tutti uguali (non diventa più tonda: i pezzi piccoli stanno nel piano di quello grande)
+  { id: "sferaP", group: "Solidi regolari", name: "Sfera di triangoli piccoli", kind: "convex",
+    params: [num("D", "Diametro (m)", 5, 0.5), pick("n", "Triangoli (sfera intera)", [["480", "480 triangoli (ognuno diviso in 4)"], ["1080", "1080 triangoli (ognuno diviso in 9)"]], "480")],
+    points: p => catalanPoints(PTS.ico()).map(v => V3.mul(v, p.D / 2)), subdiv: p => (p.n === "1080" ? 3 : 2), defOrient: "vertice", defCut: 0.2 },
   { id: "calcio", group: "Solidi regolari", name: "Pallone (pentagoni ed esagoni)", kind: "convex", params: [num("D", "Diametro (m)", 6, 0.5)],
     points: p => PTS.tico().map(v => V3.mul(V3.norm(v), p.D / 2)), defOrient: "faccia" },   // la palla da calcio: appoggiata su un esagono, senza taglio
   { id: "d12", group: "Solidi regolari", name: "Dodecaedro (12 pentagoni)", kind: "convex", params: [num("s", "Lato (m)", 1.2, 0.1)], points: p => PTS.dod().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
@@ -922,7 +962,12 @@ function buildShape(def, p, opt) {
       if (def.defCut === "half" || typeof def.defCut === "number") { const zc = top * (def.defCut === "half" ? 0.5 : def.defCut); let best = 0; levels.forEach((L, i) => { if (Math.abs(L.z - zc) < Math.abs(levels[best].z - zc)) best = i; }); opt.level = best; }
       else opt.level = levels.length && levels[0].z === 0 && levels.length > 1 ? 1 : 0;
     }
-    if (opt.cut && levels.length && levels[opt.level].z > 0) {
+    const nDiv = def.subdiv ? def.subdiv(p) : 1;   // triangoli divisi in triangoli più piccoli (sfera di triangoli piccoli)
+    const zTaglio = opt.cut && levels.length ? levels[opt.level].z : 0;
+    if (nDiv > 1) {
+      ({ V, F } = subdivideTri(V, F, nDiv, zTaglio));
+      if (zTaglio > 0) { const zm = Math.min(...V.map(v => v[2])); V = V.map(v => [v[0], v[1], v[2] - zm]); cutUsed = true; }
+    } else if (zTaglio > 0) {
       ({ V, F } = cutConvex(V, F, levels[opt.level].z));
       const zm = Math.min(...V.map(v => v[2]));
       V = V.map(v => [v[0], v[1], v[2] - zm]);

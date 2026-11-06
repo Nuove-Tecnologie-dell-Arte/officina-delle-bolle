@@ -924,6 +924,7 @@ const ICONE = {
   'of:d20': '<path d="M3 24h24 M4 24a11 11 0 0 1 22 0 M15 13v11 M15 13l-7 4-3 7 M15 13l7 4 3 7 M8 17l7 7 7-7"/>',
   'of:geo': '<circle cx="15" cy="15" r="11"/><path d="M15 4l-6 5 1 7-6 2 M15 4l6 5-1 7 6 2 M9 9h12 M10 16h10 M10 16l-1 8 M20 16l1 8 M10 16l5 6 5-6 M15 22v4"/>',   // [Officina] la sfera geodetica
   'of:sferaU': '<circle cx="15" cy="15" r="11"/><path d="M4 15h22 M15 4v22 M7.2 7.2l15.6 15.6 M22.8 7.2 7.2 22.8"/>',   // [Officina] la sfera di triangoli uguali
+  'of:sferaP': '<circle cx="15" cy="15" r="11"/><path d="M4 15h22 M15 4v22 M7.2 7.2l15.6 15.6 M22.8 7.2 7.2 22.8 M5 10h20 M5 20h20 M10 5v20 M20 5v20"/>',   // [Officina] la sfera di triangoli piccoli
   'of:calcio': '<circle cx="15" cy="15" r="11"/><path d="M15 10.5l4.3 3.1-1.6 5h-5.4l-1.6-5z M15 10.5V4 M19.3 13.6l6-2 M17.7 18.6l3.6 5.3 M12.3 18.6l-3.6 5.3 M10.7 13.6l-6-2"/>',   // [Officina] il pallone da calcio
   'of:d12': '<path d="M15 3l11 8-4 13H8L4 11z M15 8l6 4.4-2.3 7.1h-7.4L9 12.4z M15 3v5 M26 11l-5 1.4 M22 24l-3.3-4.5 M8 24l3.3-4.5 M4 11l5 1.4"/>',
   'of:L': '<path d="M5 4h8v14h13v8H5z"/>',
@@ -1141,7 +1142,7 @@ function formaOfficinaFine(O, V, E, conn) {
     peso: () => pesoTelo(), luce: Math.max(0.5, O.luce) };
 }
 // [Officina] le forme dell'Officina nella griglia "Bolle": il motore si legge dalla pagina dell'Officina (stesso sito), senza copiarlo
-const FORME_OFF = [['d20', 'Cupola'], ['geo', 'Sfera'], ['sferaU', 'Sfera a triangoli'], ['calcio', 'Pallone'], ['d12', 'Dodecaedro'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Ciambella'], ['tunnel', 'Tunnel'],
+const FORME_OFF = [['d20', 'Cupola'], ['geo', 'Sfera'], ['sferaU', 'Sfera a triangoli'], ['sferaP', 'Sfera a triangoli piccoli'], ['calcio', 'Pallone'], ['d12', 'Dodecaedro'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Ciambella'], ['tunnel', 'Tunnel'],
   ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Scolopendra'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga'],
   ['ananas', 'Ananas'], ['pera', 'Pera']];
 let MOTORE_OFF = null;
@@ -2985,7 +2986,7 @@ function disegnaTipi() {
 }
 // [Officina] le forme: prima le sei più usate, poi «Altre forme» divise per gruppo (si aprono con un clic)
 const PRIME_FORME = ['cubo', 'of:d20', 'cilindro', 'piramide', 'of:tunnel', 'of:L'];
-const GRUPPI_FORME = [['Solidi', ['of:geo', 'of:sferaU', 'of:calcio', 'stella', 'prisma', 'of:d12']], ['In pianta', ['of:C', 'of:arrow']], ['Tubi e gallerie', ['of:snake', 'of:torus']]];   // il resto: Forme speciali
+const GRUPPI_FORME = [['Solidi', ['of:geo', 'of:sferaU', 'of:sferaP', 'of:calcio', 'stella', 'prisma', 'of:d12']], ['In pianta', ['of:C', 'of:arrow']], ['Tubi e gallerie', ['of:snake', 'of:torus']]];   // il resto: Forme speciali
 let altreAperte = false;
 function disegnaGriglia() {
   const L = (CAT[catAgg] || CAT.bolle).filter(k => TIPI[k]), b = k => { const t = TIPI[k]; return `<button data-t="${k}" aria-pressed="${k === tipoScelto}"><svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">${ICONE[k]}</svg>${ETI_TIPO[k] || t.nome}</button>`; };

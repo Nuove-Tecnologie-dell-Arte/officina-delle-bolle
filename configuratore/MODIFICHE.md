@@ -321,3 +321,8 @@ Dal branch `abbofficina-ricerca-oggetti-3d` (thaaby) sono state prese le parti c
 - Il motore dell'Officina è uscito da `index.html` ed è in `../motore.js`, con gli stessi segnaposto `// ENGINE START` e `// ENGINE END`: lo usano anche `index.html` e la nuova guida `guida.html`.
 - Qui è cambiata solo una riga, segnata `[Officina]`: `caricaMotoreOfficina()` fa `fetch('../motore.js')` invece di `fetch('../index.html')`.
 - Dopo `// ENGINE END`, in `motore.js` ci sono `porteForma` e `giudizioForma`, che servono alle pagine dell'Officina e qui non vengono letti.
+
+## La sfera di triangoli piccoli (6 novembre)
+
+- Una forma nuova dell'Officina, `sferaP`: la sfera di 120 triangoli uguali con ogni triangolo diviso in 4 o in 9 (480 o 1080 triangoli, tutti uguali).
+- Qui tre righe segnate `[Officina]`: la voce in `FORME_OFF`, l'icona `of:sferaP` e il posto nel gruppo «Solidi» di `GRUPPI_FORME`.
