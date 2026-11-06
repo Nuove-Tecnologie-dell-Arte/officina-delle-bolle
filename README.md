@@ -6,13 +6,13 @@ Un generatore di guide per costruire bolle gonfiabili in plastica fatte di panne
 
 **`guida.html`** è la porta d'ingresso per chi non ha mai fatto una bolla: studenti del lab, classi, ragazzi. Spiega che cos'è una bolla e accompagna passo passo fino alla bolla vera, una tappa per schermata, con «Avanti» e «Indietro» grandi e le parole tecniche spiegate (pulsante «Parole», o toccando le parole sottolineate). Si riprende da dove si era.
 1. **Benvenuti**: che cos'è una bolla (pannelli piatti, uniti lato per lato, gonfiata da un ventilatore) e le cinque tappe.
-2. **Forma**: 8 forme per cominciare (cupola, casetta, cubo, sfera geodetica, pallone, tunnel, fungo, balena) con l'etichetta Facile / Media / Impegnativa, oppure **la vostra immagine** (la stessa finestra della bolla da un'immagine).
-3. **Grandezza**: «quante persone ci devono stare?» (circa 0,8 m² a persona) e le misure vengono da sole; se la porta è troppo bassa c'è il pulsante che la fa alta abbastanza. Le misure a mano sono sotto «Voglio scegliere io le misure».
-4. **Si può fare?**: porta, pavimento, tipi di pezzo, stabilità, con un pulsante per ogni problema («Fatela più grande», «Meno dettaglio»).
+2. **Forma**: tutte le 27 forme del motore, divise per famiglia (cupole e sfere, scatole e piramidi, disegnate dall'alto, tubi e gallerie, animali e oggetti), con un nome semplice, una frase e l'etichetta Facile / Media / Impegnativa; «Disegnatela voi» apre una griglia per disegnare la pianta. In più **la vostra immagine** (la stessa finestra della bolla da un'immagine). Le forme che si aggiungeranno al motore compaiono da sole in fondo, sotto «Altre forme».
+3. **Grandezza**: «quante persone ci devono stare?» (circa 0,8 m² a persona) e le misure vengono da sole; le forme disegnate in pianta si allargano solo in pianta, con le pareti sempre alte uguali. Se la porta è troppo bassa c'è il pulsante che la fa alta abbastanza. Le misure a mano sono sotto «Voglio scegliere io le misure».
+4. **Si può fare?**: porta, pavimento, tipi di pezzo, stabilità, con un pulsante per ogni problema («Fatela grande abbastanza», «Fatela più grande», «Meno dettaglio»); con le pareti inclinate (piramidi) la porta resta bassa a ogni grandezza, e la guida lo dice e propone un'altra forma.
 5. **Modellino**: scala scelta da sola (alto circa 15 cm), sviluppo diviso in fogli A4 da stampare al 100%, con il segmento di controllo da 5 cm, le linee di taglio e di piega e i numeri dei bordi da chiudere.
 6. **Materiale**, **Dime** (una scheda per tipo di pezzo, con lati, «piede» e altezza degli angoli, stampabili), **Montaggio** (una giunzione alla volta, con i due pezzi evidenziati in 3D e le lettere che combaciano) e **Si gonfia!** (la lista della sicurezza).
 
-«Modalità completa» porta la stessa forma, con le stesse misure, nella pagina completa (`index.html`); dall'ultima tappa si può provarla nell'Abbofficina. In `index.html`, chi arriva la prima volta trova un riquadro che porta alla guida, e sotto il titolo c'è sempre il link.
+`guida.html` è un sito a sé: non ha link verso la pagina completa né verso l'Abbofficina, così chi comincia resta nel percorso semplice. Il contrario sì: in `index.html`, chi arriva la prima volta trova un riquadro che porta alla guida, e sotto il titolo c'è sempre il link.
 
 **I file**: `index.html` (la pagina completa), `guida.html` (la guida per cominciare), `motore.js` (il motore delle forme, usato da tutte e due e dall'Abbofficina), `immagine.js` (la finestra «bolla da un'immagine», usata da tutte e due) e `configuratore/` (l'Abbofficina).
 
