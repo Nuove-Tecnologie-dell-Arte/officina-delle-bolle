@@ -1581,7 +1581,7 @@ function collega() {
     comp.forEach(p => { if (p !== ing) p.ingresso = false; });
     const liberi = ing.porte.filter(e => !usati.get(ing).has(e));
     if (!liberi.length) return;
-    const e = liberi.sort((x, y) => connMondo(ing, y).n[1] - connMondo(ing, x).n[1])[0], c = connMondo(ing, e);
+    const e = ing.ingLato != null && liberi.includes(ing.ingLato) ? ing.ingLato : liberi.sort((x, y) => connMondo(ing, y).n[1] - connMondo(ing, x).n[1])[0], c = connMondo(ing, e);   // [Officina] il lato scelto per l'ingresso, se c'è
     const chiave = 'ingresso:' + ing.id + ':' + e;
     link.unshift({ a: null, b: ing, eb: e, Pa: [c.P[0] + c.n[0] * (ING_FUORI + Math.max(0, ing.F.E[e].fuori || 0)), c.P[1] + c.n[1] * (ING_FUORI + Math.max(0, ing.F.E[e].fuori || 0))], Pb: c.P, n: [-c.n[0], -c.n[1]], nb: c.n, chiave, ingresso: true, diretto: true, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
     usati.get(ing).add(e);
@@ -1590,6 +1590,11 @@ function collega() {
     l.porta.tipo = D.porte;
     l.w = Math.min(D.manW, ...[[l.a, l.ea], [l.b, l.eb]].filter(x => x[0]).map(([q, e]) => apertura(q.F, e).w));
     l.h = Math.max(PORTA_MIN, Math.min(D.manH, ...[[l.a, l.ea], [l.b, l.eb]].filter(x => x[0]).map(([q, e]) => apertura(q.F, e).h)));
+    if (l.ingresso) {   // [Officina] la zip d'ingresso: larghezza e posizione lungo il lato scelte nella scheda (ingW, ingU)
+      const E = l.b.F.E[l.eb]; if (l.b.ingW) l.w = clamp(l.b.ingW, 0.5, Math.max(0.5, E.L - 0.15));
+      const m = l.w / 2 / E.L + 0.03, cu = clamp(l.b.ingU ?? 0.5, Math.min(0.5, m), Math.max(0.5, 1 - m)), dd = rot(E.d, l.b.ang), sp = (cu - 0.5) * E.L;
+      l.cu = cu; l.Pa = [l.Pa[0] + dd[0] * sp, l.Pa[1] + dd[1] * sp]; l.Pb = [l.Pb[0] + dd[0] * sp, l.Pb[1] + dd[1] * sp];
+    }
   }
   for (const p of pezzi) { p.usati = usati.get(p); p.chiuse = p.porte.length - p.usati.size; p.scafo = scafo(p); p.sovrapposto = false; }
   for (let i = 0; i < pezzi.length; i++) for (let j = i + 1; j < pezzi.length; j++)
@@ -2091,8 +2096,8 @@ function apertura(F, i) {
 }
 function aperturaDi(p, i) {
   const A = apertura(p.F, i), l = p._link && p._link[i]; if (!l) return A;
-  const e = p.F.E[i], w = Math.min(A.w, l.w || A.w), h = Math.min(A.h, l.h || A.h);
-  return { ...A, w, h, u0: 0.5 - w / 2 / e.L, u1: 0.5 + w / 2 / e.L, v1: h / p.F.H, perim: 2 * (w + h) };
+  const e = p.F.E[i], w = l.ingresso ? (l.w || A.w) : Math.min(A.w, l.w || A.w), h = Math.min(A.h, l.h || A.h), cu = l.cu ?? 0.5;   // [Officina] l'ingresso può essere spostato e allargato
+  return { ...A, w, h, u0: cu - w / 2 / e.L, u1: cu + w / 2 / e.L, v1: h / p.F.H, perim: 2 * (w + h) };
 }
 // strappo di una bolla scoppiata: il lato si apre a metà e i due lembi si arricciano verso fuori
 function strappo(p, u, meta) {
@@ -2179,7 +2184,7 @@ function aggiornaLink(l) {
       z += giu * 0.3 * Math.sin(Math.PI * v) * (0.5 + u) * lb.s;
       z += gonfia * Math.sin(Math.PI * u) * Math.sin(Math.PI * v) + vibra * Math.sin(7 * v * h + 3.1 * tempo + 9 * sA + lb.s) * u + lb.s * 0.004 + (extra || 0);
       if (l.diretto) {   // [Officina] la zip è nella parete: da chiuso il lembo è il telo stesso; aprendosi gira attorno al suo bordo
-        const P0 = cp.eb.p, ue = 0.5 + cp.sig * lb.s * (w / 2 - sA) / cp.eL;
+        const P0 = cp.eb.p, ue = (l.cu ?? 0.5) + cp.sig * lb.s * (w / 2 - sA) / cp.eL;
         puntoParete(P0, cp.eb.i, ue, v * (h - 0.02) / P0.F.H, 0.012, stB, out);
         out[0] += -lat.x * lb.s * (x - sA) + dir.x * z; out[2] += -lat.z * lb.s * (x - sA) + dir.z * z; return;
       }
@@ -3408,6 +3413,7 @@ function ispettore(nuovo) {
       <section class="sez"><h2>Misure${nuovo ? ' · standard, modificale' : ''}</h2><div class="par" id="parSel"></div></section>
       <section class="sez"><h2>Orientamento</h2><div class="par" id="iOrienta"></div></section>
       <section class="sez"><h2>Porte</h2><div id="iPorte"></div></section>
+      ${p.ingresso ? `<section class="sez"><h2>Ingresso</h2><div class="par" id="iIngresso"></div></section>` : ""}<!-- [Officina] la zip di ingresso: lato, posizione, larghezza -->
       <details class="aspetto"${ispAspetto ? ' open' : ''}><summary><h2>Aspetto</h2><span class="std">colore e soffitto stellato</span></summary><!-- [Officina] era la quarta scheda -->
         <div class="aspettoCorpo"><section class="sez"><h2>Colore</h2><div class="tinte" id="iTinte"></div></section>
         <section class="sez"><h2>Soffitto stellato</h2><div class="par" id="iStelle"></div></section></div>
@@ -3428,6 +3434,18 @@ function ispettore(nuovo) {
   for (const s of TIPI[p.tipo].scelte || []) sceltaRiga(cont, s, p.d[s.key], v => { const legami = legamiAttuali(); p.d[s.key] = v; p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); });   // [Officina]
   contaGonf($('iGonf'), p.f, () => strutturaCambiata());
   { const g0 = genitore(p); sceltaPorte($('iPorte'), p.F, p.porte, p.usati, () => strutturaCambiata(), g0 && p.porte.length > 1 ? g0.ef : undefined); }
+  if ($('iIngresso')) {   // [Officina] l'ingresso: una zip dritta nella parete, che si sposta e si allarga
+    const c = $('iIngresso'), l = link.find(x => x.ingresso && x.b === p), lato = l ? l.eb : p.ingLato, E = lato != null ? p.F.E[lato] : null;
+    const lati = p.F.E.map((e, i) => i).filter(i => p.F.E[i].L >= 0.65 && !(p.usati && p.usati.has(i) && i !== lato));
+    const r = document.createElement('label'); r.className = 'campo';
+    r.innerHTML = `<span>Lato</span><select>${lati.map(i => `<option value="${i}"${i === lato ? ' selected' : ''}>Lato ${i + 1} · ${fmt(p.F.E[i].L, 2)} m</option>`).join('')}</select>`;
+    r.querySelector('select').onchange = ev => { const i = +ev.target.value; p.ingLato = i; if (!p.porte.includes(i)) { p.porte.push(i); p.porte.sort((a, b) => a - b); } strutturaCambiata(); ispettore(); };
+    c.appendChild(r);
+    let t; const dopo = () => { clearTimeout(t); t = setTimeout(strutturaCambiata, 120); };
+    campo(c, 'Posizione sul lato', Math.round((l ? l.cu : p.ingU ?? 0.5) * 100), 10, 90, 1, '%', v => { p.ingU = v / 100; dopo(); }, 0);
+    if (E) campo(c, 'Larghezza della zip', +(l ? l.w : 0.9).toFixed(2), 0.5, Math.max(0.55, +(E.L - 0.15).toFixed(2)), 0.05, 'm', v => { p.ingW = v; dopo(); }, 2);
+    const n = document.createElement('p'); n.className = 'std'; n.style.margin = '0'; n.textContent = `Una zip dritta nella parete${l ? `, alta ${fmt(l.h, 2)} m` : ''}: la gente entra ed esce da qui. Al 50% sta a metà del lato.`; c.appendChild(n);
+  }
   disegnaTinte($('iTinte'), p); disegnaStelle($('iStelle'), p);
   $('iNome').oninput = e => { p.nome = e.target.value || TIPI[p.tipo].nome; costruisciRighe(); costruisciManometri(); salvaPresto(); };
   $('iTogli').onclick = () => { const ing = p.ingresso; pezzi = pezzi.filter(q => q !== p); if (ing && pezzi[0]) pezzi[0].ingresso = true; selezionato = null; strutturaCambiata();
@@ -4057,7 +4075,7 @@ const compAttiva = () => comp.lista.find(c => c.id === comp.attiva);
 const nuovoIdComp = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function fotografa() {
-  return { v: 1, pezzi: pezzi.map(p => ({ tipo: p.tipo, d: { ...p.d }, f: { ...p.f }, porte: [...p.porte], x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: p.ang, nome: p.nome, ingresso: !!p.ingresso, tinta: p.tinta || null, stelle: p.stelle ? { ...p.stelle } : null, colore: p.colore, situazione: p.situazione || 'auto', nRes: p.nRes || 0 })),
+  return { v: 1, pezzi: pezzi.map(p => ({ tipo: p.tipo, d: { ...p.d }, f: { ...p.f }, porte: [...p.porte], x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: p.ang, nome: p.nome, ingresso: !!p.ingresso, ingLato: p.ingLato ?? null, ingU: p.ingU ?? null, ingW: p.ingW ?? null, tinta: p.tinta || null, stelle: p.stelle ? { ...p.stelle } : null, colore: p.colore, situazione: p.situazione || 'auto', nRes: p.nRes || 0 })),
     manuali: manuali.map(m => [pezzi.indexOf(m.a), m.ea, pezzi.indexOf(m.b), m.eb]), staccati: staccati.map(m => [pezzi.indexOf(m.a), m.ea, pezzi.indexOf(m.b), m.eb]),
     D: Object.fromEntries(CHIAVI_D.map(k => [k, D[k]])), GONF: Object.fromEntries(['piccolo', 'grande'].map(k => [k, { W: GONF[k].W, Q: GONF[k].Q, Pmax: GONF[k].Pmax }])),
     stanza: statoStanza(), oggetti: statoOggetti() };   // [Officina] oggetti 3D
@@ -4101,7 +4119,7 @@ function carica(dati, opz = {}) {   // [Officina] opz.storia: da Annulla / Ripet
       TIPI[q.tipo] = { nome: q.nome || 'Forma dell\'Officina', off: q.tipo.slice(3), par: [], scelte: [], f: q.f || { piccolo: 1, grande: 0 } };
     if (!TIPI[q.tipo]) continue;
     const p = nuovoPezzo(q.tipo, { ...standard(q.tipo), ...q.d }, q.f, q.porte);
-    Object.assign(p, { x: q.x || 0, z: q.z || 0, ang: q.ang || 0, nome: q.nome || p.nome, ingresso: !!q.ingresso }); if (q.colore) p.colore = q.colore;
+    Object.assign(p, { x: q.x || 0, z: q.z || 0, ang: q.ang || 0, nome: q.nome || p.nome, ingresso: !!q.ingresso, ingLato: q.ingLato ?? null, ingU: q.ingU ?? null, ingW: q.ingW ?? null }); if (q.colore) p.colore = q.colore;
     if (q.tinta) p.tinta = q.tinta; if (q.stelle) p.stelle = { ...q.stelle }; p.situazione = 'auto'; p.nRes = 0;   // [Officina] situazioni e residenti si decidono da soli
     pezzi.push(p);
   }
