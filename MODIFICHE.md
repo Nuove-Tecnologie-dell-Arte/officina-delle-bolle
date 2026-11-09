@@ -25,3 +25,10 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - `preparaPacco`: il controllo della forma che arriva dall'Officina (prima dentro `daOfficina`), usato anche dai messaggi.
 - `formaDallaPagina`: la forma arriva nella composizione «Officina · …» (`c.pagina`), sulla bolla `legato` (si salva con la composizione).
 - `cambiataQui` (dopo ogni `strutturaCambiata`) e `mandaStato`: misure della bolla legata, materiali scelti e distinta con i prezzi vanno alla pagina. Messaggi accettati: `forma`, `materiali`, `prezzo`, `grande`; mandati: `pronta`, `misure`, `stato`, `esci`.
+
+## Sezione 2 · Pezzi
+
+- In alto «Pezzi» e «Come disegnare i pezzi per la bolla», con quanti pezzi e quanti tipi (`#piecesTitle`).
+- **Interruttore «Bolla | Modellino»** solo per questa sezione (gli stessi pulsanti `data-u` di prima): Bolla dà i passi in metri, con rotolo e margine; Modellino in centimetri, con la scala accanto all'interruttore (`.scalaSez`, l'`#scale` che prima stava al Passo 1). La scala vale anche per la sezione 3. Le misure della sezione 1 restano della bolla vera.
+- **Una scheda per tipo di pezzo**: chiusa mostra numero, la sagoma del pezzo (`sagomaSvg`), nome e uso, **«× N»** (quanti pezzi uguali) e le spunte fatte; aperta mostra il disegno con le misure e i passi con metro e squadra, come prima. Le schede partono chiuse. Le spunte restano salvate.
+- Restano «Altro» (apri o chiudi tutti i pezzi, azzera le spunte), «Modalità cantiere» e «Come si traccia un pezzo senza compasso?». Tolti l'elenco riassuntivo dei tipi sopra le schede (le schede chiuse fanno già da elenco) e il vecchio bollino «× N».

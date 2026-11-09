@@ -670,6 +670,19 @@ table.lista tr.sez td { font-weight: 650; color: var(--ink); padding-top: 14px; 
 table.lista td small { display: block; color: var(--muted); font-size: .78rem; line-height: 1.35; }
 table.lista input { width: 78px; text-align: right; padding: 5px 6px; }
 table.lista tfoot td { font-weight: 700; border-bottom: 0; }
+/* [Semplice] sezione 2: interruttore Bolla | Modellino e schede dei pezzi */
+#forma .scalaTop { display: none !important; }
+.interruttore { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.interruttore .seg button { padding: 8px 18px; min-height: 42px; font-size: 1rem; }
+.scalaSez { display: inline-flex !important; align-items: center; gap: 6px; font-weight: 600; }
+.scalaSez input { width: 80px; }
+body:not([data-modo="model"]) .scalaSez { display: none !important; }
+#pezzi .overview, #pezzi .ovTutti { display: none !important; }
+.piece-head .sagoma { width: 56px; height: 56px; flex: none; }
+.piece-head .sagoma polygon { fill: color-mix(in srgb, var(--c) 22%, transparent); stroke: var(--c); stroke-width: 2; stroke-linejoin: round; }
+.piece-head .quante { margin-left: auto; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
+.piece-head canvas.where { display: none; }
+details.piece[open] .piece-head canvas.where { display: block; }
 .listaTot { font-size: 1.1rem; }
 </style>
 </head>
@@ -770,7 +783,6 @@ table.lista tfoot td { font-weight: 700; border-bottom: 0; }
           <div class="ctl-h"><i>1</i><span id="titoloMisure">Misure della bolla vera</span><button type="button" class="btn misAnnulla" id="misAnnulla" disabled title="Torna alla forma e alle misure di prima (Ctrl+Z)">Annulla</button></div>
           <div class="misureBarra">
             <div class="seg" id="unita" role="group" aria-label="In che misure scrivere"><button type="button" data-u="real" aria-pressed="true">Bolla vera</button><button type="button" data-u="model" aria-pressed="false">Modellino</button></div>
-            <label class="scalaTop" for="scale" title="Scala 1:20 vuol dire che 1 cm sul modellino è 20 cm nella bolla vera">Scala 1 : <input id="scale" type="number" step="any" min="1" value="20"></label>
           </div>
           <p class="hint notaScala" id="notaScala"></p>
           <div class="fields" id="params"></div>
@@ -909,11 +921,14 @@ table.lista tfoot td { font-weight: 700; border-bottom: 0; }
   </details>
 </section>
 
-<section id="pezzi">
-  <div class="sechead"><div class="stepno">04</div><div class="txt"><h2 id="piecesTitle">Tracciate i pezzi</h2><p>Aprite un pezzo e seguite i passi con metro e squadra. Le spunte restano salvate.</p></div></div>
+<section id="pezzi" class="sez2">
+  <div class="sechead"><div class="txt"><h2>Pezzi</h2><p>Come disegnare i pezzi per la bolla: <span id="piecesTitle"></span>. Aprite un pezzo e seguite i passi con metro e squadra. Le spunte restano salvate.</p></div></div>
+  <div class="interruttore"><div class="seg" role="group" aria-label="Pezzi della bolla vera o del modellino"><button type="button" data-u="real" aria-pressed="true">Bolla</button><button type="button" data-u="model" aria-pressed="false">Modellino</button></div>
+    <label class="scalaTop scalaSez" for="scale" title="Scala 1:20 vuol dire che 1 cm sul modellino è 20 cm nella bolla vera">Scala 1 : <input id="scale" type="number" step="any" min="1" value="20"></label>
+    <span class="hint" id="notaInterr"></span></div>
   <p class="note" id="consiglioTipi" hidden></p>
   <div class="toolbar">
-    <p class="hint" id="scaleF">Modellino in scala <span class="num" id="scalaPezzi">1 : 20</span> · <a href="#forma">si cambia al Passo 1</a></p>
+    <p class="hint" id="scaleF" hidden>Modellino in scala <span class="num" id="scalaPezzi">1 : 20</span></p>
     <div class="field" id="rollF" hidden><label for="roll">Larghezza del rotolo di telo (m)</label><input id="roll" type="number" min="0.5" max="20" step="0.1" value="2"></div><!-- è lo stesso rotolo del Passo 3: i due campi restano uguali -->
     <div class="field" id="marginF" hidden><label for="margin">Margine per saldare o cucire (cm)</label><input id="margin" type="number" min="0" step="0.5" value="3"></div>
     <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center">
@@ -1586,7 +1601,8 @@ table.lista tfoot td { font-weight: 700; border-bottom: 0; }
   function setMode(m) {
     state.mode = m; try { localStorage.setItem("bolle|unita", m); } catch (e) { /* solo per questa visita */ }
     $("rollF").hidden = $("marginF").hidden = m !== "real";
-    $("scaleF").hidden = m === "real";
+    $("scaleF").hidden = true; document.body.dataset.modo = m;   // [Semplice] la scala sta accanto all'interruttore
+    $("notaInterr").textContent = m === "real" ? "Misure della bolla vera, in metri." : "Misure del modellino, in centimetri.";
     $("pieces").classList.toggle("real", m === "real");
     setView(); etichetteCampi();
     if (cur) renderPieces();
@@ -2018,7 +2034,7 @@ table.lista tfoot td { font-weight: 700; border-bottom: 0; }
   function renderPieces() {
     const an = cur.an, real = isReal();
     { const molti = an.types.length > 12; $("overview").classList.toggle("corta", molti); $("ovTutti").hidden = !molti; $("ovTutti").textContent = `Mostra tutti i ${an.types.length} tipi`; }
-    $("piecesTitle").textContent = `Tracciate i pezzi: ${cur.F.length} in tutto, ${plural(an.types.length, "tipo", "tipi diversi")}`;
+    $("piecesTitle").textContent = `${cur.F.length} pezzi in tutto, ${plural(an.types.length, "tipo", "tipi diversi")}`;
     $("overview").innerHTML = an.types.map((t, i) => `<a class="ov" href="#pezzo${i + 1}" data-t="${i}" style="--c:${tvar(i)}"><b>${i + 1}</b><span>${cap(pieceName(t.C))} <span class="muted">× ${t.faces.length}</span></span><small>${role(t)}</small></a>`).join("");
     const k = shapeKey() + "|" + state.mode;
     if (openState.key !== k) openState = { key: k, set: null };
@@ -2027,7 +2043,7 @@ table.lista tfoot td { font-weight: 700; border-bottom: 0; }
     // aperte: quelle scelte da voi; la prima volta, la prima scheda non ancora completata
     const cards = [...document.querySelectorAll("#pieces details.piece")];
     if (keep) cards.forEach((d, i) => { d.open = keep.has(i); });
-    else { const first = cards.find(d => !d.classList.contains("complete")) || cards[0]; if (first) first.open = true; }
+    // [Semplice] le schede partono chiuse: si apre quella che serve
     drawWhere();
   }
   let openState = { key: null, set: null };
@@ -2077,6 +2093,11 @@ table.lista tfoot td { font-weight: 700; border-bottom: 0; }
     return steps;
   }
 
+  function sagomaSvg(C) {   // [Semplice] il disegno del pezzo, piccolo, nella scheda chiusa
+    const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys), w = Math.max(...xs) - x0 || 1, h = Math.max(...ys) - y0 || 1, k = 56 / Math.max(w, h);
+    const pts = C.map(p => ((p[0] - x0) * k + 4 + (56 - w * k) / 2).toFixed(1) + "," + (60 - ((p[1] - y0) * k + 4 + (56 - h * k) / 2)).toFixed(1)).join(" ");
+    return `<svg class="sagoma" viewBox="0 0 64 64" aria-hidden="true"><polygon points="${pts}"/></svg>`;
+  }
   function pieceCard(t, i, real) {
     const C = t.C, mg = state.margin;
     const steps = pieceSteps(t, real);
@@ -2094,13 +2115,14 @@ table.lista tfoot td { font-weight: 700; border-bottom: 0; }
     return `<details class="piece${complete ? " complete" : ""}" id="pezzo${i + 1}" style="--c:${tvar(i)}">
       <summary class="piece-head">
         <span class="big">${i + 1}</span>
+        ${sagomaSvg(C)}
         <canvas class="where" data-t="${i}" aria-hidden="true"></canvas>
         <div style="display:grid;gap:2px;flex:1 1 200px">
           <h3>${cap(pieceName(C))}</h3>
           <span class="meta">Uso: ${role(t)} · area di un pezzo <span class="num">${real ? fmt(area, 3) + " m²" : fmt(area * 1e4 / state.scale ** 2, 1) + " cm²"}</span> · nel disegno: dove va</span>
         </div>
+        <b class="quante" title="Quanti pezzi uguali servono">× ${t.faces.length}</b>
         <div class="prog"><span>✓ <b>${done}</b> di ${steps.length} passi</span><div class="bar"><div style="width:${done / steps.length * 100}%"></div></div></div>
-        <span class="chip" style="--c:${tvar(i)}">× ${t.faces.length}</span>
         <span class="caret" aria-hidden="true">›</span>
       </summary>
       <div class="codes" style="padding-top:12px">${codes.join("")}</div>
