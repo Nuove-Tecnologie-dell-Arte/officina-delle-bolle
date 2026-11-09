@@ -1,5 +1,5 @@
 /* Officina delle Bolle: «bolla da un'immagine». Dalla foto (o dal disegno) al contorno, poi a una forma vera dell'Officina.
-   Lo usano index.html (la pagina completa) e guida.html (la guida per cominciare); serve motore.js caricato prima.
+   Lo usa index.html; serve motore.js caricato prima.
    La finestra e i suoi stili li crea questo file. La pagina passa:
    - disegna3d(canvas, modello, { yaw, pitch }): come disegnare il modellino 3D;
    - scala(): la scala del modellino (per il giudizio);

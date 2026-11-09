@@ -40,3 +40,8 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - **Modellino**: lo sviluppo da ritagliare in grande, con sopra la legenda delle linee (taglio, piega, codice, giunzione), «Ingrandisci» e il nuovo **«Stampa il cartamodello»** (stampa solo lo sviluppo, `body.stampaNet`). La scala sta accanto all'interruttore (`#scala3`) ed è la stessa della sezione 2. Sotto, apribile, «Come si costruisce il modellino». Niente montaggio passo passo per il modellino: il modellino «a pezzi separati» non c'è più (`setBuild` è sempre `net`).
 - **Bolla**: il montaggio della bolla vera, come prima: a sinistra «Giunzione 1 di N» con i pezzi da unire (per esempio «P2-1 con P1-1»), «Fatta» e ‹ ›; a destra la bolla in 3D con la giunzione evidenziata; sopra quante ne avete fatte e la modalità cantiere; sotto «Elenco di tutte le giunzioni» e «Come si monta?», che si aprono e si chiudono.
 - Corretto anche per la sezione 2: il messaggio di errore della scala ora trova il suo posto accanto all'interruttore (`segnaCampo`).
+
+## Una pagina sola, senza la guida a parte
+
+- Eliminata `guida.html`, la guida per cominciare: con la pagina semplice non serve più una seconda pagina. Con lei sono andati il riquadro «Prima volta qui? Apri la guida» e il link «Nuovi del progetto? Cominciate dalla guida passo passo» sotto il titolo (e il loro codice e stile). `motore.js` e `immagine.js` non cambiano: li usano la pagina e l'Abbofficina.
+- Tolti dai Materiali bolla vera «Per il modellino» (`#matModel`, anche dalla ricerca) e «L'ordine del lavoro». Resta «Telo e attrezzi per tracciare e tagliare».

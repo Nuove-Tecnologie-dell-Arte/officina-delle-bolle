@@ -550,11 +550,6 @@ details.menu > summary::-webkit-details-marker { display: none; }
   .nextseam .seamview { order: 0; grid-template-columns: 1fr; }
   .nextseam canvas#seamCanvas { aspect-ratio: 4 / 3; max-height: 46vh; }
 }
-/* la guida per cominciare (guida.html): il riquadro della prima visita e il link sotto il titolo */
-.benvenuto { background: color-mix(in srgb, var(--green) 12%, var(--card)); border-bottom: 1px solid var(--line-strong); }
-.benvenuto-in { max-width: 1120px; margin: 0 auto; padding: 14px 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
-.benvenuto-in b { font-family: var(--display); font-size: 1.1rem; }
-.guida-link { margin-top: 10px; font-weight: 600; }
 /* bolla da un'immagine: il riquadro dopo la galleria del Passo 1 (la finestra e i suoi stili stanno in immagine.js) */
 .dafoto { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px 22px; align-items: center; padding: 20px 22px; border-radius: var(--r-l);
   background: color-mix(in srgb, var(--green) 8%, var(--card)); border: 2px dashed color-mix(in srgb, var(--green) 55%, transparent); box-shadow: var(--shadow); transition: background .15s, border-color .15s; }
@@ -725,19 +720,12 @@ details.piece[open] .piece-head canvas.where { display: block; }
   </div>
 </div>
 
-<div class="benvenuto gutter" id="benvenuto" hidden><!-- alla prima visita: chi non conosce il progetto parte dalla guida -->
-  <div class="benvenuto-in">
-    <div><b>Prima volta qui?</b> <span>La guida per cominciare spiega che cos'è una bolla e vi accompagna passo passo, dall'idea alla bolla vera.</span></div>
-    <div class="btnrow"><a class="btn primary" href="guida.html">Apri la guida</a><button type="button" class="btn" id="benvenutoX">Conosco già l'Officina</button></div>
-  </div>
-</div>
 
 <header class="heroband">
   <div class="gutter"><div class="hero-in">
     <div class="hero-text">
       <h1>Officina delle Bolle</h1>
       <p class="lede">Scegliete una forma e le sue misure: la pagina vi porta dal modellino di carta alla bolla vera, con i numeri giusti a ogni passaggio.</p>
-      <p class="guida-link"><a href="guida.html">Nuovi del progetto? Cominciate dalla guida passo passo →</a></p>
       <div class="stats" id="stats"></div>
       <p class="warn" id="heroPorta" hidden></p>
       <p class="hero-shape"><span class="muted" id="heroShapeEt">Forma scelta:</span> <strong id="heroShape"></strong><span class="hero-azione" id="heroAzione" hidden> · toccate la figura per sceglierla</span></p>
@@ -893,15 +881,6 @@ details.piece[open] .piece-head canvas.where { display: block; }
         <div class="field rotoloF"><label for="rotolo">Larghezza del rotolo di telo (m)</label><input id="rotolo" type="number" min="0.5" max="20" step="0.1" value="2"></div>
       </div>
       <details class="more"><summary>Telo e attrezzi per tracciare e tagliare</summary><ul class="plain" id="matReal"></ul></details>
-      <details class="more"><summary>Per il modellino</summary><ul class="plain" id="matModel"></ul></details>
-      <details class="more"><summary>L'ordine del lavoro</summary>
-  <ol class="flow">
-    <li><strong>Dime</strong><span class="muted">Tracciate un pezzo campione perfetto per ogni tipo (Passo 4).</span></li>
-    <li><strong>Modellino</strong><span class="muted">Costruitelo: se si chiude senza forzare, le misure sono giuste (Passo 5).</span></li>
-    <li><strong>Taglio</strong><span class="muted">Ricalcate le dime grandi (le sagome da seguire) sulla plastica e scrivete codice e lettere su ogni pezzo.</span></li>
-    <li><strong>Montaggio</strong><span class="muted">Seguite l'elenco delle giunzioni, dal pavimento verso l'alto (Passo 6).</span></li>
-  </ol>
-      </details>
     </div>
     <div class="riquadro" id="rqLista">
       <div class="rq-testa"><h2>Lista materiali e prezzi</h2><b class="num listaTot" id="listaTot"></b></div>
@@ -2040,13 +2019,6 @@ details.piece[open] .piece-head canvas.where { display: block; }
     const rotolo = `Con un rotolo largo <span class="num">${fmt(R, 1)} m</span> servono circa <strong class="num">${fmt(metri, 1)} m</strong> di rotolo.` + (larghi
       ? ` ${plural(larghi, "pezzo è", "pezzi sono")} più ${larghi > 1 ? "larghi" : "largo"} del rotolo anche ${larghi > 1 ? "girati" : "girato"} per il verso stretto: ${larghi > 1 ? "vanno fatti" : "va fatto"} con più strisce giuntate, con circa <span class="num">${mR(giuntePiu)}</span> di giunzioni in più (contate anche nel materiale per le giunzioni qui sotto).`
       : " Tutti i pezzi ci stanno interi, girandoli per il verso stretto.");
-    $("matModel").innerHTML = [
-      `Cartoncino da 200–300 g/m²: circa <span class="num">${fmt(cm2, 0)} cm²</span>, cioè ${plural(Math.max(1, Math.ceil(cm2 / 600)), "foglio A4", "fogli A4")} o un foglio grande.`,
-      `Righello di metallo (il pezzo più lungo misura <span class="num">${cmM(big)}</span>), squadretta, matita dura, gomma.`,
-      `Cutter e tappetino da taglio, oppure forbici.`,
-      `Scotch (nastro adesivo trasparente o di carta): <span class="num">${an.seams.length}</span> giunzioni, lunghe in tutto <span class="num">${mCompra(cur.seamLen / state.scale)}</span>.`,
-      `Un pennarello fine per codici e lettere.`,
-    ].map(t => `<li>${t}</li>`).join("");
     $("matReal").innerHTML = [
       `Telo di plastica: circa <span class="num">${fmt(plastic, 1)} m²</span> con margini di ${fmt(state.margin, 1)} cm, più 10–15% di scarti: <strong class="num">${fmt(plastic * 1.15, 1)} m²</strong>. ${rotolo}`,
       `Metro a nastro rigido da almeno 5 m, stadia o listello dritto, filo da muratore, squadra grande (oppure la regola 60-80-100).`,
@@ -3194,7 +3166,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
       pianta: "Questa bolla viene dalla vostra immagine, letta come una pianta vista dall'alto: il contorno è il pavimento, con pareti dritte e il tetto scelto.",
     }[p.modo] || "") + es;
   }
-  // si può fare? Il calcolo sta in motore.js (giudizioForma), lo stesso della guida
+  // si può fare? Il calcolo sta in motore.js (giudizioForma)
   function giudizioBolla(m, p) { return giudizioForma(m, p, { scala: state.scale, id: "foto" }); }
   // una funzione (non una costante): serve già all'apertura della pagina, se l'ultima forma era una forma da un'immagine
   function giudizioHTML(g) { return ImmagineBolla.giudizioHTML(g); }
@@ -3211,12 +3183,6 @@ details.piece[open] .piece-head canvas.where { display: block; }
       $("about").scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
     },
   };
-  // il riquadro che porta alla guida: per chi arriva la prima volta, finché non sceglie (chi usava già l'Officina non lo vede)
-  { let visto = false;
-    try { const g = (k) => localStorage.getItem(k); visto = !!g("bolle|benvenuto") || (!!g("bolle|forma") && !g("bolle|benvenuto-mostrato")); if (!visto) localStorage.setItem("bolle|benvenuto-mostrato", "1"); } catch (e) { /* senza memoria si mostra */ }
-    $("benvenuto").hidden = visto;
-    const ricorda = () => { $("benvenuto").hidden = true; try { localStorage.setItem("bolle|benvenuto", "1"); } catch (e) { /* solo per questa visita */ } };
-    $("benvenutoX").addEventListener("click", ricorda); $("benvenuto").querySelector("a").addEventListener("click", ricorda); }
   $("fotoCarica").addEventListener("click", () => ImmagineBolla.scegli(opzFoto));
   $("fotoRiapri").addEventListener("click", () => ImmagineBolla.riapri(opzFoto));
   if (ImmagineBolla.ultima()) $("fotoRiapri").hidden = false;
@@ -3281,7 +3247,6 @@ details.piece[open] .piece-head canvas.where { display: block; }
     add("Consigli per la bolla vera", "Passo 2 · Numeri", nelPasso("misure", () => apriDettagli(sezioneCon("realNotes"))), "stabilità angoli aperture");
     // passo 3
     add("Larghezza del rotolo di telo", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("rotolo"))), "metri comprare strisce");
-    add("Materiale per il modellino", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("matModel").closest(".box"))), "cartoncino scotch");
     add("Materiale per la bolla vera", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("matReal").closest(".box"))), "telo plastica comprare");
     // passo 4
     add("Misure per il modellino", "Tutta la pagina", nelPasso("pezzi", () => setMode("model")), "cartoncino scala");

@@ -1,5 +1,5 @@
 /* Officina delle Bolle: il motore delle forme (geometria, pezzi, sviluppi).
-   Lo usano index.html (la pagina completa), guida.html (la guida per cominciare) e configuratore/ (l'Abbofficina,
+   Lo usano index.html (la pagina) e configuratore/ (l'Abbofficina,
    che legge solo il codice tra i due segnaposto ENGINE: non cambiateli). Niente interfaccia qui dentro. */
 // ENGINE START
 const PHI = (1 + Math.sqrt(5)) / 2;
@@ -1220,7 +1220,7 @@ function analyze(V, F, floor) {
 }
 // ENGINE END
 
-/* ---------- fuori dai segnaposto: servono alle pagine (index.html, guida.html), non all'Abbofficina ---------- */
+/* ---------- fuori dai segnaposto: servono alla pagina (index.html), non all'Abbofficina ---------- */
 
 /* porte realistiche: per una porta da 1,80 m la bolla deve essere alta almeno 1,95 m dove c'è la porta (come chiede il configuratore).
    Nelle piramidi la porta sta su una faccia inclinata: conta il 55% dell'altezza (72% con la cima piatta), come nel configuratore. */

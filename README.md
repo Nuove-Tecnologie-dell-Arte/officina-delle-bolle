@@ -2,20 +2,9 @@
 
 Un generatore di guide per costruire bolle gonfiabili in plastica fatte di pannelli piatti: cupola, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, ciambella, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera) e piante disegnate a mano.
 
-## Guida per cominciare
+**I file**: `index.html` (la pagina, con dentro la simulazione), `motore.js` (il motore delle forme, usato dalla pagina e dall'Abbofficina), `immagine.js` (la finestra «bolla da un'immagine») e `configuratore/` (l'Abbofficina, che la pagina completa mostra nel riquadro Simulazione).
 
-**`guida.html`** è la porta d'ingresso per chi non ha mai fatto una bolla: studenti del lab, classi, ragazzi. Spiega che cos'è una bolla e accompagna passo passo fino alla bolla vera, una tappa per schermata, con «Avanti» e «Indietro» grandi e le parole tecniche spiegate (pulsante «Parole», o toccando le parole sottolineate). Si riprende da dove si era.
-1. **Benvenuti**: che cos'è una bolla (pannelli piatti, uniti lato per lato, gonfiata da un ventilatore) e le quattro tappe.
-2. **Forma**: tutte le 28 forme del motore, divise per famiglia (cupole e sfere, scatole e piramidi, disegnate dall'alto, tubi e gallerie, animali e oggetti), con un nome semplice, una frase e l'etichetta Facile / Media / Impegnativa; «Disegnatela voi» apre una griglia per disegnare la pianta. In più **la vostra immagine** (la stessa finestra della bolla da un'immagine). Le forme che si aggiungeranno al motore compaiono da sole in fondo, sotto «Altre forme».
-3. **Misure**: una schermata sola, con la bolla in 3D di fianco che si aggiorna mentre si cambiano le misure vere (cursori e numeri). Subito sotto il verdetto (si può fare / con qualche attenzione / non si può fare), quante persone ci stanno in piedi (circa 0,8 m² a persona), altezza, pavimento e porta, e la lista dei controlli. Una forma appena scelta parte grande per 12 persone; «Oppure fatela per … persone» la ridimensiona. **Risolvi** prova da solo tante misure vicine (tutta più grande o più piccola, solo più alta, meno lati o spicchi) e tiene quella con meno problemi e meno cambiamenti; dice che cosa ha cambiato e si può annullare. Con le piramidi la porta si sistema solo alzandole molto, e la guida lo dice.
-4. **Modellino**: scala scelta da sola (alto circa 15 cm), sviluppo diviso in fogli A4 da stampare al 100%, con il segmento di controllo da 5 cm, le linee di taglio e di piega e i numeri dei bordi da chiudere.
-5. **Materiale**, **Dime** (una scheda per tipo di pezzo, con lati, «piede» e altezza degli angoli, stampabili), **Montaggio** (una giunzione alla volta: il disegno dei due pezzi stesi a terra e accostati lungo il lato rosso, con codici e lettere degli angoli; quattro passi in parole semplici, che dicono quale pezzo è nuovo e quale è già nella bolla e quali angoli si devono toccare; in più la bolla in 3D con i due pezzi evidenziati) e **Si gonfia!** (la lista della sicurezza).
-
-`guida.html` è un sito a sé: non ha link verso la pagina completa né verso l'Abbofficina, così chi comincia resta nel percorso semplice. Il contrario sì: in `index.html`, chi arriva la prima volta trova un riquadro che porta alla guida, e sotto il titolo c'è sempre il link.
-
-**I file**: `index.html` (la pagina completa, con dentro la simulazione), `guida.html` (la guida per cominciare), `motore.js` (il motore delle forme, usato da tutte e due e dall'Abbofficina), `immagine.js` (la finestra «bolla da un'immagine», usata da tutte e due) e `configuratore/` (l'Abbofficina, che la pagina completa mostra nel riquadro Simulazione).
-
-## La pagina completa
+## La pagina
 
 Una pagina sola, con tre sezioni una sotto l'altra. La barra in alto porta a ciascuna: **Officina**, **Pezzi**, **Cartamodello e montaggio**. Forma e misure si salvano da sole in questo browser.
 
@@ -48,7 +37,7 @@ Un altro interruttore **Bolla | Modellino**, solo per questa sezione.
 - **Barra di ricerca**: la lente in alto (o ⌘K / Ctrl+K, o il tasto /) apre una casella in cui si scrive cosa si cerca, per esempio "cupola", "rotolo", "cantiere", "pezzo 3" o "giunzione 12", e la pagina ci porta. I pulsanti che cancellano vengono solo mostrati, non premuti.
 - **Avvisi**: se la bolla è troppo bassa per una porta da 1,80 m la pagina lo dice; l'altezza si misura dove va davvero la porta (30 cm dentro, e senza un soffitto basso sopra la soglia), con lo stesso calcolo dell'Abbofficina. Se una forma ha più di 40 tipi di pezzo, la pagina suggerisce le scelte che li riducono.
 - **Tastiera e telefono**: sul telefono i riquadri affiancati vanno uno sotto l'altro. Ricerca e cantiere tengono il focus, Esc chiude; in cantiere il tasto F segna «Fatto».
-- **Server**: `index.html` e `guida.html` si aprono anche con un doppio clic, con accanto `motore.js` e `immagine.js`. Per la simulazione completa serve però un server, anche solo locale (`python -m http.server`): l'Abbofficina legge il motore con una richiesta, e senza server non ha le forme dell'Officina nel suo elenco.
+- **Server**: `index.html` si apre anche con un doppio clic, con accanto `motore.js` e `immagine.js`. Per la simulazione completa serve però un server, anche solo locale (`python -m http.server`): l'Abbofficina legge il motore con una richiesta, e senza server non ha le forme dell'Officina nel suo elenco.
 - I dettagli di che cosa è cambiato rispetto ai sei passi di prima sono in `MODIFICHE.md`.
 
 ## Bolla da un'immagine
