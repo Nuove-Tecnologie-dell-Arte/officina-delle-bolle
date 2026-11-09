@@ -388,3 +388,11 @@ Tutto segnato `[Officina]`.
 - **Etichette nella scena** (`etichetteGonf`, `.etiG`): sopra ogni gonfiatore, con il suo colore; si nascondono mentre si trascina una bolla e nella vista di Sonny.
 - **Cliccabili e modificabili** (`apriGonf`, `.popG`): toccando l'etichetta o il gonfiatore 3D (`userData.gonf`, nel `pointerdown` della scena) si apre la sua scheda: modello e numeri, Piccolo / Grande, «+ Un altro» sulla stessa bolla, «Togli». Ogni cambio ha «Annulla». Al massimo 6 per tipo, come nella scheda Gonfiatori, che ora elenca anche i nomi.
 - **Barra in basso**: tolta la legenda «gonfiatore piccolo / gonfiatore grande» (`.legenda3d` nella `barraScena`).
+
+## Interfaccia e pannelli (9 novembre, blocco 5)
+
+Tutto segnato `[Officina]`.
+
+- **Titoli delle sezioni nel pannello a sinistra** (`aside .sez > h2`): 14 px, in grassetto e nel colore del testo, senza maiuscoletto; prima erano 11 px grigi in maiuscolo («GONFIATORI», «AZIONI»…).
+- **Griglia sul pavimento** (`griglia`, `GRIGLIA`, `tingiGriglia`): quadretti da 1 m e una linea più marcata ogni 5 m, su 80 × 80 m; sbiadisce verso il bordo prendendo il colore del pavimento (niente trasparenza), chiara col tema scuro e scura col tema chiaro. Nella barra Vista il pulsante «Griglia · 1 m» la accende e la spegne (si ricorda, `bolle-griglia`); sparisce con il pavimento (stanza di sfondo) e nella vista di Sonny.
+- **In Prova** la maniglia di rotazione e i bollini delle porte non compaiono: lì si guarda, non si modifica.
