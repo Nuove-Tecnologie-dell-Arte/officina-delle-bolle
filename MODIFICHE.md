@@ -56,3 +56,9 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - **Materiali**: tra porte e collegamenti restano Zip e Velcro (zip impermeabile e stagna solo nella simulazione; una composizione che le usava passa alla zip).
 - **Rotolo**: solo in Materiali bolla vera; nei Pezzi il campo è nascosto e segue quello.
 - **Tolti**: la descrizione della forma in fondo alla sezione 1, la riga «Uso… area… nel disegno: dove va» nelle schede chiuse dei pezzi, la frase sulla scala e la didascalia lunga sotto lo sviluppo, la nota finale «Calcoli fatti dalla pagina…».
+
+## Attraversare la pagina
+
+- **La barra in alto segue lo scorrimento** (`segnaNav`): si accende la sezione in cui si è, non solo quella cliccata; in fondo alla pagina si accende l'ultima.
+- **Il nome in alto** («Officina delle Bolle» e la forma scelta) è un collegamento che riporta a «Scegli forma» (`a.brand`, `#gallery`).
+- **Materiali bolla vera e Lista materiali e prezzi partono chiusi** (`.riquadro.apribile`, `apriRiquadro`): si aprono e si chiudono toccando il titolo, e il browser ricorda la scelta (`bolle|aperto|…`). Chiusi mostrano una riga di riassunto (materiali: telo, giunti e porte, `#matSintesi`; lista: il totale). Si aprono da soli quando ci si arriva dalla ricerca.

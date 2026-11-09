@@ -678,6 +678,16 @@ body:not([data-modo="model"]) .scalaSez { display: none !important; }
 .piece-head .quante { margin-left: auto; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 .piece-head canvas.where { display: none; }
 details.piece[open] .piece-head canvas.where { display: block; }
+/* [Semplice] attraversare la pagina: il nome in alto è un collegamento; Materiali e Lista si aprono con un tocco */
+a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:hover b { color: var(--green); }
+.riquadro.chiuso > :not(.rq-testa) { display: none !important; }
+.rq-apri { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; font: inherit; color: inherit; }
+.rq-apri::after { content: ""; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-3px); transition: transform .2s; color: var(--green); }
+.riquadro:not(.chiuso) .rq-apri::after { transform: rotate(-135deg) translateY(-2px); }
+.rq-apri:focus-visible { outline: 2px solid var(--green); outline-offset: 4px; }
+.apribile.chiuso .rq-testa { cursor: pointer; }
+.rq-sintesi { flex: 1 1 100%; }
+.riquadro:not(.chiuso) .rq-sintesi { display: none; }
 /* [Semplice] meno testo: niente riga «Uso… area…» nella scheda chiusa, niente rotolo ripetuto nei Pezzi */
 .piece-head .meta { display: none; }
 #rollF { display: none !important; }
@@ -698,7 +708,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
 <div class="sr" id="annuncio" aria-live="polite"></div>
 <nav class="stepsbar" aria-label="Passi della guida">
   <div class="in gutter">
-    <div class="brand"><b>Officina delle Bolle</b><span id="navShape"></span></div>
+    <a class="brand" href="#gallery" title="Torna a «Scegli forma»"><b>Officina delle Bolle</b><span id="navShape"></span></a><!-- [Semplice] -->
     <div class="steps-nav" id="stepsNav">
       <a href="#forma" aria-label="Sezione 1: Officina delle Bolle"><i>1</i><span>Officina</span></a>
       <a href="#pezzi" aria-label="Sezione 2: Pezzi"><i>2</i><span>Pezzi</span></a>
@@ -864,8 +874,8 @@ details.piece[open] .piece-head canvas.where { display: block; }
     </div>
   </div>
   <div class="coppia">
-    <div class="riquadro" id="prepara">
-      <div class="rq-testa"><h2>Materiali bolla vera</h2></div>
+    <div class="riquadro apribile chiuso" id="prepara">
+      <div class="rq-testa"><h2><button type="button" class="rq-apri" aria-expanded="false" aria-controls="prepara">Materiali bolla vera</button></h2><span class="hint rq-sintesi" id="matSintesi"></span></div>
       <p class="hint">Sono già scelti quelli del lab. Cambiano anche la simulazione e la lista.</p>
       <div class="fields matScelte">
         <div class="field"><label for="mTelo">Telo</label><select id="mTelo"></select></div>
@@ -879,8 +889,8 @@ details.piece[open] .piece-head canvas.where { display: block; }
       </div>
       <details class="more"><summary>Telo e attrezzi per tracciare e tagliare</summary><ul class="plain" id="matReal"></ul></details>
     </div>
-    <div class="riquadro" id="rqLista">
-      <div class="rq-testa"><h2>Lista materiali e prezzi</h2><b class="num listaTot" id="listaTot"></b></div>
+    <div class="riquadro apribile chiuso" id="rqLista">
+      <div class="rq-testa"><h2><button type="button" class="rq-apri" aria-expanded="false" aria-controls="rqLista">Lista materiali e prezzi</button></h2><b class="num listaTot" id="listaTot"></b></div>
       <p class="hint" id="listaNota">La stessa lista della simulazione: i prezzi che scrivete qui valgono anche là.</p>
       <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"><tr><td colspan="4" class="hint">La simulazione si sta aprendo…</td></tr></tbody></table></div>
     </div>
@@ -2983,6 +2993,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     const el = document.getElementById(id); if (!el) return;
     const pane = el.closest("[data-rqp]"); if (pane) attivaScheda(pane.dataset.rqp);
     const p3 = el.closest("[data-s3p]"); if (p3 && p3.hidden) setS3(p3.dataset.s3p);
+    const ap = el.closest(".riquadro.apribile"); if (ap && ap.classList.contains("chiuso")) apriRiquadro(ap, true);   // [Semplice] Materiali e Lista si aprono da soli
     el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
   }
   // la simulazione: l'Abbofficina dentro il riquadro. La forma va e torna con dei messaggi
@@ -3036,6 +3047,8 @@ details.piece[open] .piece-head canvas.where { display: block; }
     metti("mTelo", D.mat); metti("mGsm", D.gsm); metti("mGiunti", D.giunti); metti("mAdW", D.adW); metti("mAdL", String(D.adLati > 1 ? 2 : 1)); metti("mPorte", D.porte); metti("mColl", D.coll);
     for (const id of ["mGiunti", "mPorte", "mColl"]) if ($(id).selectedIndex < 0) $(id).value = "cerniera";
     $("mNastroF").hidden = $("mLatiF").hidden = D.giunti !== "adesivo";
+    const nome = (l, k) => ((l.find(([x]) => x === k) || [])[1] || "").toLowerCase();
+    $("matSintesi").textContent = `${(m.opz.mat.find(([x]) => x === D.mat) || [, D.mat])[1]} ${D.gsm} g/m² · pezzi uniti con ${nome(m.opz.giunti, D.giunti)}${D.giunti === "adesivo" ? ` da ${D.adW} mm` : ""} · porte con ${nome(m.opz.porte, D.porte) || "zip"}`;
   }
   for (const id of ["mTelo", "mGsm", "mGiunti", "mAdW", "mAdL", "mPorte", "mColl"]) $(id).addEventListener("change", () => {
     const g = $("mGiunti").value; $("mNastroF").hidden = $("mLatiF").hidden = g !== "adesivo";
@@ -3055,6 +3068,25 @@ details.piece[open] .piece-head canvas.where { display: block; }
   }
   $("listaRighe").addEventListener("change", e => { const i = e.target.closest("input[data-id]"); if (i) aSim({ tipo: "prezzo", id: i.dataset.id, v: i.value === "" ? "" : +i.value }); });
 
+  /* ---------- [Semplice] la barra in alto segue lo scorrimento: si accende la sezione in cui si è ---------- */
+  function segnaNav(idx) {
+    navLinks.forEach((a, i) => { a.classList.toggle("on", i === idx); if (i === idx) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
+  }
+  { let t = 0; const dove = () => { t = 0; const alto = (document.querySelector(".stepsbar") || { offsetHeight: 60 }).offsetHeight + 40;
+      let idx = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top <= alto) idx = i; });
+      if ((innerHeight + scrollY) >= document.documentElement.scrollHeight - 4) idx = secs.length - 1;   // in fondo alla pagina: l'ultima sezione
+      segnaNav(idx); };
+    addEventListener("scroll", () => { if (!t) t = requestAnimationFrame(dove); }, { passive: true }); addEventListener("resize", dove); setTimeout(dove, 300); }
+  // Materiali e Lista: chiusi all'inizio, si aprono con un tocco sul titolo (ricordato in questo browser)
+  function apriRiquadro(r, si) {
+    r.classList.toggle("chiuso", !si); r.querySelector(".rq-apri").setAttribute("aria-expanded", String(si));
+    try { localStorage.setItem("bolle|aperto|" + r.id, si ? "1" : "0"); } catch (e) { /* solo per questa visita */ }
+  }
+  document.querySelectorAll(".riquadro.apribile").forEach(r => {
+    let si = false; try { si = localStorage.getItem("bolle|aperto|" + r.id) === "1"; } catch (e) { /* chiuso */ } apriRiquadro(r, si);
+    r.querySelector(".rq-testa").addEventListener("click", e => { if (e.target.closest("input, select, a")) return; apriRiquadro(r, r.classList.contains("chiuso")); });
+  });
+
   /* ---------- un passo alla volta: si vede una sezione sola, il passo sta nell'indirizzo (#misure…) ---------- */
   const navLinks = [...document.querySelectorAll("#stepsNav a")];
   const secs = navLinks.map(a => document.querySelector(a.getAttribute("href")));
@@ -3068,7 +3100,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     document.body.dataset.step = sid;
     seen.add(sid);
     try { localStorage.setItem("bolle|passo", sid); localStorage.setItem("bolle|visti", JSON.stringify([...seen])); } catch (e) { /* solo per questa visita */ }
-    navLinks.forEach((a, i) => { a.classList.toggle("on", i === idx); a.classList.toggle("seen", seen.has(stepIds[i])); if (i === idx) a.setAttribute("aria-current", "step"); else a.removeAttribute("aria-current"); });
+    navLinks.forEach((a, i) => a.classList.toggle("seen", seen.has(stepIds[i]))); segnaNav(idx);
     $("progress").style.width = (idx + 1) / secs.length * 100 + "%";
     const on = navLinks[idx], nav = $("stepsNav");
     nav.scrollLeft = on.offsetLeft - nav.offsetLeft - nav.clientWidth / 2 + on.clientWidth / 2;
