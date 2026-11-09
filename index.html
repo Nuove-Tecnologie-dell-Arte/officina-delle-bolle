@@ -766,8 +766,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     <div class="riquadro" id="rqMisure">
       <div class="rq-testa"><h2>Misure bolla</h2>
         <div class="seg rq-schede" role="tablist" aria-label="Misure bolla"><button type="button" role="tab" data-rq="misure" aria-selected="true">Misure</button><button type="button" role="tab" data-rq="numeri" aria-selected="false">Numeri</button><button type="button" role="tab" data-rq="altro" aria-selected="false">Altre opzioni</button></div></div>
-      <div class="rq-pane" data-rqp="misure">
-        <div class="mat"><div class="bench2">
+      <div class="mat rq-forma"><div class="bench2">
       <figure class="stage mini-stage">
         <canvas id="mini" class="pickable" aria-label="Anteprima 3D della forma con le misure scelte."></canvas>
         <div class="tip" id="tipMini" hidden></div>
@@ -775,6 +774,9 @@ details.piece[open] .piece-head canvas.where { display: block; }
         <figcaption id="miniNota" aria-live="polite"></figcaption>
         <p class="warn" id="error" hidden></p>
       </figure>
+      </div></div><!-- [Semplice] la forma resta in vista in tutte e tre le schede -->
+      <div class="rq-pane" data-rqp="misure">
+        <div class="mat"><div class="bench2">
       <div class="controls2">
         <div class="ctl">
           <div class="ctl-h"><i>1</i><span id="titoloMisure">Misure della bolla vera</span><button type="button" class="btn misAnnulla" id="misAnnulla" disabled title="Torna alla forma e alle misure di prima (Ctrl+Z)">Annulla</button></div>

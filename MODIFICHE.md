@@ -45,3 +45,4 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 
 - Eliminata `guida.html`, la guida per cominciare: con la pagina semplice non serve più una seconda pagina. Con lei sono andati il riquadro «Prima volta qui? Apri la guida» e il link «Nuovi del progetto? Cominciate dalla guida passo passo» sotto il titolo (e il loro codice e stile). `motore.js` e `immagine.js` non cambiano: li usano la pagina e l'Abbofficina.
 - Tolti dai Materiali bolla vera «Per il modellino» (`#matModel`, anche dalla ricerca) e «L'ordine del lavoro». Resta «Telo e attrezzi per tracciare e tagliare».
+- In «Misure bolla» l'anteprima 3D sta sopra le schede (`.rq-forma`), quindi la forma resta in vista anche in Numeri e in Altre opzioni.
