@@ -1,54 +1,32 @@
 # Officina delle Bolle
 
-Un generatore di guide per costruire bolle gonfiabili in plastica fatte di pannelli piatti: cupola, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, ciambella, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera) e piante disegnate a mano.
+Un sito per progettare e costruire bolle gonfiabili in plastica fatte di pannelli piatti: cupola, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, ciambella, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera), piante disegnate a mano e forme ricavate da un'immagine.
 
-## Guida per cominciare
+## Il sito: tre tappe
 
-**`guida.html`** è la porta d'ingresso per chi non ha mai fatto una bolla: studenti del lab, classi, ragazzi. Spiega che cos'è una bolla e accompagna passo passo fino alla bolla vera, una tappa per schermata, con «Avanti» e «Indietro» grandi e le parole tecniche spiegate (pulsante «Parole», o toccando le parole sottolineate). Si riprende da dove si era.
-1. **Benvenuti**: che cos'è una bolla (pannelli piatti, uniti lato per lato, gonfiata da un ventilatore) e le quattro tappe.
-2. **Forma**: tutte le 28 forme del motore, divise per famiglia (cupole e sfere, scatole e piramidi, disegnate dall'alto, tubi e gallerie, animali e oggetti), con un nome semplice, una frase e l'etichetta Facile / Media / Impegnativa; «Disegnatela voi» apre una griglia per disegnare la pianta. In più **la vostra immagine** (la stessa finestra della bolla da un'immagine). Le forme che si aggiungeranno al motore compaiono da sole in fondo, sotto «Altre forme».
-3. **Misure**: una schermata sola, con la bolla in 3D di fianco che si aggiorna mentre si cambiano le misure vere (cursori e numeri). Subito sotto il verdetto (si può fare / con qualche attenzione / non si può fare), quante persone ci stanno in piedi (circa 0,8 m² a persona), altezza, pavimento e porta, e la lista dei controlli. Una forma appena scelta parte grande per 12 persone; «Oppure fatela per … persone» la ridimensiona. **Risolvi** prova da solo tante misure vicine (tutta più grande o più piccola, solo più alta, meno lati o spicchi) e tiene quella con meno problemi e meno cambiamenti; dice che cosa ha cambiato e si può annullare. Con le piramidi la porta si sistema solo alzandole molto, e la guida lo dice.
-4. **Modellino**: scala scelta da sola (alto circa 15 cm), sviluppo diviso in fogli A4 da stampare al 100%, con il segmento di controllo da 5 cm, le linee di taglio e di piega e i numeri dei bordi da chiudere.
-5. **Materiale**, **Dime** (una scheda per tipo di pezzo, con lati, «piede» e altezza degli angoli, stampabili), **Montaggio** (una giunzione alla volta: il disegno dei due pezzi stesi a terra e accostati lungo il lato rosso, con codici e lettere degli angoli; quattro passi in parole semplici, che dicono quale pezzo è nuovo e quale è già nella bolla e quali angoli si devono toccare; in più la bolla in 3D con i due pezzi evidenziati) e **Si gonfia!** (la lista della sicurezza).
+`index.html` è la pagina principale (prima era la «guida per cominciare»; la vecchia pagina completa non c'è più, e `guida.html` rimanda qui). Grafica come nel disegno dell'interfaccia: fondo grafite, titoli in Bebas Neue, sottotitoli in maiuscoletto (Montserrat), riquadri grigio chiaro con le linguette. In alto le tre tappe e il selettore **Officina | Abbofficina**. Si riprende da dove si era (nel browser, chiave `bolle|progetto`).
 
-`guida.html` è un sito a sé: non ha link verso la pagina completa né verso l'Abbofficina, così chi comincia resta nel percorso semplice. Il contrario sì: in `index.html`, chi arriva la prima volta trova un riquadro che porta alla guida, e sotto il titolo c'è sempre il link.
+- **Inizio**: solo il titolo, due righe su che cos'è una bolla e la cupola che gira accanto a una persona; «Cominciamo».
+- **1 · Progettazione**, una pagina sola in tre parti:
+  - **Prendi le misure**: X (lunghezza), Y (larghezza) e Z (altezza libera) dell'area di lavoro, in metri. Se ci sono, i cursori delle misure arrivano fin lì, il simulatore disegna l'area in tratteggio (rosso se la bolla non ci sta) e il giudizio controlla che la bolla ci entri, anche girata di un quarto. Vuote vuol dire nessun limite.
+  - **Progetta**: a sinistra la cartella con due linguette. **Forme**: le 28 forme del motore per famiglia, con l'anteprima colorata e Facile / Media / Impegnativa, più «Parti da un'immagine» (la finestra di `immagine.js`) e «Disegnala tu» (la pianta su una griglia). **Misure**: tre cursori verticali X, Y, Z (si trascinano, o frecce e PagSu/PagGiù, o si scrive il numero), «Mantieni le proporzioni» (acceso all'inizio: la forma resta quella del motore, per esempio i triangoli tutti uguali della cupola; spento si allunga o si schiaccia in una direzione, e i pannelli restano piatti), le opzioni della forma (lati, tetto, triangoli…) e «Falla per … persone». A destra il **simulatore**: la bolla in 3D con una persona da 1,75 m e la quota dell'altezza, quante persone ci stanno (0,8 m² a persona), altezza, ingombro a terra, porta, e il verdetto (si può fare / con attenzione / non si può fare) con «Risolvi» e la lista dei controlli. Sul telefono il simulatore resta fermo in alto mentre si scorrono forme e cursori.
+  - **Materiali**: il resoconto di telo (con i metri di rotolo per la larghezza scritta), nastro, cerniere, ventilatore, dime e pezzi, tempo e persone, attrezzi, spazio.
+- **2 · Dima / Modellino**: il modellino di carta (scala scelta da sola, alto circa 15 cm, fogli A4 da stampare al 100% con il segmento di controllo da 5 cm) e le dime (una scheda per tipo di pezzo, con lati, «piede» e altezza degli angoli, stampabili).
+- **3 · Costruzione**: il montaggio una giunzione alla volta (a sinistra i passi scritti, a destra i due pezzi accostati lungo il lato rosso e la bolla in 3D) e «Si gonfia» con la lista della sicurezza.
 
-**I file**: `index.html` (la pagina completa), `guida.html` (la guida per cominciare), `motore.js` (il motore delle forme, usato da tutte e due e dall'Abbofficina), `immagine.js` (la finestra «bolla da un'immagine», usata da tutte e due) e `configuratore/` (l'Abbofficina).
+**Come si fanno le misure X, Y, Z**: la forma si costruisce con il motore (con le sue opzioni) e poi si allunga in ogni direzione fino alle misure scelte. Una forma appena scelta parte grande per 12 persone e, se c'è l'area di lavoro, si rimpicciolisce finché ci sta; le forme disegnate in pianta si allargano solo in pianta, con le pareti alte uguali.
 
-In cima, la figura mostra a turno tutte le forme, una ogni 5 secondi (si ferma mentre ci passate sopra o la girate a mano): cliccandola si sceglie quella che si sta vedendo. I numeri accanto restano sempre sulla forma scelta. Appena si sceglie una forma (dalla galleria, cliccando la figura, con la ricerca, aprendo un progetto o un file, da un link o tornando dall'Abbofficina) il giro si ferma e la figura resta su quella, fino alla prossima visita. Mentre la figura mostra un'altra forma, sotto i numeri c'è scritto «In vetrina: …» (i numeri sono di quella forma) e l'avviso della porta si nasconde; sulla vostra forma torna «Forma scelta».
+**Risolvi** prova da solo tante misure vicine (tutta più grande o più piccola, solo più alta o più bassa, dentro l'area di lavoro, meno lati o spicchi) e tiene quella con meno problemi e meno cambiamenti; dice che cosa ha cambiato e si può annullare. Con «Mantieni le proporzioni» prova prima a non cambiarle; se deve farlo spegne il blocco e lo scrive.
 
-**Passo 1**: in cima ci sono 4 forme per cominciare (cupola, cubo, sfera geodetica, pallone); le altre 25 si aprono con «Altre forme» (compresa la forma da un'immagine), e si aprono da sole se la forma scelta è una di quelle. Ogni forma dice quanti tipi di pezzo ha, e sotto l'anteprima si legge quanto lavoro chiede («Molto impegnativa: 156 pezzi…», con il consiglio per ridurlo). Scelta una forma, la pagina scende alle misure se non si vedono. Il riquadro dell'immagine viene dopo la galleria. I Progetti del gruppo stanno dopo «Avanti».
+**Dall'Abbofficina**: il selettore in alto torna qui con `#apri={shape, params}` e la pagina riapre quella forma, con le sue misure vere, alla linguetta Misure.
 
-**Misure**: toccando un campo, nell'anteprima la parte che cambia si colora e cresce e cala piano, il resto resta grigio e fermo; sotto, una riga spiega cosa vuol dire quella misura. Lo calcola la pagina ricostruendo la forma con il valore un po' cambiato, quindi vale per tutte le forme (se cambiano i pezzi, come con più lati, la forma si alterna con quella nuova). Nelle forme con tanti campi le misure sono a gruppi (Corpo, Zampe, Antenne…), e i campi che non servono si nascondono: senza antenne non c'è la loro lunghezza. Sul telefono l'anteprima resta in vista mentre si scorrono i campi.
+**I file**: `index.html` (il sito), `motore.js` (il motore delle forme, usato anche dall'Abbofficina), `immagine.js` (la finestra «bolla da un'immagine»), `guida.html` (rimanda a `index.html`) e `configuratore/` (l'Abbofficina).
 
-**Dal modellino alla bolla vera**: **Bolla vera | Modellino** è una scelta sola per tutta la pagina, con lo stesso ordine ovunque, anche in cantiere. Sta sopra le misure e, ai passi 2 e 4, nella barra in alto che resta in vista. La pagina parte da Bolla vera. In Modellino si scrive in centimetri e sotto ogni campo si legge la misura vera; cambiando la scala i centimetri restano fermi e cambia la bolla vera. In Bolla vera, invece, restano fermi i metri. La scala si cambia in un punto solo, al Passo 1 (il Passo 4 la mostra). «Trovate la scala dal modellino», in «Altre opzioni», fa il contrario: da una misura sul modellino ricava la scala. Al Passo 2 «Mostra insieme bolla vera e modellino» mette le due misure una accanto all'altra.
-
-**Numeri affidabili**: un valore fuori misura si dice sul campo («Minimo 0,10 m: resta 2,20 m») e, uscendo dal campo, torna l'ultimo valore buono; vale anche per scala, area del pavimento, rotolo e margine. I limiti di ogni misura si leggono nella riga sotto l'anteprima. «Annulla» sulle misure (anche Ctrl+Z, fuori dai campi) torna indietro di un cambiamento alla volta. «Azzera le spunte» e «Azzera le giunzioni» stanno separati dagli altri comandi, dicono quante ne hanno tolte e hanno «Annulla».
-
-**Tastiera e telefono**: ricerca e cantiere tengono il focus, Esc chiude e il focus torna dov'era; in cantiere il tasto F segna «Fatto». Cambiando passo il focus va al titolo e il passo viene annunciato. Le tre letture dell'immagine si scelgono con le frecce, e «Pianta disegnata da voi» si può scrivere anche con la tastiera, un punto per riga. Le giunzioni fatte sono tratteggiate, non solo verdi. Sul telefono i pulsanti in alto sono da 44 px e il menu dei passi fa capire che continua. Gli avvisi hanno un colore loro; il rosso resta per tagli ed errori.
-
-**Fine del percorso**: le quantità da comprare sono arrotondate per eccesso. Con tanti tipi di pezzo, il Passo 4 ne mostra 12 con «Mostra tutti». «Fatto!» compare solo a giunzioni finite, e all'ultima giunzione la bolla si gonfia nella pagina, con le sue misure. C'è uno stile di stampa di base.
-
-**Rotolo**: la larghezza del rotolo di telo è una sola, in metri. Si scrive al Passo 3 (materiale) o al Passo 4 (pezzi, con la bolla vera) e i due campi restano uguali.
-
-Si sceglie la forma e la misura, e la pagina prepara tutto il resto:
-- le misure della bolla vera e del modellino in scala;
-- i pezzi da tagliare, passo per passo, senza compasso (regola 3-4-5 e metodo dei due metri);
-- lo sviluppo da stampare per il modellino in carta;
-- l'ordine delle giunzioni, con la vista 3D;
-- la modalità cantiere, a schermo intero, da usare con il telefono mentre si lavora a terra.
-
-Avvisi e consigli: se la bolla è troppo bassa per una porta da 1,80 m la pagina lo dice al Passo 2. L'altezza si misura dove va davvero la porta (30 cm dentro, e senza un soffitto basso sopra la soglia, come il ponte della barca), con lo stesso calcolo dell'Abbofficina; tutte le forme partono già con misure che vanno bene. Nel materiale si scrive la larghezza del rotolo di telo: la pagina dice quanti metri comprarne e quali pezzi vanno fatti con più strisce. Se una forma ha più di 40 tipi di pezzo al Passo 4 suggerisce le scelte che li riducono (per esempio la pera «Dritta»).
-
-**Salva e riapri**: nella scheda dei progetti, "Salva su file" scarica un `.json` con forma, misure, scala e nome, e "Apri da file" lo ricarica. Funziona anche fuori da Claude, quindi è il modo per passarsi una forma tra persone o computer (i progetti del gruppo, invece, si salvano solo dentro Claude).
-
-**Barra di ricerca**: la lente in alto, accanto ai passi (o ⌘K / Ctrl+K, o il tasto /), apre una casella in cui si scrive cosa si cerca, per esempio "cupola", "rotolo", "cantiere", "pezzo 3" o "giunzione 12". Si arriva subito a quell'opzione, anche se sta in un altro passo. I pulsanti che cancellano ("Azzera le spunte", "Azzera le giunzioni") vengono solo mostrati, non premuti.
-
-Il sito non ha bisogno di un server: basta aprire `index.html` o `guida.html` nel browser, con accanto `motore.js` e `immagine.js` (l'Abbofficina invece legge il motore con una richiesta, quindi vuole il sito pubblicato o un server locale).
+Il sito non ha bisogno di un server: basta aprire `index.html` nel browser, con accanto `motore.js` e `immagine.js` (l'Abbofficina invece legge il motore con una richiesta, quindi vuole il sito pubblicato o un server locale).
 
 ## Bolla da un'immagine
 
-Al Passo 1, dopo la galleria, c'è il riquadro **Crea una bolla da un'immagine**. Si carica una foto, un disegno, uno schizzo o una sagoma: si può anche trascinare l'immagine sulla pagina o incollarla con Ctrl+V. Tutto succede nel browser, senza server.
+In Progettazione, nella linguetta Forme, c'è il riquadro **Parti da un'immagine**. Si carica una foto, un disegno, uno schizzo o una sagoma: si può anche trascinare l'immagine sulla pagina o incollarla con Ctrl+V. Tutto succede nel browser, senza server.
 - **La sagoma**, in tre modi:
   - **Intelligente** (si parte da qui): un modello di intelligenza artificiale riconosce il soggetto, senza ombra e sfondo. È SAM («Segment Anything», di Meta, licenza Apache 2.0), nella versione leggera SlimSAM, eseguito nel browser con Transformers.js (`@xenova/transformers@2.17.2` da jsdelivr, modello `Xenova/slimsam-77-uniform` da Hugging Face).
     - Si scarica solo la prima volta (circa 13 MB), poi resta nel browser.
@@ -70,7 +48,7 @@ Al Passo 1, dopo la galleria, c'è il riquadro **Crea una bolla da un'immagine**
 
   Se la lettura scelta non si può costruire, la pagina ne propone un'altra.
 - **Anteprima e giudizio** si aggiornano a ogni ritocco: il modellino 3D con le quote e una persona per la scala, e un giudizio «Si può fare / con qualche accorgimento (o «con molti accorgimenti», se sono almeno 4) / Così non si può fare» (l'esito si legge anche in fondo alla finestra, senza scorrere) che guarda porta da 1,80 m, pavimento, tipi di pezzo, lati troppo corti, punte strette, stabilità, modellino, telo e giunzioni.
-- **Usa questa forma** la mette nell'Officina come «Forma da un'immagine»: misure, pezzi, modellino, giunzioni, cantiere e Abbofficina come per le altre forme, e il giudizio resta nella scheda della forma. La sagoma si salva con il progetto (anche su file); l'ultima immagine resta in questo browser per «Ritocca l'ultima immagine».
+- **Usa questa forma** la mette nel progetto come «La tua immagine»: misure, modellino, dime e montaggio come per le altre forme. L'ultima immagine resta in questo browser per «Ritocca l'ultima».
 
 ## Sfera geodetica
 
