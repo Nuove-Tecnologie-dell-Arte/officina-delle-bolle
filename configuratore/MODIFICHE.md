@@ -396,3 +396,9 @@ Tutto segnato `[Officina]`.
 - **Titoli delle sezioni nel pannello a sinistra** (`aside .sez > h2`): 14 px, in grassetto e nel colore del testo, senza maiuscoletto; prima erano 11 px grigi in maiuscolo («GONFIATORI», «AZIONI»…).
 - **Griglia sul pavimento** (`griglia`, `GRIGLIA`, `tingiGriglia`): quadretti da 1 m e una linea più marcata ogni 5 m, su 80 × 80 m; sbiadisce verso il bordo prendendo il colore del pavimento (niente trasparenza), chiara col tema scuro e scura col tema chiaro. Nella barra Vista il pulsante «Griglia · 1 m» la accende e la spegne (si ricorda, `bolle-griglia`); sparisce con il pavimento (stanza di sfondo) e nella vista di Sonny.
 - **In Prova** la maniglia di rotazione e i bollini delle porte non compaiono: lì si guarda, non si modifica.
+
+## Decisioni del 9 novembre
+
+Tutto segnato `[Officina]`.
+
+- **Punto 13, il prossimo pezzo** (soluzione A): nella scheda di una bolla selezionata c'è la riga «Prossimo pezzo: Cubo 3 × 3 × 2,5 m» (`nomeProssimo`), cioè quello che si attacca toccando un +. «Come questa» (`comeQuesta`) lo rende uguale alla bolla selezionata (forma, misure, gonfiatori, porte); «Cambia» torna ad Aggiungi, dove si sceglie forma e misure.

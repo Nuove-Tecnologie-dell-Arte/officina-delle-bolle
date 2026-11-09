@@ -108,6 +108,11 @@
   .menuBolla button.del { color: var(--ko); }
   .menuBolla small { color: var(--mut); padding: 4px 10px 2px; font-size: 11.5px; }
   .ruotaSel { display: grid; gap: 6px; }
+  /* [Officina] nella scheda di una bolla: che cosa si aggiunge toccando un + */
+  .prossimo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; font-size: 12.5px; color: var(--mut); }
+  .prossimo b { color: var(--fg); font-weight: 650; }
+  .prossimo .bottoni { display: flex; gap: 6px; margin-left: auto; }
+  .prossimo button { padding: 5px 9px; font-size: 12px; }
   .ruotaSel .orienta button { min-width: 52px; }
   .eti { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px 3px 6px; font: 600 11px/1.2 system-ui, sans-serif; white-space: nowrap; }
   .eti.sel { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc); }
@@ -3080,6 +3085,18 @@ function cambiaPorta(p, i) {   // [Officina] i bollini + e − accanto ai lati d
   strutturaCambiata(); ispettore(); avviso(k >= 0 ? `Tolta la porta sul lato ${i + 1} di ${p.nome}.` : `Aggiunta una porta a zip sul lato ${i + 1} di ${p.nome}.`, 3000, ['Annulla', annulla]);
 }
 const man = { theta: 0, drag: null };
+// [Officina] il prossimo pezzo (quello che si aggiunge toccando un +): si vede anche con una bolla selezionata
+function nomeProssimo() {
+  const T = TIPI[tipoScelto]; if (!T) return '';
+  const m = T.par.filter(q => q[6] === 'm').slice(0, 3).map(q => String(+(+dimNuovo[q[0]]).toFixed(2)).replace('.', ','));
+  return T.nome + (m.length ? ' ' + m.join(' × ') + ' m' : '');
+}
+function comeQuesta(p) {   // il prossimo pezzo uguale alla bolla selezionata: forma, misure, gonfiatori e porte
+  const c = Object.keys(CAT).find(k => CAT[k].includes(p.tipo)) || catAgg;
+  tipoScelto = p.tipo; ultimoTipo[c] = p.tipo; attNuovo = 0; dimNuovo = JSON.parse(JSON.stringify(p.d)); fNuovo = { ...p.f }; porteNuove = [...p.porte];
+  if (catAgg !== c) catAgg = c;
+  nuovoCambiato(); ispettore(); avviso(`Il prossimo pezzo sarà come ${p.nome}: toccate un + per attaccarlo.`, 4000);
+}
 // [Officina] gonfiatori numerati in tutta la composizione (G1, G2…, nell'ordine delle bolle) e con il nome della bolla che gonfiano
 function numeroGonf(p, k) { let n = 0; for (const q of pezzi) { if (q === p) return n + k + 1; n += (q.f.grande || 0) + (q.f.piccolo || 0); } return 0; }
 const nomeGonf = (p, k) => 'G' + numeroGonf(p, k) + ' · ' + p.nome;
@@ -3353,6 +3370,7 @@ function ispettore(nuovo) {
   const SCHEDE = [['stato', 'Stato'], ['forma', 'Forma'], ['coll', 'Collega']];
   el.innerHTML = `<div class="ispTesta">
       <button class="indietro" id="iIndietro" title="Torna ad Aggiungi (Esc)"><svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M6.5 1 1.5 6l5 5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Aggiungi un altro pezzo</button>
+      <div class="prossimo" title="Toccando un + nella scena si attacca questo"><span>Prossimo pezzo: <b>${esc(nomeProssimo())}</b></span><span class="bottoni"><button type="button" id="iComeQuesta">Come questa</button><button type="button" id="iCambiaProssimo">Cambia</button></span></div><!-- [Officina] -->
       <p class="sistemaRiga" title="Un gruppo sono le bolle collegate tra loro, che si scambiano l'aria">${sistemi[p.sistema].length > 1 ? nomeSistema(p.sistema) + ' · ' + sistemi[p.sistema].length + ' collegati insieme' : 'Senza collegamenti'}${p.ingresso ? ' · è l\'ingresso' : ''}</p><!-- [Officina] niente gergo -->
       <div class="titoloPezzo"><span class="dot ${v.c}"></span><input class="nomeIn" id="iNome" aria-label="Nome del modulo" value="${p.nome.replace(/"/g, '&quot;')}"></div>
       ${p.scoppio ? `<div class="consiglio ko">Scoppiata · strappo di ${fmt(p.scoppio.Amax, 1)} m², i gonfiatori non bastano</div>` : `<div class="consiglio ${v.c}">${v.c === 'ok' ? 'Funziona' : v.azione ? `<span>${v.c === 'ko' ? 'Non funziona' : 'Da migliorare'}</span><button class="fix" id="iFix">${testoFix(v.azione)}</button>` : v.cons}</div>`}
@@ -3378,6 +3396,7 @@ function ispettore(nuovo) {
     el.querySelectorAll('[data-sc]').forEach(x => x.setAttribute('aria-selected', x === b)); el.querySelectorAll('[data-pane]').forEach(x => x.hidden = x.dataset.pane !== tabIsp); });
   $('iScoppia').onclick = () => p.scoppio ? ripara(p) : scoppia(p);
   $('iIndietro').onclick = () => { selezionato = null; firmaPan = ''; ispettore(); };   // [Officina] il pannello torna ad Aggiungi
+  $('iComeQuesta').onclick = () => comeQuesta(p); $('iCambiaProssimo').onclick = () => { selezionato = null; selMulti.clear(); firmaPan = ''; ispettore(); sceltaCat(catAgg); };   // [Officina] «Cambia»: si torna ad Aggiungi, dove si sceglie forma e misure
   if ($('iFix')) $('iFix').onclick = () => applicaFix(p, v.azione);
   const cont = $('parSel'); let t;
   for (const [k, lab, mn, mx, st, , u] of TIPI[p.tipo].par) campo(cont, lab, p.d[k], mn, mx, st, u, val => { const legami = legamiAttuali(); p.d[k] = val; clearTimeout(t); t = setTimeout(() => { p.F = forma(p.tipo, p.d); avvisaIngrandita(); riallinea(p, legami); strutturaCambiata(); }, 140); }, u === 'm' || u === '×' ? 2 : 0);
