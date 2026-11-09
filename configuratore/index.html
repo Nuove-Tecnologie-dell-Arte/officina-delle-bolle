@@ -748,7 +748,7 @@
         <div class="card"><b class="n" id="kGonf">0</b><span class="l">gonfiatori piccoli + grandi</span></div>
         <div class="card"><b class="n" id="kPot">0</b><span class="l">potenza totale</span></div>
         <div class="card"><b class="n" id="kVol">0</b><span class="l">volume d'aria</span></div>
-      </div><!-- [Officina] il nastro magnetico sta solo in Materiali -->
+      </div><!-- [Officina] il nastro adesivo sta solo in Materiali -->
       <h2 class="tSez">Bolle <span>la pressione di ogni bolla in tempo reale · tocca una scheda per aprire la bolla e cambiarne i gonfiatori</span></h2><!-- [Officina] manometro e numeri principali della stessa bolla in una scheda sola -->
       <div class="mano" id="manometri"></div>
       <details class="card dettagliBolle" id="dettagliBolle"><summary><h2>Dettagli</h2><span class="std">tutti i numeri delle bolle: limite, telo, blackout, persone, gonfiatori</span></summary><!-- [Officina] la tabella completa, chiusa -->
@@ -775,7 +775,7 @@
       <div class="sommario bom">
         <div class="card"><span class="l">Budget</span><b class="n big" id="bTot">0 €</b><span class="l" id="bMancano"></span></div>
         <div class="card"><b class="n" id="bTelo">0</b><span class="l" id="bTeloM2">telo</span></div>
-        <div class="card"><b class="n" id="bNastro">0</b><span class="l">nastro magnetico</span></div>
+        <div class="card"><b class="n" id="bNastro">0</b><span class="l">nastro adesivo</span></div>
         <div class="card"><b class="n" id="bGonf">0</b><span class="l">gonfiatori</span></div>
         <div class="card"><b class="n" id="bPeso">0</b><span class="l">peso da trasportare</span></div>
         <div class="card"><b class="n" id="bEnergia">0</b><span class="l">energia per la mostra</span></div>
@@ -814,7 +814,7 @@
             <div class="card"><h2><i class="qg" style="background:var(--gP)"></i>Gonfiatore piccolo</h2><div class="par" id="dGonfP"></div></div>
             <div class="card"><h2><i class="qg" style="background:var(--gG)"></i>Gonfiatore grande</h2><div class="par" id="dGonfG"></div></div>
             <div class="card"><h2>Telo</h2><div class="par" id="dTelo"></div><p class="std" id="notaTelo" style="margin:0"></p></div>
-            <div class="card"><h2>Nastro magnetico</h2><div class="par" id="dNastro"></div></div>
+            <div class="card"><h2>Nastro adesivo</h2><div class="par" id="dNastro"></div></div>
             <div class="card largo" style="overflow-x:auto"><h2>Chiusure a confronto</h2>
               <table class="tabchiusure"><thead><tr><th>Chiusura</th><th>Fessura chiusa</th><th>Tenuta</th><th>Apri / chiudi</th></tr></thead><tbody id="tabChius"></tbody></table>
             </div>
@@ -826,13 +826,13 @@
         <div class="avanzateCorpo">
       <div class="card" style="display:grid;gap:10px">
         <div class="riga"><h2>Porta · sezione vista dall'alto</h2><span>Porta <select id="selSchema"></select></span></div>
-        <svg id="schemaPorta" viewBox="0 0 1000 380" class="schema" role="img" aria-label="Sezione della porta con nastro magnetico"></svg>
-        <ul class="didascalia"><li><b>1</b>lembo lato A</li><li><b>2</b>lembo lato B</li><li><b>3</b>risvolto saldato 8 cm (bordo rinforzato)</li><li><b>4</b>nastro magnetico, polo N</li><li><b>5</b>nastro magnetico, polo S</li><li><b>6</b>sovrapposizione 13 cm</li></ul>
-        <div class="kpi" style="grid-template-columns:repeat(4,1fr)"><div><b id="sDist">0</b><span>distanza tra le strisce</span></div><div><b id="sDp">0</b><span>differenza di pressione</span></div><div><b id="sTiro">0</b><span>tiro sui lembi</span></div><div><b id="sTen">0</b><span>tenuta del nastro</span></div></div>
+        <svg id="schemaPorta" viewBox="0 0 1000 380" class="schema" role="img" aria-label="Sezione della porta con la zip"></svg>
+        <ul class="didascalia"><li><b>1</b>lembo lato A</li><li><b>2</b>lembo lato B</li><li><b>3</b>zip dritta verticale: i denti si chiudono uno nell'altro</li><li><b>4</b>nastri della zip, fissati sul bordo dei lembi</li></ul>
+        <div class="kpi" style="grid-template-columns:repeat(4,1fr)"><div><b id="sDist">0</b><span>distanza tra i lembi</span></div><div><b id="sDp">0</b><span>differenza di pressione</span></div><div><b id="sTiro">0</b><span>tiro sui lembi</span></div><div><b id="sTen">0</b><span>tenuta della chiusura</span></div></div>
       </div>
       <div class="due" style="grid-template-columns:1fr 1fr">
-        <div class="card" style="display:grid;gap:8px"><h2>Cornice di collegamento · sezione</h2><svg id="schemaCornice" viewBox="0 0 520 360" class="schema" role="img" aria-label="Sezione della cornice magnetica tra modulo e manica"></svg><ul class="didascalia" id="notaCornice"></ul></div>
-        <div class="card" style="display:grid;gap:8px"><h2>Giunto tra due pannelli · vista dall'alto</h2><svg id="schemaGiunto" viewBox="0 0 520 360" class="schema" role="img" aria-label="Giunto d'angolo con aletta e nastro magnetico"></svg><ul class="didascalia" id="notaGiunto"></ul></div>
+        <div class="card" style="display:grid;gap:8px"><h2>Cornice di collegamento · sezione</h2><svg id="schemaCornice" viewBox="0 0 520 360" class="schema" role="img" aria-label="Sezione della cornice a zip tra modulo e manica"></svg><ul class="didascalia" id="notaCornice"></ul></div>
+        <div class="card" style="display:grid;gap:8px"><h2>Giunto tra due pannelli · vista dall'alto</h2><svg id="schemaGiunto" viewBox="0 0 520 360" class="schema" role="img" aria-label="Giunto tra due pannelli con il nastro adesivo"></svg><ul class="didascalia" id="notaGiunto"></ul></div>
       </div>
         </div>
       </details>
@@ -863,25 +863,25 @@ const GONF = {
 const D = {
   mat: 'PVC', gsm: 20, t: 20 / 1380, sigma: 18, pMin: 3,
   manW: 1.8, manL: 1.0, manH: 2.0, manMax: 6,      // manica di collegamento: larghezza, lunghezza minima, altezza massima (m)
-  nW: 20, nT: 235, nFile: 1,
-  porte: 'cerniera', coll: 'magnetico', giunti: 'magnetico',   // [Officina] le porte del lab finora sono fatte con le zip
+  adW: 48, adLati: 2, adT: 400, adRot: 66,   // [Officina] nastro adesivo da pacchi: larghezza (mm), lati (2 = dentro e fuori), tenuta (N/m), metri per rotolo
+  porte: 'cerniera', coll: 'cerniera', giunti: 'adesivo',   // [Officina] come la bolla vera del lab: porte e collegamenti con la zip, pezzi uniti con il nastro adesivo
   bleed: 40, aPersona: 30, sfogo: 30,
   spento: false, speed: 1,
 };
 const D_LAB = { ...D }, GONF_LAB = JSON.parse(JSON.stringify(GONF));   // [Officina] i valori del lab, per "Rimetti i valori del lab" in Dati
-const G = 9.81, RHO = 1.2, CD = 0.6, MU = 0.4, RHO_PVC = 1380;
+const G = 9.81, RHO = 1.2, CD = 0.6, RHO_PVC = 1380;
 const pesoTelo = () => D.gsm / 1000 * G;                              // Pa: peso del telo per m²
 const COMPL = () => 6 / (MAT[D.mat].E * 1e6 * D.t / 1000);            // il telo si allunga sotto pressione
 const capTelo = () => D.sigma * 1e6 * D.t / 1000;                     // N/m
 const aggiornaSpessore = () => { D.t = D.gsm / MAT[D.mat].rho; };     // mm
 const nGonf = c => c.f.piccolo + c.f.grande;
 const potenza = c => c.f.piccolo * GONF.piccolo.W + c.f.grande * GONF.grande.W;
-const NASTRO_W = () => D.nW / 1000;
+const ZIP_W = 0.012;   // [Officina] larghezza dei denti della zip (m), per il disegno della porta
 
 const CH = {
   saldato:        { nome: 'Saldato',               fess: 0,      cap: () => 0.6 * capTelo(), solo: 'giunti', col: 0x8a939c },
-  magnetico:      { nome: 'Nastro magnetico',      fess: 5e-5,   cap: () => D.nFile * MU * D.nT, tA: 0.5, tC: 0.6, area: 0.6, auto: true, col: 0x22262b },
-  velcro:         { nome: 'Velcro',                fess: 1.5e-4, cap: () => 300 * D.nFile, tA: 1.5, tC: 3, area: 1.2, col: 0x4a4f55 },
+  adesivo:        { nome: 'Nastro adesivo',        fess: 2e-5,   cap: () => D.adT, solo: 'giunti', col: 0xc9b48a },   // [Officina] nastro da pacchi a cavallo dei giunti; perdita e tenuta stimate
+  velcro:         { nome: 'Velcro',                fess: 1.5e-4, cap: () => 300, tA: 1.5, tC: 3, area: 1.2, col: 0x4a4f55 },
   cerniera:       { nome: 'Cerniera',              fess: 1e-4,   cap: () => 10000, tA: 3.5, tC: 4.5, area: 1.4, col: 0x9aa2aa },
   cernieraImp:    { nome: 'Cerniera impermeabile', fess: 1e-5,   cap: () => 10000, tA: 4, tC: 5, area: 1.4, col: 0x5b6670 },
   cernieraStagna: { nome: 'Cerniera stagna',       fess: 1e-6,   cap: () => 8000, tA: 5, tC: 6.5, area: 1.4, col: 0xc9a44a },
@@ -1291,8 +1291,8 @@ function fessuraGiunti(c, p) {
   return c.F.cuciture * g;
 }
 const lunghezzaPorta = l => 2 * (l.h || 2);
-const OV_PORTA = 0.13, LEMBO = 0.45 + OV_PORTA / 2;
-const lembo = l => (l.w || 0.9) / 2 + OV_PORTA / 2;   // sovrapposizione e larghezza di ciascun lembo (m)
+const OV_PORTA = 0.02, ING_FUORI = 0.12, LEMBO = 0.45 + OV_PORTA / 2;
+const lembo = l => (l.w || 0.9) / 2 + OV_PORTA / 2;   // larghezza di ciascun lembo (m); [Officina] con la zip i lembi si toccano: OV_PORTA sono solo i nastri della zip. ING_FUORI: l'ingresso sta sulla parete, qualche cm fuori sul telo gonfio
 const massaTelo = () => D.gsm / 1000;                    // kg/m²
 const dpPorta = l => (l.a ? pOf(l.a) : 0) - pOf(l.b);
 // la pressione gonfia i lembi chiusi e tira la chiusura: oltre la sua tenuta la fessura si apre
@@ -1300,14 +1300,14 @@ function cedimentoPorta(l) { const r = Math.abs(dpPorta(l)) * 1.25 * lembo(l) / 
 const perditaCollegamento = l => l.aperta ? 4 * ((l.w || 0.9) + (l.h || 2)) * (CH[D.coll].fess + (l.b && l.b.F ? aperturaCornice(l) : 0)) + 4 * (l.len || 0) * CH[D.giunti].fess : lunghezzaPorta(l) * (CH[D.porte].fess + (l.porta && l.b.F ? cedimentoPorta(l) : 0));
 const areaAperta = l => (l.w || 0.9) * (l.h || 2);   // passaggio libero tra due moduli uniti (m²)
 // la manica in pressione tira la cornice: tensione ≈ p · raggio della manica; la cornice lavora a strappo
-const capCornice = () => D.coll === 'magnetico' ? D.nFile * D.nT : CH[D.coll].cap();
+const capCornice = () => CH[D.coll].cap();
 const tiroCornice = l => Math.max(l.a ? pOf(l.a) : 0, pOf(l.b)) * 1.25 * 0.5;
 function aperturaCornice(l) { const r = tiroCornice(l) / capCornice(); return r > 1 ? Math.min(0.01, 0.003 * (r - 1)) : 0; }
 // apertura effettiva quando una persona passa: il telo sottile si avvolge al corpo, quello spesso lascia più spazio
 function areaPassaggio(tipo) {
   const rig = clamp((D.t - 0.15) / 0.85, 0, 1);
   if (tipo.startsWith('cerniera')) return 0.7 + 0.2 * rig;   // fessura aperta, lembi spinti dalla pressione
-  return CH[tipo].auto ? 0.2 + 0.3 * rig : 0.45 + 0.3 * rig;
+  return 0.45 + 0.3 * rig;
 }
 const portataGonf = (c, p) => D.spento ? 0 : ['piccolo', 'grande'].reduce((q, k) => q + c.f[k] * GONF[k].Q / 3600 * Math.max(0, 1 - p / GONF[k].Pmax), 0);
 
@@ -1342,15 +1342,7 @@ function passoPorta(l, dt) {
   if (l.aperta) { l.porta.o = 1; l.porta.v = 0; return; }
   const d = l.porta, t = CH[d.tipo];
   const eraChiusa = d.o < 0.01;
-  if (t.auto) {
-    // lembo di PVC: richiamato dal proprio peso e dalla differenza di pressione, agganciato dal nastro vicino alla chiusura
-    const m = massaTelo(), dp = Math.abs(dpPorta(l));
-    const Lb = lembo(l); let k = d.target ? 22 : dp / (m * Lb) + G / Lb;
-    if (d.target === 0 && d.o < 0.12) k += 40 * (D.nT / 60);
-    const c = 2 * 0.28 * Math.sqrt(k);
-    d.v += (k * (d.target - d.o) - c * d.v) * dt; d.o += d.v * dt; if (d.target === 0 && d.o < 0) { d.o = 0; d.v = 0; }
-  }
-  else { const r = d.target > d.o ? dt / t.tA : -dt / t.tC; d.o = clamp(d.o + r, Math.min(d.o, d.target), Math.max(d.o, d.target)); d.v = 0; }
+  { const r = d.target > d.o ? dt / t.tA : -dt / t.tC; d.o = clamp(d.o + r, Math.min(d.o, d.target), Math.max(d.o, d.target)); d.v = 0; }   // [Officina] le chiusure del lab (zip, velcro) si aprono e si chiudono a mano
   if (eraChiusa && d.o >= 0.01) { d.aria = 0; d.tAperta = 0; d.minP = {}; d.startP = {}; for (const c of [l.a, l.b]) if (c) d.startP[c.id] = pOf(c); }
   if (!eraChiusa && d.o < 0.01 && d.target === 0) {
     let calo = 0; for (const id in d.startP) calo = Math.max(calo, d.startP[id] - (d.minP[id] ?? d.startP[id]));
@@ -1487,7 +1479,7 @@ function collega() {
     if (!liberi.length) return;
     const e = liberi.sort((x, y) => connMondo(ing, y).n[1] - connMondo(ing, x).n[1])[0], c = connMondo(ing, e);
     const chiave = 'ingresso:' + ing.id + ':' + e;
-    link.unshift({ a: null, b: ing, eb: e, Pa: [c.P[0] + c.n[0] * (D.manL + 0.8), c.P[1] + c.n[1] * (D.manL + 0.8)], Pb: c.P, n: [-c.n[0], -c.n[1]], nb: c.n, chiave, ingresso: true, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
+    link.unshift({ a: null, b: ing, eb: e, Pa: [c.P[0] + c.n[0] * ING_FUORI, c.P[1] + c.n[1] * ING_FUORI], Pb: c.P, n: [-c.n[0], -c.n[1]], nb: c.n, chiave, ingresso: true, diretto: true, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
     usati.get(ing).add(e);
   });
   for (const l of link) {
@@ -1587,15 +1579,6 @@ function stimaSingola(tipo, d, f) {
   for (let t = 0, k = 0; t < 1800; t += dt, k++) { const p = pOf(c); c.Va += portataGonf(c, p) * dt; scambia(c, null, sfogo(c), dt); scambia(c, null, fessuraGiunti(c, pOf(c)), dt); if (tF == null && c.Va >= c.V0) tF = t; if (k % 100 === 99 && fermo()) break; }
   D.spento = spento;
   return { F, tF, p: pOf(c) };
-}
-function metriNastro() {   // metri di nastro magnetico da comprare (due facce per ogni chiusura)
-  let m = 0; const mag = k => CH[k] === CH.magnetico;
-  for (const p of pezzi) {
-    if (mag(D.giunti)) m += p.F.cuciture * 2;
-    for (const i of p.porte) { const A = apertura(p.F, i); if (mag(D.coll)) m += A.perim; if (mag(D.porte)) m += 2 * A.h; }
-  }
-  for (const l of link) { const per = 2 * ((l.w || 0.9) + (l.h || 2)); if (mag(D.coll)) m += per * (l.a ? 2 : 1); if (l.ingresso && mag(D.porte)) m += 2 * (l.h || 2); }
-  return m * D.nFile;
 }
 function soglie(p) { const peso = Math.max(p.F.peso(), 0.8 * pesoTelo()); return { ko: Math.max(1.3 * peso, 0.5 * D.pMin), mid: Math.max(2 * peso, D.pMin), lim: pLim(p.F) }; }
 function piu(p) { return p.F.vol > 12 && p.f.grande < 4 ? { k: 'grande', d: 1 } : p.f.piccolo < 6 ? { k: 'piccolo', d: 1 } : p.f.grande < 4 ? { k: 'grande', d: 1 } : null; }
@@ -1873,7 +1856,7 @@ function costruisciPezzo(p) {
     const A = p._ap[i], pz = [];
     const add = (u0, u1, v0, v1, f, mat, nu, nv) => { const t = rete2(nu, nv), m = new THREE.Mesh(t.g, mat); m.renderOrder = 5; m.userData.pezzo = p; grp.add(m); pz.push({ t, u0, u1, v0, v1, f }); };
     const mc = matCornice();
-    // cornice: montanti, traverso alto e soglia, nastro magnetico su un risvolto saldato
+    // cornice: montanti, traverso alto e soglia: il bordo rinforzato dell'apertura
     add(A.u0 - A.du, A.u0, 0, A.v1 + A.dv, 0.008, mc, 1, 16); add(A.u1, A.u1 + A.du, 0, A.v1 + A.dv, 0.008, mc, 1, 16);
     add(A.u0, A.u1, A.v1, A.v1 + A.dv, 0.008, mc, 10, 1); add(A.u0, A.u1, 0, A.dv * 0.6, 0.008, mc, 10, 1);
     if (!collegati.has(i)) {   // apertura non collegata: porta a due lembi chiusa
@@ -1910,10 +1893,10 @@ function costruisciLink(l) {
     puntoAnello(ea.p, ea.i, ea.A, 0, 0, 0, ST_TESO, a0); puntoAnello(eb.p, eb.i, eb.A, 0, 0, 0, ST_TESO, b0); puntoAnello(eb.p, eb.i, eb.A, 1, 0, 0, ST_TESO, b1);
     giro = Math.hypot(a0[0] - b1[0], a0[2] - b1[2]) < Math.hypot(a0[0] - b0[0], a0[2] - b0[2]); }
   l.capi = { ea, eb, giro, sposta: [l.Pa[0] - l.Pb[0], l.Pa[1] - l.Pb[1]], seme: (l.chiave || '').length * 1.7 };
-  l.tela = rete2(26, 8); const mt = new THREE.Mesh(l.tela.g, matManica); mt.renderOrder = 3; grp.add(mt);
-  // cornici magnetiche dal lato della manica: appoggiate su quelle dei moduli, si muovono con loro
+  if (!l.diretto) { l.tela = rete2(26, 8); const mt = new THREE.Mesh(l.tela.g, matManica); mt.renderOrder = 3; grp.add(mt); }   // [Officina] ingresso diretto: niente manica, solo la zip
+  // cornici dal lato della manica (con la zip): appoggiate su quelle dei moduli, si muovono con loro
   const mc = matCornice(); l.bande = [];
-  for (const e of [ea, eb]) if (e) { const t = rete2(40, 1), m = new THREE.Mesh(t.g, mc); m.renderOrder = 5; grp.add(m); l.bande.push({ t, e }); }
+  if (!l.diretto) for (const e of [ea, eb]) if (e) { const t = rete2(40, 1), m = new THREE.Mesh(t.g, mc); m.renderOrder = 5; grp.add(m); l.bande.push({ t, e }); }
   l.lembi = [1, -1].map(s => {
     const t = rete2(10, 14), m = new THREE.Mesh(t.g, matLembi); m.renderOrder = 4; grp.add(m);
     const n = rete2(1, 14), mn = new THREE.Mesh(n.g, matN); mn.renderOrder = 5; grp.add(mn);
@@ -1921,6 +1904,7 @@ function costruisciLink(l) {
   });
 }
 function formaManica(l) {   // aggiorna il telo della manica e le sue cornici; restituisce quanto è alta a metà (0–1)
+  if (l.diretto) { const st = l.capi.eb.p._st || statoForma(l.capi.eb.p); return clamp(st.hk, 0.03, 1); }   // [Officina] ingresso sulla parete: la porta è alta quanto la bolla
   const { ea, eb, giro, sposta, seme } = l.capi, stA = ea && (ea.p._st || statoForma(ea.p)), stB = eb.p._st || statoForma(eb.p);
   const fl = ea ? (stA.fl + stB.fl) / 2 : stB.fl, lat = l.geo.lat, qa = [0, 0, 0], qb = [0, 0, 0];
   const capoA = (s, o) => { if (ea) puntoAnello(ea.p, ea.i, ea.A, s, 0, 0.03, stA, o); else { puntoAnello(eb.p, eb.i, eb.A, s, 0, 0.03, stB, o); o[0] += sposta[0]; o[2] += sposta[1]; } };
@@ -2018,7 +2002,7 @@ function aggiornaPezzo(p) {
     S.pts.geometry.attributes.position.needsUpdate = true;
   }
   for (const w of p.g3.facce) w.t.set((u, s, o) => posFaccia(p, st, w.i, w.u0 + (w.u1 - w.u0) * u, s, o, 0, w.meta));
-  // cornici magnetiche e porte chiuse sulle aperture
+  // cornici e porte chiuse sulle aperture
   for (const c of p.g3.cornici) {
     const fo = p.F.E[c.i].fuori || 0, pos = (u, v, o, f) => p.F.apex ? posFaccia(p, st, c.i, u, v, o, f) : posParete(p, st, c.i, u, v, o, f + fo);   // [Officina] fo: la cornice va sul telo
     for (const r of c.pezzi) r.t.set((u, v, o) => pos(r.u0 + (r.u1 - r.u0) * u, r.v0 + (r.v1 - r.v0) * v, o, r.f));
@@ -2053,7 +2037,7 @@ function aggiornaLink(l) {
   const rig = clamp(D.t / 0.3, 0.5, 3);   // il telo più spesso si piega e vibra meno
   const gonfia = clamp(dp / 10, -1.5, 1.5) * 0.035 * chiuso / Math.sqrt(rig);
   const vibra = (Math.min(1, o) * Math.min(1, Math.abs(dp) / 5) * 0.03 + (D.spento ? 0 : 0.0015)) / rig;
-  const LB = lembo(l), nas = [(LB - OV_PORTA / 2 - NASTRO_W() / 2) / LB, (LB - OV_PORTA / 2 + NASTRO_W() / 2) / LB];
+  const LB = lembo(l), nas = [(LB - OV_PORTA / 2 - ZIP_W / 2) / LB, (LB - OV_PORTA / 2 + ZIP_W / 2) / LB];
   for (const lb of l.lembi) {
     const fn = (u, v, out, extra) => {
       const sA = u * LB, A = 1 - 0.72 * v * v, Th = o * A * 1.6 * verso / Math.pow(rig, 0.25);
@@ -2302,12 +2286,12 @@ function* attraversa(P, l, da) {
   }
   if (da && dest) { const t1 = P.tCop; yield () => pOf(da) >= 0.85 * pOf(dest) || pOf(da) >= pOf(dest) || P.tCop - t1 > 60; }
   yield* cammina(P, P0[0] - n[0] * 0.45, P0[1] - n[1] * 0.45);
-  if (!t.auto) P.azione = 'apre';
-  l.porta.verso = avanti ? 1 : -1; l.porta.target = 1; yield () => l.porta.o > (t.auto ? 0.75 : 0.97);
+  P.azione = 'apre';
+  l.porta.verso = avanti ? 1 : -1; l.porta.target = 1; yield () => l.porta.o > 0.97;
   P.azione = null;
   yield* cammina(P, P1[0] - m1[0] * 0.55, P1[1] - m1[1] * 0.55);
   l.porta.target = 0;
-  if (!t.auto) { P.g.rotation.y = Math.atan2(m1[0], m1[1]); P.azione = 'chiude'; yield () => chiusa(l.porta); P.azione = null; }
+  { P.g.rotation.y = Math.atan2(m1[0], m1[1]); P.azione = 'chiude'; yield () => chiusa(l.porta); P.azione = null; }
   if (l.porta.uso === P) l.porta.uso = null;
   P.dove = dest;
   if (dest) yield* cammina(P, dest.x + 0.25, dest.z + 0.1); else yield* cammina(P, ...puntoFuori(l));
@@ -3435,7 +3419,7 @@ function disegnaGrafico() {
     for (const [t, v] of p.hist) { if (simT - t > fin) continue; primo ? g.moveTo(X(t), Y(v)) : g.lineTo(X(t), Y(v)); primo = false; } g.stroke(); }
 }
 
-// --- schermata Schemi: il nastro magnetico in sezione ---
+// --- schermata Schemi: porta, cornice e giunto in sezione ---
 function costruisciSchemi() {
   const sel = $('selSchema'), prima = sel.value;
   const porte = link.filter(l => !l.aperta);
@@ -3448,7 +3432,7 @@ function aggiornaSchemi() {
   const porte = link.filter(l => !l.aperta), l = porte[+$('selSchema').value || 0];
   const o = l ? clamp(l.porta.o, 0, 1.2) : 0, dp = l ? dpPorta(l) : 0, tipo = CH[l ? l.porta.tipo : D.porte];
   const pA = l && l.a ? pOf(l.a) : 0, pB = l ? pOf(l.b) : 0;
-  const W = l ? l.w || 0.9 : 0.9, ov = OV_PORTA, nas = NASTRO_W(), su = pB >= pA;   // su: la pressione maggiore è dal lato B (sotto)
+  const W = l ? l.w || 0.9 : 0.9, ov = OV_PORTA, su = pB >= pA;   // su: la pressione maggiore è dal lato B (sotto)
   const nomeA = l ? (l.a ? l.a.nome : 'Esterno') : 'Lato A', nomeB = l ? l.b.nome : 'Lato B';
   const col = { a: '#4f7fb8', b: '#9a7a52', nas: '#23272c' };
   const num = (x, y, n) => `<circle cx="${x}" cy="${y}" r="10" fill="#161b21"/><text x="${x}" y="${y + 4}" text-anchor="middle" class="num">${n}</text>`;
@@ -3467,31 +3451,25 @@ function aggiornaSchemi() {
   s += lemboInsieme(-1) + lemboInsieme(1);
   s += `<rect x="${cx0 - ov / 2 * k0 - 10}" y="${y0 - 22}" width="${ov * k0 + 20}" height="44" fill="none" stroke="#161b21" stroke-dasharray="4 3"/>`;
   s += `<path d="M${cx0 + ov / 2 * k0 + 10} ${y0 - 22} L410 62 M${cx0 + ov / 2 * k0 + 10} ${y0 + 22} L410 318" stroke="#9aa4ae" stroke-dasharray="4 3" fill="none"/>`;
-  // --- dettaglio della sovrapposizione (a destra, ingrandito; spessori non in scala) ---
-  const k = 1900, cx = 705, sep = 20 + o * 150, tilt = o * 0.35, yA = y0 - sep / 2, yB = y0 + sep / 2, sp = 5, risv = 0.08;
+  // --- dettaglio della zip (a destra, ingrandito; spessori non in scala) --- [Officina] la porta del lab è una zip dritta verticale
+  const k = 1900, cx = 705, sp = 5, apre = Math.min(1, o), vv = l && l.porta.verso < 0 ? 1 : -1;
   s += `<rect x="410" y="62" width="580" height="256" fill="#fff" stroke="#161b21" stroke-dasharray="4 3"/>`;
   const X = x => cx + x * k;
-  // lembo A arriva da sinistra e finisce a +ov/2; lembo B arriva da destra e finisce a -ov/2
-  const lembo = (lato) => {
-    const fine = lato < 0 ? ov / 2 : -ov / 2, inizio = lato < 0 ? -0.15 : 0.15, y = lato < 0 ? yA : yB, c = lato < 0 ? col.a : col.b;
-    const rot = (x) => y + (lato < 0 ? -1 : 1) * Math.max(0, (x - inizio) * -lato) * k * Math.tan(tilt) * 0.5;
-    const r0 = fine + lato * risv;  // inizio del risvolto
-    let g = `<path d="M${X(inizio)} ${rot(inizio)} L${X(fine)} ${rot(fine)}" stroke="${c}" stroke-width="${sp}" stroke-linecap="round"/>`;
-    g += `<path d="M${X(r0)} ${rot(r0) + (lato < 0 ? -sp : sp)} L${X(fine)} ${rot(fine) + (lato < 0 ? -sp : sp)}" stroke="${c}" stroke-width="${sp}" stroke-linecap="round" opacity=".6"/>`;
-    const xm = 0, yN = rot(xm) + (lato < 0 ? sp / 2 : -sp / 2 - 7);
-    g += `<rect x="${X(-nas / 2)}" y="${yN}" width="${nas * k}" height="7" rx="1.5" fill="${col.nas}"/>`;
-    return { g, yN, r0, rot };
+  // i due lembi arrivano alla zip da sinistra e da destra; aprendo, i denti si staccano e i lembi si piegano
+  const lato = side => {
+    const c = side < 0 ? col.a : col.b, x0 = X(side * 0.15), xt = cx + side * (6 + apre * 110), yt = y0 + vv * apre * 70;
+    const ux = xt - x0, uy = yt - y0, L = Math.hypot(ux, uy), t0 = Math.max(0, 1 - 48 / L), tm = (t0 + 1) / 2;
+    let g = `<path d="M${x0.toFixed(1)} ${y0} L${xt.toFixed(1)} ${yt.toFixed(1)}" stroke="${c}" stroke-width="${sp}" stroke-linecap="round"/>`;
+    g += `<path d="M${(x0 + ux * t0).toFixed(1)} ${(y0 + uy * t0 - 5).toFixed(1)} L${xt.toFixed(1)} ${(yt - 5).toFixed(1)}" stroke="${col.nas}" stroke-width="4" stroke-linecap="round" opacity=".5"/>`;
+    for (let j = 0; j < 4; j++) g += `<rect x="${(xt + (side < 0 ? -3 : -9)).toFixed(1)}" y="${(yt - 9 + j * 4.5).toFixed(1)}" width="12" height="3" rx="1" fill="${col.nas}" transform="translate(${side * (j % 2 ? 0 : 2)} 0)"/>`;
+    return { g, xt, yt, mx: x0 + ux * tm, my: y0 + uy * tm };
   };
-  const A = lembo(-1), B = lembo(1);
+  const A = lato(-1), B = lato(1);
   s += A.g + B.g;
-  s += `<text x="${X(0)}" y="${A.yN - 6}" text-anchor="middle" font-weight="700" font-size="12">N</text><text x="${X(0)}" y="${B.yN + 21}" text-anchor="middle" font-weight="700" font-size="12">S</text>`;
-  // quota della sovrapposizione
-  const yq = 286; s += `<path d="M${X(-ov / 2)} ${yq - 6} V${yq + 6} M${X(ov / 2)} ${yq - 6} V${yq + 6} M${X(-ov / 2)} ${yq} H${X(ov / 2)}" stroke="#161b21"/>`;
-  s += `<text x="${X(0)}" y="${yq + 22}" text-anchor="middle" class="m">13 cm</text>`;
-  s += num(X(-0.13), A.rot(-0.13) - 18, 1) + num(X(0.13), B.rot(0.13) + 20, 2) + num(X(ov / 2 - 0.03), A.rot(ov / 2) - 24, 3) + num(X(-nas / 2) - 22, A.yN - 4, 4) + num(X(nas / 2) + 22, B.yN + 12, 5) + num(X(ov / 2) + 22, yq, 6);
+  s += num(X(-0.13), y0 - 20, 1) + num(X(0.13), y0 + 22, 2) + num(A.xt, A.yt - 26, 3) + num(A.mx, A.my + 22, 4);
   // pressione
   const fr = su ? [[300, 250], [196, 18]] : [[80, 130], [196, 18]];
-  for (const x of [460, 545, 905, 965]) s += su ? freccia(x, 300, yB + 14) : freccia(x, 80, yA - 14);
+  for (const x of [460, 545, 905, 965]) s += su ? freccia(x, 300, y0 + 14) : freccia(x, 80, y0 - 14);
   s += `<text x="980" y="${su ? 344 : 50}" text-anchor="end" class="m">${Math.abs(dp) < 0.2 ? 'pressione uguale sui due lati' : 'la pressione spinge da qui'}</text>`;
   s += `<text x="980" y="${su ? 50 : 344}" text-anchor="end" class="m">spessori non in scala · telo ${fmt(D.t * 1000, 0)} µm</text>`;
   $('schemaPorta').innerHTML = s;
@@ -3504,7 +3482,7 @@ function aggiornaSchemi() {
 const lembo2 = l => (l.w || 0.9) / 2 + OV_PORTA / 2;
 function schemaCornice() {
   // sezione verticale nel punto in cui la manica si attacca alla parete del modulo (bordo superiore dell'apertura)
-  const nas = NASTRO_W(), k = 1500, w = nas * k, c = { m: '#4f7fb8', s: '#9a7a52' }, xw = 250;
+  const w = 34, c = { m: '#4f7fb8', s: '#9a7a52' }, xw = 250;
   const tiro = link.filter(l => l.aperta).reduce((m, l) => Math.max(m, tiroCornice(l)), 0), cap = capCornice();
   const num = (x, y, n) => `<circle cx="${x}" cy="${y}" r="10" fill="#161b21"/><text x="${x}" y="${y + 4}" text-anchor="middle" class="num">${n}</text>`;
   const yT = 205;
@@ -3514,8 +3492,9 @@ function schemaCornice() {
   s += `<path d="M${xw} 30 V190" stroke="${c.m}" stroke-width="5" stroke-linecap="round"/><path d="M${xw - 6} 110 V190" stroke="${c.m}" stroke-width="5" opacity=".55" stroke-linecap="round"/>`;
   // manica: tetto orizzontale che arriva alla parete e risale come bordo (aletta) appoggiato alla parete
   s += `<path d="M504 ${yT} H${xw + 18} Q${xw + 10} ${yT} ${xw + 10} ${yT - 10} V110" fill="none" stroke="${c.s}" stroke-width="5" stroke-linecap="round"/><path d="M${xw + 16} 110 V${yT - 14}" stroke="${c.s}" stroke-width="5" opacity=".55" stroke-linecap="round"/>`;
-  // nastri faccia a faccia
-  const yc = 150; s += `<rect x="${xw + 3}" y="${yc - w / 2}" width="3.5" height="${w}" fill="#23272c"/><rect x="${xw + 6.5}" y="${yc - w / 2}" width="3.5" height="${w}" fill="#23272c"/>`;
+  // [Officina] la zip: una metà sulla parete, una sul bordo della manica, i denti in mezzo
+  const yc = 150; s += `<rect x="${xw + 2}" y="${yc - w / 2}" width="9" height="${w}" rx="2" fill="#23272c"/>`;
+  for (let j = 0; j < 7; j++) s += `<rect x="${xw + (j % 2 ? 5 : 1)}" y="${(yc - w / 2 + 1 + j * (w - 2) / 7).toFixed(1)}" width="7" height="${((w - 2) / 7 - 1.2).toFixed(1)}" fill="#8a939c"/>`;
   // apertura e aria che passa
   s += `<text x="${xw - 12}" y="300" text-anchor="end" class="m">apertura: l'aria passa</text>`;
   s += `<path d="M120 270 H400" stroke="#2b64aa" stroke-width="2" stroke-dasharray="6 5"/><path d="M394 264 L406 270 L394 276Z" fill="#2b64aa"/>`;
@@ -3526,15 +3505,23 @@ function schemaCornice() {
   s += num(xw - 30, 60, 1) + num(xw + 36, 100, 2) + num(xw + 36, yc + 22, 3) + num(xw - 30, 150, 4);
   $('schemaCornice').innerHTML = s;
   const ok = cap / Math.max(tiro, 0.01);
-  $('notaCornice').innerHTML = `<li><b>1</b>parete del modulo</li><li><b>2</b>bordo della manica (risvolto 8 cm)</li><li><b>3</b>nastro ${fmt(D.nW, 0)} mm · ${D.nFile} ${D.nFile > 1 ? 'file' : 'fila'}, faccia a faccia</li><li><b>4</b>risvolto saldato sulla parete</li><li style="grid-column:1/-1;color:${ok >= 2 ? 'var(--ok)' : ok >= 1 ? '#a8771a' : 'var(--ko)'}">Tenuta ${fmt(cap, 0)} N/m contro un tiro di ${fmt(tiro, 1)} N/m · ${tiro ? 'margine ×' + fmt(ok, 0) : 'nessuna manica collegata'} · cornice lunga ${fmt(2 * (D.manW + D.manH), 1)} m</li>`;
+  $('notaCornice').innerHTML = `<li><b>1</b>parete del modulo</li><li><b>2</b>bordo della manica</li><li><b>3</b>${CH[D.coll].nome.toLowerCase()}: una metà sulla parete, una sulla manica</li><li><b>4</b>bordo dell'apertura rinforzato</li><li style="grid-column:1/-1;color:${ok >= 2 ? 'var(--ok)' : ok >= 1 ? '#a8771a' : 'var(--ko)'}">Tenuta ${fmt(cap, 0)} N/m contro un tiro di ${fmt(tiro, 1)} N/m · ${tiro ? 'margine ×' + fmt(ok, 0) : 'nessuna manica collegata'} · cornice lunga ${fmt(2 * (D.manW + D.manH), 1)} m</li>`;
 }
 function schemaGiunto() {
   // angolo tra due pareti visto dall'alto: l'aletta di A sta FUORI, così la pressione schiaccia B contro il nastro
-  const ov = 0.13, nas = NASTRO_W(), k = 1000, cx = 300, cy = 90, tipo = CH[D.giunti], sald = D.giunti === 'saldato';
+  const ov = 0.13, nas = 0.02, k = 1000, cx = 300, cy = 90, tipo = CH[D.giunti], sald = D.giunti === 'saldato', ades = D.giunti === 'adesivo';
   const num = (x, y, n) => `<circle cx="${x}" cy="${y}" r="10" fill="#161b21"/><text x="${x}" y="${y + 4}" text-anchor="middle" class="num">${n}</text>`;
   let s = `<path d="M40 ${cy} H${cx} V340 H40Z" fill="rgba(43,100,170,.07)"/><text x="60" y="320" class="m">DENTRO, IN PRESSIONE</text><text x="${cx + 30}" y="320" class="m">FUORI</text>`;
   s += `<path d="M40 ${cy} H${cx}" stroke="#4f7fb8" stroke-width="5" stroke-linecap="round"/><path d="M${cx} ${cy} V340" stroke="#9a7a52" stroke-width="5" stroke-linecap="round"/>`;
-  if (sald) s += `<rect x="${cx - 8}" y="${cy - 8}" width="16" height="40" fill="#8a939c"/><text x="${cx + 20}" y="${cy + 24}">saldatura: nessun nastro</text>`;
+  if (ades) {   // [Officina] il giunto del lab: due pezzi accostati, nastro adesivo a cavallo, fuori e (se 2 lati) dentro
+    const hw = D.adW / 2000 * 3000, tc = '#b08a3e';
+    s += `<path d="M${cx - hw} ${cy - 7} H${cx + 7} V${cy + hw}" fill="none" stroke="${tc}" stroke-width="6" stroke-linejoin="round"/>`;
+    if (D.adLati > 1) s += `<path d="M${cx - hw} ${cy + 7} H${cx - 7} V${cy + hw}" fill="none" stroke="${tc}" stroke-width="6" stroke-linejoin="round"/>`;
+    for (const y of [cy + 130, cy + 180]) s += `<line x1="${cx - 70}" y1="${y}" x2="${cx - 12}" y2="${y}" stroke="#2b64aa" stroke-width="2"/><path d="M${cx - 21} ${y - 6} L${cx - 9} ${y} L${cx - 21} ${y + 6}Z" fill="#2b64aa"/>`;
+    s += `<text x="${cx + 24}" y="${cy + hw + 6}" class="m">${fmt(D.adW, 0)} mm, metà per pezzo</text>`;
+    s += num(150, cy - 22, 1) + num(cx - 22, 290, 2) + num(cx + 34, cy - 24, 3) + (D.adLati > 1 ? num(cx - 34, cy + 34, 4) : '');
+  }
+  else if (sald) s += `<rect x="${cx - 8}" y="${cy - 8}" width="16" height="40" fill="#8a939c"/><text x="${cx + 20}" y="${cy + 24}">saldatura: nessun nastro</text>`;
   else {
     s += `<path d="M${cx - 20} ${cy} Q${cx + 9} ${cy} ${cx + 9} ${cy + 22} V${cy + ov * k}" fill="none" stroke="#4f7fb8" stroke-width="5" stroke-linecap="round"/>`;
     s += `<path d="M${cx + 15} ${cy + ov * k - 80} V${cy + ov * k}" stroke="#4f7fb8" stroke-width="5" opacity=".55" stroke-linecap="round"/>`;
@@ -3544,8 +3531,8 @@ function schemaGiunto() {
     s += num(150, cy - 22, 1) + num(cx - 22, 290, 2) + num(cx + 38, cy + 30, 3) + num(cx - 26, ym + 20, 4);
   }
   $('schemaGiunto').innerHTML = s;
-  $('notaGiunto').innerHTML = sald ? `<li style="grid-column:1/-1">Pannelli saldati: niente nastro sui giunti. Scegli un altro tipo in Dati per vederne la sezione.</li>`
-    : `<li><b>1</b>parete A</li><li><b>2</b>parete B</li><li><b>3</b>aletta di A, all'esterno di B (risvolto saldato)</li><li><b>4</b>${tipo.nome.toLowerCase()} ${fmt(D.nW, 0)} mm</li><li style="grid-column:1/-1">L'aletta sta fuori: la pressione schiaccia B contro il nastro invece di staccarlo.</li>`;
+  $('notaGiunto').innerHTML = ades ? `<li><b>1</b>parete A</li><li><b>2</b>parete B</li><li><b>3</b>nastro adesivo fuori</li>${D.adLati > 1 ? '<li><b>4</b>nastro adesivo dentro</li>' : ''}<li style="grid-column:1/-1">Il nastro da ${fmt(D.adW, 0)} mm sta a cavallo della giunzione: metà su un pezzo, metà sull'altro.</li>` : sald ? `<li style="grid-column:1/-1">Pannelli saldati: niente nastro sui giunti. Scegli un altro tipo in Dati per vederne la sezione.</li>`
+    : `<li><b>1</b>parete A</li><li><b>2</b>parete B</li><li><b>3</b>aletta di A, all'esterno di B (risvolto saldato)</li><li><b>4</b>${tipo.nome.toLowerCase()}</li><li style="grid-column:1/-1">L'aletta sta fuori: la pressione schiaccia B contro il nastro invece di staccarlo.</li>`;
 }
 $('selSchema').onchange = aggiornaSchemi;
 
@@ -3676,7 +3663,7 @@ $('bRipara').onclick = () => ripara();
 
 // --- composizioni: più progetti, salvati nel browser ---
 const NOME_INIZIO = 'Nuova composizione', NOME_PREC = 'Lavoro precedente';   // [Officina] prima "Cubo iniziale" e "Ultima sessione"
-const CHIAVE_COMP = 'bolle-composizioni', CHIAVI_D = ['mat', 'gsm', 't', 'sigma', 'pMin', 'manW', 'manL', 'manH', 'manMax', 'nW', 'nT', 'nFile', 'porte', 'coll', 'giunti', 'bleed', 'aPersona', 'sfogo'];
+const CHIAVE_COMP = 'bolle-composizioni', CHIAVI_D = ['mat', 'gsm', 't', 'sigma', 'pMin', 'manW', 'manL', 'manH', 'manMax', 'adW', 'adLati', 'adT', 'adRot', 'porte', 'coll', 'giunti', 'bleed', 'aPersona', 'sfogo'];
 let comp = { attiva: null, lista: [] }, caricando = false;
 // [Officina] annulla / ripeti: ogni modifica salvata (salvaPresto) lascia l'istantanea di prima in storia.indietro
 const storia = { indietro: [], avanti: [], ora: null }, MAX_STORIA = 30;
@@ -3723,6 +3710,7 @@ const annulla = () => passoStoria('indietro', 'avanti', 'Modifica annullata'), r
 function carica(dati, opz = {}) {   // [Officina] opz.storia: da Annulla / Ripeti (niente stanza, l'inquadratura resta); opz.sel: il pezzo da riselezionare
   caricando = true; fermaTutti(); clearTimeout(salvaPresto.t);
   for (const k of CHIAVI_D) if (dati.D && dati.D[k] != null) D[k] = dati.D[k];
+  { const vale = (k, giunti) => CH[D[k]] && (giunti || !CH[D[k]].solo); if (!vale('giunti', true)) D.giunti = 'adesivo'; if (!vale('porte')) D.porte = 'cerniera'; if (!vale('coll')) D.coll = 'cerniera'; }   // [Officina] il nastro magnetico non c'è più: le composizioni vecchie passano a zip e nastro adesivo
   if (dati.GONF) for (const k of ['piccolo', 'grande']) Object.assign(GONF[k], dati.GONF[k] || {});
   pezzi = []; link = []; nextId = 1; selezionato = null; firmaPan = '';
   for (const q of dati.pezzi || []) {
@@ -3918,13 +3906,14 @@ let prezzi = {}, vociLibere = [], tBom = 0, firmaBom = '';
 try { const sv = JSON.parse(localStorage.getItem('bolle-budget') || '{}'); prezzi = sv.prezzi || {}; vociLibere = sv.voci || []; Object.assign(BOM, sv.bom || {}); } catch (e) {}
 const salvaBudget = () => { try { localStorage.setItem('bolle-budget', JSON.stringify({ prezzi, voci: vociLibere, bom: BOM })); } catch (e) {} };
 const euro = x => x.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: x < 100 ? 2 : 0, maximumFractionDigits: x < 100 ? 2 : 0 });
-const famiglia = t => t === 'magnetico' ? 'magnetico' : t === 'velcro' ? 'velcro' : t === 'saldato' ? 'saldato' : 'cerniera';
+const famiglia = t => t === 'adesivo' ? 'adesivo' : t === 'velcro' ? 'velcro' : t === 'saldato' ? 'saldato' : 'cerniera';
 // telo di un modulo: pareti, tetto, pavimento, lembi delle porte e risvolti di rinforzo sui bordi con nastro
 function teloPezzo(p) {
   const F = p.F, pareti = F.mesh ? F.sup : F.apex ? F.E.reduce((s, e) => s + 0.5 * e.L * (1 + F.K) * Math.hypot(F.H, e.ap * (1 - F.K)), 0) : F.perim * F.H;   // [Officina] il telo vero della forma
   return { pareti, tetto: F.mesh ? 0 : F.apex ? F.area * F.K * F.K : F.area, pav: BOM.pav ? F.area : 0, lembi: p.porte.reduce((s, i) => s + apertura(F, i).h * OV_PORTA, 0) };
 }
 function teloManica(l) {
+  if (l.diretto) return 0;   // [Officina] ingresso sulla parete: niente manica
   const len = Math.hypot(l.Pb[0] - l.Pa[0], l.Pb[1] - l.Pa[1]), w = l.w || 0.9, h = l.h || 2;
   return len * (2 * h + w + (BOM.pav ? w : 0)) + (l.ingresso ? h * OV_PORTA : 0);
 }
@@ -3935,11 +3924,15 @@ function chiusurePer() {
   for (const p of pezzi) {
     const t = teloPezzo(p); add(p, 'telo', t.pareti + t.tetto + t.pav + t.lembi);
     add(p, 'giunti', p.F.cuciture * 2);
-    for (const i of p.porte) { const A = apertura(p.F, i); add(p, 'cornici', A.perim); add(p, 'porte', 2 * A.h); add(p, 'nPorte', 1); add(p, 'nCornici', 1); }
+    for (const i of p.porte) {   // [Officina] come nel lab: un'apertura libera è una porta a zip, una collegata a un'altra bolla ha la cornice della manica; l'ingresso conta sotto
+      const A = apertura(p.F, i), lk = link.find(l => (l.a === p && l.ea === i) || (l.b === p && l.eb === i));
+      if (!lk) { add(p, 'porte', 2 * A.h); add(p, 'nPorte', 1); }
+      else if (!lk.diretto) { add(p, 'cornici', A.perim); add(p, 'nCornici', 1); }
+    }
   }
   for (const l of link) {
     const ends = [l.a, l.b].filter(Boolean), quota = 1 / ends.length, perim = 2 * ((l.w || 0.9) + (l.h || 2)), tm = teloManica(l);
-    for (const q of ends) { add(q, 'giunti', 4 * (l.len || 0) * 2 * quota); add(q, 'cornici', perim * (l.a ? 2 : 1) * quota); add(q, 'nCornici', (l.a ? 2 : 1) * quota); add(q, 'telo', tm * quota); add(q, 'maniche', tm * quota); }
+    if (!l.diretto) for (const q of ends) { add(q, 'giunti', 4 * (l.len || 0) * 2 * quota); add(q, 'cornici', perim * (l.a ? 2 : 1) * quota); add(q, 'nCornici', (l.a ? 2 : 1) * quota); add(q, 'telo', tm * quota); add(q, 'maniche', tm * quota); }
     if (l.ingresso) { add(l.b, 'porte', 2 * (l.h || 2)); add(l.b, 'nPorte', 1); }
   }
   return per;
@@ -3948,17 +3941,20 @@ function distinta() {
   const per = chiusurePer(), tot = { giunti: 0, cornici: 0, porte: 0, nPorte: 0, nCornici: 0, telo: 0 };
   for (const v of per.values()) for (const k in tot) tot[k] += v[k];
   const cat = { giunti: D.giunti, cornici: D.coll, porte: D.porte }, nomiCat = { giunti: 'giunti tra i pannelli', cornici: 'cornici dei collegamenti', porte: 'porte' };
-  const facce = { magnetico: {}, velcro: {}, cerniera: {}, saldato: {} };
+  const facce = { adesivo: {}, velcro: {}, cerniera: {}, saldato: {} };
   for (const c in cat) { const f = famiglia(cat[c]); facce[f][c] = tot[c]; }
   // risvolti saldati da 8 cm su ogni bordo che porta una chiusura
-  const risvolti = Object.entries(cat).reduce((s, [c, t]) => s + (t === 'saldato' ? 0 : tot[c] * 0.08), 0);
+  const risvolti = Object.entries(cat).reduce((s, [c, t]) => s + (t === 'saldato' || t === 'adesivo' ? 0 : tot[c] * 0.08), 0);
   const teloNetto = tot.telo + risvolti, teloLordo = teloNetto * (1 + BOM.sfrido / 100);
   const righe = [], dove = o => Object.entries(o).filter(([, v]) => v > 0).map(([c, v]) => nomiCat[c] + ' ' + fmt(v, 0) + ' m').join(' · ');
   const kgTelo = teloLordo / BOM.resa;   // si compra al chilo: circa BOM.resa m² per ogni kg
   righe.push({ id: 'telo-kg', sez: 'Telo e chiusure', nome: `Telo ${MAT[D.mat].nome} (al chilo)`, dove: `${fmt(teloLordo, 0)} m² da comprare · ${fmt(BOM.resa, 1)} m² per kg · moduli e maniche ${fmt(tot.telo, 0)} m², risvolti ${fmt(risvolti, 0)} m², sfrido ${BOM.sfrido}%`, q: kgTelo, u: 'kg', kg: kgTelo, prezzoStd: 3.5 });
   const sumO = o => Object.values(o).reduce((a, b) => a + b, 0);
-  if (sumO(facce.magnetico)) { const m = sumO(facce.magnetico) * D.nFile * (1 + BOM.scorta / 100); righe.push({ id: 'nastro', nome: `Nastro magnetico ${fmt(D.nW, 0)} mm`, dove: dove(facce.magnetico) + ' · su tutte e due le facce' + (D.nFile > 1 ? ' · ' + D.nFile + ' file' : '') + ` · scorta ${BOM.scorta}%`, q: m, u: 'm', kg: m * D.nW * 5.4 / 1000 }); }
-  if (sumO(facce.velcro)) { const m = sumO(facce.velcro) / 2 * D.nFile * (1 + BOM.scorta / 100); righe.push({ id: 'velcro', nome: 'Velcro (maschio + femmina)', dove: dove(facce.velcro), q: m, u: 'm', kg: m * 0.03 }); }
+  if (sumO(facce.adesivo)) {   // [Officina] nastro da pacchi a cavallo di ogni giunzione, su uno o due lati
+    const m = sumO(facce.adesivo) / 2 * D.adLati * (1 + BOM.scorta / 100), rot = Math.ceil(m / D.adRot);
+    righe.push({ id: 'nastro-adesivo', nome: `Nastro adesivo da pacchi ${fmt(D.adW, 0)} mm`, dove: dove(Object.fromEntries(Object.entries(facce.adesivo).map(([c, v]) => [c, v / 2]))) + (D.adLati > 1 ? ' · dentro e fuori' : ' · da un lato') + ` · circa ${rot} ${rot === 1 ? 'rotolo' : 'rotoli'} da ${fmt(D.adRot, 0)} m · scorta ${BOM.scorta}%`, q: m, u: 'm', kg: m * D.adW * 0.06 / 1000 });
+  }
+  if (sumO(facce.velcro)) { const m = sumO(facce.velcro) / 2 * (1 + BOM.scorta / 100); righe.push({ id: 'velcro', nome: 'Velcro (maschio + femmina)', dove: dove(facce.velcro), q: m, u: 'm', kg: m * 0.03 }); }
   if (sumO(facce.cerniera)) {
     const zip = Object.entries(cat).find(([c, t]) => famiglia(t) === 'cerniera' && facce.cerniera[c])[1];
     const m = sumO(facce.cerniera) / 2 * (1 + BOM.scorta / 100), cur = (facce.cerniera.porte ? tot.nPorte : 0) + (facce.cerniera.cornici ? Math.ceil(tot.nCornici) : 0) + (facce.cerniera.giunti ? pezzi.reduce((s, p) => s + p.F.E.length * (p.F.apex ? 1 : 2) + p.F.V.length, 0) : 0);
@@ -3971,7 +3967,7 @@ function distinta() {
   const W = nG.piccolo * GONF.piccolo.W + nG.grande * GONF.grande.W, kWh = W * BOM.ore * BOM.giorni / 1000;
   righe.push({ id: 'energia', sez: righe.some(r => r.sez === 'Aria') ? null : 'Aria', nome: 'Energia elettrica', dove: `${fmt(W, 0)} W accesi ${BOM.ore} h al giorno per ${BOM.giorni} giorni`, q: kWh, u: 'kWh', kg: 0, prezzoStd: 0.3 });
   vociLibere.forEach((v, i) => righe.push({ id: 'lib' + i, libera: i, sez: i ? null : 'Altro', nome: v.nome, dove: '', q: +v.q || 0, u: v.u || 'pz', kg: 0 }));
-  return { righe, per, nG, W, kWh, teloLordo, kgTelo, nastro: (righe.find(r => r.id === 'nastro') || { q: 0 }).q };
+  return { righe, per, nG, W, kWh, teloLordo, kgTelo, nastro: (righe.find(r => r.id === 'nastro-adesivo') || { q: 0 }).q };
 }
 const prezzoDi = r => prezzi[r.id] != null && prezzi[r.id] !== '' ? +prezzi[r.id] : r.prezzoStd != null ? r.prezzoStd : null;
 function aggiornaMateriali(forza) {
@@ -4011,13 +4007,13 @@ function aggiornaMateriali(forza) {
     tr.querySelector('.tot').textContent = r.tot == null ? '—' : euro(r.tot);
   }
   // per modulo: telo, nastro, gonfiatori e costo ripartito
-  const pz = id => prezzoDi(B.righe.find(r => r.id === id) || {}) || 0, magn = famiglia(D.giunti) === 'magnetico' || famiglia(D.coll) === 'magnetico' || famiglia(D.porte) === 'magnetico';
+  const pz = id => prezzoDi(B.righe.find(r => r.id === id) || {}) || 0, ades = D.giunti === 'adesivo';
   let righeM = '';
   for (const p of pezzi) {
     const c = B.per.get(p), telo = c.telo * (1 + BOM.sfrido / 100);
-    const nas = ['giunti', 'cornici', 'porte'].reduce((s, k) => s + (famiglia({ giunti: D.giunti, cornici: D.coll, porte: D.porte }[k]) === 'magnetico' ? c[k] : 0), 0) * D.nFile * (1 + BOM.scorta / 100);
-    const costo = telo / BOM.resa * pz('telo-kg') + nas * pz('nastro') + p.f.piccolo * pz('gonf-piccolo') + p.f.grande * pz('gonf-grande');
-    righeM += `<tr><td><span class="dot ${valuta(p).c}" style="display:inline-block;width:9px;height:9px;margin-right:7px"></span>${p.nome}</td><td class="num dx">${fmt(telo, 1)} m²</td><td class="num dx">${magn ? fmt(nas, 0) + ' m' : '—'}</td><td class="num dx">${p.f.piccolo ? `<i class="qg" style="background:${GONF.piccolo.col}"></i>${p.f.piccolo} ` : ''}${p.f.grande ? `<i class="qg" style="background:${GONF.grande.col}"></i>${p.f.grande}` : ''}${!p.f.piccolo && !p.f.grande ? '0' : ''}</td><td class="num dx">${costo ? euro(costo) : '—'}</td></tr>`;
+    const nas = ades ? c.giunti / 2 * D.adLati * (1 + BOM.scorta / 100) : 0;   // [Officina] metri di nastro adesivo del modulo
+    const costo = telo / BOM.resa * pz('telo-kg') + nas * pz('nastro-adesivo') + p.f.piccolo * pz('gonf-piccolo') + p.f.grande * pz('gonf-grande');
+    righeM += `<tr><td><span class="dot ${valuta(p).c}" style="display:inline-block;width:9px;height:9px;margin-right:7px"></span>${p.nome}</td><td class="num dx">${fmt(telo, 1)} m²</td><td class="num dx">${ades ? fmt(nas, 0) + ' m' : '—'}</td><td class="num dx">${p.f.piccolo ? `<i class="qg" style="background:${GONF.piccolo.col}"></i>${p.f.piccolo} ` : ''}${p.f.grande ? `<i class="qg" style="background:${GONF.grande.col}"></i>${p.f.grande}` : ''}${!p.f.piccolo && !p.f.grande ? '0' : ''}</td><td class="num dx">${costo ? euro(costo) : '—'}</td></tr>`;
   }
   $('bomModuli').innerHTML = righeM || '<tr><td colspan="5" class="dove">Nessun modulo</td></tr>';
 }
@@ -4051,9 +4047,10 @@ function costruisciDati() {
   campo(t, 'Grammatura', D.gsm, 5, 800, 1, 'g/m²', v => { D.gsm = v; aggiornaSpessore(); ric(); }, 0);
   cs = campo(t, 'Resistenza a trazione', D.sigma, 5, 60, 1, 'MPa', v => { D.sigma = v; ric(); }, 0);
   const n = $('dNastro'); n.innerHTML = '';
-  campo(n, 'Larghezza', D.nW, 10, 60, 1, 'mm', v => { D.nW = v; ric(); }, 0);
-  campo(n, 'Tenuta a strappo', D.nT, 10, 300, 5, 'N/m', v => { D.nT = v; ric(); }, 0);
-  campo(n, 'File per giunto', D.nFile, 1, 4, 1, '', v => { D.nFile = v; ric(); }, 0);
+  campo(n, 'Larghezza', D.adW, 12, 100, 1, 'mm', v => { D.adW = v; ric(); }, 0);   // [Officina] il nastro adesivo dei giunti
+  campo(n, 'Lati (1 = solo fuori, 2 = dentro e fuori)', D.adLati, 1, 2, 1, '', v => { D.adLati = v; ric(); }, 0);
+  campo(n, 'Tenuta', D.adT, 50, 2000, 10, 'N/m', v => { D.adT = v; ric(); }, 0);
+  campo(n, 'Metri per rotolo', D.adRot, 10, 200, 1, 'm', v => { D.adRot = v; ric(); }, 0);
   const a = $('dAltro'); a.innerHTML = '';
   campo(a, 'Manica di collegamento: larghezza', D.manW, 0.6, 3, 0.05, 'm', v => { D.manW = v; ric(); }, 2);
   campo(a, 'Manica di collegamento: lunghezza standard', D.manL, 0.3, 4, 0.05, 'm', v => { D.manL = v; ric(); }, 2);
@@ -4077,12 +4074,13 @@ function costruisciDati() {
 }
 function riassuntoLab() {   // [Officina] il materiale del lab in poche parole, in cima a Dati
   $('riassTelo').textContent = `${fmt(D.gsm, 0)} g/m², spesso ${fmt(D.t * 1000, 0)} µm: regge ${fmt(capTelo(), 0)} N/m. Grammatura e resistenza si cambiano in Avanzate.`;
-  $('riassNastro').textContent = [D.porte, D.coll, D.giunti].includes('magnetico') ? `Nastro magnetico da ${fmt(D.nW, 0)} mm, tiene ${fmt(D.nT, 0)} N/m${D.nFile > 1 ? ', ' + D.nFile + ' file per giunto' : ''}.` : 'Nessuna chiusura usa il nastro magnetico.';
+  const nomeCh = k => CH[k].nome.toLowerCase().replace('cerniera', 'zip');   // [Officina] come si chiude la bolla vera del lab (la cerniera è la zip)
+  $('riassNastro').textContent = (D.giunti === 'adesivo' ? `Pezzi uniti con nastro adesivo da ${fmt(D.adW, 0)} mm, ${D.adLati > 1 ? 'dentro e fuori' : 'da un lato'}` : `Pezzi uniti: ${nomeCh(D.giunti)}`) + `. Porte: ${nomeCh(D.porte)}. Collegamenti tra bolle: ${nomeCh(D.coll)}.`;
   $('riassGonf').innerHTML = ['piccolo', 'grande'].map(k => `<div class="modello"><i class="qg" style="background:${GONF[k].col}"></i><div><b>${esc(GONF[k].nome)}</b><span>${fmt(GONF[k].W, 0)} W · ${fmt(GONF[k].Q, 0)} m³/h · fino a ${fmt(GONF[k].Pmax, 0)} Pa</span></div></div>`).join('');
 }
 function tabellaChiusure() {
   riassuntoLab();
-  $('notaTelo').textContent = 'Spessore ' + fmt(D.t * 1000, 0) + ' µm · peso sul tetto ' + fmt(pesoTelo(), 2) + ' Pa · il telo regge ' + fmt(capTelo(), 0) + ' N/m · nastro magnetico ≈ ' + fmt(D.nW * 5.4, 0) + ' g/m';
+  $('notaTelo').textContent = 'Spessore ' + fmt(D.t * 1000, 0) + ' µm · peso sul tetto ' + fmt(pesoTelo(), 2) + ' Pa · il telo regge ' + fmt(capTelo(), 0) + ' N/m';
   $('notaPorte').textContent = 'Lembi delle porte: stesso telo delle bolle (' + MAT[D.mat].nome + ', ' + fmt(D.t * 1000, 0) + ' µm), ' + fmt(massaTelo() * 1000, 0) + ' g/m². Passaggio: circa ' + fmt(areaPassaggio(D.porte), 2) + ' m² aperti.';
   $('tabChius').innerHTML = Object.values(CH).map(c => `<tr><td>${c.nome}</td><td class="num">${c.fess ? fmt(c.fess * 1000, c.fess < 1e-5 ? 3 : 2) + ' mm' : '0'}</td><td class="num">${fmt(c.cap(), 0)} N/m</td><td class="num">${c.tA ? fmt(c.tA, 1) + ' / ' + fmt(c.tC, 1) + ' s' : '—'}</td></tr>`).join('');
 }
@@ -5088,13 +5086,13 @@ function vociCerca() {
   add('Pavimento in telo', 'Materiali', vaiScheda('b', () => evidenzia($('bPav'))), 'pavimento');
   // Dati
   add('Materiale del telo', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('selMat'))), 'pvc polietilene tpu plastica');
-  add('Chiusura delle porte', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('selPorte'))), 'zip cerniera velcro nastro magnetico');
-  add('Cornice dei collegamenti', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('selColl'))), 'manica nastro magnetico');
-  add('Giunti tra i pannelli', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('selGiunti'))), 'saldato nastro magnetico cuciture');
+  add('Chiusura delle porte', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('selPorte'))), 'zip cerniera velcro');
+  add('Cornice dei collegamenti', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('selColl'))), 'manica zip');
+  add('Giunti tra i pannelli', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('selGiunti'))), 'saldato nastro adesivo scotch cuciture');
   add('Gonfiatori del lab', 'Dati · Il materiale del lab', vaiScheda('d', () => evidenzia($('riassGonf').closest('.card'))), 'ventilatori motori portata watt');
   add('Avanzate: tutti i numeri', 'Dati', vaiScheda('d', apriSez('avanzate')), 'grammatura resistenza nastro maniche sfogo aria per persona');
   for (const [t, id, x] of [['Numeri del gonfiatore piccolo', 'dGonfP', 'potenza portata pressione'], ['Numeri del gonfiatore grande', 'dGonfG', 'potenza portata pressione'], ['Grammatura e resistenza del telo', 'dTelo', 'spessore g/m2 mpa'],
-    ['Nastro magnetico', 'dNastro', 'larghezza tenuta file'], ['Chiusure a confronto', 'tabChius', 'fessura tenuta tabella'], ['Maniche e aria', 'dAltro', 'manica sfogo foro bilanciamento aria per persona pressione minima']])
+    ['Nastro adesivo', 'dNastro', 'larghezza lati tenuta rotolo scotch'], ['Chiusure a confronto', 'tabChius', 'fessura tenuta tabella'], ['Maniche e aria', 'dAltro', 'manica sfogo foro bilanciamento aria per persona pressione minima']])
     add(t, 'Dati · Avanzate', vaiScheda('d', () => { $('avanzate').open = true; evidenzia($(id).closest('.card')); }), x);
   add('Rimetti i valori del lab', 'Dati · Avanzate', vaiScheda('d', () => { $('avanzate').open = true; evidenzia($('bValoriLab')); }), 'ripristina reset partenza');
   add('Schemi delle chiusure', 'Dati', vaiScheda('d', apriSez('schemiChiusure')), 'sezione porta cornice giunto disegno');
@@ -5145,7 +5143,7 @@ document.addEventListener('keydown', e => {
   if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey) && !e.altKey) { e.preventDefault(); if ($('cerca').hidden) apriCerca(); else chiudiCerca(); }
   else if (e.key === '/' && !scrive && !e.metaKey && !e.ctrlKey && !e.altKey && $('cerca').hidden && !document.querySelector('dialog[open]')) { e.preventDefault(); apriCerca(); }
 });
-window.cfg = { ST, caricaStanza, togliStanza, aggiornaStanza, FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, metriNastro, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
+window.cfg = { ST, caricaStanza, togliStanza, aggiornaStanza, FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
   giro: () => faiEntrare(), GENTE, scoppia, ripara, comp: () => comp, fotografa, carica, apriComp, nuovaComp, persone: () => persone, unoAdesso, fermaTutti, eseguiCopione, muoviPersona, aggancia, liberaLati, collega, tipo: t => { tipoScelto = t; }, pLim, capTelo, tensione, simT: () => simT };
 })();
 </script>

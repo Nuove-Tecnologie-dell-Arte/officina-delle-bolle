@@ -158,7 +158,7 @@ Non è una parte `[Officina]`: è una funzione nuova del configuratore, scritta 
 
 ## Correzioni dopo la prova generale (3 novembre)
 
-- **Porte con le zip** (`[Officina]` in `D`): le porte partono come `porte: 'cerniera'`, perché nel lab finora sono fatte con le zip. Distinta e budget contano già cerniere e cursori. Collegamenti e giunture restano magnetici, in attesa di sapere come li fa il lab.
+- **Porte con le zip** (`[Officina]` in `D`): le porte partono come `porte: 'cerniera'`, perché nel lab finora sono fatte con le zip. Distinta e budget contano già cerniere e cursori. Collegamenti e giunture restavano magnetici, in attesa di sapere come li fa il lab: dal 9 novembre sono con la zip e con il nastro adesivo (vedi «Come la bolla vera del lab»).
 - **L'ingrandimento torna nell'Officina** (`[Officina]` in `daOfficina`): se la forma arrivata come pezzo vero in 3D è stata ingrandita per avere porte da 1,80 m (`d.k > 1`), il pacchetto `src` salvato nella composizione porta anche `ingrandita: k`; se invece sono state solo portate nei limiti alcune misure, porta `ritocchi` (al massimo 6 righe). Tornando con "Officina", l'Officina mostra un avviso che si chiude con la ×.
 - **Aggiungere alla composizione aperta** (`[Officina]`, blocco `if (M.aggiungi)` in `daOfficina`): se il pacchetto `#officina=` ha `aggiungi: true` (pulsante "Aggiungi alla composizione aperta" dell'Officina), la forma non crea né aggiorna "Dall'Officina · nome", ma va nella composizione con dei pezzi modificata più di recente. Il pezzo viene messo a destra degli altri senza toccarli (`siToccano`), selezionato e salvato; l'avviso dice dove è finito. Se non c'è nessuna composizione con dei pezzi si comporta come prima.
 
@@ -330,3 +330,15 @@ Dal branch `abbofficina-ricerca-oggetti-3d` (thaaby) sono state prese le parti c
 
 - Una forma nuova dell'Officina, `sferaP`: la sfera di 120 triangoli uguali con ogni triangolo diviso in 4 o in 9 (480 o 1080 triangoli, tutti uguali).
 - Qui tre righe segnate `[Officina]`: la voce in `FORME_OFF`, l'icona `of:sferaP` e il posto nel gruppo «Solidi» di `GRUPPI_FORME`.
+
+## Come la bolla vera del lab (9 novembre)
+
+Nel lab i pezzi si uniscono con il nastro da pacchi (48 mm, dentro e fuori), l'ingresso è una zip dritta nella parete, senza corridoio, e due bolle, se si uniranno, si uniranno con la zip. Il nastro magnetico non si usa, quindi è uscito dal configuratore. Tutto è segnato `[Officina]`.
+
+- **Nastro adesivo** (`CH.adesivo`, solo per i giunti): perdita 0,02 mm e tenuta `D.adT` (400 N/m) sono stime, si correggono in Dati → Avanzate → Nastro adesivo, insieme a larghezza (`D.adW`, 48 mm), lati (`D.adLati`, 2) e metri per rotolo (`D.adRot`, 66 m). Questi quattro numeri si salvano con la composizione (`CHIAVI_D`).
+- **Valori del lab** (`D`): `giunti: 'adesivo'`, `coll: 'cerniera'`, `porte: 'cerniera'`. «Rimetti i valori del lab» torna a questi.
+- **Ingresso senza corridoio**: il collegamento d'ingresso ha `diretto: true` e sta sulla parete (`ING_FUORI`, 12 cm fuori, sul telo gonfio). `costruisciLink` non fa la manica né le sue cornici, `formaManica` dà l'altezza della bolla, `teloManica` vale 0. Le persone entrano ed escono dalla zip.
+- **La zip della porta**: i due lembi si toccano (`OV_PORTA` da 13 a 2 cm, i nastri della zip; `ZIP_W` per il disegno). Le porte si aprono e si chiudono a mano: tolto il ramo delle porte che si richiudevano da sole (`t.auto` in `passoPorta`, `areaPassaggio`, `attraversa`).
+- **Distinta** (`chiusurePer`, `distinta`): un'apertura libera conta una porta a zip, una collegata a un'altra bolla la cornice a zip della manica, l'ingresso solo la sua porta. Nuova riga «Nastro adesivo da pacchi 48 mm» (`nastro-adesivo`): metri di giunzione × lati + scorta, con i rotoli. Con l'adesivo niente risvolti da 8 cm. Il riquadro in Materiali e la colonna «Nastro» per modulo contano il nastro adesivo.
+- **Via il nastro magnetico**: `CH.magnetico`, `metriNastro`, `NASTRO_W`, `MU`, `D.nW`/`nT`/`nFile` e la scheda in Avanzate. Il velcro tiene 300 N/m fissi. `capCornice` usa la tenuta della chiusura scelta. Le composizioni salvate con il magnetico si aprono convertite (`carica`): giunti → adesivo, cornici e porte → zip.
+- **Schemi**: la porta è una zip dritta vista dall'alto (lembi, denti, nastri della zip), la cornice tra modulo e manica è unita da una zip, il giunto mostra il nastro adesivo a cavallo, fuori e dentro. Riassunto in Dati, didascalie, `aria-label` e voci della ricerca parlano di zip e nastro adesivo.
