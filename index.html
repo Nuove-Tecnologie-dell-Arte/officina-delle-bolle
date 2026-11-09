@@ -550,7 +550,7 @@ details.menu > summary::-webkit-details-marker { display: none; }
   .nextseam .seamview { order: 0; grid-template-columns: 1fr; }
   .nextseam canvas#seamCanvas { aspect-ratio: 4 / 3; max-height: 46vh; }
 }
-/* bolla da un'immagine: il riquadro dopo la galleria del Passo 1 (la finestra e i suoi stili stanno in immagine.js) */
+/* bolla da un'immagine: il riquadro dopo la galleria della sezione 1 (la finestra e i suoi stili stanno in immagine.js) */
 .dafoto { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px 22px; align-items: center; padding: 20px 22px; border-radius: var(--r-l);
   background: color-mix(in srgb, var(--green) 8%, var(--card)); border: 2px dashed color-mix(in srgb, var(--green) 55%, transparent); box-shadow: var(--shadow); transition: background .15s, border-color .15s; }
 .dafoto.sopra { background: color-mix(in srgb, var(--green) 18%, var(--card)); border-style: solid; border-color: var(--green); }
@@ -678,6 +678,10 @@ body:not([data-modo="model"]) .scalaSez { display: none !important; }
 .piece-head .quante { margin-left: auto; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 .piece-head canvas.where { display: none; }
 details.piece[open] .piece-head canvas.where { display: block; }
+/* [Semplice] meno testo: niente riga «Uso… area…» nella scheda chiusa, niente rotolo ripetuto nei Pezzi */
+.piece-head .meta { display: none; }
+#rollF { display: none !important; }
+#rqMisure .more-body { padding-top: 0; }
 /* [Semplice] sezione 3 */
 .scalaSez3 { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .scalaSez3[hidden] { display: none; } .scalaSez3 input { width: 80px; }
 .s3-pane { display: grid; gap: 18px; min-width: 0; }
@@ -733,7 +737,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     <figure class="hero-stage">
       <canvas id="view" class="pickable" aria-label="Vista 3D della forma scelta, con quote e una persona alta 1,75 m per confronto. Trascinate per ruotarla, toccate un pannello per andare al suo pezzo."></canvas>
       <div class="tip" id="tipHero" hidden></div>
-      <div class="viewopts">
+      <div class="viewopts" hidden><!-- [Semplice] la persona da 1,75 m resta sempre -->
         <label class="check"><input type="checkbox" id="optPerson" checked> <span>Persona da 1,75 m</span></label>
         <label class="check"><input type="checkbox" id="optColors" checked> <span>Colora per tipo di pezzo</span></label>
         <span class="muted" id="heroHint">Trascinate per girarla · toccate un pannello per vedere il suo pezzo.</span>
@@ -754,7 +758,6 @@ details.piece[open] .piece-head canvas.where { display: block; }
     <div class="dafoto-ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="9" width="38" height="30" rx="5"/><path d="M5 33l10-10 8 8 6-6 14 14"/><circle cx="33" cy="18" r="3.5"/></svg></div>
     <div class="dafoto-txt">
       <h3>Oppure partite da un'immagine</h3>
-      <p>Una foto o un disegno: la pagina trova il contorno e vi dice se si può fare.<span class="solo-mouse"> Si può anche trascinare qui o incollare con Ctrl+V.</span></p>
     </div>
     <div class="dafoto-azioni">
       <button type="button" class="btn" id="fotoCarica">Carica un'immagine</button>
@@ -779,7 +782,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
         <div class="mat"><div class="bench2">
       <div class="controls2">
         <div class="ctl">
-          <div class="ctl-h"><i>1</i><span id="titoloMisure">Misure della bolla vera</span><button type="button" class="btn misAnnulla" id="misAnnulla" disabled title="Torna alla forma e alle misure di prima (Ctrl+Z)">Annulla</button></div>
+          <div class="ctl-h"><span id="titoloMisure">Misure della bolla vera</span><button type="button" class="btn misAnnulla" id="misAnnulla" disabled title="Torna alla forma e alle misure di prima (Ctrl+Z)">Annulla</button></div>
           <div class="misureBarra">
             <div class="seg" id="unita" role="group" aria-label="In che misure scrivere"><button type="button" data-u="real" aria-pressed="true">Bolla vera</button><button type="button" data-u="model" aria-pressed="false">Modellino</button></div>
           </div>
@@ -838,7 +841,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
       </div>
       <div class="rq-pane" data-rqp="altro" hidden>
         <div class="ctl">
-          <div class="ctl-h"><i>2</i>Pavimento</div>
+          <div class="ctl-h">Pavimento</div>
           <label class="check"><input type="checkbox" id="fit"> <span>Adatta la forma a un pavimento di questa area</span></label>
           <div class="fields">
             <div class="field"><label for="fitArea">Area del pavimento (m²)</label><input id="fitArea" type="number" step="0.01" min="0.1" value="6.25"></div>
@@ -846,18 +849,10 @@ details.piece[open] .piece-head canvas.where { display: block; }
           <p class="hint" id="fitNote"></p>
         </div>
         <details class="ctl more" id="moreOpts" open>
-          <summary><span class="ctl-h"><i>3</i>Altre opzioni</span><span class="hint" id="moreSum"></span></summary>
+          <summary hidden><span class="ctl-h">Altre opzioni</span><span class="hint" id="moreSum"></span></summary>
           <div class="more-body">
             <div id="baseCtl" style="display:grid;gap:10px"></div>
             <p class="hint" id="baseNote"></p>
-            <div class="modelref">
-              <span class="flabel">Trovate la scala dal modellino</span>
-              <div class="fields">
-                <div class="field"><label for="modelRef">Misura</label><select id="modelRef"></select></div>
-                <div class="field"><label for="modelCm">Sul modellino (cm)</label><input id="modelCm" type="number" step="any" min="0.1"></div>
-              </div>
-              <p class="hint" id="modelNote"></p>
-            </div>
           </div>
         </details>
       </div>
@@ -890,7 +885,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
       <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"><tr><td colspan="4" class="hint">La simulazione si sta aprendo…</td></tr></tbody></table></div>
     </div>
   </div>
-  <div class="about" id="about"></div>
+  <div class="about" id="about" hidden></div>
   <details class="box more" id="projects">
     <summary><span class="tag">Progetti del gruppo</span><span class="hint">Salvate e riaprite forma e misure</span></summary>
     <p class="hint" id="projIntro">Chi apre questa pagina online vede gli stessi progetti e può riaprirli con un clic.</p>
@@ -981,15 +976,23 @@ details.piece[open] .piece-head canvas.where { display: block; }
       <span class="tag">Consigliato: è la prova generale della bolla vera</span>
       <h3 class="h4">A pezzi separati, come la bolla vera</h3>
       <ol class="steps">
-        <li>Tracciate le dime del modellino (Passo 4, con l'interruttore su Modellino) e ritagliatele.</li>
+        <li>Tracciate le dime del modellino (sezione Pezzi, su Modellino) e ritagliatele.</li>
         <li>Con le dime ricalcate tutti i pezzi sul cartoncino: <span id="mCount"></span>.</li>
         <li>Scrivete su ogni pezzo il suo codice (per esempio <span class="pid">P1-1</span>) e le lettere agli angoli.</li>
-        <li>Unite i pezzi con lo scotch seguendo l'elenco delle giunzioni del Passo 6, nello stesso ordine.</li>
+        <li>Unite i pezzi con lo scotch seguendo l'elenco delle giunzioni del montaggio, nello stesso ordine.</li>
       </ol>
     </div>
   </div>
   <div class="s3-pane" data-s3p="model">
-    <p class="hint" id="modelIntro"></p>
+    <p class="hint" id="modelIntro" hidden></p>
+    <div class="modelref">
+              <span class="flabel">Trovate la scala dal modellino</span>
+              <div class="fields">
+                <div class="field"><label for="modelRef">Misura</label><select id="modelRef"></select></div>
+                <div class="field"><label for="modelCm">Sul modellino (cm)</label><input id="modelCm" type="number" step="any" min="0.1"></div>
+              </div>
+              <p class="hint" id="modelNote"></p>
+            </div>
   <figure class="mat b-net">
     <div class="seambar">
       <div class="legend">
@@ -1001,7 +1004,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
       <div class="btnrow"><button type="button" class="btn" id="zoomNet">Ingrandisci</button><button type="button" class="btn primary" id="stampaNet">Stampa il cartamodello</button></div>
     </div>
     <div class="svgbox netwrap" id="netwrap"><svg id="net" role="img" aria-label="Sviluppo piano della forma con codici dei pezzi, linee di taglio, pieghe e numeri delle giunzioni."></svg></div>
-    <figcaption id="netCap"></figcaption>
+    <figcaption id="netCap" hidden></figcaption>
   </figure>
     <details class="more"><summary>Come si costruisce il modellino <span class="hint">ritagliare, piegare, chiudere con lo scotch</span></summary>
       <div class="more-body">
@@ -1065,7 +1068,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
 </section>
 
 <hr>
-<footer>Calcoli fatti dalla pagina sulla forma scelta. Le misure sono arrotondate al millimetro (bolla reale) e al decimo di millimetro (modellino). Le forme curve sono approssimate con pannelli piani. Prima di tagliare tutta la plastica costruite il modellino: se il modellino si chiude bene, anche la bolla si chiuderà.</footer>
+
 
 </div>
 </div>
@@ -1616,7 +1619,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     setView(); etichetteCampi();
     if (cur) renderPieces();
   }
-  // un rotolo solo, in metri: lo stesso valore per il materiale (Passo 3) e per i pezzi (Passo 4); state.roll è in cm per i pezzi
+  // un rotolo solo, in metri: lo stesso valore per i Materiali e per i pezzi; state.roll è in cm per i pezzi
   function impostaRotolo(v, da) {
     if (!(v >= 0.5 && v <= 20)) return false;
     state.roll = v * 100; for (const id of ["rotolo", "roll"]) if (id !== da) $(id).value = v;
@@ -1642,7 +1645,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
   }
   $("resetSteps").addEventListener("click", () => azzera(shapeKey() + "|step", ["spunta", "spunte"], renderPieces));
   $("resetSeams").addEventListener("click", () => azzera(shapeKey() + "|seam", ["giunzione", "giunzioni"], renderSeams));
-  // il Passo 2 segue la scelta della pagina; a richiesta mostra insieme le due misure (ricordato in questo browser)
+  // i Numeri seguono la scelta della pagina; a richiesta mostra insieme le due misure (ricordato in questo browser)
   function setView() { $("misure").dataset.view = "real"; }   // [Semplice] i numeri della sezione 1 sono della bolla vera
   $("viewBoth").addEventListener("change", e => { try { localStorage.setItem("bolle|vista", e.target.checked ? "both" : "uno"); } catch (er) { /* solo per questa visita */ } setView(); });
   try { $("viewBoth").checked = localStorage.getItem("bolle|vista") === "both"; if (localStorage.getItem("bolle|unita") === "model") state.mode = "model"; } catch (e) { /* valori predefiniti */ }
@@ -1707,13 +1710,13 @@ details.piece[open] .piece-head canvas.where { display: block; }
     if (r && LIMITI_CONF[r.tipo].every(([k, a, b]) => r.d[k] >= a - 1e-9 && r.d[k] <= b + 1e-9)) return r;
     // forma vera: la mesh già pronta (adattata al pavimento e centrata), al millimetro
     const terra = cur.V.filter(v => v[2] < 1e-4);
-    if (terra.length < 3 || (cur.floorArea || 0) + (cur.open ? 1 : 0) < 0.5) return { no: "Questa forma non appoggia a terra: appoggiatela su una faccia o tagliate la base (Passo 1 → Altre opzioni)." };
+    if (terra.length < 3 || (cur.floorArea || 0) + (cur.open ? 1 : 0) < 0.5) return { no: "Questa forma non appoggia a terra: appoggiatela su una faccia o tagliate la base (Misure bolla → Altre opzioni)." };
     const mm = (x) => Math.round(x * 1000) / 1000;
     return { tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: d.id } };   // off: il configuratore mette le entrate dove le prevede l'Officina
   }
   function renderBridge(ok) {
     if (ok) inviaSim();   // [Semplice] la simulazione segue le misure
-    const a = $("bridgeGo"), b = $("bridgeAdd"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure al Passo 1." };
+    const a = $("bridgeGo"), b = $("bridgeAdd"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure in Misure bolla." };
     if (r.no) { for (const x of [a, b]) { x.setAttribute("aria-disabled", "true"); x.removeAttribute("href"); x.tabIndex = -1; } $("bridgeNote").textContent = r.no; return; }
     const nome = ($("projName").value.trim() || shortName(def())).slice(0, 60), pacco = { v: 1, nome, tipo: r.tipo, d: r.d, src: statoForma() };
     a.href = "configuratore/#officina=" + encodeURIComponent(JSON.stringify(pacco));   // dopo il #: le forme grandi non passano dal server
@@ -1731,7 +1734,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     if (r.tipo !== "officina") return { h: Math.min(2, r.d.H - 0.15) };
     const P = porteOfficina(cur.V, cur.F); return P && { h: Math.max(0, P.h - 0.15) };
   }
-  // quanto lavoro chiede la forma: si vede mentre si sceglie, non al Passo 4
+  // quanto lavoro chiede la forma: si vede mentre si sceglie, non solo nei Pezzi
   function renderCosto() {
     const t = cur.an.types.length, liv = t <= 6 ? "Semplice" : t <= 20 ? "Impegnativa" : "Molto impegnativa", piu = CONSIGLI_TIPI[state.shape];
     $("miniCosto").innerHTML = `<b>${liv}:</b> ${plural(cur.F.length, "pezzo", "pezzi")} di ${plural(t, "tipo", "tipi")}, ${plural(cur.an.seams.length, "giunzione", "giunzioni")}.${t > 20 && piu ? `<span>Per meno lavoro: ${esc(piu)}.</span>` : ""}`;
@@ -1742,11 +1745,11 @@ details.piece[open] .piece-head canvas.where { display: block; }
       ? `La porta sta su una faccia inclinata, dove la bolla è più bassa: con la piramide alta ${mR(A.H)} la porta può essere alta circa ${mR(A.h)}. Per una porta da 1,80 m (si passa in piedi) la piramide dev'essere alta almeno 3,30 m: è anche il minimo dell'Abbofficina, che altrimenti la alza da sola.`
       : `La porta${dove} può essere alta al massimo ${mR(A.h)}: si misura 30 cm dentro la porta, e sopra la soglia non ci deve essere un soffitto più basso. Per una porta da 1,80 m (si passa in piedi) alzate la bolla o aumentate le misure: l'Abbofficina la ingrandirebbe da sola.`;
     $("avvisoPorta").hidden = !basso; $("avvisoPorta").textContent = t;
-    $("heroPorta").textContent = basso ? "Per una porta da 1,80 m serve più altezza: si sistema al Passo 2." : ""; $("heroPorta").hidden = !basso || inVetrina();
+    $("heroPorta").textContent = basso ? "Per una porta da 1,80 m serve più altezza: lo spiega Misure bolla → Numeri." : ""; $("heroPorta").hidden = !basso || inVetrina();
     // tante sagome diverse vogliono dire tanto lavoro: si dice quali scelte di questa forma le riducono
     const nt = cur.an.types.length, piu = CONSIGLI_TIPI[d.id], molti = nt > 40;
     $("consiglioTipi").hidden = !molti;
-    if (molti) $("consiglioTipi").textContent = `Questa forma ha ${nt} tipi di pezzo diversi: ogni tipo è una sagoma da tracciare a parte. Per meno lavoro: ${piu ? piu + ", oppure " : ""}meno lati o meno spicchi al Passo 1.`;
+    if (molti) $("consiglioTipi").textContent = `Questa forma ha ${nt} tipi di pezzo diversi: ogni tipo è una sagoma da tracciare a parte. Per meno lavoro: ${piu ? piu + ", oppure " : ""}meno lati o meno spicchi in Misure bolla.`;
   }
   const CONSIGLI_TIPI = { foto: "abbassate il Dettaglio del contorno", pera: "scegliete la Forma «Dritta»", scolo: "scegliete il Corpo «Dritto»", balena: "togliete le pinne", tarta: "accorciate collo, zampe e coda" };
 
@@ -1933,7 +1936,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
       const many = walls.length > 6;
       walls.forEach(({ t, i }) => {
         const nm = pieceName(t.C), tag = `${isRoof(t) ? "Tetto · " : ""}Pezzo ${i + 1} · ${nm} × ${t.faces.length - t.floors}`;
-        if (many) { lensRow(`${tag}: lati`, lens(t.C), "Le altezze per tracciarlo sono nella sua scheda al Passo 4."); return; }
+        if (many) { lensRow(`${tag}: lati`, lens(t.C), "Le altezze per tracciarlo sono nella sua scheda, nella sezione Pezzi."); return; }
         if (!oneLen) lensRow(`${tag}: lati`, lens(t.C), "Le misure dei lati da tracciare.");
         const simple = walls.length === 1 && /triangolo/.test(nm);
         len(simple ? "Altezza dei triangoli" : `${tag}: altezza`, maxY(t.C), "Dal lato AB al punto più lontano: serve per tracciarlo.");
@@ -1974,7 +1977,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     if (fw.length) out.push(`<strong>Pavimento e pareti</strong><br>Angolo di <span class="num">${fw.slice(0, 6).join("°, ")}°</span>${fw.length > 6 ? " e altri" : ""}. Sopra 90° la parete si apre verso l'esterno, sotto 90° rientra.`);
     if (ww.length) {
       const mn = Math.min(...ww), mx = Math.max(...ww);
-      out.push(Math.abs(mx - mn) < 0.05 ? `<strong>Fra i pannelli</strong><br>L'angolo è sempre <span class="num">${fmt(mn, 1)}°</span>: se usate un telaio, i nodi sono tutti uguali.` : `<strong>Fra i pannelli</strong><br>L'angolo va da <span class="num">${fmt(mn, 1)}°</span> a <span class="num">${fmt(mx, 1)}°</span>. Il valore di ogni giunzione è nel Passo 6.${mx > 180.05 ? " Sopra 180° la forma rientra e la giunzione si piega verso l'interno." : ""}`);
+      out.push(Math.abs(mx - mn) < 0.05 ? `<strong>Fra i pannelli</strong><br>L'angolo è sempre <span class="num">${fmt(mn, 1)}°</span>: se usate un telaio, i nodi sono tutti uguali.` : `<strong>Fra i pannelli</strong><br>L'angolo va da <span class="num">${fmt(mn, 1)}°</span> a <span class="num">${fmt(mx, 1)}°</span>. Il valore di ogni giunzione è nel montaggio.${mx > 180.05 ? " Sopra 180° la forma rientra e la giunzione si piega verso l'interno." : ""}`);
     }
     const fpts = [];
     cur.F.forEach((f, i) => { if (cur.floor[i]) f.forEach(j => fpts.push([cur.V[j][0], cur.V[j][1]])); });
@@ -2029,7 +2032,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
       `Porte: per ogni porta una cerniera (zip) di almeno <span class="num">1,9 m</span>, su un taglio verticale nel pannello della porta, con una striscia di nastro di rinforzo ai due lati del taglio. La bolla dev'essere alta almeno 1,95 m in quel punto.`,
       `Un pavimento pulito e piano più grande del pezzo più lungo (<span class="num">${cmR(big)}</span>).`,
     ].map(t => `<li>${t}</li>`).join("");
-    $("mCount").textContent = an.types.length > 6 ? `${plural(cur.F.length, "pezzo", "pezzi")} in tutto, di ${plural(an.types.length, "tipo", "tipi")}: quanti per tipo è scritto al Passo 4` : an.types.map((t, i) => `${t.faces.length} del pezzo ${i + 1}`).join(", ");
+    $("mCount").textContent = an.types.length > 6 ? `${plural(cur.F.length, "pezzo", "pezzi")} in tutto, di ${plural(an.types.length, "tipo", "tipi")}: quanti per tipo è scritto nella sezione Pezzi` : an.types.map((t, i) => `${t.faces.length} del pezzo ${i + 1}`).join(", ");
   }
 
   /* ---------- pezzi ---------- */
@@ -2253,7 +2256,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     svg.innerHTML = s + lines + labels;
     const nIs = islands.length, cutSeams = an.seams.filter(sm => !tree.has(sm.key)).length;
     $("modelIntro").textContent = `Scala 1:${fmt(sc, 0)}: ogni misura è ${fmt(sc, 0)} volte più piccola di quella vera.${nIs === 1 ? "" : ` Lo sviluppo è diviso in ${nIs} gruppi, perché in un unico foglio si sovrapporrebbe.`}`;
-    $("netCap").innerHTML = `Ingombro di tutti i gruppi affiancati: circa <span class="num">${fmt(W * U, 0)} × ${fmt(Htot * U, 0)} cm</span>. Il disegno non è in scala 1:1: le misure giuste sono nel Passo 4. ${plural(cutSeams, "bordo da chiudere", "bordi da chiudere")} con lo scotch, con gli stessi numeri delle giunzioni del Passo 6. Le lettere piccole sono quelle degli angoli; i colori sono i tipi di pezzo.`;
+    $("netCap").innerHTML = `Ingombro di tutti i gruppi affiancati: circa <span class="num">${fmt(W * U, 0)} × ${fmt(Htot * U, 0)} cm</span>. Il disegno non è in scala 1:1: le misure giuste sono nella sezione Pezzi. ${plural(cutSeams, "bordo da chiudere", "bordi da chiudere")} con lo scotch, con gli stessi numeri delle giunzioni del montaggio. Le lettere piccole sono quelle degli angoli; i colori sono i tipi di pezzo.`;
   }
 
   /* ---------- montaggio ---------- */
@@ -2616,7 +2619,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     $("heroPorta").hidden = altra || !$("heroPorta").textContent;
     $("heroHint").textContent = altra ? "Toccate la figura per scegliere questa forma, o aspettate la prossima." : "Trascinate per girarla · toccate un pannello per vedere il suo pezzo.";
     views.hero.cv.setAttribute("aria-label", `Vista 3D: ${sd ? shortName(sd) : "forma"}, con quote e una persona alta 1,75 m per confronto. ` +
-      (inVetrina() ? "Toccate per scegliere questa forma." : "Trascinate per ruotarla, toccate un pannello per andare al suo pezzo. L'elenco dei pezzi è al Passo 4."));
+      (inVetrina() ? "Toccate per scegliere questa forma." : "Trascinate per ruotarla, toccate un pannello per andare al suo pezzo. L'elenco dei pezzi è nella sezione Pezzi."));
   }
   function avantiVetrina() {
     const ids = SHAPES.map(x => x.id), da = ids.indexOf(inVetrina() ? vetrina.id : state.shape);
@@ -2872,7 +2875,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
   // una forma salvata che l'Officina non ha più (tolta dall'elenco): lo si dice, invece di "file non valido"
   function formaTolta(p) {
     const id = p && typeof p.shape === "string" ? p.shape.replace(/[^\w-]/g, "").slice(0, 30) : "";
-    return id && !SHAPES.some(s => s.id === id) ? `La forma «${id}» non c'è più nell'Officina, quindi non si può riaprire. Scegliete un'altra forma dal Passo 1.` : "";
+    return id && !SHAPES.some(s => s.id === id) ? `La forma «${id}» non c'è più nell'Officina, quindi non si può riaprire. Scegliete un'altra forma in «Scegli forma».` : "";
   }
   function loadProject(p) {
     if (!applyState(p)) { const t = formaTolta(p); if (t) projStatus(t); return; }
@@ -3023,11 +3026,15 @@ details.piece[open] .piece-head canvas.where { display: block; }
   }
   document.addEventListener("keydown", e => { if (e.key === "Escape" && $("rqSim").classList.contains("grande")) grandeSim(false); });
   // materiali della bolla vera: le scelte vanno alla simulazione, che rimanda la lista con i prezzi
-  const opzioni = (sel, l, v) => { sel.innerHTML = l.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join(""); sel.value = v; };
+  const opzioni = (sel, l, v) => { sel.innerHTML = l.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join(""); sel.value = v; if (sel.selectedIndex < 0) sel.value = l.some(([k]) => k === "cerniera") ? "cerniera" : l[0][0]; };
   function mostraMateriali(m) {
+    const via = ["cernieraImp", "cernieraStagna"];   // [Semplice] tra le chiusure restano zip e velcro
+    m = { ...m, opz: { ...m.opz, porte: m.opz.porte.filter(([k]) => !via.includes(k)), giunti: m.opz.giunti.filter(([k]) => !via.includes(k)) } };
+    if (via.includes(m.D.porte) || via.includes(m.D.coll) || via.includes(m.D.giunti)) setTimeout(() => $("mPorte").dispatchEvent(new Event("change")), 0);   // una composizione vecchia passa alla zip
     if (!sim.opz) { sim.opz = m.opz; opzioni($("mTelo"), m.opz.mat, m.D.mat); opzioni($("mGiunti"), m.opz.giunti, m.D.giunti); opzioni($("mPorte"), m.opz.porte, m.D.porte); opzioni($("mColl"), m.opz.porte, m.D.coll); }
     const D = m.D, metti = (id, v) => { const el = $(id); if (document.activeElement !== el) el.value = v; };
     metti("mTelo", D.mat); metti("mGsm", D.gsm); metti("mGiunti", D.giunti); metti("mAdW", D.adW); metti("mAdL", String(D.adLati > 1 ? 2 : 1)); metti("mPorte", D.porte); metti("mColl", D.coll);
+    for (const id of ["mGiunti", "mPorte", "mColl"]) if ($(id).selectedIndex < 0) $(id).value = "cerniera";
     $("mNastroF").hidden = $("mLatiF").hidden = D.giunti !== "adesivo";
   }
   for (const id of ["mTelo", "mGsm", "mGiunti", "mAdW", "mAdL", "mPorte", "mColl"]) $(id).addEventListener("change", () => {
@@ -3038,11 +3045,12 @@ details.piece[open] .piece-head canvas.where { display: block; }
   function mostraLista(m) {
     const tb = $("listaRighe"); if (tb.contains(document.activeElement)) return;   // si sta scrivendo un prezzo: si aggiorna dopo
     const q = r => r.u === "pz" ? fmt(r.q, 0) : fmt(r.q, r.q < 20 ? 1 : 0);
+    m = { ...m, righe: m.righe.filter(r => r.id !== "energia") }; m.totale = m.righe.reduce((t, r) => t + (r.tot || 0), 0); m.mancano = m.righe.filter(r => r.tot == null).length;   // [Semplice] l'energia resta nella simulazione
     tb.innerHTML = m.righe.map(r => (r.sez ? `<tr class="sez"><td colspan="4">${esc(r.sez)}</td></tr>` : "")
       + `<tr><td>${esc(r.nome)}${r.dove ? `<small>${esc(r.dove)}</small>` : ""}</td><td class="dx num">${q(r)} ${esc(r.u)}</td>`
       + `<td class="dx"><input type="number" min="0" step="0.01" inputmode="decimal" data-id="${esc(r.id)}" value="${r.prezzo ?? ""}" placeholder="€" aria-label="Prezzo per ${esc(r.u)}: ${esc(r.nome)}"><small>€/${esc(r.u)}</small></td>`
       + `<td class="dx num">${r.tot == null ? "—" : euro(r.tot)}</td></tr>`).join("");
-    $("listaTot").textContent = m.totale > 0 ? euro(m.totale) : "";
+    $("listaTot").textContent = m.totale > 0 ? "Totale materiali " + euro(m.totale) : "";
     $("listaNota").textContent = m.mancano ? `Mancano ${m.mancano === 1 ? "un prezzo" : m.mancano + " prezzi"}: scriveteli nella colonna Prezzo. Sono gli stessi della simulazione.` : "Tutte le voci hanno un prezzo. Sono gli stessi della simulazione.";
   }
   $("listaRighe").addEventListener("change", e => { const i = e.target.closest("input[data-id]"); if (i) aSim({ tipo: "prezzo", id: i.dataset.id, v: i.value === "" ? "" : +i.value }); });
@@ -3065,7 +3073,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     const on = navLinks[idx], nav = $("stepsNav");
     nav.scrollLeft = on.offsetLeft - nav.offsetLeft - nav.clientWidth / 2 + on.clientWidth / 2;
     if (!stepIniziale) secs[idx].scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });   // [Semplice] le sezioni sono tutte nella pagina: si scorre fino a quella
-    if (!stepIniziale) { const h = secs[idx].querySelector("h2"); h.tabIndex = -1; h.focus({ preventScroll: true }); $("annuncio").textContent = `Passo ${idx + 1} di ${secs.length}: ${h.textContent}`; }
+    if (!stepIniziale) { const h = secs[idx].querySelector("h2"); h.tabIndex = -1; h.focus({ preventScroll: true }); $("annuncio").textContent = `Sezione ${idx + 1} di ${secs.length}: ${h.textContent}`; }
     stepIniziale = false;
     // i disegni dei passi nascosti avevano misura zero: si ridisegnano ora che si vedono
     requestAnimationFrame(() => { if (!cur) return; drawAll(); if (sid === "forma") SHAPES.forEach(s => drawThumb(s.id)); });
@@ -3139,7 +3147,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     const k = +da.ingrandita, rit = Array.isArray(da.ritocchi) ? da.ritocchi.filter(x => typeof x === "string").slice(0, 6) : [];
     if (!(k > 1.001) && !rit.length) return;
     $("avvisoConfT").textContent = k > 1.001
-      ? `Nell'Abbofficina questa forma è stata ingrandita ×${fmt(k, 2)} perché le porte siano alte almeno 1,80 m. Qui le misure sono ancora quelle originali: per costruire quella dell'Abbofficina ingranditela (Adatta a un pavimento più grande, o misure più grandi al Passo 1).`
+      ? `Nell'Abbofficina questa forma è stata ingrandita ×${fmt(k, 2)} perché le porte siano alte almeno 1,80 m. Qui le misure sono ancora quelle originali: per costruire quella dell'Abbofficina ingranditela (Adatta a un pavimento più grande, o misure più grandi al Misure bolla → Altre opzioni).`
       : `Nell'Abbofficina alcune misure di questa forma sono state cambiate: ${rit.join(", ")}. Qui sono ancora quelle originali.`;
     $("avvisoConf").hidden = false;
   }
@@ -3159,9 +3167,9 @@ details.piece[open] .piece-head canvas.where { display: block; }
     catch (err) { projStatus(formaTolta(j) || `Il file ${f.name} non contiene una forma dell'Officina.`); }
   });
   /* ---------- bolla da un'immagine: la finestra (scontorno, lettura, anteprima, giudizio) sta in immagine.js;
-     qui il riquadro del Passo 1, il testo della scheda e che cosa fare con la forma scelta ---------- */
+     qui il riquadro della sezione 1, il testo della scheda e che cosa fare con la forma scelta ---------- */
   function fotoAbout(p) {
-    const es = impronta(p.sag) === impronta(FOTO_ESEMPIO) ? " Per ora è un vaso d'esempio: caricate la vostra immagine con il riquadro «Crea una bolla da un'immagine», in cima al Passo 1." : "";
+    const es = impronta(p.sag) === impronta(FOTO_ESEMPIO) ? " Per ora è un vaso d'esempio: caricate la vostra immagine con il riquadro «Oppure partite da un'immagine», sotto le forme." : "";
     return ({
       tonda: "Questa bolla viene dalla vostra immagine, letta come un oggetto tondo visto di lato: la sua larghezza a ogni altezza diventa il giro della bolla, fatto di fasce di trapezi tutti uguali.",
       sagoma: "Questa bolla viene dalla vostra immagine, letta come una sagoma vista di lato: il contorno fa le due facce, davanti e dietro, unite da strisce dritte larghe quanto lo spessore.",
@@ -3215,62 +3223,49 @@ details.piece[open] .piece-head canvas.where { display: block; }
     el.classList.add("trovato"); clearTimeout(el._trovato); el._trovato = setTimeout(() => el.classList.remove("trovato"), 1800);
     if (/^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(el.tagName)) el.focus({ preventScroll: true });
   }
-  const nelPasso = (id, f) => () => { if (document.body.dataset.step !== id) goStep(id); if (f) f(); };   // showStep cambia passo e torna in cima subito: si può proseguire
+  const nelPasso = (id, f) => () => { goStep(id); if (f) f(); };   // [Semplice] goStep scorre fino alla sezione o apre il riquadro giusto   // showStep cambia passo e torna in cima subito: si può proseguire
   const apriDettagli = (el) => { if (el) { el.open = true; evidenzia(el); } };
   const sezioneCon = (id) => { const el = $(id); return el && el.closest("details"); };
   function vociCerca() {
     const V = [], add = (t, s, f, k, base) => V.push({ t, s, f, base, k: normCerca(t + " " + s + " " + (k || "")) });
-    // i sei passi e l'Abbofficina
-    [["forma", "1 · Forma", "scegli la forma misure"], ["misure", "2 · Numeri", "controlla misure porta altezza"], ["prepara", "3 · Materiale", "telo rotolo comprare"],
-      ["pezzi", "4 · Pezzi", "traccia dime cartamodello"], ["modellino", "5 · Modellino", "cartoncino sviluppo scala"], ["montaggio", "6 · Montaggio", "giunzioni monta unisci"]]
-      .forEach(([id, t, k]) => add(t, "Passo", nelPasso(id), k, 1));
+    // [Semplice] le tre sezioni e i riquadri principali
+    [["forma", "Officina · Scegli forma", "scegli la forma"], ["misure", "Misure bolla · Numeri", "controlla misure porta altezza"], ["rqSim", "Simulazione", "abbofficina gonfiatori aria persone prova"], ["prepara", "Materiali bolla vera", "telo rotolo comprare"],
+      ["rqLista", "Lista materiali e prezzi", "prezzi budget costi comprare"], ["pezzi", "Pezzi", "traccia dime"], ["modellino", "Cartamodello", "cartoncino sviluppo scala stampa"], ["montaggio", "Montaggio", "giunzioni monta unisci"]]
+      .forEach(([id, t, k]) => add(t, "Sezione", nelPasso(id), k, 1));
     add("Abbofficina", "Più bolle, aria, persone e costi", () => $("vaiConf").click(), "simulazione aria pressione configuratore", 1);
-    add("Porta la forma nell'Abbofficina", "Passo 2 · Numeri", () => $("bridgeGo").click(), "prova simulazione aria");
-    add("Aggiungi alla composizione aperta", "Passo 2 · Numeri", () => $("bridgeAdd").click(), "abbofficina altre bolle");
-    add("Crea una bolla da un'immagine", "Passo 1 · Forma", nelPasso("forma", () => evidenzia($("fotoCarica"))), "foto immagine disegno schizzo carica sagoma contorno reference");
+    add("Crea una bolla da un'immagine", "Officina · Scegli forma", nelPasso("forma", () => evidenzia($("fotoCarica"))), "foto immagine disegno schizzo carica sagoma contorno reference");
     // le forme
     SHAPES.forEach(sh => add(sh.name, "Forma · " + sh.group, nelPasso("forma", () => { fermaVetrina(); selectShape(sh.id); evidenzia(document.querySelector(`#gallery [data-id="${sh.id}"]`)); }), "scegli forma"));
     // le misure della forma scelta e le altre opzioni del passo 1
     def().params.filter(p => p.type !== "pts" && p.type !== "sagoma" && (!p.when || p.when(state.params)) && !(metaDi(def().id).quando && metaDi(def().id).quando[p.key] && !metaDi(def().id).quando[p.key](state.params))).forEach(p => add(p.label, "Misura · " + def().name, nelPasso("forma", () => evidenzia($("p_" + p.key))), "misura dimensione"));
-    if (def().params.some(p => p.type === "pts")) add("Disegnate la pianta", "Passo 1 · Forma", nelPasso("forma", () => evidenzia($("planEditor"))), "punti griglia pianta");
-    add("Adatta la forma a un pavimento", "Passo 1 · Pavimento", nelPasso("forma", () => evidenzia($("fit"))), "area pavimento m2");
-    add("Area del pavimento", "Passo 1 · Pavimento", nelPasso("forma", () => evidenzia($("fitArea"))), "m2 metri quadri");
-    add("Altre opzioni", "Passo 1 · Forma", nelPasso("forma", () => apriDettagli($("moreOpts"))), "base orientamento taglio appoggio");
-    add("Misure del modellino in cm", "Passo 1 · Misure", nelPasso("forma", () => { evidenzia($("unita")); }), "scala inversa dal modellino alla bolla vera centimetri");
-    add("Trovate la scala dal modellino", "Passo 1 · Altre opzioni", nelPasso("forma", () => { $("moreOpts").open = true; evidenzia($("modelRef")); }), "misura sul modellino cm");
-    add("Scala del modellino", "Passo 1 · Misure", nelPasso("forma", () => { evidenzia($("scale")); }), "1:20 rapporto");
-    add("Progetti del gruppo", "Passo 1 · Forma", nelPasso("forma", () => apriDettagli($("projects"))), "salva riapri progetto");
-    add("Salva su file", "Progetti", nelPasso("forma", () => { $("projects").open = true; $("projFileSave").click(); }), "scarica json progetto");
-    add("Apri da file", "Progetti", nelPasso("forma", () => { $("projects").open = true; $("projFileOpen").click(); }), "carica json progetto");
-    // passo 2
-    [["both", "Mostra entrambe le misure"], ["real", "Mostra le misure della bolla vera"], ["model", "Mostra le misure del modellino"]]
-      .forEach(([v, t]) => add(t, "Passo 2 · Numeri", nelPasso("misure", () => setView(v)), "misure vista"));
-    add("Tutte le misure", "Passo 2 · Numeri", nelPasso("misure", () => apriDettagli(sezioneCon("tbl"))), "tabella grandezze");
-    add("Consigli per la bolla vera", "Passo 2 · Numeri", nelPasso("misure", () => apriDettagli(sezioneCon("realNotes"))), "stabilità angoli aperture");
-    // passo 3
-    add("Larghezza del rotolo di telo", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("rotolo"))), "metri comprare strisce");
-    add("Materiale per la bolla vera", "Passo 3 · Materiale", nelPasso("prepara", () => evidenzia($("matReal").closest(".box"))), "telo plastica comprare");
-    // passo 4
+    if (def().params.some(p => p.type === "pts")) add("Disegnate la pianta", "Misure bolla", nelPasso("planEditor", () => evidenzia($("planEditor"))), "punti griglia pianta");
+    add("Adatta la forma a un pavimento", "Misure bolla · Altre opzioni", nelPasso("fit", () => evidenzia($("fit"))), "area pavimento m2");
+    add("Area del pavimento", "Misure bolla · Altre opzioni", nelPasso("fitArea", () => evidenzia($("fitArea"))), "m2 metri quadri");
+    add("Altre opzioni", "Misure bolla", nelPasso("moreOpts"), "base orientamento taglio appoggio");
+    add("Trovate la scala dal modellino", "Cartamodello", nelPasso("modellino", () => { setS3("model"); evidenzia($("modelRef")); }), "misura sul modellino cm");
+    add("Scala del modellino", "Pezzi e Cartamodello", nelPasso("pezzi", () => { setMode("model"); evidenzia($("scale")); }), "1:20 rapporto");
+    add("Salva e riapri", "Officina", nelPasso("projects", () => apriDettagli($("projects"))), "salva riapri progetto");
+    add("Salva su file", "Progetti", nelPasso("projects", () => { $("projects").open = true; $("projFileSave").click(); }), "scarica json progetto");
+    add("Apri da file", "Progetti", nelPasso("projects", () => { $("projects").open = true; $("projFileOpen").click(); }), "carica json progetto");
+    add("Consigli per la bolla vera", "Misure bolla · Numeri", nelPasso("realNotes", () => apriDettagli(sezioneCon("realNotes"))), "stabilità angoli aperture");
+    add("Larghezza del rotolo di telo", "Materiali bolla vera", nelPasso("prepara", () => evidenzia($("rotolo"))), "metri comprare strisce");
+    add("Telo e attrezzi per tracciare e tagliare", "Materiali bolla vera", nelPasso("prepara", () => apriDettagli($("matReal").closest("details"))), "telo plastica comprare");
     add("Misure per il modellino", "Tutta la pagina", nelPasso("pezzi", () => setMode("model")), "cartoncino scala");
     add("Misure per la bolla vera", "Tutta la pagina", nelPasso("pezzi", () => setMode("real")), "plastica telo reale");
-    add("Margine per saldare o cucire", "Passo 4 · Pezzi", nelPasso("pezzi", () => { if (!isReal()) setMode("real"); evidenzia($("margin")); }), "cm bordo");
-    add("Larghezza del rotolo (pezzi)", "Passo 4 · Pezzi", nelPasso("pezzi", () => { if (!isReal()) setMode("real"); evidenzia($("roll")); }), "metri telo");
-    add("Modalità cantiere dei pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("sitePieces").click()), "schermo intero telefono tracciare");
-    add("Apri tutti i pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("openAll").click()), "espandi");
-    add("Chiudi tutti i pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => $("closeAll").click()), "comprimi");
-    add("Azzera le spunte dei pezzi", "Passo 4 · Pezzi", nelPasso("pezzi", () => { const m = $("resetSteps").closest("details"); if (m) m.open = true; evidenzia($("resetSteps")); }), "cancella reset");
-    add("Come si traccia un pezzo senza compasso", "Passo 4 · Pezzi", nelPasso("pezzi", () => apriDettagli(sezioneCon("rule345"))), "metodo regola 3-4-5 speculari due metri");
-    if (cur && cur.an) cur.an.types.forEach((t, i) => add(`Pezzo ${i + 1}: ${pieceName(t.C)}`, "Passo 4 · Pezzi · × " + t.faces.length, () => goToPiece(i), "pezzo tipo dima P" + (i + 1)));
-    // passo 5
-    add("Modellino a pezzi separati", "Passo 5 · Modellino", nelPasso("modellino", () => setBuild("pieces")), "cartoncino dime");
-    add("Modellino con lo sviluppo", "Passo 5 · Modellino", nelPasso("modellino", () => { setBuild("net"); evidenzia($("netwrap")); }), "ritagliare piegare stampa");
-    add("Ingrandisci lo sviluppo", "Passo 5 · Modellino", nelPasso("modellino", () => { setBuild("net"); $("zoomNet").click(); }), "zoom");
-    // passo 6
-    add("Modalità cantiere delle giunzioni", "Passo 6 · Montaggio", nelPasso("montaggio", () => $("siteSeams").click()), "schermo intero telefono montare");
-    add("Elenco di tutte le giunzioni", "Passo 6 · Montaggio", nelPasso("montaggio", () => apriDettagli(sezioneCon("seams"))), "tabella cuciture");
-    add("Azzera le giunzioni", "Passo 6 · Montaggio", nelPasso("montaggio", () => { $("seams").closest("details").open = true; evidenzia($("resetSeams")); }), "cancella reset");
-    add("Come si monta", "Passo 6 · Montaggio", nelPasso("montaggio", () => apriDettagli([...document.querySelectorAll("#montaggio details.more")].pop())), "ordine lettere saldatura nastro unire plastica");
-    if (cur && cur.an) cur.an.seams.forEach(s => add("Giunzione " + s.no, "Passo 6 · Montaggio", nelPasso("montaggio", () => { selectSeam(s.no); evidenzia($("nextSeam")); }), "cucitura unione"));
+    add("Margine per saldare o cucire", "Pezzi", nelPasso("pezzi", () => { if (!isReal()) setMode("real"); evidenzia($("margin")); }), "cm bordo");
+    add("Modalità cantiere dei pezzi", "Pezzi", nelPasso("pezzi", () => $("sitePieces").click()), "schermo intero telefono tracciare");
+    add("Apri tutti i pezzi", "Pezzi", nelPasso("pezzi", () => $("openAll").click()), "espandi");
+    add("Chiudi tutti i pezzi", "Pezzi", nelPasso("pezzi", () => $("closeAll").click()), "comprimi");
+    add("Azzera le spunte dei pezzi", "Pezzi", nelPasso("pezzi", () => { const m = $("resetSteps").closest("details"); if (m) m.open = true; evidenzia($("resetSteps")); }), "cancella reset");
+    add("Come si traccia un pezzo senza compasso", "Pezzi", nelPasso("pezzi", () => apriDettagli(sezioneCon("rule345"))), "metodo regola 3-4-5 speculari due metri");
+    if (cur && cur.an) cur.an.types.forEach((t, i) => add(`Pezzo ${i + 1}: ${pieceName(t.C)}`, "Pezzi · × " + t.faces.length, () => goToPiece(i), "pezzo tipo dima P" + (i + 1)));
+    add("Cartamodello da stampare", "Cartamodello", nelPasso("modellino", () => { setS3("model"); evidenzia($("netwrap")); }), "sviluppo ritagliare piegare stampa");
+    add("Ingrandisci lo sviluppo", "Cartamodello", nelPasso("modellino", () => { setS3("model"); $("zoomNet").click(); }), "zoom");
+    add("Modalità cantiere delle giunzioni", "Montaggio", nelPasso("montaggio", () => $("siteSeams").click()), "schermo intero telefono montare");
+    add("Elenco di tutte le giunzioni", "Montaggio", nelPasso("montaggio", () => apriDettagli(sezioneCon("seams"))), "tabella cuciture");
+    add("Azzera le giunzioni", "Montaggio", nelPasso("montaggio", () => { $("seams").closest("details").open = true; evidenzia($("resetSeams")); }), "cancella reset");
+    add("Come si monta", "Montaggio", nelPasso("montaggio", () => apriDettagli([...document.querySelectorAll("#montaggio details.more")].pop())), "ordine lettere saldatura nastro unire plastica");
+    if (cur && cur.an) cur.an.seams.forEach(s => add("Giunzione " + s.no, "Montaggio", nelPasso("montaggio", () => { selectSeam(s.no); evidenzia($("nextSeam")); }), "cucitura unione"));
     // vista 3D
     add("Persona da 1,75 m", "Vista 3D", () => evidenzia($("optPerson")), "sonny confronto altezza");
     add("Colora per tipo di pezzo", "Vista 3D", () => evidenzia($("optColors")), "colori");

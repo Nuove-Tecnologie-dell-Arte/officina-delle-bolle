@@ -46,3 +46,13 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - Eliminata `guida.html`, la guida per cominciare: con la pagina semplice non serve più una seconda pagina. Con lei sono andati il riquadro «Prima volta qui? Apri la guida» e il link «Nuovi del progetto? Cominciate dalla guida passo passo» sotto il titolo (e il loro codice e stile). `motore.js` e `immagine.js` non cambiano: li usano la pagina e l'Abbofficina.
 - Tolti dai Materiali bolla vera «Per il modellino» (`#matModel`, anche dalla ricerca) e «L'ordine del lavoro». Resta «Telo e attrezzi per tracciare e tagliare».
 - In «Misure bolla» l'anteprima 3D sta sopra le schede (`.rq-forma`), quindi la forma resta in vista anche in Numeri e in Altre opzioni.
+
+## Meno testo, e niente più «Passi»
+
+- **I vecchi passi**: tolti tutti i «Passo 1…6» rimasti nei testi (avvisi, consigli, messaggi sulla forma, annuncio per lo screen reader) e nella barra di ricerca, che ora parla di Scegli forma, Misure bolla, Numeri, Materiali, Pezzi, Cartamodello e Montaggio. `nelPasso` usa `goStep`, che apre anche la scheda o il riquadro giusto. Tolte dalla ricerca le voci di cose che non ci sono più (portare la forma nell'Abbofficina, le viste bolla / modellino / insieme, la tabella di tutte le misure, il modellino a pezzi separati, il secondo campo del rotolo).
+- **Misure bolla**: via i cerchietti 1, 2, 3 dei vecchi blocchi e il titolo «Altre opzioni» ripetuto dentro la scheda Altre opzioni. «Trovate la scala dal modellino» sta ora nella sezione 3, sotto lo sviluppo.
+- **In alto**: via «Persona da 1,75 m», «Colora per tipo di pezzo» e «Trascinate per girarla…» (la persona resta sempre). Nel riquadro dell'immagine restano titolo e pulsante.
+- **Lista materiali e prezzi**: senza l'energia elettrica (resta nella simulazione); il totale è «Totale materiali».
+- **Materiali**: tra porte e collegamenti restano Zip e Velcro (zip impermeabile e stagna solo nella simulazione; una composizione che le usava passa alla zip).
+- **Rotolo**: solo in Materiali bolla vera; nei Pezzi il campo è nascosto e segue quello.
+- **Tolti**: la descrizione della forma in fondo alla sezione 1, la riga «Uso… area… nel disegno: dove va» nelle schede chiuse dei pezzi, la frase sulla scala e la didascalia lunga sotto lo sviluppo, la nota finale «Calcoli fatti dalla pagina…».
