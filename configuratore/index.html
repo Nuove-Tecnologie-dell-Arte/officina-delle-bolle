@@ -86,6 +86,14 @@
   #scena { position: relative; min-width: 0; overflow: hidden; touch-action: none; }
   #scena > canvas { display: block; width: 100%; height: 100%; }
   #sovra { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  /* [Officina] i gonfiatori nella scena: etichetta con numero e bolla, e la scheda che si apre toccandoli */
+  .etiG { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; border: 1px solid var(--line); border-radius: 999px; padding: 2px 7px 2px 5px; background: var(--vetro, rgba(255,255,255,.9)); color: var(--fg); font: 700 10.5px/1.2 system-ui, sans-serif; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .etiG i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .etiG.sel { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc); }
+  .popG { position: fixed; z-index: 70; width: 250px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.2); padding: 12px; display: grid; gap: 8px; }
+  .popG h3 { margin: 0; font-size: 14px; } .popG p { margin: 0; }
+  .popG .seg { display: flex; gap: 4px; } .popG .seg button { flex: 1; } .popG .seg button[aria-pressed="true"] { background: var(--acc); border-color: var(--acc); color: #fff; }
+  .popG .bottoni { display: flex; gap: 6px; flex-wrap: wrap; }
   /* [Officina] selezione multipla, maniglia di rotazione, porte + e −, menu del tasto destro */
   #rettSel { position: fixed; z-index: 40; border: 1.5px dashed var(--acc); background: color-mix(in srgb, var(--acc) 10%, transparent); pointer-events: none; }
   .perno { position: absolute; left: 0; top: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--acc); border: 2px solid #fff; pointer-events: none; }
@@ -778,7 +786,7 @@
       <div class="barraScena" id="barraScena" role="group" aria-label="Vista"><span class="gEt">Vista</span><button class="chip" id="bNotte" title="Luci basse: si vedono i fori del soffitto stellato" hidden><!-- [Officina] tolto dalla barra: la notte resta solo per "Guarda il soffitto da dentro" -->Notte</button>
         <button class="chip" id="bStanza" title="Una stanza vera (foto 360° o modello) intorno alle bolle">Stanza</button>
         <button class="chip" id="bOggetti" title="Scansioni 3D e modelli dentro la scena: GLB, OBJ, STL, PLY">Oggetti 3D</button><!-- [Officina] -->
-        <span class="legenda3d"><span><i style="background:var(--gP)"></i>gonfiatore piccolo</span><span><i style="background:var(--gG)"></i>gonfiatore grande</span></span></div>
+        </div><!-- [Officina] la legenda dei gonfiatori non c'è più: ogni gonfiatore ha la sua etichetta nella scena -->
     </div>
 
     <aside class="dx" id="ispettore"></aside>
@@ -1923,8 +1931,8 @@ function costruisciPezzo(p) {
     fg.position.set(base[0] + e.n[0] * 0.8, 0, base[1] + e.n[1] * 0.8); fg.rotation.y = Math.atan2(-e.n[0], -e.n[1]);
     const a = new THREE.Vector3(base[0] + e.n[0] * 0.67, 0.22, base[1] + e.n[1] * 0.67), b = new THREE.Vector3(base[0] + e.n[0] * 0.04, 0.28, base[1] + e.n[1] * 0.04);
     grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a, a.clone().lerp(b, 0.5).setY(0.12), b]), 14, 0.065, 10), matTubo));
-    fg.traverse(o => { if (o.isMesh) o.castShadow = true; });
-    p.g3.fan.push(pale);
+    fg.traverse(o => { if (o.isMesh) { o.castShadow = true; o.userData.gonf = { p, tipo: tipoG, k }; } });   // [Officina] si toccano nella scena
+    p.g3.fan.push(pale); (p.g3.gonf || (p.g3.gonf = [])).push({ g: fg, tipo: tipoG, k });
   }
   if (p.scoppio && !F.mesh) {   // bordi strappati, più scuri: così lo strappo si vede anche sul telo trasparente ([Officina] non sulle forme dell'Officina, che non hanno pareti dritte)
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(2 * 16 * 6), 3));
@@ -3049,6 +3057,47 @@ function cambiaPorta(p, i) {   // [Officina] i bollini + e − accanto ai lati d
   strutturaCambiata(); ispettore(); avviso(k >= 0 ? `Tolta la porta sul lato ${i + 1} di ${p.nome}.` : `Aggiunta una porta a zip sul lato ${i + 1} di ${p.nome}.`, 3000, ['Annulla', annulla]);
 }
 const man = { theta: 0, drag: null };
+// [Officina] gonfiatori numerati in tutta la composizione (G1, G2…, nell'ordine delle bolle) e con il nome della bolla che gonfiano
+function numeroGonf(p, k) { let n = 0; for (const q of pezzi) { if (q === p) return n + k + 1; n += (q.f.grande || 0) + (q.f.piccolo || 0); } return 0; }
+const nomeGonf = (p, k) => 'G' + numeroGonf(p, k) + ' · ' + p.nome;
+const elencoGonf = p => [...Array(p.f.grande || 0).fill('grande'), ...Array(p.f.piccolo || 0).fill('piccolo')];
+let gonfAperto = null;
+function chiudiGonf() { document.getElementById('popG')?.remove(); gonfAperto = null; }
+function apriGonf(p, k, x, y) {   // la scheda del gonfiatore, vicino a dove si è toccato
+  chiudiGonf(); const tipo = elencoGonf(p)[k]; if (!tipo) return; gonfAperto = { p, k };
+  const G = GONF[tipo], d = document.createElement('div'); d.className = 'popG'; d.id = 'popG'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Gonfiatore ' + nomeGonf(p, k));
+  d.innerHTML = `<h3>${esc(nomeGonf(p, k))}</h3><p class="std">${esc(G.nome)} · ${fmt(G.W, 0)} W · ${fmt(G.Q, 0)} m³/h · fino a ${fmt(G.Pmax, 0)} Pa. Gonfia ${esc(p.nome)}.</p>
+    <div class="seg" role="group" aria-label="Modello">${['piccolo', 'grande'].map(t => `<button type="button" data-t="${t}" aria-pressed="${t === tipo}">${t === 'piccolo' ? 'Piccolo' : 'Grande'}</button>`).join('')}</div>
+    <div class="bottoni"><button type="button" data-az="piu">+ Un altro su ${esc(p.nome)}</button><button type="button" data-az="togli" class="del">Togli</button></div>`;
+  document.body.appendChild(d);
+  const r = d.getBoundingClientRect(); d.style.left = clamp(x + 12, 8, innerWidth - r.width - 8) + 'px'; d.style.top = clamp(y - r.height / 2, 8, innerHeight - r.height - 8) + 'px';
+  const fatto = msg => { chiudiGonf(); strutturaCambiata(); if (selezionato === p) ispettore(); avviso(msg, 4000, ['Annulla', annulla]); };
+  d.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { const t = b.dataset.t; if (t === tipo) return; if ((p.f[t] || 0) >= 6) { avviso('Al massimo 6 gonfiatori per tipo su una bolla.', 3000); return; }
+    p.f[tipo]--; p.f[t] = (p.f[t] || 0) + 1; fatto(`${nomeGonf(p, k).split(' · ')[0]} di ${p.nome} ora è un gonfiatore ${t}.`); });
+  d.querySelector('[data-az=piu]').onclick = () => { if ((p.f[tipo] || 0) >= 6) { avviso('Al massimo 6 gonfiatori per tipo su una bolla.', 3000); return; } p.f[tipo]++; fatto(`Aggiunto un gonfiatore ${tipo} a ${p.nome}.`); };
+  d.querySelector('[data-az=togli]').onclick = () => { p.f[tipo]--; fatto(`Tolto ${nomeGonf(p, k).split(' · ')[0]} da ${p.nome}.`); };
+  d.querySelector('button')?.focus();
+}
+document.addEventListener('pointerdown', e => { if (!e.target.closest || (!e.target.closest('#popG') && !e.target.closest('.etiG'))) chiudiGonf(); }, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') chiudiGonf(); });
+function etichetteGonf(w, h) {
+  const sv = $('sovra'), v = new THREE.Vector3(), lista = [];
+  for (const p of pezzi) for (const g of (p.g3 && p.g3.gonf) || []) lista.push({ p, ...g });
+  let el = sv.querySelectorAll('.etiG');
+  const firma = lista.map(x => x.p.id + ':' + x.k + x.tipo).join(',') + '|' + pezzi.map(p => p.nome).join(',');
+  if (sv._firmaG !== firma) {
+    el.forEach(e => e.remove()); sv._firmaG = firma;
+    for (const x of lista) { const d = document.createElement('div'); d.className = 'etiG'; d._x = x; d.setAttribute('role', 'button'); d.tabIndex = 0;
+      d.innerHTML = `<i style="background:${GONF[x.tipo].col}"></i><span>${esc(nomeGonf(x.p, x.k))}</span>`; d.title = `Gonfiatore ${x.tipo} di ${x.p.nome}: toccalo per cambiarlo`;
+      const apri = ev => { ev.stopPropagation(); const r = d.getBoundingClientRect(); apriGonf(x.p, x.k, r.right, r.top + r.height / 2); };
+      d.onclick = apri; d.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); apri(ev); } }; sv.appendChild(d); }
+    el = sv.querySelectorAll('.etiG');
+  }
+  const nasc = pov || !!(presa && presa.mosso);
+  el.forEach(d => { const x = d._x; x.g.getWorldPosition(v); v.y += x.tipo === 'grande' ? 0.75 : 0.55; v.project(camera);
+    d.hidden = nasc || v.z > 1; d.classList.toggle('sel', !!gonfAperto && gonfAperto.p === x.p && gonfAperto.k === x.k);
+    d.style.transform = `translate(${((v.x + 1) / 2 * w).toFixed(1)}px, ${((1 - v.y) / 2 * h).toFixed(1)}px) translate(-50%, -100%)`; });
+}
 function manigliaEPorte(w, h) {   // maniglia di rotazione (con il perno al centro della selezione) e bollini delle porte, sopra la scena
   const sv = $('sovra'), v = new THREE.Vector3(), s = scelte(), vedi = s.length && !pov && !$('vCostruisci').hidden && !(presa && presa.mosso) && !collegaDa;
   let pe = sv.querySelector('.perno'), li = sv.querySelector('.manLinea'), mg = sv.querySelector('.maniglia');
@@ -3172,6 +3221,7 @@ function disegnaGonfiatori() {
     <section class="sez"><h2>Modelli</h2>${['piccolo', 'grande'].map(k => `<div class="modello"><i class="qg" style="background:${GONF[k].col}"></i><div><b>${esc(GONF[k].nome)}</b><span>${GONF[k].W} W · ${fmt(GONF[k].Q, 0)} m³/h · fino a ${fmt(GONF[k].Pmax, 0)} Pa</span></div></div>`).join('')}
       <p class="std" style="margin:0">I dati si cambiano nella scheda Dati.</p></section>
     <section class="sez"><h2>Sulla bolla selezionata</h2>${p ? `<div class="selNome"><span class="dot ${valuta(p).c}"></span>${esc(p.nome)}</div><div class="par" id="gSel"></div>` : '<p class="vuoto" style="margin:0">Tocca una bolla nella scena per cambiare i suoi gonfiatori.</p>'}</section>
+    ${p && elencoGonf(p).length ? `<p class="std" style="margin:-4px 0 0">${elencoGonf(p).map((t, k) => esc(nomeGonf(p, k).split(' · ')[0]) + ' ' + t).join(' · ')}. Si toccano anche nella scena.</p>` : ''}
     <section class="sez"><h2>Sul prossimo pezzo</h2><div class="par" id="gNuovo"></div></section>
     <section class="sez"><h2>In tutta la composizione</h2><p class="totGonf"><b>${tot.piccolo}</b> piccoli · <b>${tot.grande}</b> grandi · <b>${fmt(W, 0)} W</b> in tutto</p></section>`;
   if (p) contaGonf($('gSel'), p.f, () => { strutturaCambiata(); disegnaGonfiatori(); });
@@ -3525,8 +3575,9 @@ renderer.domElement.addEventListener('pointerdown', e => {
   if (e.button === 0 && (e.shiftKey || e.ctrlKey || e.metaKey) && !pov && !collegaDa) {   // [Officina] Maiusc + trascina: rettangolo di selezione; Maiusc + clic: aggiunge o toglie una bolla
     rett = { x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY }; ctrl.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); return; }
   puntaMouse(e);
-  const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
+  const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && (o.userData.pezzo || o.userData.gonf)) ogg.push(o); });   // [Officina] anche i gonfiatori
   const hit = ray.intersectObjects(ogg, false)[0];
+  if (hit && hit.object.userData.gonf) { const g = hit.object.userData.gonf; presa = null; if (!pov) apriGonf(g.p, g.k, e.clientX, e.clientY); return; }
   if (hit) { const p = hit.object.userData.pezzo, v = suPiano(e); presa = { p, dx: v ? p.x - v.x : 0, dz: v ? p.z - v.z : 0, x0: e.clientX, y0: e.clientY, mosso: false }; ctrl.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); }
   else presa = { p: null, x0: e.clientX, y0: e.clientY };
 });
@@ -4363,7 +4414,7 @@ function etichette() {
     els = sv.querySelectorAll('.eti');
   }
   const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight, v = new THREE.Vector3();
-  manigliaEPorte(w, h);   // [Officina]
+  manigliaEPorte(w, h); etichetteGonf(w, h);   // [Officina]
   els.forEach(el => { const p = el._p; v.set(p.x, p.F.H * statoForma(p).hk + 0.35, p.z).project(camera);
     if (v.z > 1) { el.hidden = true; return; } el.hidden = false;
     el.firstChild.className = 'dot ' + (p.scoppio ? 'ko' : valuta(p).c); el.children[1].textContent = p.nome;

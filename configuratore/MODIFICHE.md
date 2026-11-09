@@ -379,3 +379,12 @@ Tutto segnato `[Officina]`.
 - **Copia e incolla** (`copiaSel`, `incolla`, Ctrl+C / Ctrl+V): le copie arrivano accanto a tutto il resto, con le stesse misure, porte, gonfiatori e rotazione, e restano collegate tra loro come le originali (anche i collegamenti fatti a mano).
 - **Porte con i bollini** (`cambiaPorta`, `.portaPiu`): accanto a ogni lato della bolla scelta, di lato rispetto al + verde che attacca un'altra bolla, un bollino **+** (aggiunge una porta a zip) o **−** rosso (la toglie). Non compare sui lati troppo corti (< 65 cm) né su quelli collegati.
 - Nella guida «Come si usa», alla voce Modifica, una frase su tutto questo.
+
+## Gonfiatori nella scena (9 novembre, blocco 4)
+
+Tutto segnato `[Officina]`.
+
+- **Numero e nome automatici** (`numeroGonf`, `nomeGonf`): i gonfiatori sono numerati in tutta la composizione, nell'ordine delle bolle (prima i grandi, poi i piccoli di ogni bolla), e portano il nome della bolla che gonfiano: «G1 · Cubo 1», «G2 · Cubo 2»… Cambiano da soli se si aggiungono, tolgono o rinominano bolle.
+- **Etichette nella scena** (`etichetteGonf`, `.etiG`): sopra ogni gonfiatore, con il suo colore; si nascondono mentre si trascina una bolla e nella vista di Sonny.
+- **Cliccabili e modificabili** (`apriGonf`, `.popG`): toccando l'etichetta o il gonfiatore 3D (`userData.gonf`, nel `pointerdown` della scena) si apre la sua scheda: modello e numeri, Piccolo / Grande, «+ Un altro» sulla stessa bolla, «Togli». Ogni cambio ha «Annulla». Al massimo 6 per tipo, come nella scheda Gonfiatori, che ora elenca anche i nomi.
+- **Barra in basso**: tolta la legenda «gonfiatore piccolo / gonfiatore grande» (`.legenda3d` nella `barraScena`).
