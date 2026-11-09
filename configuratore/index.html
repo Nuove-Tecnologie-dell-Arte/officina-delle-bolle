@@ -111,6 +111,15 @@
   /* [Officina] nella scheda di una bolla: che cosa si aggiunge toccando un + */
   .prossimo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; font-size: 12.5px; color: var(--mut); }
   .prossimo b { color: var(--fg); font-weight: 650; }
+  .adesso { border-left: 3px solid var(--ok); padding-left: 10px; } .adesso.mid { border-left-color: var(--mid); } .adesso.ko { border-left-color: var(--ko); }
+  .adesso .frase { margin: 0; font-size: 14px; line-height: 1.45; color: var(--fg); }
+  .adesso .fix { justify-self: start; }
+  /* [Officina] in Prova niente doppioni: «Materiali» non serve, e lo stato generale sta nel riquadro Pressione (torna nella barra se il riquadro è nascosto) */
+  #vCostruisci:not(.costr) #chipBudget { display: none; }
+  #vCostruisci:not(.costr) #scena:not(.noPress) #chipStato { display: none; }
+  .statoP { display: flex; align-items: center; gap: 7px; width: 100%; margin: 2px 0 4px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: none; color: var(--fg); font: 600 12.5px/1.2 system-ui, sans-serif; text-align: left; cursor: pointer; }
+  .statoP:hover { border-color: var(--acc); }
+  button.link { border: 0; background: none; padding: 0; color: var(--acc); font: inherit; text-decoration: underline; cursor: pointer; }
   .prossimo .bottoni { display: flex; gap: 6px; margin-left: auto; }
   .prossimo button { padding: 5px 9px; font-size: 12px; }
   .ruotaSel .orienta button { min-width: 52px; }
@@ -3085,6 +3094,19 @@ function cambiaPorta(p, i) {   // [Officina] i bollini + e − accanto ai lati d
   strutturaCambiata(); ispettore(); avviso(k >= 0 ? `Tolta la porta sul lato ${i + 1} di ${p.nome}.` : `Aggiunta una porta a zip sul lato ${i + 1} di ${p.nome}.`, 3000, ['Annulla', annulla]);
 }
 const man = { theta: 0, drag: null };
+function frasiStato(p) {   // [Officina] la scheda «Adesso»: com'è la bolla, in parole, nello stesso ordine dei controlli di valuta()
+  const r = p.reg; if (p.scoppio) return 'È scoppiata: lo strappo fa uscire più aria di quella che i gonfiatori riescono a mettere.';
+  if (!r) return 'Si sta calcolando…';
+  const S = soglie(p), lim = S.lim, sf = capTelo() / Math.max(1e-6, tensione(p.F, r.p)), P = x => fmt(x, 1) + ' Pa';
+  if (r.tF == null || r.p < S.ko) return `Non sta su: arriva a ${P(r.p)}, ne servirebbero almeno ${P(S.mid)}.`;
+  if (sf < 2) return `Il telo è troppo tirato: a ${P(r.p)} lavora a più di metà della sua resistenza.`;
+  if (r.p > lim) return `Troppa pressione: ${P(r.p)}, ma i giunti reggono fino a ${P(lim)}.`;
+  if (r.p < S.mid) return `Sta su, ma con poca pressione: ${P(r.p)} (meglio almeno ${P(S.mid)}).`;
+  if (r.p > 0.85 * lim) return `Vicina al limite dei giunti: ${P(r.p)} su ${P(lim)}.`;
+  if (r.tF > 240) return `Si gonfia lentamente: ci mette ${fmtT(r.tF)}.`;
+  if (r.tB != null && r.tB < 30) return `Va bene, ma se si spengono i gonfiatori cala sotto l'altezza di sicurezza in ${fmtT(r.tB)}: meglio un gonfiatore di riserva.`;
+  return `Va bene: quando è stabile sta a ${P(r.p)} (i giunti reggono fino a ${P(lim)}) e si gonfia in ${fmtT(r.tF)}.`;
+}
 // [Officina] il prossimo pezzo (quello che si aggiunge toccando un +): si vede anche con una bolla selezionata
 function nomeProssimo() {
   const T = TIPI[tipoScelto]; if (!T) return '';
@@ -3367,7 +3389,7 @@ function ispettore(nuovo) {
   const v = valuta(p), r = p.reg, nColl = link.filter(l => l.a && (l.a === p || l.b === p)).length;
   if (nuovo) tabIsp = 'forma';
   if (tabIsp === 'aspetto') tabIsp = 'forma';   // [Officina] tre schede: l'aspetto sta in fondo a Forma
-  const SCHEDE = [['stato', 'Stato'], ['forma', 'Forma'], ['coll', 'Collega']];
+  const SCHEDE = [['stato', 'Adesso'], ['forma', 'Forma'], ['coll', 'Collega']];   // [Officina] «Stato» è diventata «Adesso»: i numeri stanno in Aria
   el.innerHTML = `<div class="ispTesta">
       <button class="indietro" id="iIndietro" title="Torna ad Aggiungi (Esc)"><svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M6.5 1 1.5 6l5 5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Aggiungi un altro pezzo</button>
       <div class="prossimo" title="Toccando un + nella scena si attacca questo"><span>Prossimo pezzo: <b>${esc(nomeProssimo())}</b></span><span class="bottoni"><button type="button" id="iComeQuesta">Come questa</button><button type="button" id="iCambiaProssimo">Cambia</button></span></div><!-- [Officina] -->
@@ -3377,7 +3399,8 @@ function ispettore(nuovo) {
     </div>
     <div class="schede" role="tablist" aria-label="Sezioni del pezzo">${SCHEDE.map(([k, t]) => `<button role="tab" data-sc="${k}" aria-selected="${k === tabIsp}">${t}${k === 'coll' && nColl ? ` <small>${nColl}</small>` : ''}</button>`).join('')}</div>
     <div class="scheda" data-pane="stato"${tabIsp === 'stato' ? '' : ' hidden'}>
-      <div class="kpi"><div title="Pressione dell'aria dentro la bolla, in pascal"><b id="iP">0</b><span>pressione adesso (Pa)</span></div><div title="La pressione quando l'aria che entra pareggia quella che esce"><b>${fmt(r.p, 1)}</b><span>quando è stabile (Pa)</span></div><div><b>${fmt(p.F.vol, 1)}</b><span>m³</span></div><div><b>${fmtT(r.tF)}</b><span>per gonfiarsi</span></div></div>
+      <section class="sez adesso ${p.scoppio ? 'ko' : v.c}"><h2>Com'è adesso</h2><p class="frase">${esc(frasiStato(p))}</p>${v.azione && !p.scoppio ? `<button class="fix" id="iFix2">${esc(testoFix(v.azione))}</button>` : ''}
+        <p class="std" style="margin:0">Pressione adesso <b id="iP">0</b> Pa · <button type="button" class="link" id="iAria">Tutti i numeri in Aria ›</button></p></section><!-- [Officina] prima quattro numeri, gli stessi di Aria -->
       <section class="sez"><h2>Gonfiatori</h2><div class="par" id="iGonf"></div></section>
       <section class="sez"><h2>Azioni</h2><div class="bottoni"><button id="iIng" ${p.ingresso ? 'disabled' : ''}>${p.ingresso ? 'È l\'ingresso' : 'Metti qui l\'ingresso'}</button><button id="iScoppia" ${p.scoppio ? '' : 'class="del"'}>${p.scoppio ? 'Ripara lo strappo' : 'Fai scoppiare'}</button><button class="del" id="iTogli">Elimina</button></div></section>
     </div>
@@ -3398,6 +3421,8 @@ function ispettore(nuovo) {
   $('iIndietro').onclick = () => { selezionato = null; firmaPan = ''; ispettore(); };   // [Officina] il pannello torna ad Aggiungi
   $('iComeQuesta').onclick = () => comeQuesta(p); $('iCambiaProssimo').onclick = () => { selezionato = null; selMulti.clear(); firmaPan = ''; ispettore(); sceltaCat(catAgg); };   // [Officina] «Cambia»: si torna ad Aggiungi, dove si sceglie forma e misure
   if ($('iFix')) $('iFix').onclick = () => applicaFix(p, v.azione);
+  if ($('iFix2')) $('iFix2').onclick = () => applicaFix(p, v.azione);
+  $('iAria').onclick = () => { mostra('p'); requestAnimationFrame(() => document.querySelector(`#vPressione [data-id="${p.id}"]`)?.scrollIntoView({ block: 'center' })); };   // [Officina]
   const cont = $('parSel'); let t;
   for (const [k, lab, mn, mx, st, , u] of TIPI[p.tipo].par) campo(cont, lab, p.d[k], mn, mx, st, u, val => { const legami = legamiAttuali(); p.d[k] = val; clearTimeout(t); t = setTimeout(() => { p.F = forma(p.tipo, p.d); avvisaIngrandita(); riallinea(p, legami); strutturaCambiata(); }, 140); }, u === 'm' || u === '×' ? 2 : 0);
   for (const s of TIPI[p.tipo].scelte || []) sceltaRiga(cont, s, p.d[s.key], v => { const legami = legamiAttuali(); p.d[s.key] = v; p.F = forma(p.tipo, p.d); riallinea(p, legami); strutturaCambiata(); });   // [Officina]
@@ -4228,6 +4253,7 @@ function pannelloPressione() {
     firmaPan = firma;
     if (!pezzi.length) { el.innerHTML = '<h3><span>Pressione</span>' + X_PAN('press', 'la pressione') + '</h3><p class="vuoto" style="margin:4px">Nessun modulo</p>'; return; }
     let h = '<h3><button class="apriAria" title="Apri Aria: manometri, porte e grafico">Pressione ›</button><span>Pa ' + X_PAN('press', 'la pressione') + '</span></h3>';   // [Officina] × per nasconderla
+    { const g = statoGlobale(); h += `<button class="statoP" title="Apri Aria"><span class="dot ${g.c}"></span>${esc(g.txt)}${g.sub ? ' · ' + esc(g.sub) : ''}</button>`; }   // [Officina] lo stato generale, qui invece che nella barra di Prova
     sistemi.forEach((sis, k) => {
       if (sistemi.length > 1) h += `<h3>${nomeSistema(k)}</h3>`;
       for (const p of sis) {
@@ -4240,6 +4266,7 @@ function pannelloPressione() {
     el.innerHTML = h;
     el.querySelectorAll('.rp').forEach(r => r.onclick = () => { selezionato = pezzi.find(p => p.id === +r.dataset.id); ispettore(); firmaPan = ''; });
     el.querySelector('.apriAria').onclick = () => mostra('p');   // [Officina] il riquadro piccolo porta alla scheda Aria
+    { const sp = el.querySelector('.statoP'); if (sp) sp.onclick = () => mostra('p'); }   // [Officina]
   }
   const dentro = new Map(); for (const P of persone) if (P.dove) dentro.set(P.dove, (dentro.get(P.dove) || 0) + 1);
   el.querySelectorAll('.rp').forEach(r => {
