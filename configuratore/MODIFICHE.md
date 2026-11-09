@@ -367,3 +367,15 @@ Tutto segnato `[Officina]`.
   - in mezzo a ogni manica tra due bolle c'erano ancora i lembi di una porta, aperti: tolti (`l.lembi` vuoto per i passaggi aperti);
   - una manica, automatica o a mano, poteva passare dentro una terza bolla: ora no (`manicaDentro`; a mano c'è un avviso);
   - girando o spostando una bolla un collegamento automatico spariva senza dirlo: ora un avviso lo dice (`collega`, coppie di prima e di dopo).
+
+## Selezione e modifica delle bolle (9 novembre, blocco 3)
+
+Tutto segnato `[Officina]`.
+
+- **Selezione multipla** (`selMulti`, `scelte()`, `selezionaInsieme`): **Maiusc + trascina** disegna un rettangolo (`#rettSel`) e sceglie le bolle il cui centro ci cade dentro; **Maiusc + clic** (o Ctrl + clic) aggiunge o toglie una bolla; Ctrl+A le prende tutte. Il trascinamento semplice sul vuoto resta per girare la vista. `selezionato` resta la bolla di cui si vede la scheda; in cima compare «N bolle selezionate» con rotazione, Copia, Deseleziona ed Elimina (`pannelloMulti`). Le bolle scelte hanno le cuciture e l'etichetta evidenziate.
+- **Maniglia di rotazione** (`manigliaEPorte`, `.perno`, `.maniglia`): con almeno una bolla scelta, un perno al centro della selezione e una maniglia ⟳; trascinandola in giro la selezione ruota a scatti di 15° (con Maiusc di 45°). Una bolla sola si gira come prima (`ruotaPezzo`, le collegate la seguono); più bolle girano insieme attorno al loro centro (`ruotaSel`).
+- **Rotazione a scatti**: nella scheda, «A sinistra» 15° / 45° / 90° e «A destra» 15° / 45° / 90° (`bottoniRuota`, `legaRuota`); prima c'era un 90° solo verso destra. I vecchi id (`iRotM`, `iRotP`, `iRot90`) restano sui pulsanti corrispondenti. R e Maiusc+R girano anche la selezione multipla.
+- **Eliminare**: tasto destro su una bolla → menu (`menuBolla`: Copia, Incolla, Ruota ⟲ 90°, Ruota ⟳ 90°, Elimina) e tasto **Canc** (`eliminaSel`), con «Annulla» nell'avviso. Il tasto destro trascinato sposta ancora la vista; premuto sopra una bolla non la sposta più.
+- **Copia e incolla** (`copiaSel`, `incolla`, Ctrl+C / Ctrl+V): le copie arrivano accanto a tutto il resto, con le stesse misure, porte, gonfiatori e rotazione, e restano collegate tra loro come le originali (anche i collegamenti fatti a mano).
+- **Porte con i bollini** (`cambiaPorta`, `.portaPiu`): accanto a ogni lato della bolla scelta, di lato rispetto al + verde che attacca un'altra bolla, un bollino **+** (aggiunge una porta a zip) o **−** rosso (la toglie). Non compare sui lati troppo corti (< 65 cm) né su quelli collegati.
+- Nella guida «Come si usa», alla voce Modifica, una frase su tutto questo.

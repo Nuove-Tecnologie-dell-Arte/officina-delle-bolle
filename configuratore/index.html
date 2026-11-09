@@ -86,6 +86,21 @@
   #scena { position: relative; min-width: 0; overflow: hidden; touch-action: none; }
   #scena > canvas { display: block; width: 100%; height: 100%; }
   #sovra { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  /* [Officina] selezione multipla, maniglia di rotazione, porte + e −, menu del tasto destro */
+  #rettSel { position: fixed; z-index: 40; border: 1.5px dashed var(--acc); background: color-mix(in srgb, var(--acc) 10%, transparent); pointer-events: none; }
+  .perno { position: absolute; left: 0; top: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--acc); border: 2px solid #fff; pointer-events: none; }
+  .manLinea { position: absolute; left: 0; top: 0; height: 0; border-top: 1.5px dashed var(--acc); transform-origin: 0 0; pointer-events: none; }
+  .maniglia { position: absolute; left: 0; top: 0; width: 32px; height: 32px; margin: -16px 0 0 -16px; border-radius: 50%; padding: 0; background: var(--card); color: var(--acc); border: 2px solid var(--acc); display: grid; place-items: center; font: 700 17px/1 system-ui, sans-serif; cursor: grab; pointer-events: auto; touch-action: none; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+  .maniglia:active { cursor: grabbing; }
+  .portaPiu { position: absolute; left: 0; top: 0; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; padding: 0; border: 2px solid var(--acc); background: var(--card); color: var(--acc); font: 800 15px/1 system-ui, sans-serif; display: grid; place-items: center; pointer-events: auto; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .portaPiu.togli { border-color: var(--ko); color: var(--ko); }
+  .menuBolla { position: fixed; z-index: 70; background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.2); padding: 6px; display: grid; min-width: 180px; }
+  .menuBolla button { border: 0; background: none; text-align: left; padding: 8px 10px; border-radius: 6px; color: var(--fg); }
+  .menuBolla button:hover, .menuBolla button:focus-visible { background: var(--bg); }
+  .menuBolla button.del { color: var(--ko); }
+  .menuBolla small { color: var(--mut); padding: 4px 10px 2px; font-size: 11.5px; }
+  .ruotaSel { display: grid; gap: 6px; }
+  .ruotaSel .orienta button { min-width: 52px; }
   .eti { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px 3px 6px; font: 600 11px/1.2 system-ui, sans-serif; white-space: nowrap; }
   .eti.sel { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc); }
   .etiP { position: absolute; left: 0; top: 0; pointer-events: none; background: #ffd23f; color: #161b21; border-radius: 6px; padding: 2px 8px; font: 700 12px/1.3 system-ui, sans-serif; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
@@ -660,7 +675,7 @@
   <ol>
     <li><b>Aggiungi.</b> A sinistra scegli <i>Bolle</i> o <i>Corridoi</i>, poi una forma: le sei più usate sono in cima, le altre in <i>Altre forme</i>. Regola le misure; porte e gonfiatori sono in <i>Più opzioni</i>. Con <i>Stanza</i>, in basso, metti le bolle dentro uno spazio vero.</li>
     <li><b>Attacca.</b> Tocca un <span class="piuMini">+</span> nella scena: il pezzo si aggancia lì. Le frecce ↺ ↻ scelgono come arriva girato.</li>
-    <li><b>Modifica.</b> Sbagliato qualcosa? <i>Annulla</i> sopra la scena, o Ctrl+Z. Tocca un pezzo: il pannello a sinistra diventa la sua scheda, con stato, forma, collegamenti e colore. <i>Aggiungi un altro pezzo</i> (o Esc) torna indietro. Trascina un pezzo per spostarlo.</li>
+    <li><b>Modifica.</b> Sbagliato qualcosa? <i>Annulla</i> sopra la scena, o Ctrl+Z. Tocca un pezzo: il pannello a sinistra diventa la sua scheda, con stato, forma, collegamenti e colore. <i>Aggiungi un altro pezzo</i> (o Esc) torna indietro. Trascina un pezzo per spostarlo. <i>Maiusc</i> + trascina seleziona più bolle (Maiusc + clic ne aggiunge o toglie una); la maniglia ⟳ le gira, il tasto destro o <i>Canc</i> le elimina, <i>Ctrl+C</i> e <i>Ctrl+V</i> le copiano. I bollini + e − accanto ai lati mettono e tolgono le porte.</li>
     <li><b>Prova.</b> Passa a <i>Prova</i>, sopra la scena: <i>Play</i> fa entrare le persone, il riquadro <i>Pressione</i> mostra come sta l'aria, <i>Simulazione</i> in alto cambia la velocità e simula blackout e scoppi. </li>
   </ol>
   <div class="bottoni"><button class="pri" id="guidaOk">Ho capito</button></div>
@@ -2098,7 +2113,7 @@ function aggiornaPezzo(p) {
     else if (F.apex) { const K = F.K; put(e.a[0], 0.006, e.a[1], e.a[0] * K, H, e.a[1] * K); put(e.a[0] * K, H, e.a[1] * K, e.b[0] * K, H, e.b[1] * K); }
     else { const j = F.E.indexOf(e); if (!F.spigoli || F.spigoli[j]) put(e.a[0], 0, e.a[1], e.a[0], H, e.a[1]); else put(0, 0, 0, 0, 0, 0); put(e.a[0], H, e.a[1], e.b[0], H, e.b[1]); } }
   p.g3.linee.geometry.attributes.position.needsUpdate = true;
-  p.g3.linee.material = p === selezionato ? matCucSel : matCuc;
+  p.g3.linee.material = p === selezionato || selMulti.has(p) ? matCucSel : matCuc;
   if (!D.spento) for (const pl of p.g3.fan) pl.rotation.z += 0.35 * Math.min(D.speed, 4);
 }
 function aggiornaLink(l) {
@@ -2986,6 +3001,125 @@ function iniziaCollega(p) { collegaDa = p; selezionato = p; ispettore(); avviso(
 function fineCollega(q) { const p = collegaDa; collegaDa = null; box.classList.remove('scegliCollega'); avviso('');
   if (q && p && q !== p) collegaAMano(p, q); }
 function ruotaPezzo(p, gradi) { const legami = legamiAttuali(); p.ang += gradi * Math.PI / 180; riallinea(p, legami); strutturaCambiata(); }
+// [Officina] selezione multipla: selMulti tiene le bolle scelte insieme (Maiusc + trascina un rettangolo, Maiusc + clic); selezionato resta quella di cui si vede la scheda
+let selMulti = new Set(), rett = null, appunti = null, destro = null;
+const scelte = () => { const m = [...selMulti].filter(p => pezzi.includes(p)); if (m.length) return m; return selezionato && pezzi.includes(selezionato) ? [selezionato] : []; };
+const centroSel = s => [s.reduce((t, p) => t + p.x, 0) / s.length, s.reduce((t, p) => t + p.z, 0) / s.length];
+function ruotaSel(gradi) {   // una bolla: come prima (si porta dietro quelle collegate); più bolle: girano insieme attorno al loro centro
+  const s = scelte(); if (!s.length) return;
+  if (s.length === 1) { ruotaPezzo(s[0], gradi); return; }
+  const [cx, cz] = centroSel(s), a = gradi * Math.PI / 180;
+  for (const p of s) { const r = rot([p.x - cx, p.z - cz], a); p.x = cx + r[0]; p.z = cz + r[1]; p.ang += a; }
+  strutturaCambiata();
+}
+const bottoniRuota = (tit, ids) => `<div class="ruotaSel"><span class="std">${tit}</span>`
+  + `<div class="orienta"><span>A sinistra</span><span class="bottoni">${[15, 45, 90].map(g => `<button data-r="${g}"${ids && g === 15 ? ' id="iRotM"' : ''} aria-label="Ruota di ${g} gradi a sinistra">⟲ ${g}°</button>`).join('')}</span></div>`
+  + `<div class="orienta"><span>A destra</span><span class="bottoni">${[15, 45, 90].map(g => `<button data-r="${-g}"${ids ? ` id="${g === 15 ? 'iRotP' : g === 90 ? 'iRot90' : 'iRot45'}"` : ''} aria-label="Ruota di ${g} gradi a destra">⟳ ${g}°</button>`).join('')}</span></div></div>`;
+const legaRuota = el => el.querySelectorAll('[data-r]').forEach(b => b.onclick = () => ruotaSel(+b.dataset.r));
+function selezionaInsieme(lista) {
+  selMulti = new Set(lista.length > 1 ? lista : []); selezionato = lista[0] || null; firmaPan = ''; ispettore();
+  if (lista.length > 1) avviso(`${lista.length} bolle selezionate: si girano, si copiano e si eliminano insieme.`, 3500);
+}
+function eliminaSel() {
+  const via = scelte(); if (!via.length) return;
+  pezzi = pezzi.filter(q => !via.includes(q)); selezionato = null; selMulti.clear(); strutturaCambiata(); ispettore();
+  avviso(via.length === 1 ? `${via[0].nome} eliminata.` : `${via.length} bolle eliminate.`, 6000, ['Annulla', annulla]);
+}
+function copiaSel() {
+  const s = scelte(); if (!s.length) return;
+  const [cx, cz] = centroSel(s);
+  appunti = { pezzi: s.map(p => ({ tipo: p.tipo, d: JSON.parse(JSON.stringify(p.d)), f: { ...p.f }, porte: [...p.porte], dx: p.x - cx, dz: p.z - cz, ang: p.ang })),
+    manuali: manuali.filter(m => s.includes(m.a) && s.includes(m.b)).map(m => ({ a: s.indexOf(m.a), ea: m.ea, b: s.indexOf(m.b), eb: m.eb })),
+    raggio: Math.max(...s.map(p => Math.hypot(p.x - cx, p.z - cz) + p.F.Rc)) };
+  avviso(s.length === 1 ? `${s[0].nome} copiata: Ctrl+V per incollarla.` : `${s.length} bolle copiate: Ctrl+V per incollarle.`, 3500);
+}
+function incolla() {
+  if (!appunti) return;
+  let x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of pezzi) { x1 = Math.max(x1, q.x + q.F.Rc); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); }
+  const X = pezzi.length ? x1 + appunti.raggio + 2 : 0, Z = pezzi.length ? (z0 + z1) / 2 : 0, nuove = [];   // accanto a tutto il resto, come «Metti a parte»
+  for (const c of appunti.pezzi) { const p = nuovoPezzo(c.tipo, JSON.parse(JSON.stringify(c.d)), { ...c.f }, [...c.porte]); p.x = X + c.dx; p.z = Z + c.dz; p.ang = c.ang; nuove.push(p); }
+  pezzi.push(...nuove);
+  for (const m of appunti.manuali) manuali.push({ a: nuove[m.a], ea: m.ea, b: nuove[m.b], eb: m.eb });
+  strutturaCambiata(); selezionaInsieme(nuove);
+  avviso(nuove.length === 1 ? `Incollata ${nuove[0].nome}, accanto alle altre: trascinatela dove serve.` : `Incollate ${nuove.length} bolle, accanto alle altre: trascinatele dove serve.`, 5000, ['Annulla', annulla]);
+}
+function cambiaPorta(p, i) {   // [Officina] i bollini + e − accanto ai lati della bolla scelta
+  const e = p.F.E[i]; if (!e || e.L < 0.65 || (p.usati && p.usati.has(i))) return;
+  const k = p.porte.indexOf(i); if (k >= 0) p.porte.splice(k, 1); else { p.porte.push(i); p.porte.sort((a, b) => a - b); }
+  strutturaCambiata(); ispettore(); avviso(k >= 0 ? `Tolta la porta sul lato ${i + 1} di ${p.nome}.` : `Aggiunta una porta a zip sul lato ${i + 1} di ${p.nome}.`, 3000, ['Annulla', annulla]);
+}
+const man = { theta: 0, drag: null };
+function manigliaEPorte(w, h) {   // maniglia di rotazione (con il perno al centro della selezione) e bollini delle porte, sopra la scena
+  const sv = $('sovra'), v = new THREE.Vector3(), s = scelte(), vedi = s.length && !pov && !$('vCostruisci').hidden && !(presa && presa.mosso) && !collegaDa;
+  let pe = sv.querySelector('.perno'), li = sv.querySelector('.manLinea'), mg = sv.querySelector('.maniglia');
+  if (!mg) {
+    pe = document.createElement('div'); pe.className = 'perno'; li = document.createElement('div'); li.className = 'manLinea';
+    mg = document.createElement('button'); mg.className = 'maniglia'; mg.type = 'button'; mg.textContent = '⟳'; mg.title = 'Trascinate in giro per ruotare (a scatti di 15°)'; mg.setAttribute('aria-label', 'Ruota la selezione');
+    sv.append(li, pe, mg);
+    mg.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); const q = suPiano(e), S = scelte(); if (!q || !S.length) return;
+      const [cx, cz] = centroSel(S); man.drag = { cx, cz, f0: Math.atan2(q.z - cz, q.x - cx), fatti: 0, t0: man.theta }; mg.setPointerCapture(e.pointerId); ctrl.enabled = false; });
+    mg.addEventListener('pointermove', e => { const d = man.drag; if (!d) return; const q = suPiano(e); if (!q) return;
+      let df = Math.atan2(q.z - d.cz, q.x - d.cx) - d.f0; df = Math.atan2(Math.sin(df), Math.cos(df));
+      const passo = e.shiftKey ? 45 : 15, sc = Math.round(df * 180 / Math.PI / passo) * passo;   // Maiusc: a scatti di 45°
+      man.theta = d.t0 + df;
+      if (sc !== d.fatti) { ruotaSel(-(sc - d.fatti)); d.fatti = sc; } });
+    const fine = () => { if (man.drag) { man.drag = null; ctrl.enabled = true; } };
+    mg.addEventListener('pointerup', fine); mg.addEventListener('pointercancel', fine);
+  }
+  pe.hidden = li.hidden = mg.hidden = !vedi;
+  if (vedi) {
+    const [cx, cz] = centroSel(s), R = Math.max(...s.map(p => Math.hypot(p.x - cx, p.z - cz) + p.F.Rc)) + 0.7;
+    v.set(cx, 0.05, cz).project(camera); const P0 = [(v.x + 1) / 2 * w, (1 - v.y) / 2 * h];
+    v.set(cx + R * Math.cos(man.theta), 0.05, cz + R * Math.sin(man.theta)).project(camera); const P1 = [(v.x + 1) / 2 * w, (1 - v.y) / 2 * h];
+    pe.style.transform = `translate(${P0[0].toFixed(1)}px, ${P0[1].toFixed(1)}px)`; mg.style.transform = `translate(${P1[0].toFixed(1)}px, ${P1[1].toFixed(1)}px)`;
+    li.style.width = Math.hypot(P1[0] - P0[0], P1[1] - P0[1]).toFixed(1) + 'px'; li.style.transform = `translate(${P0[0].toFixed(1)}px, ${P0[1].toFixed(1)}px) rotate(${Math.atan2(P1[1] - P0[1], P1[0] - P0[0])}rad)`;
+  }
+  // porte: per la bolla scelta (una sola), un bollino per lato abbastanza lungo e non collegato
+  const p = s.length === 1 ? s[0] : null, firma = vedi && p ? p.id + ':' + p.porte.join(',') + ':' + [...(p.usati || [])].join(',') + ':' + p.F.E.length : '';
+  if (sv._firmaPorte !== firma) {
+    sv.querySelectorAll('.portaPiu').forEach(b => b.remove()); sv._firmaPorte = firma;
+    if (firma) p.F.E.forEach((e, i) => { if (e.L < 0.65 || (p.usati && p.usati.has(i))) return;
+      const on = p.porte.includes(i), b = document.createElement('button'); b.type = 'button'; b.className = 'portaPiu' + (on ? ' togli' : ''); b._i = i; b.textContent = on ? '−' : '+';
+      b.title = on ? `Togli la porta sul lato ${i + 1}` : `Aggiungi una porta a zip sul lato ${i + 1}`; b.setAttribute('aria-label', b.title);
+      b.onclick = ev => { ev.stopPropagation(); cambiaPorta(p, i); }; sv.appendChild(b); });
+  }
+  if (firma) sv.querySelectorAll('.portaPiu').forEach(b => { const e = p.F.E[b._i], f = 0.2 + Math.max(0, e.fuori || 0), sp = Math.min(0.7, e.L * 0.32), r = rot([e.m[0] - e.d[0] * sp + e.n[0] * f, e.m[1] - e.d[1] * sp + e.n[1] * f], p.ang);   // di lato, per non coprire il + verde che attacca un'altra bolla
+    v.set(p.x + r[0], 0.12, p.z + r[1]).project(camera); b.hidden = v.z > 1; b.style.transform = `translate(${((v.x + 1) / 2 * w).toFixed(1)}px, ${((1 - v.y) / 2 * h).toFixed(1)}px)`; });
+}
+function pannelloMulti(el) {   // più bolle scelte: in cima alla scheda, i comandi per tutte
+  const s = scelte(); if (s.length < 2) return;
+  const d = document.createElement('section'); d.className = 'sez';
+  d.innerHTML = `<h2>${s.length} bolle selezionate</h2><p class="std" style="margin:0">${s.map(q => esc(q.nome)).join(', ')}. Rotazione, copia ed eliminazione valgono per tutte; sotto c'è la scheda di ${esc(selezionato.nome)}.</p>`
+    + bottoniRuota('Ruotano insieme attorno al loro centro') + `<div class="bottoni"><button data-az="copia">Copia</button><button data-az="nessuna">Deseleziona</button><button data-az="elimina" class="del">Elimina</button></div>`;
+  el.prepend(d); legaRuota(d);
+  d.querySelector('[data-az=copia]').onclick = copiaSel; d.querySelector('[data-az=elimina]').onclick = eliminaSel;
+  d.querySelector('[data-az=nessuna]').onclick = () => selezionaInsieme([]);
+}
+function menuBolla(x, y, p) {   // il menu del tasto destro
+  chiudiMenuBolla(); const s = scelte(), m = document.createElement('div'); m.className = 'menuBolla'; m.id = 'menuBolla'; m.setAttribute('role', 'menu');
+  const voci = [];
+  if (p) { voci.push(`<small>${s.length > 1 ? s.length + ' bolle selezionate' : esc(p.nome)}</small>`, '<button data-az="copia" role="menuitem">Copia <span class="std">Ctrl+C</span></button>'); }
+  if (appunti) voci.push('<button data-az="incolla" role="menuitem">Incolla <span class="std">Ctrl+V</span></button>');
+  if (p) voci.push('<button data-az="sx" role="menuitem">Ruota ⟲ 90°</button><button data-az="dx" role="menuitem">Ruota ⟳ 90°</button>', '<button data-az="elimina" class="del" role="menuitem">Elimina <span class="std">Canc</span></button>');
+  if (!voci.length) return;
+  m.innerHTML = voci.join(''); document.body.appendChild(m);
+  const r = m.getBoundingClientRect(); m.style.left = Math.min(x, innerWidth - r.width - 8) + 'px'; m.style.top = Math.min(y, innerHeight - r.height - 8) + 'px';
+  const az = { copia: copiaSel, incolla, elimina: eliminaSel, sx: () => ruotaSel(90), dx: () => ruotaSel(-90) };
+  m.querySelectorAll('[data-az]').forEach(b => b.onclick = () => { chiudiMenuBolla(); az[b.dataset.az](); });
+  m.querySelector('button')?.focus();
+}
+function chiudiMenuBolla() { document.getElementById('menuBolla')?.remove(); }
+document.addEventListener('pointerdown', e => { if (!e.target.closest || !e.target.closest('#menuBolla')) chiudiMenuBolla(); }, true);
+document.addEventListener('keydown', e => {   // [Officina] Canc elimina, Ctrl+C / Ctrl+V copiano e incollano le bolle scelte; Esc chiude il menu
+  if (e.key === 'Escape') chiudiMenuBolla();
+  if (pov || $('vCostruisci').hidden || /INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) return;
+  if (e.key === 'Delete' && scelte().length) { e.preventDefault(); eliminaSel(); return; }
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'c' && scelte().length && !String(window.getSelection())) { e.preventDefault(); copiaSel(); }
+  else if (k === 'v' && appunti) { e.preventDefault(); incolla(); }
+  else if (k === 'a') { e.preventDefault(); selezionaInsieme([...pezzi]); }
+});
 function campo(cont, etichetta, val, mn, mx, st, unita, onCambio, dec) {
   const l = document.createElement('label'); l.className = 'campo';
   const num = document.createElement('input'); num.type = 'number'; num.min = mn; num.max = mx; num.step = st; num.value = val;
@@ -3195,12 +3329,13 @@ function ispettore(nuovo) {
   {   // orientamento: girarlo sul collegamento (resta attaccato, cambia la porta) o ruotarlo di 15° / 90°
     const g0 = genitore(p), unito = link.some(l => l.a && (l.a === p || l.b === p)), el = $('iOrienta');
     el.innerHTML = (g0 && p.porte.length > 1 ? `<div class="orienta"><span>Attaccato a ${esc(g0.h.nome)} con la porta <b>${p.porte.indexOf(g0.ef) + 1}</b> di ${p.porte.length}</span><span class="bottoni"><button id="iGiraM" aria-label="Gira sul collegamento, indietro">↺</button><button id="iGiraP" aria-label="Gira sul collegamento, avanti">↻</button></span></div>` : '')
-      + `<div class="orienta"><span>${unito ? 'Ruota tutto il gruppo' : 'Ruota'}</span><span class="bottoni"><button id="iRotM" aria-label="Ruota di 15 gradi a sinistra">⟲ 15°</button><button id="iRotP" aria-label="Ruota di 15 gradi a destra">⟳ 15°</button><button id="iRot90">90°</button></span></div>`
-      + `<p class="std" style="margin:0">${g0 && p.porte.length > 1 ? 'Le frecce ↺ ↻ cambiano quale porta si attacca: il pezzo resta collegato e si gira; quello che c\'è dopo lo segue. ' : ''}Tasto R: gira il pezzo selezionato (Maiusc+R al contrario).</p>`;
+      + bottoniRuota(unito ? 'Ruota tutto il gruppo' : 'Ruota', true)   // [Officina] 15°, 45°, 90°, a sinistra e a destra
+      + `<p class="std" style="margin:0">${g0 && p.porte.length > 1 ? 'Le frecce ↺ ↻ cambiano quale porta si attacca: il pezzo resta collegato e si gira; quello che c\'è dopo lo segue. ' : ''}Tasto R: gira il pezzo selezionato (Maiusc+R al contrario). Nella scena: la maniglia ⟳ gira a scatti di 15° (con Maiusc di 45°), i bollini + e − accanto ai lati mettono e tolgono le porte.</p>`;
     if ($('iGiraM')) { $('iGiraM').onclick = () => giraSulCollegamento(p, -1); $('iGiraP').onclick = () => giraSulCollegamento(p, 1); }
-    $('iRotM').onclick = () => ruotaPezzo(p, 15); $('iRotP').onclick = () => ruotaPezzo(p, -15); $('iRot90').onclick = () => ruotaPezzo(p, -90);
+    legaRuota(el);
   }
   $('iIng').onclick = () => { pezzi.forEach(q => { if (q.sistema === p.sistema) q.ingresso = q === p; }); persone.forEach(P => { P.dove = null; }); strutturaCambiata(); };
+  pannelloMulti(el);   // [Officina]
   if (nuovo && matchMedia('(min-width: 981px)').matches) el.querySelector('#parSel input[type=number]')?.focus({ preventScroll: true });
 }
 $('bPrimo').onclick = () => aggiungi(null);
@@ -3363,6 +3498,14 @@ $('tabB').onclick = () => mostra('b'); $('tabC').onclick = () => mostra('c'); $(
 // --- trascinamento e selezione ---
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), piano = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let presa = null;
+renderer.domElement.addEventListener('contextmenu', e => {   // [Officina] tasto destro su una bolla: Copia, Incolla, Ruota, Elimina
+  e.preventDefault(); if (pov || $('vCostruisci').hidden) return;
+  if (destro && Math.hypot(e.clientX - destro.x, e.clientY - destro.y) > 5) { destro = null; return; }   // era uno spostamento della vista
+  destro = null; puntaMouse(e); const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
+  const hit = ray.intersectObjects(ogg, false)[0], p = hit && hit.object.userData.pezzo;
+  if (p && !scelte().includes(p)) selezionaInsieme([p]);
+  menuBolla(e.clientX, e.clientY, p || null);
+});
 // [Officina] una bolla che entra in un'altra (o in una parete) si colora di rosso: una copia rossa e trasparente di ogni suo telo, che segue il gonfiaggio
 const matRosso = new THREE.MeshBasicMaterial({ color: 0xd8342a, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide });
 function segnaRosso(p, si) {
@@ -3378,6 +3521,9 @@ function suPiano(e) { puntaMouse(e); const v = new THREE.Vector3(); return ray.r
 renderer.domElement.addEventListener('pointerdown', e => {
   if (window.oggetti && window.oggetti.occupato()) return;   // sto usando la maniglia di un oggetto
   if (toccaOggetto(e)) return;   // [Officina] toccato un oggetto 3D: si sceglie quello
+  if (e.button === 2) { destro = { x: e.clientX, y: e.clientY }; return; }   // [Officina] tasto destro: il menu (se non si trascina per spostare la vista)
+  if (e.button === 0 && (e.shiftKey || e.ctrlKey || e.metaKey) && !pov && !collegaDa) {   // [Officina] Maiusc + trascina: rettangolo di selezione; Maiusc + clic: aggiunge o toglie una bolla
+    rett = { x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY }; ctrl.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); return; }
   puntaMouse(e);
   const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
   const hit = ray.intersectObjects(ogg, false)[0];
@@ -3385,6 +3531,8 @@ renderer.domElement.addEventListener('pointerdown', e => {
   else presa = { p: null, x0: e.clientX, y0: e.clientY };
 });
 renderer.domElement.addEventListener('pointermove', e => {
+  if (rett) { rett.x1 = e.clientX; rett.y1 = e.clientY; let d = document.getElementById('rettSel'); if (!d) { d = document.createElement('div'); d.id = 'rettSel'; document.body.appendChild(d); }
+    Object.assign(d.style, { left: Math.min(rett.x0, rett.x1) + 'px', top: Math.min(rett.y0, rett.y1) + 'px', width: Math.abs(rett.x1 - rett.x0) + 'px', height: Math.abs(rett.y1 - rett.y0) + 'px' }); return; }
   if (!presa || !presa.p) return;
   if (!presa.mosso && Math.hypot(e.clientX - presa.x0, e.clientY - presa.y0) < 5) return;
   if (!presa.mosso) { presa.mosso = true; if (inGiro()) fermaTutti(); for (const l of link) if (l.a === presa.p || l.b === presa.p) l.grp.visible = false; }
@@ -3401,11 +3549,22 @@ renderer.domElement.addEventListener('pointermove', e => {
 });
 renderer.domElement.addEventListener('pointerup', e => {
   ctrl.enabled = true;
+  if (rett) {   // [Officina] fine del rettangolo (o Maiusc + clic)
+    const r = rett; rett = null; document.getElementById('rettSel')?.remove();
+    if (Math.hypot(r.x1 - r.x0, r.y1 - r.y0) < 6) {
+      puntaMouse(e); const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
+      const hit = ray.intersectObjects(ogg, false)[0]; if (!hit) return;
+      const p = hit.object.userData.pezzo, s = new Set(scelte()); if (s.has(p)) s.delete(p); else s.add(p);
+      const l = [...s]; if (l.includes(p)) { l.splice(l.indexOf(p), 1); l.unshift(p); } selezionaInsieme(l); return; }
+    const cr = renderer.domElement.getBoundingClientRect(), x0 = Math.min(r.x0, r.x1), x1 = Math.max(r.x0, r.x1), y0 = Math.min(r.y0, r.y1), y1 = Math.max(r.y0, r.y1), v = new THREE.Vector3();
+    const dentro = pezzi.filter(p => { v.set(p.x, p.F.H * 0.4, p.z).project(camera); if (v.z > 1) return false; const X = cr.left + (v.x + 1) / 2 * cr.width, Y = cr.top + (1 - v.y) / 2 * cr.height; return X >= x0 && X <= x1 && Y >= y0 && Y <= y1; });
+    selezionaInsieme(dentro); if (!dentro.length) avviso('Nessuna bolla nel rettangolo.', 2000); return;
+  }
   if (!presa) return;
   const p = presa.p;
   if (collegaDa && !presa.mosso && Math.hypot(e.clientX - presa.x0, e.clientY - presa.y0) < 5) { presa = null; fineCollega(p); return; }
   if (p && presa.mosso) { liberaLati(p); aggancia(p); selezionato = p; strutturaCambiata(); }
-  else if (Math.hypot(e.clientX - presa.x0, e.clientY - presa.y0) < 5) { selezionato = p; ispettore(); deselezionaOggetto(); }   // [Officina] e l'oggetto 3D scelto si lascia
+  else if (Math.hypot(e.clientX - presa.x0, e.clientY - presa.y0) < 5) { selezionato = p; selMulti.clear(); ispettore(); deselezionaOggetto(); }   // [Officina] e l'oggetto 3D scelto si lascia
   presa = null;
 });
 function liberaLati(p) {   // i lati occupati, escluso il pezzo che si sta spostando
@@ -3894,12 +4053,13 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && collegaDa)
 document.addEventListener('keydown', e => {   // [Officina] Esc: dal pannello Modifica si torna ad Aggiungi
   if (e.key !== 'Escape' || collegaDa || pov || !selezionato || $('vCostruisci').hidden || /INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) return;
   if (!$('menuComp').hidden || !$('menuProve').hidden || !$('guida').hidden) return;
-  selezionato = null; firmaPan = ''; ispettore(); });
+  selezionato = null; selMulti.clear(); firmaPan = ''; ispettore(); });
 document.addEventListener('keydown', e => {   // R: gira il pezzo selezionato
   if (e.key.toLowerCase() !== 'r' || e.metaKey || e.ctrlKey || e.altKey || pov || $('vCostruisci').hidden) return;
   if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) return;
   const p = selezionato; if (!p || !pezzi.includes(p)) return; e.preventDefault();
   const d = e.shiftKey ? -1 : 1, g0 = genitore(p);
+  if (scelte().length > 1) { ruotaSel(-15 * d); return; }   // [Officina] più bolle: girano insieme
   if (g0 && p.porte.length > 1) giraSulCollegamento(p, d); else ruotaPezzo(p, -15 * d);
 });
 $('cNuova').onclick = () => { nuovaComp('Composizione ' + (comp.lista.length + 1), { ...fotografa(), pezzi: [], stanza: null, oggetti: [] }); disegnaComp(); menuComp(false); apriScelte(); };   // [Officina] una composizione nuova parte dalla scelta di materiale e chiusure   // [Officina] oggetti: []
@@ -4203,10 +4363,11 @@ function etichette() {
     els = sv.querySelectorAll('.eti');
   }
   const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight, v = new THREE.Vector3();
+  manigliaEPorte(w, h);   // [Officina]
   els.forEach(el => { const p = el._p; v.set(p.x, p.F.H * statoForma(p).hk + 0.35, p.z).project(camera);
     if (v.z > 1) { el.hidden = true; return; } el.hidden = false;
     el.firstChild.className = 'dot ' + (p.scoppio ? 'ko' : valuta(p).c); el.children[1].textContent = p.nome;
-    el.classList.toggle('sel', p === selezionato); el.classList.toggle('meta', !!collegaDa && p !== collegaDa);
+    el.classList.toggle('sel', p === selezionato || selMulti.has(p)); el.classList.toggle('meta', !!collegaDa && p !== collegaDa);
     el.style.transform = `translate(${((v.x + 1) / 2 * w).toFixed(1)}px, ${((1 - v.y) / 2 * h).toFixed(1)}px) translate(-50%, -100%)`; });
   let ep = sv.querySelectorAll('.etiP');
   if (ep.length !== persone.length || [...ep].some((e, i) => e._P !== persone[i])) {
