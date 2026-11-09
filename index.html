@@ -636,6 +636,41 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   .stepsbar, .heroband, .stepfoot, .toolbar, .dafoto, #projects, .toast, .bridge, .viewopts { display: none !important; }
   body { background: #fff; color: #000; } .wrap { display: block; padding: 0; } .box, .card, .piece { box-shadow: none; break-inside: avoid; }
 }
+
+/* ---------- [Semplice] una pagina sola, tre sezioni; riquadri affiancati ---------- */
+.wrap > section { display: grid !important; }
+.heroband { display: block !important; }
+.shapebar, .modoSeg, .stepfoot, nav.app, #unita, .scalaTop, #notaScala, .stepsbar .progress { display: none !important; }
+.wrap { gap: 56px; }
+.coppia { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 960px) { .coppia { grid-template-columns: minmax(0, 1fr); } }
+.riquadro { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r-l); padding: 16px; display: grid; gap: 12px; min-width: 0; align-content: start; }
+.rq-testa { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.rq-testa h2 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.3rem); }
+.rq-testa .rq-schede, .rq-testa .rq-grande, .rq-testa .listaTot { margin-left: auto; }
+.rq-schede button { padding: 6px 12px; min-height: 36px; font-size: .88rem; }
+.rq-schede button[aria-selected="true"] { background: var(--green); color: var(--card); border-color: var(--green); }
+.rq-grande { min-width: 40px; min-height: 40px; font-size: 1.1rem; padding: 0 10px; }
+#rqMisure .bench2 { grid-template-columns: minmax(0, 1fr); }
+#rqMisure .mini-stage { position: static; }
+#rqMisure canvas#mini { max-height: 300px; }
+.simFrame { position: relative; height: clamp(380px, 60vh, 620px); border-radius: var(--r-m); overflow: hidden; border: 1px solid var(--rule); background: var(--paper); }
+.simFrame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+#rqSim.grande { position: fixed; inset: 0; z-index: 300; border-radius: 0; padding: 8px 10px 10px; grid-template-rows: auto minmax(0, 1fr); background: var(--paper); }
+#rqSim.grande .simFrame { height: 100%; }
+body.simGrande { overflow: hidden; }
+.matScelte { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.matScelte .rotoloF { grid-column: 1 / -1; }
+@media (max-width: 520px) { .matScelte { grid-template-columns: minmax(0, 1fr); } }
+table.lista { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.lista th { text-align: left; font-weight: 600; color: var(--muted); font-size: .8rem; padding: 6px 6px; border-bottom: 1px solid var(--rule); }
+table.lista td { padding: 7px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.lista .dx { text-align: right; white-space: nowrap; }
+table.lista tr.sez td { font-weight: 650; color: var(--ink); padding-top: 14px; border-bottom: 0; }
+table.lista td small { display: block; color: var(--muted); font-size: .78rem; line-height: 1.35; }
+table.lista input { width: 78px; text-align: right; padding: 5px 6px; }
+table.lista tfoot td { font-weight: 700; border-bottom: 0; }
+.listaTot { font-size: 1.1rem; }
 </style>
 </head>
 <body>
@@ -644,12 +679,9 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   <div class="in gutter">
     <div class="brand"><b>Officina delle Bolle</b><span id="navShape"></span></div>
     <div class="steps-nav" id="stepsNav">
-      <a href="#forma" aria-label="Passo 1: Forma"><i>1</i><span>Forma</span></a>
-      <a href="#misure" aria-label="Passo 2: Numeri"><i>2</i><span>Numeri</span></a>
-      <a href="#prepara" aria-label="Passo 3: Materiale"><i>3</i><span>Materiale</span></a>
-      <a href="#pezzi" aria-label="Passo 4: Pezzi"><i>4</i><span>Pezzi</span></a>
-      <a href="#modellino" aria-label="Passo 5: Modellino"><i>5</i><span>Modellino</span></a>
-      <a href="#montaggio" aria-label="Passo 6: Montaggio"><i>6</i><span>Montaggio</span></a>
+      <a href="#forma" aria-label="Sezione 1: Officina delle Bolle"><i>1</i><span>Officina</span></a>
+      <a href="#pezzi" aria-label="Sezione 2: Pezzi"><i>2</i><span>Pezzi</span></a>
+      <a href="#modellino" aria-label="Sezione 3: Cartamodello e montaggio"><i>3</i><span>Cartamodello e montaggio</span></a>
     </div>
     <button type="button" id="bCerca" class="cercaBtn" aria-haspopup="dialog" aria-label="Cerca un'opzione" title="Cerca un'opzione scrivendo con la tastiera"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg><span>Cerca</span><kbd id="cercaTasto">⌘K</kbd></button>
     <nav class="app" aria-label="Officina delle Bolle">
@@ -705,8 +737,8 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
 <div class="wrap" role="main" id="contenuto">
 
 
-<section id="forma">
-  <div class="sechead"><div class="stepno">01</div><div class="txt"><h2>Scegliete la forma</h2><p id="introForma">Scegliete una forma e scrivete le misure della bolla vera, in metri.</p></div></div>
+<section id="forma" class="sez1">
+  <div class="sechead"><div class="txt"><h2>Scegli forma</h2><p id="introForma">Toccate una forma. Sotto ne cambiate le misure e la provate gonfia.</p></div></div>
   <div class="gallery" id="gallery"></div>
   <div class="dafoto" id="daFoto" tabindex="-1">
     <div class="dafoto-ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="9" width="38" height="30" rx="5"/><path d="M5 33l10-10 8 8 6-6 14 14"/><circle cx="33" cy="18" r="3.5"/></svg></div>
@@ -720,8 +752,12 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
     </div>
     <p class="warn" id="fotoErr" hidden style="grid-column: 1 / -1"></p>
   </div>
-  <div class="mat">
-    <div class="bench2">
+  <div class="coppia">
+    <div class="riquadro" id="rqMisure">
+      <div class="rq-testa"><h2>Misure bolla</h2>
+        <div class="seg rq-schede" role="tablist" aria-label="Misure bolla"><button type="button" role="tab" data-rq="misure" aria-selected="true">Misure</button><button type="button" role="tab" data-rq="numeri" aria-selected="false">Numeri</button><button type="button" role="tab" data-rq="altro" aria-selected="false">Altre opzioni</button></div></div>
+      <div class="rq-pane" data-rqp="misure">
+        <div class="mat"><div class="bench2">
       <figure class="stage mini-stage">
         <canvas id="mini" class="pickable" aria-label="Anteprima 3D della forma con le misure scelte."></canvas>
         <div class="tip" id="tipMini" hidden></div>
@@ -739,32 +775,8 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
           <p class="hint notaScala" id="notaScala"></p>
           <div class="fields" id="params"></div>
         </div>
-        <div class="ctl">
-          <div class="ctl-h"><i>2</i>Pavimento</div>
-          <label class="check"><input type="checkbox" id="fit"> <span>Adatta la forma a un pavimento di questa area</span></label>
-          <div class="fields">
-            <div class="field"><label for="fitArea">Area del pavimento (m²)</label><input id="fitArea" type="number" step="0.01" min="0.1" value="6.25"></div>
-          </div>
-          <p class="hint" id="fitNote"></p>
-        </div>
-        <details class="ctl more" id="moreOpts">
-          <summary><span class="ctl-h"><i>3</i>Altre opzioni</span><span class="hint" id="moreSum"></span></summary>
-          <div class="more-body">
-            <div id="baseCtl" style="display:grid;gap:10px"></div>
-            <p class="hint" id="baseNote"></p>
-            <div class="modelref">
-              <span class="flabel">Trovate la scala dal modellino</span>
-              <div class="fields">
-                <div class="field"><label for="modelRef">Misura</label><select id="modelRef"></select></div>
-                <div class="field"><label for="modelCm">Sul modellino (cm)</label><input id="modelCm" type="number" step="any" min="0.1"></div>
-              </div>
-              <p class="hint" id="modelNote"></p>
-            </div>
-          </div>
-        </details>
       </div>
-    </div>
-  </div>
+        </div></div>
   <div class="ctl" id="planEditor" hidden>
     <div class="ctl-h"><i>✎</i>Disegnate la pianta</div>
     <div class="plan-ed">
@@ -788,6 +800,94 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
       </div>
     </div>
   </div>
+      </div>
+      <div class="rq-pane" data-rqp="numeri" id="misure" data-view="real" hidden>
+  <label class="check" hidden><input type="checkbox" id="viewBoth"> <span>Mostra insieme bolla vera e modellino</span></label>
+  <div class="note avviso" id="avvisoConf" hidden><span id="avvisoConfT"></span><button type="button" class="xchiudi" id="avvisoConfX" aria-label="Chiudi l'avviso">×</button></div>
+  <div class="keycards" id="keyCards"></div>
+  <div class="note avviso" id="avvisoPorta" hidden></div>
+  <div class="bridge" id="bridge" hidden>
+    <div class="txt"><b>Sta su? Provatela nell'Abbofficina, l'altra parte del sito</b><span class="hint" id="bridgeNote"></span></div>
+    <div class="btnrow"><a class="btn primary" id="bridgeGo" href="configuratore/">Porta la forma nell'Abbofficina</a>
+      <a class="btn" id="bridgeAdd" href="configuratore/" title="La forma si aggiunge alla composizione su cui stavate lavorando nell'Abbofficina, accanto alle altre bolle">Aggiungi alla composizione aperta</a></div>
+  </div>
+  <details class="more" hidden>
+    <summary>Tutte le misure <span class="hint" id="tblCount"></span></summary>
+    <div class="card tablewrap wide">
+      <table>
+        <thead><tr><th>Grandezza</th><th class="cr">Bolla reale</th><th class="cm">Modellino</th><th>A cosa serve</th></tr></thead>
+        <tbody id="tbl"></tbody>
+      </table>
+    </div>
+  </details>
+  <details class="more">
+    <summary>Consigli per la bolla vera <span class="hint">stabilità, angoli, aperture</span></summary>
+    <ul class="notes" id="realNotes"></ul>
+  </details>
+      </div>
+      <div class="rq-pane" data-rqp="altro" hidden>
+        <div class="ctl">
+          <div class="ctl-h"><i>2</i>Pavimento</div>
+          <label class="check"><input type="checkbox" id="fit"> <span>Adatta la forma a un pavimento di questa area</span></label>
+          <div class="fields">
+            <div class="field"><label for="fitArea">Area del pavimento (m²)</label><input id="fitArea" type="number" step="0.01" min="0.1" value="6.25"></div>
+          </div>
+          <p class="hint" id="fitNote"></p>
+        </div>
+        <details class="ctl more" id="moreOpts" open>
+          <summary><span class="ctl-h"><i>3</i>Altre opzioni</span><span class="hint" id="moreSum"></span></summary>
+          <div class="more-body">
+            <div id="baseCtl" style="display:grid;gap:10px"></div>
+            <p class="hint" id="baseNote"></p>
+            <div class="modelref">
+              <span class="flabel">Trovate la scala dal modellino</span>
+              <div class="fields">
+                <div class="field"><label for="modelRef">Misura</label><select id="modelRef"></select></div>
+                <div class="field"><label for="modelCm">Sul modellino (cm)</label><input id="modelCm" type="number" step="any" min="0.1"></div>
+              </div>
+              <p class="hint" id="modelNote"></p>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+    <div class="riquadro" id="rqSim">
+      <div class="rq-testa"><h2>Simulazione</h2><span class="hint" id="simNotaV" aria-live="polite">Gonfiatori, Sonny e aria</span>
+        <button type="button" class="btn rq-grande" id="simGrande" aria-label="Apri la simulazione a tutto schermo" title="A tutto schermo">↗</button></div>
+      <div class="simFrame"><iframe id="sim" src="configuratore/index.html?incorporata=1" title="Simulazione della bolla: gonfiatori, persone e aria"></iframe></div>
+    </div>
+  </div>
+  <div class="coppia">
+    <div class="riquadro" id="prepara">
+      <div class="rq-testa"><h2>Materiali bolla vera</h2></div>
+      <p class="hint">Sono già scelti quelli del lab. Cambiano anche la simulazione e la lista.</p>
+      <div class="fields matScelte">
+        <div class="field"><label for="mTelo">Telo</label><select id="mTelo"></select></div>
+        <div class="field"><label for="mGsm">Grammatura (g/m²)</label><input id="mGsm" type="number" min="5" max="800" step="1"></div>
+        <div class="field"><label for="mGiunti">Pezzi uniti con</label><select id="mGiunti"></select></div>
+        <div class="field" id="mNastroF"><label for="mAdW">Nastro: larghezza (mm)</label><input id="mAdW" type="number" min="12" max="100" step="1"></div>
+        <div class="field" id="mLatiF"><label for="mAdL">Nastro: lati</label><select id="mAdL"><option value="2">Dentro e fuori</option><option value="1">Solo fuori</option></select></div>
+        <div class="field"><label for="mPorte">Porte</label><select id="mPorte"></select></div>
+        <div class="field"><label for="mColl">Collegamenti tra bolle</label><select id="mColl"></select></div>
+        <div class="field rotoloF"><label for="rotolo">Larghezza del rotolo di telo (m)</label><input id="rotolo" type="number" min="0.5" max="20" step="0.1" value="2"></div>
+      </div>
+      <details class="more"><summary>Telo e attrezzi per tracciare e tagliare</summary><ul class="plain" id="matReal"></ul></details>
+      <details class="more"><summary>Per il modellino</summary><ul class="plain" id="matModel"></ul></details>
+      <details class="more"><summary>L'ordine del lavoro</summary>
+  <ol class="flow">
+    <li><strong>Dime</strong><span class="muted">Tracciate un pezzo campione perfetto per ogni tipo (Passo 4).</span></li>
+    <li><strong>Modellino</strong><span class="muted">Costruitelo: se si chiude senza forzare, le misure sono giuste (Passo 5).</span></li>
+    <li><strong>Taglio</strong><span class="muted">Ricalcate le dime grandi (le sagome da seguire) sulla plastica e scrivete codice e lettere su ogni pezzo.</span></li>
+    <li><strong>Montaggio</strong><span class="muted">Seguite l'elenco delle giunzioni, dal pavimento verso l'alto (Passo 6).</span></li>
+  </ol>
+      </details>
+    </div>
+    <div class="riquadro" id="rqLista">
+      <div class="rq-testa"><h2>Lista materiali e prezzi</h2><b class="num listaTot" id="listaTot"></b></div>
+      <p class="hint" id="listaNota">La stessa lista della simulazione: i prezzi che scrivete qui valgono anche là.</p>
+      <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"><tr><td colspan="4" class="hint">La simulazione si sta aprendo…</td></tr></tbody></table></div>
+    </div>
+  </div>
   <div class="about" id="about"></div>
   <details class="box more" id="projects">
     <summary><span class="tag">Progetti del gruppo</span><span class="hint">Salvate e riaprite forma e misure</span></summary>
@@ -807,49 +907,6 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
     <p class="hint" id="projStatus">Caricamento dei progetti…</p>
     <ul class="projlist" id="projList"></ul>
   </details>
-</section>
-
-<section id="misure">
-  <div class="sechead"><div class="stepno">02</div><div class="txt"><h2>Controllate i numeri</h2><p>È grande come la volevate? Se no, tornate al Passo 1 e cambiate le misure.</p></div></div>
-  <label class="check"><input type="checkbox" id="viewBoth"> <span>Mostra insieme bolla vera e modellino</span></label>
-  <div class="note avviso" id="avvisoConf" hidden><span id="avvisoConfT"></span><button type="button" class="xchiudi" id="avvisoConfX" aria-label="Chiudi l'avviso">×</button></div>
-  <div class="keycards" id="keyCards"></div>
-  <div class="note avviso" id="avvisoPorta" hidden></div>
-  <div class="bridge" id="bridge">
-    <div class="txt"><b>Sta su? Provatela nell'Abbofficina, l'altra parte del sito</b><span class="hint" id="bridgeNote"></span></div>
-    <div class="btnrow"><a class="btn primary" id="bridgeGo" href="configuratore/">Porta la forma nell'Abbofficina</a>
-      <a class="btn" id="bridgeAdd" href="configuratore/" title="La forma si aggiunge alla composizione su cui stavate lavorando nell'Abbofficina, accanto alle altre bolle">Aggiungi alla composizione aperta</a></div>
-  </div>
-  <details class="more">
-    <summary>Tutte le misure <span class="hint" id="tblCount"></span></summary>
-    <div class="card tablewrap wide">
-      <table>
-        <thead><tr><th>Grandezza</th><th class="cr">Bolla reale</th><th class="cm">Modellino</th><th>A cosa serve</th></tr></thead>
-        <tbody id="tbl"></tbody>
-      </table>
-    </div>
-  </details>
-  <details class="more">
-    <summary>Consigli per la bolla vera <span class="hint">stabilità, angoli, aperture</span></summary>
-    <ul class="notes" id="realNotes"></ul>
-  </details>
-</section>
-
-<section id="prepara">
-  <div class="sechead"><div class="stepno">03</div><div class="txt"><h2>Preparate il materiale</h2><p>Prima il modellino, che costa poco e mostra subito gli errori, poi la bolla vera.</p></div></div>
-  <div class="twocol">
-    <div class="box"><span class="tag">Per il modellino</span><ul class="plain" id="matModel"></ul></div>
-    <div class="box"><span class="tag">Per la bolla vera</span>
-      <div class="field rotoloF"><label for="rotolo">Larghezza del rotolo di telo (m)</label><input id="rotolo" type="number" min="0.5" max="20" step="0.1" value="2"></div>
-      <ul class="plain" id="matReal"></ul></div>
-  </div>
-  <h3>L'ordine del lavoro</h3>
-  <ol class="flow">
-    <li><strong>Dime</strong><span class="muted">Tracciate un pezzo campione perfetto per ogni tipo (Passo 4).</span></li>
-    <li><strong>Modellino</strong><span class="muted">Costruitelo: se si chiude senza forzare, le misure sono giuste (Passo 5).</span></li>
-    <li><strong>Taglio</strong><span class="muted">Ricalcate le dime grandi (le sagome da seguire) sulla plastica e scrivete codice e lettere su ogni pezzo.</span></li>
-    <li><strong>Montaggio</strong><span class="muted">Seguite l'elenco delle giunzioni, dal pavimento verso l'alto (Passo 6).</span></li>
-  </ol>
 </section>
 
 <section id="pezzi">
@@ -1064,6 +1121,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   const state = { shape: "d20", params: {}, opt: { cut: true, fit: true, fitArea: 6.25, orient: null, level: null }, scale: 20, mode: "real", roll: 200, margin: 3, person: true, colors: true };
   let cur = null;
   const isReal = () => state.mode === "real";
+  const campiModello = () => false;   // [Semplice] le misure della sezione 1 sono sempre della bolla vera: il Modellino sta nelle sezioni 2 e 3
   const Lx = (m) => (isReal() ? cmR(m) : cmM(m));
   const M = (m) => `<b class="meas">${Lx(m)}</b>`;
   // la sagoma di un'immagine ha centinaia di punti: nella chiave delle spunte entra solo una sua impronta corta
@@ -1202,7 +1260,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   const thumbs = new Map();
   // vetrina: la figura in alto mostra a turno, ogni 5 secondi, tutte le forme (alle misure di partenza, come le miniature).
   // id null = la forma scelta. Numeri e guida restano sempre sulla forma scelta; cliccando la figura si sceglie quella mostrata.
-  const vetrina = { id: null, prossimo: 0, sopra: false, ferma: false };
+  const vetrina = { id: null, prossimo: 0, sopra: false, ferma: true };   // [Semplice] la figura in alto resta sulla forma scelta
   // appena si sceglie una forma (galleria, figura, ricerca, progetto, file, link o ritorno dall'Abbofficina) il giro si ferma su quella
   function fermaVetrina() { vetrina.ferma = true; vetrina.id = null; vetrina.anim = null; }
   function buildThumbs() {
@@ -1382,7 +1440,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
     fields.forEach(p => {
       $("p_" + p.key).addEventListener(p.type === "pick" ? "change" : "input", (e) => {
         let v = p.type === "pick" ? e.target.value : parseFloat(e.target.value);
-        if (isLength(p) && state.mode === "model") v = +(v * state.scale / 100).toFixed(4);   // scritto in cm sul modellino: dentro restano i metri della bolla vera
+        if (isLength(p) && campiModello()) v = +(v * state.scale / 100).toFixed(4);   // scritto in cm sul modellino: dentro restano i metri della bolla vera
         if (p.type !== "pick") {
           // un valore che non si può usare si dice sul campo: il conto non lo userebbe, quindi il campo non deve far finta di niente
           const fuori = !(v >= p.min) || (p.max && v > p.max);
@@ -1415,11 +1473,11 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   function valoreCampo(p) {
     const v = state.params[p.key]; if (!isLength(p)) return v;
     const reale = v * (state.opt.fit && cur ? cur.k : 1);
-    return state.mode === "model" ? +(reale * 100 / state.scale).toFixed(2) : +reale.toFixed(3);
+    return campiModello() ? +(reale * 100 / state.scale).toFixed(2) : +reale.toFixed(3);
   }
-  const uCampo = (p, v) => isLength(p) ? (state.mode === "model" ? fmt(v * 100 / state.scale, 1) + " cm" : fmt(v, 2) + " m") : fmt(v, 0);
+  const uCampo = (p, v) => isLength(p) ? (campiModello() ? fmt(v * 100 / state.scale, 1) + " cm" : fmt(v, 2) + " m") : fmt(v, 0);
   function limiteCampo(p, v) {
-    const resta = isLength(p) ? (state.mode === "model" ? fmt(valoreCampo(p), 1) + " cm" : fmt(valoreCampo(p), 2) + " m") : fmt(state.params[p.key], 0);
+    const resta = isLength(p) ? (campiModello() ? fmt(valoreCampo(p), 1) + " cm" : fmt(valoreCampo(p), 2) + " m") : fmt(state.params[p.key], 0);
     return `${!Number.isFinite(v) ? "Scrivete un numero" : v < p.min ? "Minimo " + uCampo(p, p.min) : "Massimo " + uCampo(p, p.max)}: resta ${resta}.`;
   }
   function segnaCampo(el, msg) {
@@ -1431,7 +1489,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   }
   // etichette e passi dei campi di lunghezza: metri della bolla vera o centimetri del modellino
   function etichetteCampi() {
-    const mod = state.mode === "model";
+    const mod = campiModello();
     $("params").classList.toggle("mod", mod);
     def().params.filter(isLength).forEach(p => {
       const el = $("p_" + p.key), lb = document.querySelector(`label[for="p_${p.key}"]`); if (!el || !lb) return;
@@ -1560,7 +1618,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   $("resetSteps").addEventListener("click", () => azzera(shapeKey() + "|step", ["spunta", "spunte"], renderPieces));
   $("resetSeams").addEventListener("click", () => azzera(shapeKey() + "|seam", ["giunzione", "giunzioni"], renderSeams));
   // il Passo 2 segue la scelta della pagina; a richiesta mostra insieme le due misure (ricordato in questo browser)
-  function setView() { $("misure").dataset.view = $("viewBoth").checked ? "both" : state.mode; }
+  function setView() { $("misure").dataset.view = "real"; }   // [Semplice] i numeri della sezione 1 sono della bolla vera
   $("viewBoth").addEventListener("change", e => { try { localStorage.setItem("bolle|vista", e.target.checked ? "both" : "uno"); } catch (er) { /* solo per questa visita */ } setView(); });
   try { $("viewBoth").checked = localStorage.getItem("bolle|vista") === "both"; if (localStorage.getItem("bolle|unita") === "model") state.mode = "model"; } catch (e) { /* valori predefiniti */ }
   setMode(state.mode);
@@ -1628,6 +1686,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
     return { tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: d.id } };   // off: il configuratore mette le entrate dove le prevede l'Officina
   }
   function renderBridge(ok) {
+    if (ok) inviaSim();   // [Semplice] la simulazione segue le misure
     const a = $("bridgeGo"), b = $("bridgeAdd"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure al Passo 1." };
     if (r.no) { for (const x of [a, b]) { x.setAttribute("aria-disabled", "true"); x.removeAttribute("href"); x.tabIndex = -1; } $("bridgeNote").textContent = r.no; return; }
     const nome = ($("projName").value.trim() || shortName(def())).slice(0, 60), pacco = { v: 1, nome, tipo: r.tipo, d: r.d, src: statoForma() };
@@ -2885,22 +2944,89 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   $("projName").addEventListener("keydown", e => { if (e.key === "Enter") saveProject(false); });
   $("projName").addEventListener("input", () => { ricordaForma(); if (cur) renderBridge(true); });
 
+  /* ---------- [Semplice] i riquadri della sezione 1 ---------- */
+  function attivaScheda(k) {
+    document.querySelectorAll("#rqMisure [data-rq]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.rq === k)));
+    document.querySelectorAll("#rqMisure [data-rqp]").forEach(p => p.hidden = p.dataset.rqp !== k);
+    requestAnimationFrame(() => { if (cur) drawAll(); });
+  }
+  document.querySelectorAll("#rqMisure [data-rq]").forEach(b => b.addEventListener("click", () => attivaScheda(b.dataset.rq)));
+  function mostraRiquadro(id) {
+    const el = document.getElementById(id); if (!el) return;
+    const pane = el.closest("[data-rqp]"); if (pane) attivaScheda(pane.dataset.rqp);
+    el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+  }
+  // la simulazione: l'Abbofficina dentro il riquadro. La forma va e torna con dei messaggi
+  const clampN = (x, a, b) => Math.min(b, Math.max(a, x));
+  const sim = { pronta: false, t: 0, ultima: "", ricevuta: "", opz: null };
+  const simWin = () => $("sim").contentWindow;
+  const aSim = m => { if (sim.pronta) try { simWin().postMessage({ bolle: 1, ...m }, "*"); } catch (e) { /* riquadro non pronto */ } };
+  function inviaSim() {
+    clearTimeout(sim.t); sim.t = setTimeout(() => {
+      if (!cur || !sim.pronta) return;
+      const r = perConfiguratore(); if (!r || r.no) return;
+      const pacco = { v: 1, nome: ($("projName").value.trim() || shortName(def())).slice(0, 60), tipo: r.tipo, d: r.d, src: statoForma() }, f = JSON.stringify([pacco.tipo, pacco.d, pacco.nome]);
+      if (f === sim.ultima) return; sim.ultima = f; aSim({ tipo: "forma", pacco });
+    }, 350);
+  }
+  // dalla simulazione alle misure: le bolle di là hanno le loro misure (cubo, poligono, piramide…) o una scala (forma vera)
+  function daSimulazione(t, d) {
+    const id = def().id, p = { ...state.params }, L = Object.fromEntries(def().params.map(q => [q.key, isLength(q)]));
+    if (t === "officina" || t === "libera") { const k = +(d.k || 1); if (Math.abs(k - 1) < 1e-3) return; for (const q in p) if (L[q]) p[q] = +(p[q] * k).toFixed(3); }
+    else if (t === "cubo" && id === "box") Object.assign(p, { a: d.W, b: d.P, h: d.H });
+    else if (t === "cubo" && id === "d6" && Math.abs(d.W - d.P) < 1e-3 && Math.abs(d.W - d.H) < 1e-3) p.s = d.W;
+    else if (t === "prisma" && id === "prism") Object.assign(p, { n: d.lati, s: +(d.D * Math.sin(Math.PI / d.lati)).toFixed(3), h: d.H });
+    else if (t === "piramide" && (id === "pyr" || id === "frus")) Object.assign(p, { n: d.lati, s: d.L, h: d.H }, id === "frus" ? { t: +(d.k * d.L).toFixed(3) } : {});
+    else if (t === "stella" && id === "star") Object.assign(p, { n: d.punte, R: d.D / 2, r: +(d.k * d.D / 2).toFixed(3), h: d.H });
+    else return;
+    renderParams(p); update(); avvisoSim("Misure cambiate dalla simulazione.");
+  }
+  function avvisoSim(t) { const n = $("simNotaV"); if (n) { n.textContent = t; clearTimeout(avvisoSim.t); avvisoSim.t = setTimeout(() => { n.textContent = ""; }, 3500); } }
+  addEventListener("message", e => {
+    const m = e.data; if (!m || !m.bolle || e.source !== simWin()) return;
+    if (m.tipo === "pronta") { sim.pronta = true; sim.ultima = ""; inviaSim(); }
+    else if (m.tipo === "misure") daSimulazione(m.tipoB, m.d || {});
+    else if (m.tipo === "esci") grandeSim(false);
+    else if (m.tipo === "stato") { mostraMateriali(m); mostraLista(m); }
+  });
+  $("simGrande").addEventListener("click", () => grandeSim(!$("rqSim").classList.contains("grande")));
+  function grandeSim(si) {
+    $("rqSim").classList.toggle("grande", si); document.body.classList.toggle("simGrande", si);
+    $("simGrande").textContent = si ? "↙" : "↗"; $("simGrande").setAttribute("aria-label", si ? "Torna alla pagina" : "Apri la simulazione a tutto schermo"); $("simGrande").title = si ? "Torna alla pagina (Esc)" : "A tutto schermo";
+    aSim({ tipo: "grande", si }); if (si) $("sim").focus();
+  }
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && $("rqSim").classList.contains("grande")) grandeSim(false); });
+  // materiali della bolla vera: le scelte vanno alla simulazione, che rimanda la lista con i prezzi
+  const opzioni = (sel, l, v) => { sel.innerHTML = l.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join(""); sel.value = v; };
+  function mostraMateriali(m) {
+    if (!sim.opz) { sim.opz = m.opz; opzioni($("mTelo"), m.opz.mat, m.D.mat); opzioni($("mGiunti"), m.opz.giunti, m.D.giunti); opzioni($("mPorte"), m.opz.porte, m.D.porte); opzioni($("mColl"), m.opz.porte, m.D.coll); }
+    const D = m.D, metti = (id, v) => { const el = $(id); if (document.activeElement !== el) el.value = v; };
+    metti("mTelo", D.mat); metti("mGsm", D.gsm); metti("mGiunti", D.giunti); metti("mAdW", D.adW); metti("mAdL", String(D.adLati > 1 ? 2 : 1)); metti("mPorte", D.porte); metti("mColl", D.coll);
+    $("mNastroF").hidden = $("mLatiF").hidden = D.giunti !== "adesivo";
+  }
+  for (const id of ["mTelo", "mGsm", "mGiunti", "mAdW", "mAdL", "mPorte", "mColl"]) $(id).addEventListener("change", () => {
+    const g = $("mGiunti").value; $("mNastroF").hidden = $("mLatiF").hidden = g !== "adesivo";
+    aSim({ tipo: "materiali", D: { mat: $("mTelo").value, gsm: clampN(+$("mGsm").value || 20, 5, 800), giunti: g, adW: clampN(+$("mAdW").value || 48, 12, 100), adLati: +$("mAdL").value, porte: $("mPorte").value, coll: $("mColl").value } });
+  });
+  const euro = x => x.toLocaleString("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: x < 100 ? 2 : 0, maximumFractionDigits: x < 100 ? 2 : 0 });
+  function mostraLista(m) {
+    const tb = $("listaRighe"); if (tb.contains(document.activeElement)) return;   // si sta scrivendo un prezzo: si aggiorna dopo
+    const q = r => r.u === "pz" ? fmt(r.q, 0) : fmt(r.q, r.q < 20 ? 1 : 0);
+    tb.innerHTML = m.righe.map(r => (r.sez ? `<tr class="sez"><td colspan="4">${esc(r.sez)}</td></tr>` : "")
+      + `<tr><td>${esc(r.nome)}${r.dove ? `<small>${esc(r.dove)}</small>` : ""}</td><td class="dx num">${q(r)} ${esc(r.u)}</td>`
+      + `<td class="dx"><input type="number" min="0" step="0.01" inputmode="decimal" data-id="${esc(r.id)}" value="${r.prezzo ?? ""}" placeholder="€" aria-label="Prezzo per ${esc(r.u)}: ${esc(r.nome)}"><small>€/${esc(r.u)}</small></td>`
+      + `<td class="dx num">${r.tot == null ? "—" : euro(r.tot)}</td></tr>`).join("");
+    $("listaTot").textContent = m.totale > 0 ? euro(m.totale) : "";
+    $("listaNota").textContent = m.mancano ? `Mancano ${m.mancano === 1 ? "un prezzo" : m.mancano + " prezzi"}: scriveteli nella colonna Prezzo. Sono gli stessi della simulazione.` : "Tutte le voci hanno un prezzo. Sono gli stessi della simulazione.";
+  }
+  $("listaRighe").addEventListener("change", e => { const i = e.target.closest("input[data-id]"); if (i) aSim({ tipo: "prezzo", id: i.dataset.id, v: i.value === "" ? "" : +i.value }); });
+
   /* ---------- un passo alla volta: si vede una sezione sola, il passo sta nell'indirizzo (#misure…) ---------- */
   const navLinks = [...document.querySelectorAll("#stepsNav a")];
   const secs = navLinks.map(a => document.querySelector(a.getAttribute("href")));
   const stepIds = secs.map(s => s.id);
   let seen = new Set();
   try { seen = new Set(JSON.parse(localStorage.getItem("bolle|visti") || "[]")); } catch (e) { /* nessun passo ricordato */ }
-  // in fondo a ogni passo: Indietro e Avanti con il nome del passo seguente
-  secs.forEach((s, i) => {
-    const prev = secs[i - 1], next = secs[i + 1], title = (x) => x.querySelector("h2").textContent;
-    const foot = document.createElement("div");
-    foot.className = "stepfoot";
-    foot.innerHTML = (!prev ? `<span class="hint">Forma e misure si salvano da sole in questo browser.</span>` : "") + (prev ? `<a class="btn back" href="#${prev.id}">‹ Indietro</a>` : "") +
-      (next ? `<a class="btn big primary next" href="#${next.id}">Avanti: ${esc(title(next))} ›</a>` : `<a class="btn big next" id="fineForma" href="#forma">Scegliete un'altra forma</a>`);
-    const dopo = s.querySelector(":scope > #projects");   // al Passo 1 i progetti vengono dopo «Avanti»: prima si sceglie e si misura
-    if (dopo) s.insertBefore(foot, dopo); else s.appendChild(foot);
-  });
   let stepIniziale = true;
   function showStep(id) {
     const idx = Math.max(0, stepIds.indexOf(id)), sid = stepIds[idx];
@@ -2912,7 +3038,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
     $("progress").style.width = (idx + 1) / secs.length * 100 + "%";
     const on = navLinks[idx], nav = $("stepsNav");
     nav.scrollLeft = on.offsetLeft - nav.offsetLeft - nav.clientWidth / 2 + on.clientWidth / 2;
-    window.scrollTo({ top: 0, behavior: "instant" });
+    if (!stepIniziale) secs[idx].scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });   // [Semplice] le sezioni sono tutte nella pagina: si scorre fino a quella
     if (!stepIniziale) { const h = secs[idx].querySelector("h2"); h.tabIndex = -1; h.focus({ preventScroll: true }); $("annuncio").textContent = `Passo ${idx + 1} di ${secs.length}: ${h.textContent}`; }
     stepIniziale = false;
     // i disegni dei passi nascosti avevano misura zero: si ridisegnano ora che si vedono
@@ -2921,6 +3047,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   const hashStep = () => { const h = decodeURIComponent(location.hash.slice(1)); return stepIds.includes(h) ? h : null; };
   // ogni cambio di passo entra nella cronologia, così il tasto Indietro del browser torna al passo prima
   function goStep(id) {
+    if (!stepIds.includes(id)) { mostraRiquadro(id); return; }   // [Semplice] Numeri, Materiali… stanno dentro i riquadri della sezione 1
     if (location.hash !== "#" + id) { try { history.pushState(null, "", "#" + id); } catch (e) { /* indirizzo fisso: si cambia solo il passo */ } }
     showStep(id);
   }
@@ -2930,7 +3057,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
     const a = e.target.closest && e.target.closest('a[href^="#"]');
     if (!a) return;
     const id = a.getAttribute("href").slice(1);
-    if (!stepIds.includes(id)) return;
+    if (!stepIds.includes(id) && !document.getElementById(id)) return;
     e.preventDefault();
     goStep(id);
   });

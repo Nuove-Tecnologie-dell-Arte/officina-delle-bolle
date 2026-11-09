@@ -15,6 +15,11 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; }
+  /* [Officina] dentro la pagina semplice (?incorporata): nel riquadro piccolo solo la scena; a schermo intero tutto, tranne il passaggio Officina / Abbofficina */
+  body.piccola > header, body.piccola #vCostruisci > aside, body.piccola .manico, body.piccola .linguetta, body.piccola .suggScena, body.piccola .guidaPop { display: none !important; }
+  body.piccola #vCostruisci { display: block !important; }
+  body.piccola #vCostruisci > #scena { position: absolute; inset: 0; height: 100%; }
+  body.incorporata .app, body.incorporata #bOfficina, body.incorporata .vaiOfficina { display: none !important; }
   body { background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
   button, select, input { font: inherit; color: inherit; }
   button { cursor: pointer; border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 8px 12px; }
@@ -916,6 +921,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
+const INCORPORATA = new URLSearchParams(location.search).has('incorporata');   // [Officina] dentro la pagina semplice
+if (INCORPORATA) document.body.classList.add('incorporata', 'piccola');
 (() => {
 'use strict';
 const $ = id => document.getElementById(id);
@@ -3371,6 +3378,7 @@ function aggiungi(c) {
   pezzi.push(p); selezionato = p; strutturaCambiata(); ispettore(true);
 }
 function strutturaCambiata() {
+  try { if (typeof cambiataQui === 'function') setTimeout(cambiataQui, 0); } catch (e) {}   // [Officina] la pagina semplice segue le modifiche
   if (inGiro()) fermaTutti();
   for (const p of pezzi) { const r = p.V0 ? p.Va / p.V0 : 0; p.F = forma(p.tipo, p.d); p.V0 = p.F.vol; p.Va = r * p.V0; p.porte = p.porte.filter(i => i < p.F.E.length); }
   collega(); ricostruisciScena(); stimaRegime(); aggiornaPiu(); ispettore(); costruisciRighe(); costruisciManometri();
@@ -4075,7 +4083,7 @@ const compAttiva = () => comp.lista.find(c => c.id === comp.attiva);
 const nuovoIdComp = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function fotografa() {
-  return { v: 1, pezzi: pezzi.map(p => ({ tipo: p.tipo, d: { ...p.d }, f: { ...p.f }, porte: [...p.porte], x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: p.ang, nome: p.nome, ingresso: !!p.ingresso, ingLato: p.ingLato ?? null, ingU: p.ingU ?? null, ingW: p.ingW ?? null, tinta: p.tinta || null, stelle: p.stelle ? { ...p.stelle } : null, colore: p.colore, situazione: p.situazione || 'auto', nRes: p.nRes || 0 })),
+  return { v: 1, pezzi: pezzi.map(p => ({ tipo: p.tipo, d: { ...p.d }, f: { ...p.f }, porte: [...p.porte], x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: p.ang, nome: p.nome, ingresso: !!p.ingresso, legato: !!p.legato, ingLato: p.ingLato ?? null, ingU: p.ingU ?? null, ingW: p.ingW ?? null, tinta: p.tinta || null, stelle: p.stelle ? { ...p.stelle } : null, colore: p.colore, situazione: p.situazione || 'auto', nRes: p.nRes || 0 })),
     manuali: manuali.map(m => [pezzi.indexOf(m.a), m.ea, pezzi.indexOf(m.b), m.eb]), staccati: staccati.map(m => [pezzi.indexOf(m.a), m.ea, pezzi.indexOf(m.b), m.eb]),
     D: Object.fromEntries(CHIAVI_D.map(k => [k, D[k]])), GONF: Object.fromEntries(['piccolo', 'grande'].map(k => [k, { W: GONF[k].W, Q: GONF[k].Q, Pmax: GONF[k].Pmax }])),
     stanza: statoStanza(), oggetti: statoOggetti() };   // [Officina] oggetti 3D
@@ -4119,7 +4127,7 @@ function carica(dati, opz = {}) {   // [Officina] opz.storia: da Annulla / Ripet
       TIPI[q.tipo] = { nome: q.nome || 'Forma dell\'Officina', off: q.tipo.slice(3), par: [], scelte: [], f: q.f || { piccolo: 1, grande: 0 } };
     if (!TIPI[q.tipo]) continue;
     const p = nuovoPezzo(q.tipo, { ...standard(q.tipo), ...q.d }, q.f, q.porte);
-    Object.assign(p, { x: q.x || 0, z: q.z || 0, ang: q.ang || 0, nome: q.nome || p.nome, ingresso: !!q.ingresso, ingLato: q.ingLato ?? null, ingU: q.ingU ?? null, ingW: q.ingW ?? null }); if (q.colore) p.colore = q.colore;
+    Object.assign(p, { x: q.x || 0, z: q.z || 0, ang: q.ang || 0, nome: q.nome || p.nome, ingresso: !!q.ingresso, legato: !!q.legato, ingLato: q.ingLato ?? null, ingU: q.ingU ?? null, ingW: q.ingW ?? null }); if (q.colore) p.colore = q.colore;
     if (q.tinta) p.tinta = q.tinta; if (q.stelle) p.stelle = { ...q.stelle }; p.situazione = 'auto'; p.nRes = 0;   // [Officina] situazioni e residenti si decidono da soli
     pezzi.push(p);
   }
@@ -4843,12 +4851,9 @@ $('ffOk').onclick = () => {
 
 // [Officina] una forma mandata dall'Officina delle Bolle: #officina={"v":1,"nome":…,"tipo":…,"d":{…}} (misure della bolla vera, in metri).
 // Dopo il # così le forme grandi non vanno al server; si legge anche ?officina= per i link vecchi.
-function daOfficina() {
-  let q = null; try { q = new URLSearchParams(location.hash.slice(1)).get('officina') || new URLSearchParams(location.search).get('officina'); } catch (e) {}
-  if (!q) return;
-  try { const u = new URL(location.href); u.searchParams.delete('officina'); history.replaceState(null, '', u.pathname + u.search); } catch (e) {}   // ricaricando non si duplica
-  let M; try { M = JSON.parse(q); } catch (e) { avviso('La forma arrivata dall\'Officina non si legge: riprova dal pulsante dell\'Officina.', 6000); return; }
-  if (!M || !TIPI[M.tipo] || typeof M.d !== 'object' || !M.d) { avviso('Questa forma dell\'Officina non si può simulare qui.', 6000); return; }
+function preparaPacco(M, zitto) {   // [Officina] controlla una forma dell'Officina (dall'indirizzo o dalla pagina semplice) e la porta nei limiti
+  const avv = zitto ? () => {} : avviso;
+  if (!M || !TIPI[M.tipo] || typeof M.d !== 'object' || !M.d) { avv('Questa forma dell\'Officina non si può simulare qui.', 6000); return null; }
   const tipo = M.tipo, nome = String(M.nome || TIPI[tipo].nome).slice(0, 60), d = {}, ritocchi = [];
   for (const [k, lab, mn, mx, , std, u] of TIPI[tipo].par) {   // le misure restano dentro i limiti del configuratore
     const v = +M.d[k]; if (!Number.isFinite(v)) { d[k] = std; continue; }
@@ -4857,21 +4862,29 @@ function daOfficina() {
   }
   if (tipo === 'libera') {
     const pts = M.d.pts;
-    if (!Array.isArray(pts) || pts.length < 3 || pts.length > 200 || !pts.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite))) { avviso('Il contorno arrivato dall\'Officina non è valido.', 6000); return; }
+    if (!Array.isArray(pts) || pts.length < 3 || pts.length > 200 || !pts.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite))) { avv('Il contorno arrivato dall\'Officina non è valido.', 6000); return null; }
     const c = centraPunti(pts); d.pts = c.pts; d.ri = c.ri; d.k = 1;
   }
   if (tipo === 'officina') {   // la forma vera: vertici [x, y, z] in metri e facce come elenchi di indici
     const m = M.d.mesh, nv = m && Array.isArray(m.v) ? m.v.length : 0;
     const ok = nv >= 4 && nv <= 20000 && m.v.every(p => Array.isArray(p) && p.length === 3 && p.every(Number.isFinite)) && Array.isArray(m.f) && m.f.length >= 4 && m.f.length <= 40000
       && m.f.every(f => Array.isArray(f) && f.length >= 3 && f.every(i => Number.isInteger(i) && i >= 0 && i < nv));
-    if (!ok) { avviso('La forma arrivata dall\'Officina non è valida.', 6000); return; }
+    if (!ok) { avv('La forma arrivata dall\'Officina non è valida.', 6000); return null; }
     d.mesh = { v: m.v, f: m.f }; if (typeof M.d.off === 'string' && PORTE_OFF[M.d.off]) d.off = M.d.off;   // l'id dell'Officina: per mettere le entrate nei punti giusti
-    let F; try { F = forma('officina', d); } catch (e) { avviso('Questa forma non appoggia a terra: nell\'Officina appoggiatela su una faccia o tagliate la base (Passo 1 → Altre opzioni).', 8000); return; }
+    let F; try { F = forma('officina', d); } catch (e) { avv('Questa forma non appoggia a terra: nell\'Officina appoggiatela su una faccia o tagliate la base (Passo 1 → Altre opzioni).', 8000); return null; }
     const k0 = d.k;   // porte da 1,80 m: se serve si ingrandisce tutta la forma (si riprova: la mappa delle altezze è a quadretti)
     for (let giro = 0; giro < 4; giro++) { const hb = Math.min(...F.conn.map(i => F.E[i].hMax)); if (hb >= ALT_PORTA || d.k >= 2) break;
       d.k = Math.min(2, Math.ceil(ALT_PORTA / Math.max(0.4, hb) * d.k * 1.02 * 100) / 100); F = forma('officina', d); }
     if (d.k > k0) ritocchi.push(`ingrandita ×${fmt(d.k, 2)} perché le porte siano alte almeno ${fmt(PORTA_MIN, 2)} m`);
   }
+  return { tipo, nome, d, ritocchi };
+}
+function daOfficina() {
+  let q = null; try { q = new URLSearchParams(location.hash.slice(1)).get('officina') || new URLSearchParams(location.search).get('officina'); } catch (e) {}
+  if (!q) return;
+  try { const u = new URL(location.href); u.searchParams.delete('officina'); history.replaceState(null, '', u.pathname + u.search); } catch (e) {}   // ricaricando non si duplica
+  let M; try { M = JSON.parse(q); } catch (e) { avviso('La forma arrivata dall\'Officina non si legge: riprova dal pulsante dell\'Officina.', 6000); return; }
+  const P0 = preparaPacco(M); if (!P0) return; const { tipo, nome, d, ritocchi } = P0;
   const f = gonfConsigliati({ tipo, d }) || { ...TIPI[tipo].f };
   const ini = compAttiva(); if (ini && ini.nome === NOME_INIZIO) { comp.lista = comp.lista.filter(c => c !== ini); comp.attiva = null; }   // il cubo d'esempio di questa apertura non serve
   const src = M.src && typeof M.src === 'object' && JSON.stringify(M.src).length < 20000 ? M.src : null;   // com'era nell'Officina: per tornarci con il selettore in alto
@@ -4905,6 +4918,56 @@ function daOfficina() {
   avviso(`Dall'Officina: ${nome}. Gonfiatori consigliati: ${g || 'nessuna combinazione funziona'}. ${giudizio}` + (ritocchi.length ? ` Misure portate nei limiti dell'Abbofficina: ${ritocchi.join(', ')}.` : '') + (M.nota ? ' ' + String(M.nota).slice(0, 200) : ''), 12000);
 }
 daOfficina();
+// [Officina] dentro la pagina semplice (bolla-d20-semplice): la bolla delle misure arriva con un messaggio, e le sue modifiche tornano indietro
+const manda = m => { try { parent.postMessage({ bolle: 1, ...m }, '*'); } catch (e) {} };
+let firmaLegata = '';
+const impronta = m => { if (!m || !m.v) return ''; let t = 0; for (const v of m.v) t += Math.abs(v[0]) * 1.3 + Math.abs(v[1]) * 1.7 + Math.abs(v[2]); return m.v.length + ':' + t.toFixed(3); };   // la forma vera cambia anche se i numeri sono gli stessi
+const firmaPezzo = p => p.tipo + '|' + JSON.stringify(p.d, (k, v) => k === 'mesh' ? undefined : v) + '|' + impronta(p.d.mesh);
+function legata() { return pezzi.find(q => q.legato) || null; }
+function formaDallaPagina(M) {
+  const P = preparaPacco(M, true); if (!P) return;
+  let c = comp.lista.find(x => x.pagina);
+  if (!c) { c = nuovaComp('Officina · ' + P.nome, { ...fotografa(), pezzi: [{ tipo: P.tipo, d: { ...standard(P.tipo), ...P.d }, f: gonfConsigliati({ tipo: P.tipo, d: P.d }) || { ...TIPI[P.tipo].f }, nome: P.nome, ingresso: true, legato: true }], manuali: [], staccati: [], stanza: null }); c.pagina = true; salvaComp(); disegnaComp(); }
+  else if (comp.attiva !== c.id) { apriComp(c.id); disegnaComp(); }
+  let p = legata(); if (!p) { p = pezzi[0]; if (!p) return; p.legato = true; }
+  const d = { ...standard(P.tipo), ...P.d }, nuovoTipo = p.tipo !== P.tipo;
+  if (firmaPezzo({ tipo: P.tipo, d }) === firmaPezzo(p) && p.nome === P.nome) { firmaLegata = firmaPezzo(p); return; }
+  const legami = legamiAttuali(), r = p.V0 ? p.Va / p.V0 : 0;
+  p.tipo = P.tipo; p.d = d; p.nome = P.nome; p.F = forma(p.tipo, p.d); p.V0 = p.F.vol; p.Va = r * p.V0;
+  if (nuovoTipo) { p.porte = p.F.conn.slice(); p.f = gonfConsigliati({ tipo: p.tipo, d: p.d }) || { ...TIPI[p.tipo].f }; } else p.porte = p.porte.filter(i => i < p.F.E.length);
+  firmaLegata = firmaPezzo(p); riallinea(p, legami); strutturaCambiata(); if (selezionato === p) ispettore();
+}
+let tStato = 0;
+function mandaStato() {   // materiali scelti e distinta con i prezzi: la pagina li mostra con gli stessi numeri
+  clearTimeout(tStato); tStato = setTimeout(() => {
+    const B = distinta(), righe = B.righe.map(r => { const pr = prezzoDi(r); return { id: r.id, sez: r.sez || null, nome: r.nome, dove: r.dove, q: r.q, u: r.u, prezzo: pr, tot: pr == null ? null : pr * r.q, libera: r.libera != null }; });
+    const opz = f => Object.entries(CH).filter(([k, c]) => f(k, c)).map(([k, c]) => [k, c.nome]);
+    manda({ tipo: 'stato', D: { mat: D.mat, gsm: D.gsm, giunti: D.giunti, adW: D.adW, adLati: D.adLati, porte: D.porte, coll: D.coll },
+      opz: { mat: Object.entries(MAT).map(([k, m]) => [k, m.nome]), giunti: opz(() => true), porte: opz((k, c) => !c.solo) },
+      righe, totale: righe.reduce((t, r) => t + (r.tot || 0), 0), mancano: righe.filter(r => r.tot == null).length, kgTelo: B.kgTelo, teloLordo: B.teloLordo });
+  }, 250);
+}
+function cambiataQui() {   // dopo ogni modifica: se è cambiata la bolla legata, la pagina riceve le sue nuove misure
+  if (!INCORPORATA) return;
+  const p = legata(); if (p) { const f = firmaPezzo(p); if (f !== firmaLegata) { firmaLegata = f; manda({ tipo: 'misure', tipoB: p.tipo, d: JSON.parse(JSON.stringify(p.d, (k, v) => k === 'mesh' ? undefined : v)) }); } }
+  mandaStato();
+}
+if (INCORPORATA) {
+  addEventListener('message', e => { const m = e.data; if (!m || !m.bolle) return;
+    if (m.tipo === 'forma' && m.pacco) formaDallaPagina(m.pacco);
+    else if (m.tipo === 'materiali' && m.D) { const x = m.D; if (x.mat && x.mat !== D.mat && MAT[x.mat]) D.sigma = MAT[x.mat].sigma;
+      for (const k of ['mat', 'gsm', 'giunti', 'adW', 'adLati', 'porte', 'coll']) if (x[k] != null) D[k] = x[k];
+      aggiornaSpessore(); for (const l of link) l.porta.tipo = D.porte; costruisciDati(); strutturaCambiata(); }
+    else if (m.tipo === 'prezzo') { if (m.v === '' || m.v == null) delete prezzi[m.id]; else prezzi[m.id] = +m.v; salvaBudget(); aggiornaMateriali(true); mandaStato(); }
+    else if (m.tipo === 'grande') { document.body.classList.toggle('piccola', !m.si); requestAnimationFrame(() => dispatchEvent(new Event('resize'))); }
+  });
+  manda({ tipo: 'pronta' }); mandaStato();
+  addEventListener('keydown', e => {   // a schermo intero, Esc torna alla pagina (se non sta chiudendo un menu)
+    if (e.key !== 'Escape' || document.body.classList.contains('piccola')) return;
+    if (document.querySelector('#menuComp:not([hidden]), #menuProve:not([hidden]), #menuMenu:not([hidden]), #cerca:not([hidden]), #guida:not([hidden]), #popG, #menuBolla, dialog[open]') || pov || collegaDa) return;
+    manda({ tipo: 'esci' });
+  }, true);
+}
 // [Officina] materiale e chiusure all'inizio: alla prima visita (non se si arriva dall'Officina) e a ogni composizione nuova
 function leggiScelte() { return { mat: $('sMat').value, gsm: clamp(+$('sGsm').value || D_LAB.gsm, 5, 800), giunti: $('sGiunti').value, adW: clamp(+$('sAdW').value || D_LAB.adW, 12, 100), adLati: +$('sAdL').value, porte: $('sPorte').value, coll: $('sColl').value }; }
 function esitoScelte() {
@@ -4932,7 +4995,7 @@ $('scelte').addEventListener('input', esitoScelte); $('scelte').addEventListener
 $('sLab').onclick = () => { const X = D_LAB; $('sMat').value = X.mat; $('sGsm').value = X.gsm; $('sGiunti').value = X.giunti; $('sAdW').value = X.adW; $('sAdL').value = String(X.adLati); $('sPorte').value = X.porte; $('sColl').value = X.coll; esitoScelte(); };
 $('sOk').onclick = () => { applicaScelte(); $('scelte').close(); };
 $('scelte').addEventListener('close', () => { try { localStorage.setItem('bolle-scelte-viste', '1'); } catch (e) {} });
-{ let vista = false; try { vista = !!localStorage.getItem('bolle-scelte-viste'); } catch (e) {} if (!vista && !/officina=/.test(location.hash)) apriScelte(); }
+{ let vista = false; try { vista = !!localStorage.getItem('bolle-scelte-viste'); } catch (e) {} if (!vista && !/officina=/.test(location.hash) && !INCORPORATA) apriScelte(); }
 caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bolle"
 
 // =====================================================================
