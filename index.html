@@ -683,6 +683,15 @@ body:not([data-modo="model"]) .scalaSez { display: none !important; }
 .piece-head .quante { margin-left: auto; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 .piece-head canvas.where { display: none; }
 details.piece[open] .piece-head canvas.where { display: block; }
+/* [Semplice] sezione 3 */
+.scalaSez3 { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .scalaSez3[hidden] { display: none; } .scalaSez3 input { width: 80px; }
+.s3-pane { display: grid; gap: 18px; min-width: 0; }
+.sez3 .seambar .btnrow { margin-left: auto; }
+@media print {
+  body.stampaNet * { visibility: hidden !important; }
+  body.stampaNet #netwrap, body.stampaNet #netwrap * { visibility: visible !important; }
+  body.stampaNet #netwrap { position: absolute; left: 0; top: 0; width: 100%; max-height: none; overflow: visible; }
+}
 .listaTot { font-size: 1.1rem; }
 </style>
 </head>
@@ -973,8 +982,11 @@ details.piece[open] .piece-head canvas.where { display: block; }
   </details>
 </section>
 
-<section id="modellino">
-  <div class="sechead"><div class="stepno">05</div><div class="txt"><h2>Costruite il modellino</h2><p id="modelIntro"></p></div></div>
+<section id="modellino" class="sez3" data-build="net">
+  <div class="sechead"><div class="txt"><h2>Cartamodello e montaggio</h2><p>Prima il modellino di carta: se si chiude bene, anche la bolla vera verrà bene. Poi il montaggio della bolla vera.</p></div></div>
+  <div class="interruttore"><div class="seg" role="group" aria-label="Cartamodello del modellino o montaggio della bolla vera" id="seg3"><button type="button" data-s3="real" aria-pressed="false">Bolla</button><button type="button" data-s3="model" aria-pressed="true">Modellino</button></div>
+    <label class="scalaSez3" id="scala3F">Scala 1 : <input id="scala3" type="number" step="any" min="1" value="20"></label><span class="hint" id="nota3"></span></div>
+  <div hidden>
   <div class="toolbar">
     <div class="field">
       <span class="flabel">Come lo costruite?</span>
@@ -984,7 +996,6 @@ details.piece[open] .piece-head canvas.where { display: block; }
       </div>
     </div>
   </div>
-  <div class="build">
     <div class="box pick b-pieces">
       <span class="tag">Consigliato: è la prova generale della bolla vera</span>
       <h3 class="h4">A pezzi separati, come la bolla vera</h3>
@@ -995,17 +1006,9 @@ details.piece[open] .piece-head canvas.where { display: block; }
         <li>Unite i pezzi con lo scotch seguendo l'elenco delle giunzioni del Passo 6, nello stesso ordine.</li>
       </ol>
     </div>
-    <div class="box b-net">
-      <span class="tag">Più veloce</span>
-      <h3 class="h4">Con lo sviluppo da ritagliare</h3>
-      <ol class="steps">
-        <li>Ritagliate una dima per ogni tipo di pezzo.</li>
-        <li>Sul cartoncino grande ricalcate le dime una accanto all'altra come nel disegno, facendo combaciare i lati.</li>
-        <li>Ripassate le pieghe con una penna scarica e il righello, poi ritagliate il contorno.</li>
-        <li>Piegate tutto verso lo stesso lato e chiudete con lo scotch i bordi che hanno lo stesso numero, partendo dai numeri più bassi. Mettete lo scotch all'interno e, se serve, un pezzetto anche fuori.</li>
-      </ol>
-    </div>
   </div>
+  <div class="s3-pane" data-s3p="model">
+    <p class="hint" id="modelIntro"></p>
   <figure class="mat b-net">
     <div class="seambar">
       <div class="legend">
@@ -1014,15 +1017,24 @@ details.piece[open] .piece-head canvas.where { display: block; }
         <span><span class="pid">P2-3</span> codice</span>
         <span><b style="color:var(--cut);font-family:var(--mono)">7</b> giunzione</span>
       </div>
-      <button type="button" class="btn" id="zoomNet">Ingrandisci</button>
+      <div class="btnrow"><button type="button" class="btn" id="zoomNet">Ingrandisci</button><button type="button" class="btn primary" id="stampaNet">Stampa il cartamodello</button></div>
     </div>
     <div class="svgbox netwrap" id="netwrap"><svg id="net" role="img" aria-label="Sviluppo piano della forma con codici dei pezzi, linee di taglio, pieghe e numeri delle giunzioni."></svg></div>
     <figcaption id="netCap"></figcaption>
   </figure>
-</section>
-
-<section id="montaggio">
-  <div class="sechead"><div class="stepno">06</div><div class="txt"><h2>Montate la bolla vera</h2><p id="montIntro"></p></div></div>
+    <details class="more"><summary>Come si costruisce il modellino <span class="hint">ritagliare, piegare, chiudere con lo scotch</span></summary>
+      <div class="more-body">
+      <ol class="steps">
+        <li>Ritagliate una dima per ogni tipo di pezzo.</li>
+        <li>Sul cartoncino grande ricalcate le dime una accanto all'altra come nel disegno, facendo combaciare i lati.</li>
+        <li>Ripassate le pieghe con una penna scarica e il righello, poi ritagliate il contorno.</li>
+        <li>Piegate tutto verso lo stesso lato e chiudete con lo scotch i bordi che hanno lo stesso numero, partendo dai numeri più bassi. Mettete lo scotch all'interno e, se serve, un pezzetto anche fuori.</li>
+      </ol>
+      </div>
+    </details>
+  </div>
+  <div class="s3-pane" data-s3p="real" id="montaggio" hidden>
+    <p class="hint" id="montIntro"></p>
   <div class="finale" id="finale" hidden><canvas id="finaleCv" aria-hidden="true"></canvas><div><h3>La vostra bolla è finita</h3><p id="finaleT"></p><p class="hint">Accendete il gonfiatore e guardatela alzarsi.</p></div></div>
   <div class="seambar">
     <div class="meter"><span class="flabel" id="seamCount"></span><div class="bar"><div id="seamBar"></div></div></div>
@@ -1068,6 +1080,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     </div>
   </div>
   </details>
+  </div>
 </section>
 
 <hr>
@@ -1496,7 +1509,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
     return `${!Number.isFinite(v) ? "Scrivete un numero" : v < p.min ? "Minimo " + uCampo(p, p.min) : "Massimo " + uCampo(p, p.max)}: resta ${resta}.`;
   }
   function segnaCampo(el, msg) {
-    const f = el.closest(".field, .misureBarra"); let m = f.querySelector(".err");
+    const f = el.closest(".field, .misureBarra, .interruttore"); let m = f.querySelector(".err");   // [Semplice] .interruttore: la scala sta accanto all'interruttore
     if (!m && msg) { m = document.createElement("span"); m.className = "err"; m.id = el.id + "_err"; f.appendChild(m); }
     f.classList.toggle("errore", !!msg); el.setAttribute("aria-invalid", msg ? "true" : "false");
     if (m) { m.textContent = msg || ""; m.hidden = !msg; }
@@ -1566,7 +1579,22 @@ details.piece[open] .piece-head canvas.where { display: block; }
     state.scale = v; scriviScala(); etichetteCampi(); syncModelRef(); schedule();
   });
   $("scale").addEventListener("blur", () => { scalaBase = null; });
-  function scriviScala() { $("scalaPezzi").textContent = "1 : " + fmt(state.scale, state.scale % 1 ? 1 : 0); }
+  function scriviScala() { $("scalaPezzi").textContent = "1 : " + fmt(state.scale, state.scale % 1 ? 1 : 0); if (document.activeElement !== $("scala3")) $("scala3").value = +state.scale.toFixed(2); }
+  // [Semplice] sezione 3: Modellino (il cartamodello da stampare) o Bolla (il montaggio della bolla vera)
+  function setS3(m) {
+    document.querySelectorAll("#seg3 [data-s3]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s3 === m)));
+    document.querySelectorAll("#modellino [data-s3p]").forEach(p => p.hidden = p.dataset.s3p !== m);
+    $("scala3F").hidden = m !== "model";
+    $("nota3").textContent = m === "model" ? "Il cartamodello da stampare, ritagliare e piegare." : "La bolla vera, una giunzione alla volta, dal pavimento verso l'alto.";
+    try { localStorage.setItem("bolle|sez3", m); } catch (e) { /* solo per questa visita */ }
+    requestAnimationFrame(() => { if (cur) drawAll(); });
+  }
+  $("seg3").addEventListener("click", e => { const b = e.target.closest("[data-s3]"); if (b) setS3(b.dataset.s3); });
+  { let m = null; try { m = localStorage.getItem("bolle|sez3"); } catch (e) { /* predefinito */ } setS3(m === "real" ? "real" : "model"); }
+  $("scala3").addEventListener("input", e => { const sc = $("scale"); sc.value = e.target.value; sc.dispatchEvent(new Event("input", { bubbles: true })); });
+  $("scala3").addEventListener("blur", () => $("scale").dispatchEvent(new Event("blur")));
+  $("stampaNet").addEventListener("click", () => { document.body.classList.add("stampaNet"); print(); });
+  addEventListener("afterprint", () => document.body.classList.remove("stampaNet"));
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-u]"); if (!b || b.dataset.u === state.mode) return;
     setMode(b.dataset.u);
@@ -1640,6 +1668,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
   setMode(state.mode);
   // modellino: a pezzi separati o con lo sviluppo (ricordato in questo browser)
   function setBuild(b) {
+    b = "net";   // [Semplice] il modellino si fa con lo sviluppo da stampare
     $("modellino").dataset.build = b;
     $("buildSeg").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.b === b)));
     try { localStorage.setItem("bolle|modellino", b); } catch (e) { /* solo per questa visita */ }
@@ -2976,6 +3005,7 @@ details.piece[open] .piece-head canvas.where { display: block; }
   function mostraRiquadro(id) {
     const el = document.getElementById(id); if (!el) return;
     const pane = el.closest("[data-rqp]"); if (pane) attivaScheda(pane.dataset.rqp);
+    const p3 = el.closest("[data-s3p]"); if (p3 && p3.hidden) setS3(p3.dataset.s3p);
     el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
   }
   // la simulazione: l'Abbofficina dentro il riquadro. La forma va e torna con dei messaggi

@@ -32,3 +32,11 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - **Interruttore «Bolla | Modellino»** solo per questa sezione (gli stessi pulsanti `data-u` di prima): Bolla dà i passi in metri, con rotolo e margine; Modellino in centimetri, con la scala accanto all'interruttore (`.scalaSez`, l'`#scale` che prima stava al Passo 1). La scala vale anche per la sezione 3. Le misure della sezione 1 restano della bolla vera.
 - **Una scheda per tipo di pezzo**: chiusa mostra numero, la sagoma del pezzo (`sagomaSvg`), nome e uso, **«× N»** (quanti pezzi uguali) e le spunte fatte; aperta mostra il disegno con le misure e i passi con metro e squadra, come prima. Le schede partono chiuse. Le spunte restano salvate.
 - Restano «Altro» (apri o chiudi tutti i pezzi, azzera le spunte), «Modalità cantiere» e «Come si traccia un pezzo senza compasso?». Tolti l'elenco riassuntivo dei tipi sopra le schede (le schede chiuse fanno già da elenco) e il vecchio bollino «× N».
+
+## Sezione 3 · Cartamodello e montaggio
+
+- I vecchi Passi 5 e 6 sono una sezione sola (`#modellino`; il montaggio è il riquadro `#montaggio` dentro la sezione).
+- **Interruttore «Bolla | Modellino»** solo per questa sezione (`setS3`, ricordato in `bolle|sez3`), indipendente da quello dei pezzi. Parte da Modellino.
+- **Modellino**: lo sviluppo da ritagliare in grande, con sopra la legenda delle linee (taglio, piega, codice, giunzione), «Ingrandisci» e il nuovo **«Stampa il cartamodello»** (stampa solo lo sviluppo, `body.stampaNet`). La scala sta accanto all'interruttore (`#scala3`) ed è la stessa della sezione 2. Sotto, apribile, «Come si costruisce il modellino». Niente montaggio passo passo per il modellino: il modellino «a pezzi separati» non c'è più (`setBuild` è sempre `net`).
+- **Bolla**: il montaggio della bolla vera, come prima: a sinistra «Giunzione 1 di N» con i pezzi da unire (per esempio «P2-1 con P1-1»), «Fatta» e ‹ ›; a destra la bolla in 3D con la giunzione evidenziata; sopra quante ne avete fatte e la modalità cantiere; sotto «Elenco di tutte le giunzioni» e «Come si monta?», che si aprono e si chiudono.
+- Corretto anche per la sezione 2: il messaggio di errore della scala ora trova il suo posto accanto all'interruttore (`segnaCampo`).
