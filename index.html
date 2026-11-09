@@ -168,6 +168,14 @@ canvas#view:active { cursor: grabbing; }
 #params.mod .conv { display: block; min-height: 1.3em; }   /* in Modellino le caselle restano allineate anche dove non c'è la conversione */
 .fields .field { grid-template-rows: 1fr auto auto; align-content: stretch; }
 .fields .field > label { align-self: end; }
+/* dove si può, i campi vicini dividono le stesse righe (etichetta, casella, nota, errore): le caselle stanno alla stessa altezza
+   anche se un'etichetta va a capo o la nota di un campo vicino occupa due righe */
+@supports (grid-template-rows: subgrid) {
+  .fields { row-gap: 14px; }
+  .fields > .field { grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; align-content: normal; }
+  .fields > .field > label { margin-bottom: 4px; }
+  .fields > .field > .conv, .fields > .field > .err { margin-top: 4px; align-self: start; }
+}
 .field.errore input, .field.errore select, .misureBarra.errore input { border-color: var(--cut); box-shadow: 0 0 0 1px var(--cut); }
 .err { font-size: .78rem; line-height: 1.3; font-weight: 600; color: var(--cut); }
 .misureBarra .err { flex-basis: 100%; }
