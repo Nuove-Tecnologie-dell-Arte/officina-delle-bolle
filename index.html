@@ -596,7 +596,6 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
 .notes li { border-top: 0; }
 .bench2 .ctl { box-shadow: none; border: 1px solid var(--rule); }
 .bench2 .ctl-h i { display: none; }
-#notaModello { align-items: center; flex-wrap: wrap; margin: 0; }
 /* galleria: quanto lavoro c'è, prima di scegliere */
 .tile small { font: 500 .7rem/1.2 var(--mono); color: var(--muted); }
 .tile[aria-pressed="true"] small { color: inherit; }
@@ -873,7 +872,6 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
       <button type="button" class="btn primary" id="sitePieces">Modalità cantiere</button>
     </div>
   </div>
-  <div class="note avviso" id="notaModello"><span>Prima il modellino: costa poco e mostra subito gli errori. Se si chiude bene, anche la bolla si chiuderà.</span><button type="button" class="btn" data-u="model">Passate al modellino</button></div>
   <div class="overview" id="overview"></div>
   <button type="button" class="btn ovTutti" id="ovTutti" hidden></button>
   <div class="pieces" id="pieces"></div>
@@ -1530,7 +1528,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
   function setMode(m) {
     state.mode = m; try { localStorage.setItem("bolle|unita", m); } catch (e) { /* solo per questa visita */ }
     $("rollF").hidden = $("marginF").hidden = m !== "real";
-    $("scaleF").hidden = m === "real"; $("notaModello").hidden = m !== "real";
+    $("scaleF").hidden = m === "real";
     $("pieces").classList.toggle("real", m === "real");
     setView(); etichetteCampi();
     if (cur) renderPieces();
