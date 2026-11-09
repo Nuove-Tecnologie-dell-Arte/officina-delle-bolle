@@ -61,8 +61,8 @@ Pezzi aggiunti:
 
 ## Le forme dell'Officina nella griglia "Bolle"
 Accanto a Stella, Cubo, Poligono, Cilindro e Piramide ci sono le 17 forme dell'Officina che il configuratore non aveva: Cupola, Dodecaedro, Forma a L, Forma a C, Freccia, Serpente, Ciambella, Tunnel, Barca, Banana, Scolopendra, Balena, Fungo, Razzo, Tartaruga, Ananas, Pera. Per ogni forma speciale `PORTE_OFF` dice dove si entra.
-- **Motore.** `caricaMotoreOfficina()` legge `../index.html` (la pagina dell'Officina, stesso sito), prende il codice tra `// ENGINE START` e `// ENGINE END` e lo esegue. Non c'è codice copiato.
-  - Se si cambiano o si tolgono quei due segnaposto nell'Officina, il configuratore non trova più le forme.
+- **Motore.** `caricaMotoreOfficina()` legge `../motore.js` (il motore dell'Officina, stesso sito; fino al 6 novembre stava dentro `../index.html`), prende il codice tra `// ENGINE START` e `// ENGINE END` e lo esegue. Non c'è codice copiato.
+  - Se si cambiano o si tolgono quei due segnaposto in `motore.js`, il configuratore non trova più le forme.
   - Aperto da solo, il configuratore mostra solo le bolle originali.
 - **Tipi `of:<id>`.** Sono creati da `FORME_OFF`:
   - `par` sono i parametri numerici dell'Officina tradotti da `parOff()`;
@@ -319,6 +319,12 @@ Dal branch `abbofficina-ricerca-oggetti-3d` (thaaby) sono state prese le parti c
 ## Porte su lati corti (6 novembre)
 
 - **Cornice della porta intera anche sui lati corti** (`posParete`, `[Officina]`): la porta è larga almeno 50 cm, quindi su un lato più corto, come quelli di una «Forma da un'immagine» con la base stretta, la cornice esce dal lato. Il seno diventava negativo e `Math.pow` dava NaN: la cornice si disegnava solo in parte, con gli avvisi di three.js in console. Ora il valore si ferma a zero.
+
+## Il motore in motore.js (6 novembre)
+
+- Il motore dell'Officina è uscito da `index.html` ed è in `../motore.js`, con gli stessi segnaposto `// ENGINE START` e `// ENGINE END`: lo usano anche `index.html` e la nuova guida `guida.html`.
+- Qui è cambiata solo una riga, segnata `[Officina]`: `caricaMotoreOfficina()` fa `fetch('../motore.js')` invece di `fetch('../index.html')`.
+- Dopo `// ENGINE END`, in `motore.js` ci sono `porteForma` e `giudizioForma`, che servono alle pagine dell'Officina e qui non vengono letti.
 
 ## La sfera di triangoli piccoli (6 novembre)
 

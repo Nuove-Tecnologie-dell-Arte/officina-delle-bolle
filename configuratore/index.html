@@ -1154,7 +1154,7 @@ function parOff(q) {   // parametro dell'Officina → [chiave, etichetta, min, m
 }
 async function caricaMotoreOfficina() {
   try {
-    const r = await fetch('../index.html', { cache: 'no-cache' }); if (!r.ok) return;
+    const r = await fetch('../motore.js', { cache: 'no-cache' }); if (!r.ok) return;   // [Officina] il motore sta in motore.js (prima era dentro index.html)
     const t = await r.text(), a = t.indexOf('// ENGINE START'), b = t.indexOf('// ENGINE END'); if (a < 0 || b < a) return;
     MOTORE_OFF = new Function(t.slice(a, b) + '\nreturn { SHAPES, buildShape };')();
   } catch (e) { MOTORE_OFF = null; return; }   // configuratore aperto da solo: restano le bolle originali
