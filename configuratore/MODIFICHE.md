@@ -352,3 +352,18 @@ Tutto segnato `[Officina]`.
 - **Zip e velcro modificabili** in Dati → Avanzate → «Zip e velcro» (`#dChius`): `D.zipT`, `D.zipF`, `D.velT`, `D.velF`, salvati con la composizione. Nell'interfaccia «Cerniera» si chiama «Zip» (anche impermeabile e stagna, e i cursori in distinta).
 - **Rigidità del telo** (`rigTelo`, 1 = PVC da 20 g/m², dal modulo elastico e dallo spessore): un telo più rigido poco gonfio cala meno (`hOf`, quindi anche il tempo in blackout), fa pieghe meno profonde (`statoForma.fl`) e si tende a una pressione più bassa (`soglie.mid`). Con un cubo 3 × 3 m: blackout 320 s in PVC 20 g/m², 366 s in PE, 234 s in PVC 40 g/m².
 - **Strappo automatico** (Simulazione → «Strappo automatico», spento all'inizio; `strappoAuto` in `anima`): se la pressione resta oltre 1,15 volte il limite dei giunti, o la tensione supera quello che regge il telo, per 2 s di simulazione, la bolla si strappa da sola (`scoppia`) con un avviso.
+
+## Geometria e collisioni (9 novembre, blocco 2)
+
+Tutto segnato `[Officina]`.
+
+- **Porte e maniche sul telo vero** (`fuoriMesh`, `puntoParete`): nelle forme dell'Officina ogni lato ha una griglia di raggi contro il telo (9 posizioni lungo il lato × 11 altezze, fatta una volta), quindi cornici, anelli delle maniche e porte chiuse seguono la superficie curva invece di un rettangolo verticale. `fuoriOfficina` può dire «nessun telo» (`nulla`); in `posParete` le forme dell'Officina non hanno il rigonfiamento a cuscino delle pareti.
+- **Ingresso diretto sulla parete**: i lembi della zip, da chiusi, sono punti della parete (`puntoParete`, `l.capi.sig` dice da che parte va il lato) e aprendosi girano attorno al loro bordo. La gente passa appena fuori dal telo che sporge (`ING_FUORI` + `e.fuori`).
+- **Gonfiatori fuori dalle maniche** (`postiGonfiatori`): le maniche vicine, anche tra altre bolle, sono ostacoli (mezza larghezza + 55 cm). Girando una bolla collegata a mano, prima un gonfiatore poteva finire fino a 70 cm dentro la manica; ora resta ad almeno ~67 cm dal suo bordo.
+- **Compenetrazione mentre si trascina** (`segnaRosso`, `matRosso`): la bolla che entra in un'altra si copre di rosso e un avviso dice in quale. Lasciata lì resta rossa (anche quando entra in una parete), finché non si sposta.
+- **Sonny e le bolle basse** (`H_SONNY` 1,75 m, `bassaPerSonny`, `portaBassa`): nel giro non entra in una bolla più bassa di 1,80 m né da una porta più bassa di 1,75 m; nessun residente in quelle bolle (`residentiVoluti`, «+» con messaggio, «Popola» le lascia vuote).
+- **Collegamenti (maniche con cornice a zip), problemi trovati e corretti**:
+  - le maniche non seguivano le forme curve (sopra);
+  - in mezzo a ogni manica tra due bolle c'erano ancora i lembi di una porta, aperti: tolti (`l.lembi` vuoto per i passaggi aperti);
+  - una manica, automatica o a mano, poteva passare dentro una terza bolla: ora no (`manicaDentro`; a mano c'è un avviso);
+  - girando o spostando una bolla un collegamento automatico spariva senza dirlo: ora un avviso lo dice (`collega`, coppie di prima e di dopo).

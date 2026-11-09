@@ -1113,7 +1113,7 @@ function altezzaPorta(O, a, b, n) {
     h = Math.min(h, dentro === Infinity ? 0 : dentro, altSopra(O, x - n[0] * 0.05, z - n[1] * 0.05, true), altSopra(O, x - n[0] * 0.15, z - n[1] * 0.15, true)); }
   return h;
 }
-function fuoriOfficina(O, m, n, y) {   // di quanto spostare porta, manica e gonfiatori lungo la normale del lato per toccare il telo all'altezza y
+function fuoriOfficina(O, m, n, y, nulla) {   // di quanto spostare porta, manica e gonfiatori lungo la normale del lato per toccare il telo all'altezza y
   let best = 0, bd = 1e9; const dir = [n[0], 0, n[1]];
   for (const F of O.facce) { if (F.pav) continue; const den = F.n[0] * dir[0] + F.n[2] * dir[2]; if (Math.abs(den) < 1e-6) continue;
     for (const [i0, i1, i2] of F.tri) { const A = F.P[i0], B = F.P[i1], C = F.P[i2];
@@ -1123,7 +1123,22 @@ function fuoriOfficina(O, m, n, y) {   // di quanto spostare porta, manica e gon
       const d20 = v2[0] * v0[0] + v2[1] * v0[1] + v2[2] * v0[2], d21 = v2[0] * v1[0] + v2[1] * v1[1] + v2[2] * v1[2], den2 = d00 * d11 - d01 * d01; if (!den2) continue;
       const b1 = (d11 * d20 - d01 * d21) / den2, b2 = (d00 * d21 - d01 * d20) / den2; if (b1 < -1e-6 || b2 < -1e-6 || b1 + b2 > 1 + 1e-6) continue;
       bd = Math.abs(t); best = t; } }
-  return best;
+  return nulla && bd === 1e9 ? NaN : best;
+}
+// [Officina] quanto sta fuori il telo, lungo la normale del lato, nel punto (u lungo il lato, v in altezza): nelle forme dell'Officina
+// la superficie si curva, quindi cornici, maniche e lembi delle porte seguono una griglia di raggi fatta una volta per lato
+function fuoriMesh(F, i, u, v) {
+  const e = F.E[i]; let g = e._fg;
+  if (!g) {
+    const U = [-0.3, 0, 0.2, 0.4, 0.5, 0.6, 0.8, 1, 1.3], hT = Math.min(F.H, Math.max(2.4, (e.hMax || F.H) + 0.3)), Y = Array.from({ length: 11 }, (_, k) => 0.02 + k * (hT - 0.02) / 10);
+    const t = U.map(uu => { const m = [e.a[0] + (e.b[0] - e.a[0]) * uu, e.a[1] + (e.b[1] - e.a[1]) * uu]; return Y.map(y => fuoriOfficina(F.off, m, e.n, y, true)); });
+    for (const col of t) { let ult = null; for (let k = 0; k < col.length; k++) { if (isNaN(col[k])) col[k] = ult ?? NaN; else ult = col[k]; }   // dove il raggio non trova il telo vale il punto sotto
+      let pri = col.find(x => !isNaN(x)) ?? (e.fuori || 0); for (let k = 0; k < col.length; k++) if (isNaN(col[k])) col[k] = pri; }
+    g = e._fg = { U, Y, t };
+  }
+  const idx = (A, x) => { let k = 0; while (k < A.length - 2 && A[k + 1] < x) k++; return [k, clamp((x - A[k]) / (A[k + 1] - A[k]), 0, 1)]; };
+  const [iu, fu] = idx(g.U, u), [iy, fy] = idx(g.Y, v * F.H), T = g.t;
+  return (T[iu][iy] * (1 - fy) + T[iu][iy + 1] * fy) * (1 - fu) + (T[iu + 1][iy] * (1 - fy) + T[iu + 1][iy + 1] * fy) * fu;
 }
 // [Officina] dove si entra nelle forme speciali (dalle descrizioni dell'Officina). Direzioni nel sistema dell'Officina: x avanti, y a sinistra;
 // il terzo valore 1 vuol dire "a metà del corpo" (fianchi), altrimenti il lato più esterno in quella direzione
@@ -1460,8 +1475,16 @@ function avvisoStanza() {   // bolle nelle pareti o più alte del soffitto: si d
 // collegamenti decisi a mano (anche tra lati che non si guardano dritti) e collegamenti automatici staccati a mano
 let manuali = [], staccati = [];
 const stessaCoppia = (m, a, ea, b, eb) => (m.a === a && m.ea === ea && m.b === b && m.eb === eb) || (m.a === b && m.ea === eb && m.b === a && m.eb === ea);
+// [Officina] la manica tra Pa e Pb (larga w) passa dentro un'altra bolla? Si guardano solo i tratti lontani dalle due bolle che collega
+function manicaDentro(Pa, Pb, w, A, B) {
+  const dx = Pb[0] - Pa[0], dz = Pb[1] - Pa[1], L = Math.hypot(dx, dz); if (L < 0.4) return null;
+  const u = [dx / L, dz / L], n = [-u[1] * w / 2, u[0] * w / 2], a = [Pa[0] + u[0] * 0.2, Pa[1] + u[1] * 0.2], b = [Pb[0] - u[0] * 0.2, Pb[1] - u[1] * 0.2];
+  const R = [[a[0] + n[0], a[1] + n[1]], [b[0] + n[0], b[1] + n[1]], [b[0] - n[0], b[1] - n[1]], [a[0] - n[0], a[1] - n[1]]];
+  return pezzi.find(q => q !== A && q !== B && siToccano(scafo(q), R)) || null;
+}
 function collega() {
   const vecchie = new Map(link.map(l => [l.chiave, l.porta]));
+  const coppia = (a, b) => a.id < b.id ? a.id + '-' + b.id : b.id + '-' + a.id, prima = new Map(link.filter(l => l.a).map(l => [coppia(l.a, l.b), [l.a, l.b]]));   // [Officina] per accorgersi di un collegamento perso
   link = [];
   const usati = new Map(pezzi.map(p => [p, new Set()]));
   const cand = [];
@@ -1472,6 +1495,7 @@ function collega() {
     if (usati.get(m.a).has(m.ea) || usati.get(m.b).has(m.eb)) continue;
     const ca = connMondo(m.a, m.ea), cb = connMondo(m.b, m.eb), d = Math.hypot(cb.P[0] - ca.P[0], cb.P[1] - ca.P[1]);
     m.lontano = d > D.manMax + 3; if (m.lontano) continue;
+    if (manicaDentro(ca.P, cb.P, 0.9, m.a, m.b)) continue;   // [Officina] passerebbe dentro un'altra bolla: si avvisa sotto, come collegamento perso
     usati.get(m.a).add(m.ea); usati.get(m.b).add(m.eb);
     const chiave = m.a.id + ':' + m.ea + '-' + m.b.id + ':' + m.eb;
     link.push({ a: m.a, b: m.b, ea: m.ea, eb: m.eb, Pa: ca.P, Pb: cb.P, n: ca.n, nb: cb.n, len: Math.max(0.2, d), chiave, manuale: true, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
@@ -1484,6 +1508,7 @@ function collega() {
       const dx = cb.P[0] - ca.P[0], dz = cb.P[1] - ca.P[1], lungo = dx * ca.n[0] + dz * ca.n[1], lat = Math.abs(dx * ca.n[1] - dz * ca.n[0]);
       if (lungo < 0.2 || lungo > D.manMax + 3 || lat > 0.2) continue;
       if (staccati.some(m => stessaCoppia(m, A, ea, B, eb))) continue;   // staccato a mano: resta separato
+      if (manicaDentro(ca.P, cb.P, 0.9, A, B)) continue;   // [Officina] la manica passerebbe dentro un'altra bolla
       cand.push({ A, B, ea, eb, ca, cb, d: lungo + lat });
     }
   }
@@ -1496,6 +1521,10 @@ function collega() {
     link.push({ a: c.A, b: c.B, ea: c.ea, eb: c.eb, Pa: c.ca.P, Pb: c.cb.P, n: c.ca.n, nb: c.cb.n, len, chiave, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
   }
   for (const l of link) l.aperta = true;   // moduli uniti: la porta tra loro resta sempre aperta
+  if (!caricando && prima.size) {   // [Officina] girando o spostando una bolla un collegamento si può perdere: si dice
+    const ora = new Set(link.map(l => coppia(l.a, l.b))), persi = [...prima].filter(([k, [a, b]]) => !ora.has(k) && pezzi.includes(a) && pezzi.includes(b) && !staccati.some(m => (m.a === a && m.b === b) || (m.a === b && m.b === a)));
+    if (persi.length) { const [a, b] = persi[0][1]; setTimeout(() => avviso(`${a.nome} e ${b.nome} non sono più collegate: le loro porte non si guardano più. Giratene una o collegatele a mano (Collega).`, 6000), 0); }
+  }
   // sistemi = gruppi di moduli uniti tra loro
   sistemi = [];
   const visto = new Set();
@@ -1512,7 +1541,7 @@ function collega() {
     if (!liberi.length) return;
     const e = liberi.sort((x, y) => connMondo(ing, y).n[1] - connMondo(ing, x).n[1])[0], c = connMondo(ing, e);
     const chiave = 'ingresso:' + ing.id + ':' + e;
-    link.unshift({ a: null, b: ing, eb: e, Pa: [c.P[0] + c.n[0] * ING_FUORI, c.P[1] + c.n[1] * ING_FUORI], Pb: c.P, n: [-c.n[0], -c.n[1]], nb: c.n, chiave, ingresso: true, diretto: true, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
+    link.unshift({ a: null, b: ing, eb: e, Pa: [c.P[0] + c.n[0] * (ING_FUORI + Math.max(0, ing.F.E[e].fuori || 0)), c.P[1] + c.n[1] * (ING_FUORI + Math.max(0, ing.F.E[e].fuori || 0))], Pb: c.P, n: [-c.n[0], -c.n[1]], nb: c.n, chiave, ingresso: true, diretto: true, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
     usati.get(ing).add(e);
   });
   for (const l of link) {
@@ -1747,12 +1776,16 @@ function postiGonfiatori(p, n) {
     return [[e.a[0] + (e.b[0] - e.a[0]) * A.u0, e.a[1] + (e.b[1] - e.a[1]) * A.u0], [e.a[0] + (e.b[0] - e.a[0]) * A.u1, e.a[1] + (e.b[1] - e.a[1]) * A.u1]]; });
   const dSeg = (q, [a, b]) => { const dx = b[0] - a[0], dz = b[1] - a[1], t = clamp(((q[0] - a[0]) * dx + (q[1] - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1); return Math.hypot(q[0] - a[0] - dx * t, q[1] - a[1] - dz * t); };
   const cand = [];
+  // [Officina] le maniche vicine (anche quelle tra altre bolle) in coordinate della bolla: un gonfiatore non ci deve finire dentro, nemmeno girando la bolla
+  const ca = Math.cos(p.ang), sa = Math.sin(p.ang), loc = Q => { const dx = Q[0] - p.x, dz = Q[1] - p.z; return [dx * ca - dz * sa, dx * sa + dz * ca]; };
+  const maniche = link.filter(l => !l.diretto && l.Pa && l.Pb).map(l => ({ seg: [loc(l.Pa), loc(l.Pb)], r: (l.w || 0.9) / 2 + 0.55 }));
   F.E.forEach((e, i) => {
     const A = p.porte.includes(i) ? (p._ap[i] || apertura(F, i)) : null, mezzo = 0.3 / e.L;
     for (let u = 0.04; u < 0.97; u += 0.03) {
       if (A && u > A.u0 - A.du - mezzo && u < A.u1 + A.du + mezzo) continue;   // mai davanti a una porta o sulla sua cornice
       if (u * e.L < 0.18 || (1 - u) * e.L < 0.18) continue;
       const q = [e.a[0] + (e.b[0] - e.a[0]) * u + e.n[0] * 0.8, e.a[1] + (e.b[1] - e.a[1]) * u + e.n[1] * 0.8];
+      if (maniche.some(m => dSeg(q, m.seg) < m.r)) continue;
       cand.push({ i, u, q, d: aperture.length ? Math.min(...aperture.map(s => dSeg(q, s))) : 9 });
     }
   });
@@ -1883,6 +1916,7 @@ function costruisciPezzo(p) {
     p.g3.strappo = new THREE.LineSegments(g, matStrappo); grp.add(p.g3.strappo);
   }
   if (p.sovrapposto) { const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), matKO); m.rotation.x = -Math.PI / 2; m.position.y = 0.012; grp.add(m); }
+  if (p.sovrapposto) requestAnimationFrame(() => segnaRosso(p, true));   // [Officina] anche dopo averla lasciata, finché entra in un'altra bolla o in una parete
   p.g3.cornici = [];
   const collegati = new Set(link.filter(l => l.a === p || l.b === p).map(l => l.a === p ? l.ea : l.eb));
   for (const i of p.porte) {
@@ -1906,7 +1940,11 @@ function puntoAnello(p, i, A, s, est, fuori, st, out) {
   const F = p.F, e = F.E[i], du = A.du * est, dv = A.dv * est, u0 = A.u0 - du, u1 = A.u1 + du, v1 = A.v1 + dv;
   const h = v1 * F.H, w = (u1 - u0) * e.L, x = s * (2 * h + w); let u, v;
   if (x < h) { u = u0; v = x / h * v1; } else if (x < h + w) { u = u0 + (x - h) / w * (u1 - u0); v = v1; } else { u = u1; v = Math.max(0, 1 - (x - h - w) / h) * v1; }
-  (F.apex ? posFaccia : posParete)(p, st, i, u, v, out, fuori + (e.fuori || 0));   // [Officina] e.fuori: la manica si attacca sul telo
+  puntoParete(p, i, u, v, fuori, st, out);
+}
+function puntoParete(p, i, u, v, f, st, out) {   // [Officina] un punto della parete (u lungo il lato, v in altezza), nel mondo, sul telo vero anche nelle forme dell'Officina
+  const F = p.F;
+  (F.apex ? posFaccia : posParete)(p, st, i, u, v, out, f + (F.mesh ? fuoriMesh(F, i, u, v) : (F.E[i].fuori || 0)));
   const c = Math.cos(p.ang), sn = Math.sin(p.ang), x0 = out[0], z0 = out[2];
   out[0] = x0 * c + z0 * sn + p.x; out[2] = -x0 * sn + z0 * c + p.z;
 }
@@ -1926,11 +1964,12 @@ function costruisciLink(l) {
     puntoAnello(ea.p, ea.i, ea.A, 0, 0, 0, ST_TESO, a0); puntoAnello(eb.p, eb.i, eb.A, 0, 0, 0, ST_TESO, b0); puntoAnello(eb.p, eb.i, eb.A, 1, 0, 0, ST_TESO, b1);
     giro = Math.hypot(a0[0] - b1[0], a0[2] - b1[2]) < Math.hypot(a0[0] - b0[0], a0[2] - b0[2]); }
   l.capi = { ea, eb, giro, sposta: [l.Pa[0] - l.Pb[0], l.Pa[1] - l.Pb[1]], seme: (l.chiave || '').length * 1.7 };
+  if (l.diretto) { const ed = rot(l.b.F.E[l.eb].d, l.b.ang); l.capi.sig = Math.sign(lat.x * ed[0] + lat.z * ed[1]) || 1; l.capi.eL = l.b.F.E[l.eb].L; }   // [Officina] da che parte va il lato rispetto alla porta
   if (!l.diretto) { l.tela = rete2(26, 8); const mt = new THREE.Mesh(l.tela.g, matManica); mt.renderOrder = 3; grp.add(mt); }   // [Officina] ingresso diretto: niente manica, solo la zip
   // cornici dal lato della manica (con la zip): appoggiate su quelle dei moduli, si muovono con loro
   const mc = matCornice(); l.bande = [];
   if (!l.diretto) for (const e of [ea, eb]) if (e) { const t = rete2(40, 1), m = new THREE.Mesh(t.g, mc); m.renderOrder = 5; grp.add(m); l.bande.push({ t, e }); }
-  l.lembi = [1, -1].map(s => {
+  l.lembi = l.aperta ? [] : [1, -1].map(s => {   // [Officina] tra due bolle la manica è un passaggio aperto: niente porta in mezzo
     const t = rete2(10, 14), m = new THREE.Mesh(t.g, matLembi); m.renderOrder = 4; grp.add(m);
     const n = rete2(1, 14), mn = new THREE.Mesh(n.g, matN); mn.renderOrder = 5; grp.add(mn);
     return { s, t, n };
@@ -1973,6 +2012,7 @@ function posParete(p, st, i, u, v, o, fuori, meta) {
   const s = Math.sin(Math.PI * (e.rL ? (e.r0 + u * e.L) / e.rL : u)) * Math.sin(Math.PI * v), ib = imbarco(p, st, i, u, v);
   let bx = e.a[0] + (e.b[0] - e.a[0]) * u, bz = e.a[1] + (e.b[1] - e.a[1]) * u, nx = e.n[0], nz = e.n[1], ka = 1;
   if (F.tondo) { const th = e.th0 + e.dth * u; nx = Math.cos(th); nz = Math.sin(th); bx = F.R * nx; bz = F.R * nz; ka = 0.35; }
+  if (F.mesh) ka = 0;   // [Officina] nelle forme dell'Officina il telo vero è già in fuori (fuoriMesh)
   const d = ka * amp * st.gon * Math.pow(Math.max(0, s), 0.8) + (st.fl * 0.12 * Math.sin(17 * u + 11 * v + i) * Math.sin(Math.PI * u) - st.fl * 0.22 * v * v) * (1 - 0.85 * ib.win) + ib.b
     + (D.spento ? 0 : 0.004 * Math.sin(tempo * 2 + i + 3 * u) * s * st.gon) + fuori + cr * (0.55 * (0.2 + v) + sb);
   o[0] = bx + nx * d; o[1] = Math.max(0.004, v * H - cr * 0.35 * v * v * F.H); o[2] = bz + nz * d;
@@ -2037,7 +2077,7 @@ function aggiornaPezzo(p) {
   for (const w of p.g3.facce) w.t.set((u, s, o) => posFaccia(p, st, w.i, w.u0 + (w.u1 - w.u0) * u, s, o, 0, w.meta));
   // cornici e porte chiuse sulle aperture
   for (const c of p.g3.cornici) {
-    const fo = p.F.E[c.i].fuori || 0, pos = (u, v, o, f) => p.F.apex ? posFaccia(p, st, c.i, u, v, o, f) : posParete(p, st, c.i, u, v, o, f + fo);   // [Officina] fo: la cornice va sul telo
+    const fo = p.F.E[c.i].fuori || 0, pos = (u, v, o, f) => p.F.apex ? posFaccia(p, st, c.i, u, v, o, f) : posParete(p, st, c.i, u, v, o, f + (p.F.mesh ? fuoriMesh(p.F, c.i, u, v) : fo));   // [Officina] la cornice va sul telo, anche dove si curva
     for (const r of c.pezzi) r.t.set((u, v, o) => pos(r.u0 + (r.u1 - r.u0) * u, r.v0 + (r.v1 - r.v0) * v, o, r.f));
   }
   if (p.g3.strappo) {
@@ -2070,7 +2110,7 @@ function aggiornaLink(l) {
   const rig = clamp(D.t / 0.3, 0.5, 3);   // il telo più spesso si piega e vibra meno
   const gonfia = clamp(dp / 10, -1.5, 1.5) * 0.035 * chiuso / Math.sqrt(rig);
   const vibra = (Math.min(1, o) * Math.min(1, Math.abs(dp) / 5) * 0.03 + (D.spento ? 0 : 0.0015)) / rig;
-  const LB = lembo(l), nas = [(LB - OV_PORTA / 2 - ZIP_W / 2) / LB, (LB - OV_PORTA / 2 + ZIP_W / 2) / LB];
+  const LB = lembo(l), nas = [(LB - OV_PORTA / 2 - ZIP_W / 2) / LB, (LB - OV_PORTA / 2 + ZIP_W / 2) / LB], cp = l.capi, stB = l.diretto ? cp.eb.p._st || statoForma(cp.eb.p) : null;
   for (const lb of l.lembi) {
     const fn = (u, v, out, extra) => {
       const sA = u * LB, A = 1 - 0.72 * v * v, Th = o * A * 1.6 * verso / Math.pow(rig, 0.25);
@@ -2078,6 +2118,11 @@ function aggiornaLink(l) {
       if (Math.abs(Th) < 1e-4) { x = sA; z = 0; } else { const R = LB / Th, ph = Th * u; x = R * Math.sin(ph); z = R * (1 - Math.cos(ph)); }
       z += giu * 0.3 * Math.sin(Math.PI * v) * (0.5 + u) * lb.s;
       z += gonfia * Math.sin(Math.PI * u) * Math.sin(Math.PI * v) + vibra * Math.sin(7 * v * h + 3.1 * tempo + 9 * sA + lb.s) * u + lb.s * 0.004 + (extra || 0);
+      if (l.diretto) {   // [Officina] la zip è nella parete: da chiuso il lembo è il telo stesso; aprendosi gira attorno al suo bordo
+        const P0 = cp.eb.p, ue = 0.5 + cp.sig * lb.s * (w / 2 - sA) / cp.eL;
+        puntoParete(P0, cp.eb.i, ue, v * (h - 0.02) / P0.F.H, 0.012, stB, out);
+        out[0] += -lat.x * lb.s * (x - sA) + dir.x * z; out[2] += -lat.z * lb.s * (x - sA) + dir.z * z; return;
+      }
       out[0] = M.x + lat.x * lb.s * w / 2 - lat.x * lb.s * x + dir.x * z;
       out[1] = Math.max(0.004, v * (h - 0.02) * hm);
       out[2] = M.z + lat.z * lb.s * w / 2 - lat.z * lb.s * x + dir.z * z;
@@ -2329,10 +2374,12 @@ function* attraversa(P, l, da) {
   P.dove = dest;
   if (dest) yield* cammina(P, dest.x + 0.25, dest.z + 0.1); else yield* cammina(P, ...puntoFuori(l));
 }
+const H_SONNY = 1.75, bassaPerSonny = p => !!p && p.F.H < H_SONNY + 0.05;   // [Officina] Sonny è alto 1,75 m: in una bolla più bassa non entra, né da una porta più bassa
+const portaBassa = l => Math.min(...[[l.a, l.ea], [l.b, l.eb]].filter(x => x[0]).map(([q, e]) => apertura(q.F, e).h)) < H_SONNY;
 function giro(k) {   // tutto il percorso, una volta per ogni passaggio; dal secondo visitatore l'ordine delle stanze cambia
   const passi = [], visti = new Set(); let seme = k * 9301 + 49297;
   const caso = () => (seme = (seme * 9301 + 49297) % 233280) / 233280;
-  const vicini = x => { const v = link.filter(l => l.a === x || l.b === x).map(l => ({ l, y: l.a === x ? l.b : l.a })); if (k) v.sort(() => caso() - 0.5); return v; };
+  const vicini = x => { const v = link.filter(l => l.a === x || l.b === x).map(l => ({ l, y: l.a === x ? l.b : l.a })).filter(c => !bassaPerSonny(c.y) && !portaBassa(c.l)); if (k) v.sort(() => caso() - 0.5); return v; };
   (function visita(x) { visti.add(x); for (const { l, y } of vicini(x)) if (!visti.has(y)) { passi.push({ l, da: x }); visita(y); passi.push({ l, da: y }); } })(null);
   return passi;
 }
@@ -2761,7 +2808,7 @@ function togliAvatar(P) { if (P === persona) return; if (pov === P) esciPov(); f
 // in una bolla (inSosta). Solo un numero scritto a mano (p.nRes > 0, dalle prove automatiche) mette dei residenti; in tutto
 // ne restano almeno 6 liberi per i visitatori
 function residentiVoluti() {
-  const V = new Map(); for (const p of pezzi) V.set(p, p.nRes > 0 ? p.nRes : 0);
+  const V = new Map(); for (const p of pezzi) V.set(p, p.nRes > 0 && !bassaPerSonny(p) ? p.nRes : 0);   // [Officina] nessun residente in una bolla più bassa di Sonny
   let tot = [...V.values()].reduce((a, b) => a + b, 0);
   while (tot > MAX_AVATAR - 6) { let m = null; for (const [p, n] of V) if (!m || n > V.get(m)) m = p; if (!m || V.get(m) <= 0) break; V.set(m, V.get(m) - 1); tot--; }
   return V;
@@ -2923,6 +2970,7 @@ function collegaAMano(A, B) {
   const m = latiPerCollegare(A, B);
   if (!m) { avviso(`Nessun lato libero di ${A.nome} guarda verso ${B.nome}: girane una o avvicinale.`, 5000); return false; }
   if (m.d > D.manMax + 1.5) { avviso(`${A.nome} e ${B.nome} sono a ${fmt(m.d, 1)} m: la manica arriva al massimo a ${fmt(D.manMax, 0)} m. Avvicinale.`, 5000); return false; }
+  { const q = manicaDentro(connMondo(A, m.ea).P, connMondo(B, m.eb).P, 0.9, A, B); if (q) { avviso(`La manica tra ${A.nome} e ${B.nome} passerebbe dentro ${q.nome}: spostate una delle bolle.`, 5000); return false; } }   // [Officina]
   staccati = staccati.filter(x => !((x.a === A && x.b === B) || (x.a === B && x.b === A)));   // ricollegandole a mano non restano staccate
   manuali.push({ a: A, ea: m.ea, b: B, eb: m.eb });
   strutturaCambiata(); avviso(`Collegate ${A.nome} e ${B.nome} con una manica di ${fmt(m.d, 1)} m.`, 3500); return true;
@@ -3181,6 +3229,7 @@ function disegnaSituazioni(forza) {
     L.querySelectorAll('.sit').forEach(el => { const p = pezzi.find(q => q.id === +el.dataset.id);
       el.querySelectorAll('button[data-d]').forEach(b => b.onclick = () => {
         if (+b.dataset.d > 0 && persone.length >= MAX_AVATAR) { const m = $('sMsg'); m.hidden = false; m.textContent = 'Massimo ' + MAX_AVATAR + ' avatar in scena, per non rallentare il browser.'; return; }
+        if (+b.dataset.d > 0 && bassaPerSonny(p)) { const m = $('sMsg'); m.hidden = false; m.textContent = `${p.nome} è alta ${fmt(p.F.H, 2)} m: Sonny (1,75 m) non ci entra.`; return; }   // [Officina]
         p.nRes = clamp((p.nRes || 0) + +b.dataset.d, 0, 12); $('sMsg').hidden = true; syncResidenti(); salvaPresto(); disegnaSituazioni(); });
       el.querySelector('select').onchange = e => { p.situazione = e.target.value; if (p._r) { p._r.firma = ''; p._r.auto = null; } salvaPresto(); }; });
   }
@@ -3198,7 +3247,7 @@ function pannelloSit(v) { const pn = $('pannelloS'); pn.hidden = !v; const sb = 
 // [Officina] niente più pulsante Situazioni: le situazioni capitano da sole, con chi è nella bolla (vedi situazioneDi)
 $('sSosta').onchange = e => { GENTE.sosta = +e.target.value; };
 $('sVisite').onchange = e => { GENTE.visite = e.target.checked; };
-$('sPopola').onclick = () => { for (const p of pezzi) p.nRes = p.tipo === 'corridoio' || p.F.corr ? 1 : clamp(Math.round(areaUtile(p) / 6), 1, 4);
+$('sPopola').onclick = () => { for (const p of pezzi) p.nRes = bassaPerSonny(p) ? 0 : p.tipo === 'corridoio' || p.F.corr ? 1 : clamp(Math.round(areaUtile(p) / 6), 1, 4);   // [Officina] le bolle basse restano vuote
   while (pezzi.reduce((s, p) => s + p.nRes, 0) + 1 > MAX_AVATAR) { const p = pezzi.reduce((a, b) => (b.nRes > a.nRes ? b : a)); p.nRes--; }
   syncResidenti(); salvaPresto(); disegnaSituazioni(true); };
 $('sSvuota').onclick = () => { for (const p of pezzi) p.nRes = 0; syncResidenti(); salvaPresto(); disegnaSituazioni(true); };
@@ -3314,6 +3363,16 @@ $('tabB').onclick = () => mostra('b'); $('tabC').onclick = () => mostra('c'); $(
 // --- trascinamento e selezione ---
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), piano = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let presa = null;
+// [Officina] una bolla che entra in un'altra (o in una parete) si colora di rosso: una copia rossa e trasparente di ogni suo telo, che segue il gonfiaggio
+const matRosso = new THREE.MeshBasicMaterial({ color: 0xd8342a, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide });
+function segnaRosso(p, si) {
+  if (!p.g3 || !p.g3.grp) return; const g = p.g3.grp;
+  if (!si) { if (p.g3.rossi) { for (const m of p.g3.rossi) m.parent && m.parent.remove(m); p.g3.rossi = null; } return; }
+  if (p.g3.rossi) return;
+  p.g3.rossi = [];
+  const teli = []; g.traverse(o => { if (o.isMesh && o.geometry && o.material && o.material.transparent && !o.userData.rosso) teli.push(o); });
+  for (const o of teli) { const m = new THREE.Mesh(o.geometry, matRosso); m.userData.rosso = true; m.renderOrder = 9; m.position.copy(o.position); m.rotation.copy(o.rotation); m.scale.copy(o.scale); (o.parent || g).add(m); p.g3.rossi.push(m); }
+}
 function puntaMouse(e) { const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(mouse, camera); }
 function suPiano(e) { puntaMouse(e); const v = new THREE.Vector3(); return ray.ray.intersectPlane(piano, v) ? v : null; }
 renderer.domElement.addEventListener('pointerdown', e => {
@@ -3334,6 +3393,11 @@ renderer.domElement.addEventListener('pointermove', e => {
   const nx = v.x + presa.dx, nz = v.z + presa.dz, S = pareteStanza();
   if (S && !nelMuro(scafo(presa.p), S) && nelMuro(scafo({ ...presa.p, x: nx, z: nz }), S)) return;
   presa.p.x = nx; presa.p.z = nz; presa.p.g3.grp.position.set(presa.p.x, 0, presa.p.z);
+  { const sc = scafo(presa.p), q = pezzi.find(o => o !== presa.p && o.scafo && siToccano(o.scafo, sc));   // [Officina] compenetrazione: si vede subito, in rosso, con un avviso
+    segnaRosso(presa.p, !!q);
+    if (q && presa.dentro !== q) avviso(`Compenetrazione: ${presa.p.nome} entra in ${q.nome}. Spostala più in là.`, 4000);
+    else if (!q && presa.dentro) avviso('', 0);
+    presa.dentro = q || null; }
 });
 renderer.domElement.addEventListener('pointerup', e => {
   ctrl.enabled = true;
