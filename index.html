@@ -2434,7 +2434,11 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     ctx.clearRect(0, 0, W, H);
     if (!m || !W || !PAL) return [];
     const V = m.V, fr = o.frame || inquadra(m), Ht = Math.max(...V.map(v => v[2])), zc = fr.zc, mx = fr.mx, my = fr.my, rad = fr.rad;
-    const sc = Math.min(W, H) / (2 * (o.annot ? 1.22 : 1.06) * Math.max(rad, o.person ? 1.1 : 0));
+    // [Semplice] la stanza: una scatola con il lato lungo come quello della bolla, centrata sulla bolla e appoggiata al pavimento
+    const z0 = Math.min(...V.map(v => v[2])), dx = Math.max(...V.map(v => v[0])) - Math.min(...V.map(v => v[0])), dy = Math.max(...V.map(v => v[1])) - Math.min(...V.map(v => v[1]));
+    const st = o.stanza ? (() => { const lu = Math.max(o.stanza.W, o.stanza.L), co = Math.min(o.stanza.W, o.stanza.L); return { X: dx >= dy ? lu : co, Y: dx >= dy ? co : lu, H: o.stanza.H }; })() : null;
+    const radS = st ? Math.hypot(st.X / 2, st.Y / 2, Math.max(zc - z0, z0 + st.H - zc)) : 0;
+    const sc = Math.min(W, H) / (2 * (o.annot ? 1.22 : 1.06) * Math.max(rad, radS, o.person ? 1.1 : 0));
     const cy0 = H / 2 - (o.annot ? 0.05 * H : 0);
     const cyw = Math.cos(o.yaw), syw = Math.sin(o.yaw), cp = Math.cos(o.pitch), sp = Math.sin(o.pitch);
     const T = (p) => { const x = p[0] - mx, y = p[1] - my, z = p[2] - zc, x1 = x * cyw - y * syw, y1 = x * syw + y * cyw; return [x1, y1 * cp - z * sp, y1 * sp + z * cp]; };
@@ -2442,6 +2446,23 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     const tv = V.map(T), L = V3.norm([-0.45, -0.75, 0.5]);
     const lw = Math.max(1, W / (o.thin ? 240 : 650));
     const front = [], polys = [];
+    const stanzaSpigoli = st ? (() => {   // 12 spigoli; visto = almeno una delle due facce vicine guarda verso chi guarda
+      const c = []; for (let i = 0; i < 8; i++) c.push(S(T([mx + (i & 1 ? 1 : -1) * st.X / 2, my + (i & 2 ? 1 : -1) * st.Y / 2, z0 + (i & 4 ? st.H : 0)])));
+      const verso = (a, segno) => { const d = [0, 0, 0]; d[a] = segno; const x1 = d[0] * cyw - d[1] * syw, y1 = d[0] * syw + d[1] * cyw; return (y1 * cp - d[2] * sp) < 0; };
+      const out = [];
+      for (let i = 0; i < 8; i++) for (let a = 0; a < 3; a++) if (!(i & (1 << a))) {
+        const altri = [0, 1, 2].filter(b => b !== a), visto = altri.some(b => verso(b, i & (1 << b) ? 1 : -1));
+        out.push({ A: c[i], B: c[i | (1 << a)], visto });
+      }
+      return out;
+    })() : null;
+    const disegnaStanza = (visti) => {
+      if (!stanzaSpigoli) return;
+      ctx.save(); ctx.lineCap = "round"; ctx.lineWidth = Math.max(1.2, lw * 1.6); ctx.setLineDash([7 * dpr, 6 * dpr]);
+      ctx.strokeStyle = o.stanza.ko ? PAL.cut : o.stanza.mid ? (css("--avviso") || "#c98a1a") : PAL.ink; ctx.globalAlpha = visti ? 0.85 : 0.3;
+      ctx.beginPath(); stanzaSpigoli.filter(e => e.visto === visti).forEach(e => { ctx.moveTo(e.A[0], e.A[1]); ctx.lineTo(e.B[0], e.B[1]); }); ctx.stroke(); ctx.restore();
+    };
+    disegnaStanza(false);   // gli spigoli dietro, sotto la bolla
     m.F.map((f, fi) => { const p = f.map(i => tv[i]); return { fi, p, n: V3.norm(newell(p)), depth: p.reduce((a, q) => a + q[1], 0) / p.length }; })
       .sort((a, b) => b.depth - a.depth)
       .forEach(({ fi, p, n }) => {
@@ -2465,6 +2486,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
       ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round"; if (dash) ctx.setLineDash(dash);
       ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke(); ctx.restore();
     };
+    disegnaStanza(true);   // gli spigoli davanti, sopra la bolla
     if (o.done) m.an.seams.forEach(s => { if (o.done.has(s.no) && (front[s.p.fi] || front[s.q.fi])) edge(s.key, PAL.green, lw * 3, [7 * dpr, 5 * dpr]); });
     if (o.hlSeam) edge(o.hlSeam.key, PAL.cut, lw * 5, o.hlSeam.faces.some(fi => front[fi]) ? null : [6 * dpr, 5 * dpr]);
     if (o.hlFace != null) { const pp = polys.find(q => q.fi === o.hlFace); if (pp) { ctx.save(); poly(ctx, pp.pts); ctx.strokeStyle = PAL.cut; ctx.lineWidth = lw * 3; ctx.lineJoin = "round"; ctx.stroke(); ctx.restore(); } }
@@ -2539,12 +2561,17 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     mini: { cv: $("mini"), rot, tip: $("tipMini"), hover: null, visible: false },
     seam: { cv: $("seamCanvas"), rot: { yaw: 0.6, pitch: 0.5 }, hover: null, visible: false, target: null },
   };
+  function stanzaDisegno() {   // [Semplice] le misure della stanza, se ci sono tutte e tre (per il riquadro tratteggiato nell'anteprima)
+    const v = id => { const e = $(id), x = e ? parseFloat(String(e.value).replace(",", ".")) : NaN; return Number.isFinite(x) && x > 0 ? x : null; };
+    const W = v("stW"), L = v("stL"), H = v("stH");
+    return W && L && H ? { W, L, H, ko: $("stEsito").classList.contains("ko"), mid: $("stEsito").classList.contains("mid") } : null;
+  }
   function drawView(name) {
     const v = views[name];
     if (!cur || !PAL || !fitCanvas(v.cv)) return;
     const o = { yaw: v.rot.yaw, pitch: v.rot.pitch, colors: state.colors }, altra = name === "hero" && inVetrina();
     if (name === "hero") Object.assign(o, { annot: true, person: state.person, hlFace: altra ? null : v.hover });
-    if (name === "mini") o.hlFace = v.hover;
+    if (name === "mini") { o.hlFace = v.hover; o.stanza = stanzaDisegno(); }
     if (name === "seam") Object.assign(o, { hlSeam: seamSel ? { key: seamSel.key, faces: [seamSel.p.fi, seamSel.q.fi] } : null, done: doneSeams() });
     let m = altra ? thumbs.get(vetrina.id) : cur;
     if (name === "hero" && vetrina.anim) { const g = gonfia(); m = g.m; Object.assign(o, { frame: g.frame, quote: g.quote, hlFace: null }); }
@@ -3065,9 +3092,9 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   function inviaStanza() { const S = stanzaV(); aSim(S.W && S.L && S.H ? { tipo: "stanza", W: S.W, P: S.L, H: S.H } : { tipo: "stanza", via: true }); }
   for (const id of ["stW", "stL", "stH"]) {
     try { const v = localStorage.getItem("bolle|stanza|" + id); if (v) $(id).value = v; } catch (e) { /* vuota */ }
-    $(id).addEventListener("input", () => { try { localStorage.setItem("bolle|stanza|" + id, $(id).value); } catch (e) { /* solo per questa visita */ } controllaStanza(); clearTimeout(inviaStanza.t); inviaStanza.t = setTimeout(inviaStanza, 400); });
+    $(id).addEventListener("input", () => { try { localStorage.setItem("bolle|stanza|" + id, $(id).value); } catch (e) { /* solo per questa visita */ } controllaStanza(); drawView("mini"); clearTimeout(inviaStanza.t); inviaStanza.t = setTimeout(inviaStanza, 400); });
   }
-  $("stVia").addEventListener("click", () => { for (const id of ["stW", "stL", "stH"]) { $(id).value = ""; try { localStorage.removeItem("bolle|stanza|" + id); } catch (e) { /* niente */ } } controllaStanza(); inviaStanza(); });
+  $("stVia").addEventListener("click", () => { for (const id of ["stW", "stL", "stH"]) { $(id).value = ""; try { localStorage.removeItem("bolle|stanza|" + id); } catch (e) { /* niente */ } } controllaStanza(); drawView("mini"); inviaStanza(); });
   // dalla simulazione alle misure: le bolle di là hanno le loro misure (cubo, poligono, piramide…) o una scala (forma vera)
   function daSimulazione(t, d) {
     const id = def().id, p = { ...state.params }, L = Object.fromEntries(def().params.map(q => [q.key, isLength(q)]));
