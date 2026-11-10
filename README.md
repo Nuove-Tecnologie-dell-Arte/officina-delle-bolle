@@ -11,7 +11,7 @@ Una pagina sola, con tre sezioni una sotto l'altra. La barra in alto porta a cia
 ### 1 · Officina delle Bolle
 
 - **In alto** il titolo, due righe di presentazione e la figura della forma scelta, con una persona alta 1,75 m e le quote di altezza e larghezza, così si capisce subito quanto è grande.
-- **Scegli forma**: 4 forme per cominciare (cupola, cubo, sfera geodetica, pallone); le altre si aprono con «Altre forme» e si aprono da sole se la forma scelta è una di quelle. Ogni forma dice quanti tipi di pezzo ha. Sotto, il riquadro per partire da un'immagine.
+- **Scegli forma**: 4 forme per cominciare (cupola, cubo, sfera liscia, pallone da calcio); le altre si aprono con «Altre forme» e si aprono da sole se la forma scelta è una di quelle. Ogni forma dice quanti tipi di pezzo ha. Sotto, il riquadro per partire da un'immagine.
 - **La stanza**: larghezza, lunghezza e altezza del soffitto della stanza in cui va la bolla. La pagina dice se la bolla ci sta, ci sta di poco o non ci sta, e nella simulazione la bolla appare dentro quella stanza.
 - **Misure bolla**, in tre schede:
   - *Misure*: l'anteprima 3D e i campi, sempre della bolla vera, in metri. Toccando un campo, nell'anteprima la parte che cambia si colora e si muove, e una riga spiega che cosa vuol dire. Sotto l'anteprima si legge quanto lavoro chiede la forma. Un valore fuori misura si dice sul campo («Minimo 0,10 m: resta 2,20 m»); «Annulla» (o Ctrl+Z) torna indietro di un cambiamento alla volta. Per la pianta disegnata a mano compare qui la griglia per disegnarla.
@@ -67,16 +67,16 @@ Nella sezione 1, dopo le forme, c'è il riquadro **Crea una bolla da un'immagine
 - **Anteprima e giudizio** si aggiornano a ogni ritocco: il modellino 3D con le quote e una persona per la scala, e un giudizio «Si può fare / con qualche accorgimento (o «con molti accorgimenti», se sono almeno 4) / Così non si può fare» (l'esito si legge anche in fondo alla finestra, senza scorrere) che guarda porta da 1,80 m, pavimento, tipi di pezzo, lati troppo corti, punte strette, stabilità, modellino, telo e giunzioni.
 - **Usa questa forma** la mette nell'Officina come «Forma da un'immagine»: misure, pezzi, modellino, giunzioni, cantiere e Abbofficina come per le altre forme, e il giudizio resta nella scheda della forma. La sagoma si salva con il progetto (anche su file); l'ultima immagine resta in questo browser per «Ritocca l'ultima immagine».
 
-## Sfera geodetica
+## Sfera liscia (sfera geodetica)
 
-Fra i solidi regolari c'è la **Sfera geodetica (tipo d100)**: un icosaedro con ogni triangolo diviso in triangoli più piccoli, spinti fuori fino alla sfera.
+Fra i solidi regolari c'è la **Sfera liscia (tanti triangoli)**, cioè la sfera geodetica: un icosaedro con ogni triangolo diviso in triangoli più piccoli, spinti fuori fino alla sfera.
 - **Quanto è tonda:** 80 triangoli (la più vicina a un d100), 180 o 320. Più triangoli, più pezzi.
 - **Taglio:** si parte da circa tre quarti di sfera, tagliata a un quarto dell'altezza; il taglio si cambia in «Altre opzioni».
 - **Misure di partenza:** con 4 m di diametro e 80 triangoli è alta 3,05 m, ha un pavimento di 8,2 m² e 71 pezzi di 4 tipi.
 
-## Sfera di triangoli uguali
+## Sfera a triangoli uguali
 
-Fra i solidi regolari c'è anche la **Sfera di triangoli uguali**: 120 triangoli (o 48) tutti uguali, con tre lati diversi.
+Fra i solidi regolari c'è anche la **Sfera a triangoli uguali**: 120 triangoli (o 48) tutti uguali, con tre lati diversi.
 - **La dima:** metà dei triangoli sono lo stesso triangolo rovesciato, quindi basta una dima, girata.
 - **Il taglio di partenza** toglie circa un quinto dell'altezza. Con 5 m di diametro è alta 3,94 m, ha 11,7 m² di pavimento e una porta che arriva fino a 3,11 m. Dei triangoli rimasti, 92 sono uguali; i 16 dell'ultimo giro, tagliati dal pavimento, hanno 4 forme diverse.
 - **Tagliata esattamente a metà** («Altre opzioni» → Altezza del taglio) il taglio passa lungo gli spigoli e restano 60 triangoli tutti uguali più il pavimento. Ma vicino al bordo il soffitto scende, e la porta arriva solo a 1,06 m.
@@ -100,7 +100,7 @@ Nella cartella `configuratore/` c'è l'**Abbofficina** (prima si chiamava Config
 - **Nella pagina completa** l'Abbofficina sta nel riquadro Simulazione (`configuratore/index.html?incorporata=1`) e riceve la forma con dei messaggi; i dettagli sono in `MODIFICHE.md`. Aperta da sola (`configuratore/`), funziona come prima.
 - Aperta da sola, si passa da una parte all'altra con il selettore **Officina | Abbofficina** in alto, nella stessa scheda: l'Officina ricorda l'ultima forma e l'Abbofficina l'ultima composizione. Il pulsante "Porta la forma nell'Abbofficina" dell'Officina la manda nell'Abbofficina; da lì, "Officina" riporta a quella forma con le sue misure, e rimandandola dopo un ritocco si aggiorna la stessa composizione. Con "Aggiungi alla composizione aperta" la forma va invece nell'ultima composizione su cui si stava lavorando, accanto alle altre bolle, così se ne mettono insieme più di una. Se l'Abbofficina ingrandisce la forma per avere porte da 1,80 m, tornando all'Officina un avviso dice di quanto. Le composizioni dell'Abbofficina si passano con Esporta / Importa.
 - Si apre anche da `configuratore/` sullo stesso sito: la cartella e l'indirizzo hanno tenuto il nome di prima, così i link già condivisi funzionano ancora. Il pulsante passa la forma con le sue misure, e **tutte le forme** arrivano montate così come sono: quelle che l'Abbofficina ha già (cubo, prisma, piramide, stella, piante dritte) con i suoi tipi, le altre (cupola, tubi, figure…) come forma vera in 3D.
-- Nella scheda "Bolle" dell'Abbofficina ci sono anche le forme dell'Officina che non aveva (cupola, sfera geodetica, sfera di triangoli uguali, pallone, dodecaedro, L, C, freccia, tubi, figure e frutti…), con le loro misure. L'Abbofficina le costruisce con il motore dell'Officina, letto da `motore.js` tra `// ENGINE START` e `// ENGINE END`: non cambiate quei due segnaposto.
+- Nella scheda "Bolle" dell'Abbofficina ci sono anche le forme dell'Officina che non aveva (cupola, sfera liscia, sfera a triangoli uguali, pallone da calcio, palla di 12 pentagoni, L, C, freccia, tubi, figure e frutti…), con le loro misure. L'Abbofficina le costruisce con il motore dell'Officina, letto da `motore.js` tra `// ENGINE START` e `// ENGINE END`: non cambiate quei due segnaposto.
 - **Stanza di sfondo** (barra Vista → Stanza): mette le bolle dentro uno spazio vero, da una foto 360° equirettangolare (anche HDR) o da un modello GLB. Si vedono solo le facce interne, come il backface culling del materiale in Blender, così le pareti verso di te spariscono. C'è già pronto il Corridoio dell'Accademia, ricostruito in 3D dalla foto: l'angolo del chiostro con i due bracci, in cui si può girare e guardare lungo i corridoi. Le pareti della stanza contano: le bolle non ci si possono mettere né trascinare dentro, e quelle più alte del soffitto diventano rosse. Ogni composizione ha la sua stanza, o nessuna: aprendone una si parte senza stanza, e se l'avevate lasciata con una stanza, la stanza torna.
 - **Oggetti 3D** (barra Vista → Oggetti 3D): scansioni e modelli in GLB, OBJ, STL o PLY, anche nuvole di punti, da mettere nella scena e spostare, ruotare e scalare con le maniglie o con i numeri. Le misure in centimetri o millimetri vengono riconosciute, e le scansioni sdraiate si alzano con un clic. Si salvano con la composizione, in questo browser. Un oggetto messo dentro una bolla fa radunare le persone attorno a lui.
 - Per aggiornarla con una loro nuova versione: si sostituisce `configuratore/index.html` con il loro file unico e si riaggiungono le parti segnate `[Officina]`. L'elenco è in `configuratore/MODIFICHE.md`.

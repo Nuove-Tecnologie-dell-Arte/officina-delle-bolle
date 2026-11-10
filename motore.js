@@ -366,25 +366,25 @@ const FOTO_ESEMPIO = (() => {
   return dx.concat(sx).map(q => [+q[0].toFixed(4), +q[1].toFixed(4)]);
 })();
 const SHAPES = [
-  { id: "d20", group: "Solidi regolari", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2.2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
-  { id: "d6", group: "Solidi regolari", name: "Cubo (6 quadrati)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
-  { id: "geo", group: "Solidi regolari", name: "Sfera geodetica (tipo d100)", kind: "convex",
+  { id: "d20", group: "Solidi regolari", name: "Cupola (triangoli tutti uguali)", kind: "convex", params: [num("s", "Lato (m)", 2.2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
+  { id: "d6", group: "Solidi regolari", name: "Cubo", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
+  { id: "geo", group: "Solidi regolari", name: "Sfera liscia (tanti triangoli)", kind: "convex",
     params: [num("D", "Diametro (m)", 4, 0.5), pick("f", "Quanto è tonda", [["2", "80 triangoli"], ["3", "180 triangoli"], ["4", "320 triangoli"]], "2")],
     points: p => geodesicPoints(+p.f || 2).map(v => V3.mul(v, p.D / 2)), defOrient: "vertice", defCut: 0.25 },   // tagliata a un quarto: resta circa tre quarti di sfera
-  { id: "sferaU", group: "Solidi regolari", name: "Sfera di triangoli uguali", kind: "convex",
+  { id: "sferaU", group: "Solidi regolari", name: "Sfera a triangoli uguali", kind: "convex",
     params: [num("D", "Diametro (m)", 5, 0.5), pick("n", "Triangoli (sfera intera)", [["120", "120 triangoli"], ["48", "48 triangoli"]], "120")],
     points: p => catalanPoints(p.n === "48" ? PTS.oct() : PTS.ico()).map(v => V3.mul(v, p.D / 2)), defOrient: "vertice", defCut: 0.2 },   // tagliata in basso, a un quinto: resta quasi tutta la sfera
   // la stessa sfera da 120, con ogni triangolo diviso in 4 o in 9 triangoli più piccoli, tutti uguali (non diventa più tonda: i pezzi piccoli stanno nel piano di quello grande)
-  { id: "sferaP", group: "Solidi regolari", name: "Sfera di triangoli piccoli", kind: "convex",
+  { id: "sferaP", group: "Solidi regolari", name: "Sfera a triangoli piccoli (più pezzi)", kind: "convex",
     params: [num("D", "Diametro (m)", 5, 0.5), pick("n", "Triangoli (sfera intera)", [["480", "480 triangoli (ognuno diviso in 4)"], ["1080", "1080 triangoli (ognuno diviso in 9)"]], "480")],
     points: p => catalanPoints(PTS.ico()).map(v => V3.mul(v, p.D / 2)), subdiv: p => (p.n === "1080" ? 3 : 2), defOrient: "vertice", defCut: 0.2 },
-  { id: "calcio", group: "Solidi regolari", name: "Pallone (pentagoni ed esagoni)", kind: "convex", params: [num("D", "Diametro (m)", 6, 0.5)],
+  { id: "calcio", group: "Solidi regolari", name: "Pallone da calcio (pentagoni ed esagoni)", kind: "convex", params: [num("D", "Diametro (m)", 6, 0.5)],
     points: p => PTS.tico().map(v => V3.mul(V3.norm(v), p.D / 2)), defOrient: "faccia" },   // la palla da calcio: appoggiata su un esagono, senza taglio
-  { id: "d12", group: "Solidi regolari", name: "Dodecaedro (12 pentagoni)", kind: "convex", params: [num("s", "Lato (m)", 1.2, 0.1)], points: p => PTS.dod().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
-  { id: "prism", group: "Prismi e piramidi", name: "Prisma (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 6, 3, 24), num("s", "Lato della base (m)", 1.5, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.s), p.h, ngRot(p.n))] },
-  { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
-  { id: "frus", group: "Prismi e piramidi", name: "Piramide senza punta (tronco)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
-  { id: "box", group: "Prismi e piramidi", name: "Parallelepipedo", kind: "convex", natural: true, params: [num("a", "Lunghezza (m)", 3, 0.1), num("b", "Larghezza (m)", 2, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => signs([p.a / 2, p.b / 2, 1]).map(v => [v[0], v[1], v[2] > 0 ? p.h : 0]) },
+  { id: "d12", group: "Solidi regolari", name: "Palla di 12 pentagoni", kind: "convex", params: [num("s", "Lato (m)", 1.2, 0.1)], points: p => PTS.dod().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
+  { id: "prism", group: "Prismi e piramidi", name: "Torre (pareti dritte, base a scelta)", kind: "convex", natural: true, params: [int("n", "Lati della base", 6, 3, 24), num("s", "Lato della base (m)", 1.5, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.s), p.h, ngRot(p.n))] },
+  { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base a scelta)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
+  { id: "frus", group: "Prismi e piramidi", name: "Piramide tagliata (senza punta)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
+  { id: "box", group: "Prismi e piramidi", name: "Scatola (rettangolare)", kind: "convex", natural: true, params: [num("a", "Lunghezza (m)", 3, 0.1), num("b", "Larghezza (m)", 2, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => signs([p.a / 2, p.b / 2, 1]).map(v => [v[0], v[1], v[2] > 0 ? p.h : 0]) },
   { id: "L", group: "Forme in pianta", name: "A forma di L", kind: "extrude", params: [num("a", "Lato lungo (m)", 5, 0.5), num("b", "Lato corto (m)", 4, 0.5), num("w", "Larghezza dei bracci (m)", 2, 0.3), num("h", "Altezza (m)", 2.2, 0.3)],
     outline: p => [[0, 0], [p.a, 0], [p.a, p.w], [p.w, p.w], [p.w, p.b], [0, p.b]] },
   { id: "C", group: "Forme in pianta", name: "A forma di C", kind: "extrude", params: [num("b", "Lunghezza della schiena (m)", 6, 1), num("a", "Lunghezza dei bracci (m)", 5, 0.5), num("w", "Larghezza di schiena e bracci (m)", 2, 0.3), num("h", "Altezza (m)", 2.2, 0.3)],
@@ -424,7 +424,7 @@ const SHAPES = [
       sec.push([r, p.hs], [r, 0]);
       return sweep([[0, 0], [p.L, 0]], false, sec);
     } },
-  { id: "boat", group: "Forme speciali", name: "Barca (scafo con piramide)", kind: "build", floorToggle: true,
+  { id: "boat", group: "Forme speciali", name: "Barca", kind: "build", floorToggle: true,
     params: [num("L", "Lunghezza (m)", 5, 1), num("W", "Larghezza del ponte (m)", 2.6, 0.5), num("Lp", "Lunghezza della prua (m)", 1.6, 0.2), num("h", "Altezza dello scafo (m)", 2, 0.3), int("f", "Fondo: larghezza in % del ponte", 60, 20, 100),
       pick("sail", "Piramide sul ponte", [["si", "Sì"], ["no", "No"]], "si"), num("a", "Lato della piramide (m)", 1.4, 0.2), num("hp", "Altezza della piramide (m)", 1.6, 0.2)],
     build: (p) => {
@@ -464,7 +464,7 @@ const SHAPES = [
       num("tl", "Lunghezza della punta (m)", 0.9, 0.2), num("sl", "Lunghezza del picciolo (m)", 1.1, 0.2), int("ps", "Spessore del picciolo (% del corpo)", 30, 10, 70),
       pick("pose", "Appoggio", [["giu", "Sdraiata, curva a terra"], ["su", "Con le punte all'insù"]], "giu")],
     build: (p, flat) => bananaMesh(p, flat) },
-  { id: "scolo", group: "Forme speciali", name: "Scolopendra", kind: "sweep",
+  { id: "scolo", group: "Forme speciali", name: "Millepiedi", kind: "sweep",
     params: [pick("body", "Corpo", [["onda", "Ondulato"], ["dritto", "Dritto"]], "onda"), int("N", "Segmenti del corpo", 9, 3, 21), num("s", "Lunghezza di ogni segmento (m)", 1, 0.2), num("d", "Larghezza del corpo (m)", 2, 0.3), num("h", "Altezza del corpo (m)", 2.2, 0.3), int("m", "Lati del tubo", 6, 4, 10),
       num("a", "Quanto ondeggia (gradi, solo corpo ondulato)", 25, 0, 5), int("e", "Una coppia di zampe ogni … segmenti", 1, 1, 5), num("lz", "Lunghezza delle zampe (m)", 1.4, 0.2),
       pick("ant", "Antenne", [["si", "Sì"], ["no", "No"]], "si"), num("la", "Lunghezza delle antenne (m)", 2, 0.2),

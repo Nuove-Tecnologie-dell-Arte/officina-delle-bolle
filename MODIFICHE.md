@@ -98,3 +98,17 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 ## Corretto: la simulazione a tutto schermo non si chiudeva
 
 - Sul computer, a tutto schermo, la barra in alto della pagina copriva il pulsante ↙ per tornare: la colonna ferma della simulazione (`position: sticky`) la teneva sotto la barra. A tutto schermo la colonna non è più ferma (`body.simGrande .cs-sim .simCasa`), e il pulsante si vede e funziona. Esc funzionava già.
+
+## Nomi delle forme più chiari
+
+- Nomi nuovi, senza parole da geometria (`motore.js`; gli stessi nell'elenco delle forme dell'Abbofficina, `FORME_OFF`). La parte prima della parentesi è quella delle schede di «Scegli forma»:
+  - Cupola (20 triangoli) → **Cupola** (triangoli tutti uguali): i pezzi sono 16, non 20;
+  - Cubo (6 quadrati) → **Cubo**;
+  - Sfera geodetica (tipo d100) → **Sfera liscia** (tanti triangoli);
+  - Sfera di triangoli uguali → **Sfera a triangoli uguali**; Sfera di triangoli piccoli → **Sfera a triangoli piccoli** (più pezzi);
+  - Pallone (pentagoni ed esagoni) → **Pallone da calcio** (pentagoni ed esagoni);
+  - Dodecaedro (12 pentagoni) → **Palla di 12 pentagoni**;
+  - Prisma (base con n lati) → **Torre** (pareti dritte, base a scelta); Piramide (base con n lati) → **Piramide** (base a scelta);
+  - Piramide senza punta (tronco) → **Piramide tagliata** (senza punta); Parallelepipedo → **Scatola** (rettangolare);
+  - Barca (scafo con piramide) → **Barca**; Scolopendra → **Millepiedi**.
+- I nomi dei gruppi restano. Le forme si salvano con il codice (`d20`, `geo`…), non con il nome: forme e progetti salvati si riaprono come prima.
