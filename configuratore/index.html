@@ -616,6 +616,12 @@
   details.aspetto > summary { display: flex; align-items: baseline; gap: 10px; cursor: pointer; list-style: none; }
   details.aspetto > summary::-webkit-details-marker { display: none; }
   details.aspetto > summary h2::before { content: '▸ '; } details.aspetto[open] > summary h2::before { content: '▾ '; }
+  /* [Officina] VETRINA (?vetrina): dentro il sito dell'Officina si vede solo la scena, senza pannelli né comandi */
+  html.vetrina body > header, html.vetrina aside, html.vetrina #manico, html.vetrina #sovra, html.vetrina .linguetta, html.vetrina #scena .sinistra,
+  html.vetrina #pannelloP, html.vetrina #suggScena, html.vetrina #avviso, html.vetrina #pannelloS, html.vetrina #povInfo, html.vetrina #pannelloO, html.vetrina #pannelloSt,
+  html.vetrina #barraScena, html.vetrina #guida, html.vetrina #cerca, html.vetrina dialog, html.vetrina .lampo, html.vetrina .menuProve, html.vetrina .menuComp { display: none !important; }
+  html.vetrina main, html.vetrina #vCostruisci { position: fixed; inset: 0; display: block; }
+  html.vetrina #scena { position: absolute; inset: 0; height: auto; }
 </style>
 </head>
 <body>
@@ -922,6 +928,8 @@ const $ = id => document.getElementById(id);
 const fmt = (x, d = 0) => (Math.round(x * 10 ** d) / 10 ** d).toFixed(d).replace('.', ',');
 const fmtT = t => t == null ? 'mai' : t < 90 ? fmt(t) + ' s' : Math.floor(t / 60) + ' min ' + String(Math.round(t % 60)).padStart(2, '0') + ' s';
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const VETRINA = /[?&]vetrina(=|&|$)/.test(location.search);   // [Officina] la scena dentro il sito dell'Officina: solo da guardare, niente si salva
+if (VETRINA) document.documentElement.classList.add('vetrina');
 const liscio = (x, a, b) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
 // =====================================================================
@@ -3636,7 +3644,7 @@ $('tabB').onclick = () => mostra('b'); $('tabC').onclick = () => mostra('c'); $(
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), piano = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let presa = null;
 renderer.domElement.addEventListener('contextmenu', e => {   // [Officina] tasto destro su una bolla: Copia, Incolla, Ruota, Elimina
-  e.preventDefault(); if (pov || $('vCostruisci').hidden) return;
+  e.preventDefault(); if (VETRINA || pov || $('vCostruisci').hidden) return;   // [Officina] VETRINA
   if (destro && Math.hypot(e.clientX - destro.x, e.clientY - destro.y) > 5) { destro = null; return; }   // era uno spostamento della vista
   destro = null; puntaMouse(e); const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
   const hit = ray.intersectObjects(ogg, false)[0], p = hit && hit.object.userData.pezzo;
@@ -3656,6 +3664,7 @@ function segnaRosso(p, si) {
 function puntaMouse(e) { const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(mouse, camera); }
 function suPiano(e) { puntaMouse(e); const v = new THREE.Vector3(); return ray.ray.intersectPlane(piano, v) ? v : null; }
 renderer.domElement.addEventListener('pointerdown', e => {
+  if (VETRINA) return;   // [Officina]
   if (window.oggetti && window.oggetti.occupato()) return;   // sto usando la maniglia di un oggetto
   if (toccaOggetto(e)) return;   // [Officina] toccato un oggetto 3D: si sceglie quello
   if (e.button === 2) { destro = { x: e.clientX, y: e.clientY }; return; }   // [Officina] tasto destro: il menu (se non si trascina per spostare la vista)
@@ -4070,7 +4079,7 @@ const storia = { indietro: [], avanti: [], ora: null }, MAX_STORIA = 30;
 // stanzaAttesa: quella che si sta caricando, così un salvataggio a metà non la perde
 let stanzaVoluta = null, stanzaAttesa = null, stanzaPronti = false, genStanza = 0;
 try { const c = JSON.parse(localStorage.getItem(CHIAVE_COMP) || 'null'); if (c && Array.isArray(c.lista)) comp = c; } catch (e) {}
-const salvaComp = () => { try { localStorage.setItem(CHIAVE_COMP, JSON.stringify(comp)); } catch (e) {} };
+const salvaComp = () => { if (VETRINA) return; try { localStorage.setItem(CHIAVE_COMP, JSON.stringify(comp)); } catch (e) {} };
 const compAttiva = () => comp.lista.find(c => c.id === comp.attiva);
 const nuovoIdComp = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -4545,7 +4554,7 @@ function inquadra() {
 }
 function ridimensiona() {
   const w = box.clientWidth, h = box.clientHeight; if (!w || !h) return; renderer.setSize(w, h); camera.aspect = w / h;
-  const off = w > 700 && !box.classList.contains('noPress') && !$('vCostruisci').classList.contains('costr') ? 135 : 0;   // [Officina] in Costruisci il riquadro non c'è   // sposta la scena a sinistra del pannello della pressione ([Officina] solo se c'è)
+  const off = !VETRINA && w > 700 && !box.classList.contains('noPress') && !$('vCostruisci').classList.contains('costr') ? 135 : 0;   // [Officina] in Costruisci il riquadro non c'è   // sposta la scena a sinistra del pannello della pressione ([Officina] solo se c'è)
   if (off) camera.setViewOffset(w + off, h, off, 0, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
@@ -4570,7 +4579,7 @@ disegnaTipi(); costruisciDati(); ridimensiona();
   const c = { id: nuovoIdComp(), nome: NOME_INIZIO, agg: Date.now(), dati: fotografa() }; comp.lista.push(c); comp.attiva = c.id; salvaComp(); disegnaComp();
   storia.ora = statoStoria();   // [Officina] da qui si può annullare
   // [Officina] tornando dall'Officina (o riaprendo la pagina) si ritrova la composizione su cui si stava lavorando, non un cubo nuovo
-  if (prec && prec.nome !== NOME_PREC && prec.dati && (prec.dati.pezzi || []).length) {
+  if (!VETRINA && prec && prec.nome !== NOME_PREC && prec.dati && (prec.dati.pezzi || []).length) {   // [Officina] in vetrina no
     comp.lista = comp.lista.filter(x => x !== c); comp.attiva = null; apriComp(prec.id); disegnaComp(); }
 }
 
@@ -4932,7 +4941,7 @@ $('scelte').addEventListener('input', esitoScelte); $('scelte').addEventListener
 $('sLab').onclick = () => { const X = D_LAB; $('sMat').value = X.mat; $('sGsm').value = X.gsm; $('sGiunti').value = X.giunti; $('sAdW').value = X.adW; $('sAdL').value = String(X.adLati); $('sPorte').value = X.porte; $('sColl').value = X.coll; esitoScelte(); };
 $('sOk').onclick = () => { applicaScelte(); $('scelte').close(); };
 $('scelte').addEventListener('close', () => { try { localStorage.setItem('bolle-scelte-viste', '1'); } catch (e) {} });
-{ let vista = false; try { vista = !!localStorage.getItem('bolle-scelte-viste'); } catch (e) {} if (!vista && !/officina=/.test(location.hash)) apriScelte(); }
+{ let vista = false; try { vista = !!localStorage.getItem('bolle-scelte-viste'); } catch (e) {} if (!vista && !VETRINA && !/officina=/.test(location.hash)) apriScelte(); }
 caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bolle"
 
 // =====================================================================
@@ -5585,6 +5594,42 @@ document.addEventListener('keydown', e => {
   if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey) && !e.altKey) { e.preventDefault(); if ($('cerca').hidden) apriCerca(); else chiudiCerca(); }
   else if (e.key === '/' && !scrive && !e.metaKey && !e.ctrlKey && !e.altKey && $('cerca').hidden && !document.querySelector('dialog[open]')) { e.preventDefault(); apriCerca(); }
 });
+// [Officina] VETRINA: il sito dell'Officina manda la bolla che si sta progettando (vertici e facce in metri, misure vere, nessun ingrandimento)
+// con un messaggio { tipo: 'bolla-officina', mesh: { v, f }, off, nome, forma, area }. Qui si gonfia, con i gonfiatori consigliati e i Sonny dentro;
+// l'area di lavoro è un parallelepipedo tratteggiato (rosso se la bolla non ci sta). Quando cambia la forma (non le misure) si rigonfia da zero.
+if (VETRINA) {
+  addEventListener('keydown', e => e.stopImmediatePropagation(), true);   // nessuna scorciatoia: qui non si modifica niente
+  let ultima = null, tV = 0, areaV = null;
+  const togliArea = () => { if (areaV) { scena.remove(areaV); areaV.geometry.dispose(); areaV.material.dispose(); areaV = null; } };
+  function mettiArea(M) {
+    togliArea(); const A = M.area, p = pezzi[0]; if (!A || !p || !p.g3 || !p.g3.grp) { mettiArea.ultima = null; return; }
+    const b = new THREE.Box3().setFromObject(p.g3.grp), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
+    // l'area è X × Y dell'Officina: si allinea alla bolla confrontando le sue misure a terra con quelle vere
+    const dritta = Math.abs(s.x - M.W) + Math.abs(s.z - M.D) <= Math.abs(s.x - M.D) + Math.abs(s.z - M.W), giro = !!A.giro !== !dritta;
+    const ax = (giro ? A.y : A.x) || s.x, az = (giro ? A.x : A.y) || s.z, ay = A.z || 0;
+    const g = new THREE.EdgesGeometry(new THREE.BoxGeometry(ax, ay || 0.001, az)), m = new THREE.LineDashedMaterial({ color: A.ok ? 0xe8eef2 : 0xff5d70, dashSize: 0.35, gapSize: 0.22 });
+    areaV = new THREE.LineSegments(g, m); areaV.computeLineDistances(); areaV.position.set(c.x, (ay || 0.001) / 2, c.z); scena.add(areaV);
+    const chiave = [ax, az, ay].join();   // un'area nuova: la vista si allontana quanto basta per vederla tutta (poi la si gira come si vuole)
+    if (chiave !== mettiArea.ultima) { mettiArea.ultima = chiave; const L = Math.max(ax, az, ay * 1.4) + 3, dir = camera.position.clone().sub(ctrl.target).normalize();
+      ctrl.target.set(c.x, 0.9, c.z); camera.position.copy(ctrl.target).addScaledVector(dir, L * 1.15 + 3); ctrl.update(); inquadra.L = L; }
+  }
+  function mostra(M) {
+    if (!M.mesh) { togliArea(); carica({ ...fotografa(), pezzi: [], manuali: [], staccati: [], stanza: null }); ultima = null; return; }
+    const d = { mesh: M.mesh, k: 1 }; if (typeof M.off === 'string' && PORTE_OFF[M.off]) d.off = M.off;
+    try { forma('officina', d); } catch (e) { return; }   // non appoggia a terra: resta la bolla di prima
+    const f = gonfConsigliati({ tipo: 'officina', d }) || { ...TIPI.officina.f }, nuova = !ultima || ultima.forma !== M.forma;
+    carica({ ...fotografa(), pezzi: [{ tipo: 'officina', d, f, nome: String(M.nome || 'La tua bolla').slice(0, 60), ingresso: true }], manuali: [], staccati: [], stanza: null }, nuova ? {} : { storia: true });
+    for (const p of pezzi) p.nRes = bassaPerSonny(p) ? 0 : clamp(Math.round(areaUtile(p) / 6), 1, 4);   // i Sonny dentro, come «Popola»
+    syncResidenti();
+    clearInterval(mostra.t);
+    if (nuova) { rigonfia(); mostra.t = setInterval(() => { if (pezzi.every(p => p.Va >= p.V0 * 0.97)) { clearInterval(mostra.t); velocita(1); } }, 400); }   // una forma nuova si gonfia da zero, veloce; gonfia, i Sonny tornano al passo normale
+    else if (!M.area) inquadra();   // con l'area di lavoro la vista resta quella che la mostra tutta
+    if (nuova) mettiArea.ultima = null;
+    mettiArea(M); ultima = M;
+  }
+  addEventListener('message', e => { const M = e.data; if (!M || M.tipo !== 'bolla-officina') return; clearTimeout(tV); tV = setTimeout(() => mostra(M), 200); });
+  try { parent.postMessage({ tipo: 'vetrina-pronta' }, '*'); } catch (e) {}
+}
 window.cfg = { ST, caricaStanza, togliStanza, aggiornaStanza, FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
   giro: () => faiEntrare(), GENTE, scoppia, ripara, comp: () => comp, fotografa, carica, apriComp, nuovaComp, persone: () => persone, unoAdesso, fermaTutti, eseguiCopione, muoviPersona, aggancia, liberaLati, collega, tipo: t => { tipoScelto = t; }, pLim, capTelo, tensione, simT: () => simT };
 })();

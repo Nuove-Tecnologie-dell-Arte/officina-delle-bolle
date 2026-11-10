@@ -6,234 +6,258 @@
 <title>Costruiamo una bolla · Officina delle Bolle</title>
 <meta name="description" content="Progetta una bolla gonfiabile, stampa il modellino e le dime, costruiscila un pezzo alla volta.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-/* Officina delle Bolle: tre tappe (Progettazione, Dima/Modellino, Costruzione). Il motore delle forme è in motore.js,
-   la finestra «bolla da un'immagine» in immagine.js. Colori e caratteri come nel disegno dell'interfaccia (InterfacciaBolle.pdf):
-   fondo grafite, titoli Bebas Neue, sottotitoli in maiuscoletto, riquadri grigio chiaro con le linguette. */
+/* Officina delle Bolle: tre tappe (Progettazione, Dima/Modellino, Costruzione) a sinistra, e a destra il simulatore, sempre in vista:
+   l'Abbofficina in «vetrina» (configuratore/?vetrina), che riceve la bolla mentre la si progetta. Il motore delle forme è in motore.js,
+   la finestra «bolla da un'immagine» in immagine.js. Colori e caratteri: quelli dell'Officina. */
 :root {
-  --bg: #3a3a3a;            /* il fondo della pagina */
-  --paper: #2f3032;         /* campi e riquadri dentro il fondo scuro */
-  --card: #46474a;          /* riquadri scuri, finestre */
-  --ink: #f3f5f7;
-  --muted: #b9bfc6;
-  --rule: #5c5f63;
-  --green: #4f86ff;         /* l'accento (il nome è quello di prima: lo usa anche immagine.js) */
-  --green-soft: rgba(79, 134, 255, .16);
-  --viola: #a98bf0;
-  --ok: #34c77b; --amber: #f2a33f; --cut: #ff5d70;
-  --lastra: #c9d1d9;        /* i riquadri chiari del disegno */
-  --t1: #6cc3a0; --t2: #86adef; --t3: #f0a25c; --t4: #c69ae6; --t5: #f2878f; --t6: #6fd0d4; --t7: #d8c65e; --t8: #a7b2bf;
-  --r-s: 8px; --r-m: 12px; --r-l: 18px;
-  --display: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
-  --body: "Montserrat", "Segoe UI", system-ui, sans-serif;
+  --paper: #f3f6f4; --card: #ffffff; --mat: #dbe6df;
+  --green: #23654f; --green-soft: rgba(35,101,79,.09); --line: rgba(35,101,79,.10); --line-strong: rgba(35,101,79,.24);
+  --ink: #16221e; --muted: #55665f; --rule: #cfdad4; --cut: #c22f57; --on-t: #ffffff;
+  --shadow: 0 1px 2px rgba(18,38,31,.06), 0 10px 30px rgba(18,38,31,.07);
+  --t1: #2f6f5a; --t2: #3b6fb6; --t3: #b9631b; --t4: #8a4fb0; --t5: #b8434f; --t6: #24868b; --t7: #7d6f12; --t8: #586370;
+  --r-s: 6px; --r-m: 10px; --r-l: 16px;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
-  --shadow: 0 1px 2px rgba(0,0,0,.25), 0 12px 32px rgba(0,0,0,.22);
+  --testa: 62px;        /* l'altezza della testata */
+  --simw: 42vw;         /* la larghezza del simulatore: si cambia trascinando la tendina */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1412; --card: #141c19; --mat: #17221e; --green: #62bb98; --green-soft: rgba(98,187,152,.10);
+    --line: rgba(98,187,152,.07); --line-strong: rgba(98,187,152,.17); --ink: #e3ece8; --muted: #93a59d; --rule: #26332e;
+    --cut: #ff7396; --on-t: #0e1412; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+    --t1: #6cc3a0; --t2: #86adef; --t3: #f0a25c; --t4: #c69ae6; --t5: #f2878f; --t6: #6fd0d4; --t7: #d8c65e; --t8: #a7b2bf;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1412; --card: #141c19; --mat: #17221e; --green: #62bb98; --green-soft: rgba(98,187,152,.10);
+  --line: rgba(98,187,152,.07); --line-strong: rgba(98,187,152,.17); --ink: #e3ece8; --muted: #93a59d; --rule: #26332e;
+  --cut: #ff7396; --on-t: #0e1412; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+  --t1: #6cc3a0; --t2: #86adef; --t3: #f0a25c; --t4: #c69ae6; --t5: #f2878f; --t6: #6fd0d4; --t7: #d8c65e; --t8: #a7b2bf;
   color-scheme: dark;
 }
-/* le superfici chiare: tutto quello che ci sta dentro (testi, campi, disegni) prende i colori scuri su chiaro */
-.lastra { --paper: #e2e7ec; --card: #d5dce3; --ink: #1c2025; --muted: #4c5560; --rule: #a9b3bd; --green-soft: rgba(79, 134, 255, .2); --cut: #d0304a; --ok: #1d8f53; --amber: #b8670f;
-  --t1: #2f6f5a; --t2: #3b6fb6; --t3: #b9631b; --t4: #8a4fb0; --t5: #b8434f; --t6: #24868b; --t7: #7d6f12; --t8: #586370;
-  background: var(--lastra); color: var(--ink); color-scheme: light; }
+:root { --amber: var(--t3); --ok: var(--green); }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--body); }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.6 var(--body); }
 [hidden] { display: none !important; }
-h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; line-height: 1; margin: 0; letter-spacing: .01em; }
-h3 { font-size: 1.6rem; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.12; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 800; letter-spacing: -.02em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); font-weight: 800; letter-spacing: -.01em; }
+h3 { font-size: 1.2rem; font-weight: 700; }
 p { margin: 0; }
 a { color: var(--green); }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.hint { font-size: .86rem; color: var(--muted); }
+.hint { font-size: .88rem; color: var(--muted); }
 .warn { font-size: .95rem; color: var(--cut); }
 .gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 /* componenti (servono anche alla finestra «bolla da un'immagine») */
-.btn { font: 600 .92rem var(--body); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-s); padding: 10px 16px; cursor: pointer; min-height: 44px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn { font: 600 .95rem var(--body); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-s); padding: 10px 16px; cursor: pointer; min-height: 44px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .btn:hover { border-color: var(--green); }
-.btn.primary { background: var(--green); color: #fff; border-color: var(--green); }
-.btn.big { font-size: 1rem; padding: 14px 24px; min-height: 54px; border-radius: var(--r-m); letter-spacing: .02em; }
+.btn.primary { background: var(--green); color: var(--card); border-color: var(--green); }
+.btn.big { font-size: 1.05rem; padding: 14px 24px; min-height: 54px; border-radius: var(--r-m); }
 .btn:disabled { opacity: .45; cursor: default; }
 .btnrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: var(--r-s); overflow: hidden; }
-.seg button { font: 600 .92rem var(--body); color: var(--ink); background: var(--paper); border: 0; padding: 10px 18px; cursor: pointer; min-height: 44px; }
+.seg button { font: 600 .95rem var(--body); color: var(--ink); background: var(--paper); border: 0; padding: 10px 18px; cursor: pointer; min-height: 44px; }
 .seg button + button { border-left: 1px solid var(--rule); }
-.seg button[aria-pressed="true"] { background: var(--green); color: #fff; }
+.seg button[aria-pressed="true"] { background: var(--green); color: var(--card); }
 .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
 .field { display: grid; gap: 4px; align-content: start; }
-.field label { font-size: .84rem; color: var(--muted); line-height: 1.3; }
+.field label { font-size: .85rem; color: var(--muted); line-height: 1.3; }
 input[type="number"], select { font: 500 1rem var(--body); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-s); padding: 9px 10px; width: 100%; min-height: 44px; }
-select option { background: var(--paper); color: var(--ink); }
+select option { background: var(--card); color: var(--ink); }
 .check { display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; cursor: pointer; }
 .check input { margin-top: 3px; width: 20px; height: 20px; accent-color: var(--green); flex: none; }
-:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 
 /* testata: marchio, le tre tappe, parole, il selettore Officina / Abbofficina */
-.testa { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, #2b2c2e 94%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid #4a4c50; }
-.testa-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 14px; min-height: 62px; }
-.marchio { flex: none; display: flex; align-items: center; gap: 10px; font: 400 1.5rem var(--display); letter-spacing: .03em; text-decoration: none; color: var(--ink); white-space: nowrap; }
-.marchio i { width: 30px; height: 30px; border-radius: 50%; background: var(--green); display: grid; place-items: center; color: #fff; font-style: normal; font-size: .9rem; }
-.tappe { flex: 1; display: flex; justify-content: safe center; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
-.tappe button { display: flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--muted); font: 600 .78rem var(--body); letter-spacing: .12em; text-transform: uppercase; padding: 7px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
-.tappe button i { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font: 600 .74rem var(--mono); font-style: normal; flex: none; letter-spacing: 0; }
-.tappe button[aria-current="step"] { color: #fff; background: var(--green-soft); }
-.tappe button[aria-current="step"] i, .tappe button.fatta i { background: var(--green); border-color: var(--green); color: #fff; }
+.testa { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.testa-in { display: flex; align-items: center; gap: 14px; min-height: calc(var(--testa) - 3px); }
+.marchio { flex: none; display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.05rem; text-decoration: none; color: var(--ink); white-space: nowrap; }
+.marchio i { width: 30px; height: 30px; border-radius: 50%; background: var(--green); display: grid; place-items: center; color: var(--card); font-style: normal; }
+.tappe { flex: 1; display: flex; justify-content: safe center; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+.tappe button { display: flex; align-items: center; gap: 7px; border: 0; background: none; color: var(--muted); font: 600 .86rem var(--body); padding: 6px 10px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.tappe button i { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font: 600 .7rem var(--mono); font-style: normal; flex: none; }
+.tappe button[aria-current="step"] { color: var(--green); background: var(--green-soft); }
+.tappe button[aria-current="step"] i, .tappe button.fatta i { background: var(--green); border-color: var(--green); color: var(--card); }
 .tappe button:disabled { opacity: .45; cursor: default; }
-.tappe .sep { width: 22px; height: 1.5px; background: #5c5f63; flex: none; }
+.tappe .sep { width: 18px; height: 1.5px; background: var(--rule); flex: none; }
 .testa-az { flex: none; display: flex; align-items: center; gap: 8px; }
-.testa-az .btn { min-height: 38px; padding: 6px 12px; font-size: .84rem; }
-nav.app { flex: none; display: flex; gap: 2px; padding: 3px; border: 1px solid #5c5f63; border-radius: 10px; background: #34353a; }
-nav.app a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 7px; font-size: .84rem; font-weight: 600; line-height: 1; color: var(--muted); text-decoration: none; white-space: nowrap; min-height: 34px; }
+.testa-az .btn { min-height: 38px; padding: 6px 12px; font-size: .85rem; }
+nav.app { flex: none; display: flex; gap: 2px; padding: 3px; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+nav.app a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 7px; font-size: .86rem; font-weight: 600; line-height: 1; color: var(--muted); text-decoration: none; white-space: nowrap; min-height: 34px; }
 nav.app a[href]:hover { color: var(--ink); background: var(--green-soft); }
-nav.app a[aria-current] { background: var(--green); color: #fff; cursor: default; }
-.barra { height: 3px; background: #4a4c50; }
+nav.app a[aria-current] { background: var(--green); color: var(--card); cursor: default; }
+.barra { height: 3px; background: var(--rule); }
 .barra div { height: 100%; width: 0; background: var(--green); transition: width .3s; }
-@media (max-width: 1000px) { .tappe button:not([aria-current="step"]) span { display: none; } }
-@media (max-width: 720px) { .marchio b { display: none; } nav.app a span, .testa-az .btn span { display: none; } .tappe .sep { width: 10px; } .tappe button { padding: 6px 8px; letter-spacing: .06em; } }
-@media (max-width: 560px) { .tappe button span { display: none !important; } .testa-in { gap: 8px; } }
+@media (max-width: 1100px) { .tappe button:not([aria-current="step"]) span { display: none; } }
+@media (max-width: 720px) { .marchio b { display: none; } nav.app a span, .testa-az .btn span { display: none; } .tappe .sep { width: 8px; } }
+@media (max-width: 520px) { .tappe button span { display: none !important; } .testa-in { gap: 8px; } }
+
+/* il corpo: a sinistra le tappe, al centro la tendina, a destra il simulatore sempre in vista */
+.corpo { display: grid; grid-template-columns: minmax(0, 1fr) 14px var(--simw); align-items: start; }
+.divisore { position: sticky; top: var(--testa); height: calc(100vh - var(--testa)); cursor: col-resize; touch-action: none; display: grid; place-items: center; background: transparent; border: 0; padding: 0; }
+.divisore::before { content: ""; position: absolute; top: 0; bottom: 0; left: 6px; width: 2px; background: var(--rule); }
+.divisore span { position: relative; width: 12px; height: 54px; border-radius: 999px; background: var(--card); border: 1px solid var(--rule); box-shadow: var(--shadow); display: grid; place-items: center; }
+.divisore span::after { content: ""; width: 4px; height: 26px; border-left: 1.5px solid var(--muted); border-right: 1.5px solid var(--muted); }
+.divisore:hover::before, .divisore:focus-visible::before, body.trascina .divisore::before { background: var(--green); }
+body.trascina, body.trascina * { cursor: col-resize !important; user-select: none; }
+body.trascina iframe { pointer-events: none; }
+.simpane { position: sticky; top: var(--testa); height: calc(100vh - var(--testa)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; padding: 12px 14px 14px 4px; min-width: 0; }
+.sim-testa { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sim-testa h2 { font-size: 1.15rem; letter-spacing: .02em; }
+.sim-stato { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: .86rem; }
+.sim-stato .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--rule); font-weight: 600; white-space: nowrap; }
+.sim-stato .pill i { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .72rem; color: var(--card); background: var(--muted); }
+.sim-stato .pill.ok i { background: var(--green); } .sim-stato .pill.mid i { background: var(--amber); } .sim-stato .pill.ko i { background: var(--cut); }
+.sim-scena { position: relative; border-radius: var(--r-l); overflow: hidden; background: var(--card); box-shadow: var(--shadow); min-height: 0; }
+.sim-scena iframe, .sim-scena canvas { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.sim-scena canvas { cursor: grab; touch-action: none; }
+.sim-vuoto { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted); background: color-mix(in srgb, var(--card) 88%, transparent); }
+.sim-nota { text-align: center; font-size: .78rem; color: var(--muted); }
+@media (max-width: 900px) {
+  .corpo { grid-template-columns: minmax(0, 1fr); }
+  .divisore { display: none; }
+  .simpane { order: -1; top: var(--testa); z-index: 20; height: 40vh; padding: 8px 12px; background: var(--paper); border-bottom: 1px solid var(--rule); }
+  .simpane.ridotto { height: auto; grid-template-rows: auto; } .simpane.ridotto .sim-scena, .simpane.ridotto .sim-nota { display: none; }
+}
+.riduci { display: none; }
+@media (max-width: 900px) { .riduci { display: inline-flex; min-height: 32px; padding: 4px 10px; font-size: .8rem; } .sim-testa { flex-wrap: nowrap; } .sim-testa h2 { font-size: 1rem; } .sim-stato { gap: 4px; font-size: .78rem; } .sim-stato .pill { padding: 3px 8px; } }
+@media (max-width: 480px) { .sim-stato .pill:nth-child(2) { display: none; } }
 
 /* le pagine */
-main { max-width: 1240px; margin: 0 auto; padding-top: 34px; padding-bottom: 130px; }
-.tappa { display: grid; gap: 80px; animation: entra .35s ease both; }
+main { max-width: 1080px; margin: 0 auto; width: 100%; padding-top: 30px; padding-bottom: 130px; min-width: 0; }
+.tappa { display: grid; gap: 64px; animation: entra .35s ease both; }
 @keyframes entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .tappa { animation: none; } html { scroll-behavior: auto; } }
-.blocco { display: grid; gap: 34px; scroll-margin-top: 80px; }
-/* i titoli delle sezioni, come nel disegno: grandi, al centro, con il sottotitolo in maiuscoletto */
-.titolone { display: grid; gap: 12px; justify-items: center; text-align: center; }
-.titolone h2 { font-size: clamp(3.2rem, 9vw, 6.2rem); letter-spacing: .02em; }
-.titolone p { font: 500 clamp(.78rem, 1.6vw, .95rem)/1.7 var(--body); letter-spacing: .16em; text-transform: uppercase; max-width: 60ch; color: var(--ink); }
-.occhiello { font: 600 .8rem var(--body); letter-spacing: .18em; text-transform: uppercase; color: var(--green); }
-.card { background: var(--card); border-radius: var(--r-l); box-shadow: var(--shadow); padding: 22px; display: grid; gap: 12px; align-content: start; }
-.lastra.card, .card.lastra { background: var(--lastra); }
-.due { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 26px; align-items: start; }
-@media (max-width: 900px) { .due { grid-template-columns: minmax(0, 1fr); } }
-.vista { background: #303134; border-radius: var(--r-l); padding: 10px; display: grid; gap: 4px; }
+.blocco { display: grid; gap: 26px; scroll-margin-top: 80px; }
+.titolone { display: grid; gap: 10px; justify-items: center; text-align: center; }
+.titolone h2 { font-size: clamp(2.2rem, 5vw, 3.4rem); }
+.titolone p { font-size: 1.05rem; color: var(--muted); max-width: 60ch; }
+.occhiello { font: 600 .78rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+.card, .lastra { background: var(--card); border-radius: var(--r-l); box-shadow: var(--shadow); }
+.card { padding: 22px; display: grid; gap: 12px; align-content: start; }
+.due { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 1250px) { .due { grid-template-columns: minmax(0, 1fr); } }
+.vista { background: var(--card); border-radius: var(--r-l); box-shadow: var(--shadow); padding: 10px; display: grid; gap: 4px; }
 .vista canvas { width: 100%; aspect-ratio: 4 / 3; display: block; cursor: grab; touch-action: none; border-radius: var(--r-m); }
-.vista figcaption { font-size: .8rem; color: var(--muted); text-align: center; }
+.vista figcaption { font-size: .82rem; color: var(--muted); text-align: center; }
 .box-info { border-left: 4px solid var(--green); background: var(--green-soft); border-radius: var(--r-s); padding: 12px 16px; display: grid; gap: 4px; }
-.box-info.att { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 14%, transparent); }
 
-/* inizio: solo la parte in alto, il titolo e la cupola che gira */
-.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 34px; align-items: center; min-height: calc(100vh - 220px); }
-@media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr); min-height: 0; } }
-.hero .tit { display: grid; gap: 18px; }
-.hero h1 { font-size: clamp(4rem, 11vw, 8rem); letter-spacing: .01em; }
-.hero .lede { font-size: 1.12rem; max-width: 52ch; color: var(--ink); }
-.hero p:not(.lede) { color: var(--muted); max-width: 54ch; }
-.riprendi { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 6px; }
+/* inizio: solo la parte in alto */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: center; min-height: calc(100vh - 260px); align-content: center; }
+.hero .tit { display: grid; gap: 16px; max-width: 62ch; }
+.hero .lede { font-size: 1.2rem; }
+.hero p:not(.lede) { color: var(--muted); }
+.riprendi { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 4px; }
 
-/* 1 · prendi le misure: X, Y, Z dell'area di lavoro */
-.xyz { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 36px; max-width: 1000px; width: 100%; justify-self: center; }
-@media (max-width: 760px) { .xyz { grid-template-columns: minmax(0, 1fr); max-width: 360px; } }
-.asse-campo { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; }
-.asse-campo input { background: var(--lastra); color: #1c2025; border: 0; border-radius: 999px; height: 66px; padding: 0 26px; font: 600 1.5rem var(--mono); text-align: center; min-height: 0; }
-.asse-campo input::placeholder { color: #7d8792; font-weight: 400; }
-.asse-campo b { font: 400 clamp(3rem, 6vw, 4.2rem)/1 var(--body); font-weight: 300; }
-.asse-campo span { grid-column: 1 / -1; text-align: center; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.nota-area { text-align: center; color: var(--muted); font-size: .9rem; max-width: 64ch; justify-self: center; }
+/* 1 · prendi le misure */
+.xyz { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 26px; max-width: 820px; width: 100%; justify-self: center; }
+@media (max-width: 640px) { .xyz { grid-template-columns: minmax(0, 1fr); max-width: 340px; } }
+.asse-campo { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; }
+.asse-campo input { border-radius: 999px; height: 58px; padding: 0 22px; font: 600 1.35rem var(--mono); text-align: center; background: var(--card); box-shadow: var(--shadow); }
+.asse-campo b { font: 800 2.6rem/1 var(--display); color: var(--green); }
+.asse-campo span { grid-column: 1 / -1; text-align: center; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.nota-area { text-align: center; color: var(--muted); font-size: .92rem; max-width: 64ch; justify-self: center; }
 
-/* 1 · progetta: la cartella con le linguette Forme / Misure, e il simulatore */
-.progetta { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 40px; align-items: start; }
-/* sul telefono: il simulatore resta fermo in alto mentre si scorrono le forme e si muovono i cursori; il risultato viene dopo */
-@media (max-width: 960px) {
-  .progetta { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .progetta > .simulatore { display: contents; }
-  .sim-tit { order: 1; } .simulatore canvas { order: 2; position: sticky; top: 64px; z-index: 5; background: var(--bg); height: 32vh; aspect-ratio: auto; }
-  .sim-nota { order: 3; } .cartella { order: 4; margin-top: 10px; } .dati, .verdetto, .esito, .controlli { order: 5; }
-}
+/* 1 · progetta: la cartella con le linguette Forme / Misure */
 .cartella { display: grid; min-width: 0; }
-.linguette { display: flex; gap: 4px; align-items: flex-end; padding-left: 4px; }
-.linguette button { font: 500 .95rem var(--body); letter-spacing: .14em; text-transform: uppercase; color: #2a2f35; background: #a9b2bc; border: 0; border-radius: 10px 10px 0 0; padding: 10px 18px 8px; cursor: pointer; min-height: 42px; }
-.linguette button[aria-selected="true"] { background: var(--lastra); padding-top: 14px; color: #14181c; }
-.pannello { border-radius: 4px var(--r-m) var(--r-m) var(--r-m); padding: 22px; min-height: 480px; display: grid; gap: 18px; align-content: start; }
-.forme-scorri { max-height: 560px; overflow: auto; display: grid; gap: 22px; padding-right: 4px; margin-right: -4px; }
+.linguette { display: flex; gap: 4px; align-items: flex-end; padding-left: 6px; }
+.linguette button { font: 600 .95rem var(--body); color: var(--muted); background: var(--mat); border: 0; border-radius: 10px 10px 0 0; padding: 9px 18px 8px; cursor: pointer; min-height: 40px; }
+.linguette button[aria-selected="true"] { background: var(--card); color: var(--green); padding-top: 13px; }
+.pannello { border-radius: 4px var(--r-l) var(--r-l) var(--r-l); padding: 20px; min-height: 420px; display: grid; gap: 18px; align-content: start; }
+.forme-scorri { display: grid; gap: 22px; }
 .famiglia { display: grid; gap: 10px; }
-.famiglia h4 { font: 600 .74rem var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
-.tessere { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
-.tessera { position: relative; display: grid; gap: 4px; justify-items: center; text-align: center; background: transparent; border: 2px solid transparent; border-radius: var(--r-m); padding: 8px 6px 10px; cursor: pointer; font: inherit; color: var(--ink); transition: background .15s, border-color .15s; }
-.tessera:hover { background: rgba(255,255,255,.35); }
-.tessera[aria-pressed="true"] { border-color: var(--green); background: rgba(255,255,255,.55); }
+.famiglia h3 { font-size: 1.05rem; }
+.tessere { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.tessera { position: relative; display: grid; gap: 4px; justify-items: center; text-align: center; background: var(--paper); border: 2px solid transparent; border-radius: var(--r-m); padding: 8px 6px 10px; cursor: pointer; font: inherit; color: var(--ink); transition: border-color .15s, transform .15s; }
+.tessera:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.tessera[aria-pressed="true"] { border-color: var(--green); background: color-mix(in srgb, var(--green) 9%, var(--card)); }
 .tessera canvas { width: 100%; max-width: 104px; aspect-ratio: 1 / 1; display: block; }
-.tessera b { font: 600 .8rem/1.25 var(--body); }
-.tessera small { font: 600 .64rem var(--mono); letter-spacing: .04em; text-transform: uppercase; }
-.tessera small.f { color: var(--ok); } .tessera small.m { color: var(--amber); } .tessera small.i { color: var(--cut); }
-.dafoto { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: center; padding: 14px; border-radius: var(--r-m); border: 2px dashed color-mix(in srgb, var(--green) 60%, transparent); background: rgba(255,255,255,.35); }
-.dafoto.sopra { border-style: solid; background: rgba(79,134,255,.18); }
-.dafoto .ico { width: 46px; height: 46px; border-radius: 12px; background: var(--green); color: #fff; display: grid; place-items: center; }
+.tessera b { font: 600 .82rem/1.25 var(--body); }
+.tessera small { font: 600 .66rem var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+.tessera small.f { color: var(--green); } .tessera small.m { color: var(--amber); } .tessera small.i { color: var(--cut); }
+.dafoto { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: center; padding: 14px; border-radius: var(--r-m); border: 2px dashed color-mix(in srgb, var(--green) 55%, transparent); background: color-mix(in srgb, var(--green) 6%, var(--card)); }
+.dafoto.sopra { border-style: solid; background: color-mix(in srgb, var(--green) 14%, var(--card)); }
+.dafoto .ico { width: 46px; height: 46px; border-radius: 12px; background: var(--green); color: var(--card); display: grid; place-items: center; }
 .dafoto .btnrow { grid-column: 1 / -1; }
-.dafoto b { font-weight: 700; }
-/* le misure: tre cursori verticali X, Y, Z come nel disegno */
+/* le misure: tre cursori verticali X, Y, Z */
 .cursori { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; justify-items: center; }
 .vcursore { display: grid; gap: 10px; justify-items: center; width: 100%; max-width: 130px; }
-.vcursore .asse { font: 300 2.6rem/1 var(--body); }
-.vslider { position: relative; width: 48px; height: 240px; border-radius: 999px; background: var(--green); cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; }
-.vslider .riemp { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 999px; background: var(--viola); box-shadow: 0 -2px 6px rgba(0,0,0,.18); }
+.vcursore .asse { font: 800 2.2rem/1 var(--display); color: var(--green); }
+.vslider { position: relative; width: 46px; height: 230px; border-radius: 999px; background: color-mix(in srgb, var(--green) 14%, var(--paper)); border: 1px solid var(--rule); cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; }
+.vslider .riemp { position: absolute; left: -1px; right: -1px; bottom: -1px; border-radius: 999px; background: var(--green); }
 .vslider:focus-visible { outline-offset: 4px; }
 .vcursore input { text-align: center; font: 600 1rem var(--mono); padding: 7px 4px; }
-.vcursore small { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.vcursore small { font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .opzioni { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .riga-persone { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-top: 14px; border-top: 1px solid var(--rule); }
 .riga-persone input { width: 84px; font: 600 1rem var(--mono); text-align: right; }
 .vuoto { display: grid; place-items: center; text-align: center; color: var(--muted); min-height: 300px; padding: 20px; }
-/* il simulatore */
-.simulatore { display: grid; gap: 14px; align-content: start; min-width: 0; }
-.sim-tit { font: 700 1.5rem var(--body); letter-spacing: .02em; text-transform: uppercase; text-align: center; }
-.simulatore canvas { width: 100%; aspect-ratio: 1 / 0.82; display: block; cursor: grab; touch-action: none; }
-.sim-nota { text-align: center; font-size: .78rem; color: var(--muted); }
-.dati { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.dati div { background: #303134; border-radius: var(--r-m); padding: 10px 12px; display: grid; }
-.dati span { font-size: .72rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
-.dati b { font: 600 1.1rem var(--mono); }
-.dati .persone-n { background: var(--green-soft); }
-.dati .persone-n b { font: 400 2.2rem/1 var(--display); color: #fff; }
-@media (max-width: 520px) { .dati { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.verdetto { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: var(--r-l); }
-.verdetto i { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font: 400 1.7rem var(--display); font-style: normal; color: #fff; flex: none; }
-.verdetto h3 { font-size: 1.9rem; }
-.verdetto p { font-size: .9rem; color: var(--muted); }
+/* il risultato: si può fare? quante persone? */
+.risultato { display: grid; gap: 14px; }
+.dati { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.dati div { background: var(--card); box-shadow: var(--shadow); border-radius: var(--r-m); padding: 10px 12px; display: grid; }
+.dati span { font-size: .76rem; color: var(--muted); }
+.dati b { font: 600 1.12rem var(--mono); }
+.dati .persone-n { background: color-mix(in srgb, var(--green) 14%, var(--card)); }
+.dati .persone-n b { font: 800 1.8rem var(--display); color: var(--green); }
+@media (max-width: 560px) { .dati { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.verdetto { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: var(--r-l); }
+.verdetto i { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font: 800 1.5rem var(--display); font-style: normal; color: var(--card); flex: none; }
+.verdetto h3 { font-size: clamp(1.3rem, 2.6vw, 1.8rem); }
+.verdetto p { font-size: .92rem; color: var(--muted); }
 .verdetto .risolvi { margin-left: auto; flex: none; }
-.verdetto.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); } .verdetto.ok i { background: var(--ok); }
-.verdetto.mid { background: color-mix(in srgb, var(--amber) 16%, transparent); } .verdetto.mid i { background: var(--amber); }
-.verdetto.ko { background: color-mix(in srgb, var(--cut) 16%, transparent); } .verdetto.ko i { background: var(--cut); }
-@media (max-width: 560px) { .verdetto { flex-wrap: wrap; } .verdetto .risolvi { margin-left: 0; width: 100%; } }
-.esito { border-left: 4px solid var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); border-radius: var(--r-s); padding: 12px 16px; display: grid; gap: 6px; }
+.verdetto.ok { background: color-mix(in srgb, var(--green) 13%, transparent); } .verdetto.ok i { background: var(--green); }
+.verdetto.mid { background: color-mix(in srgb, var(--amber) 15%, transparent); } .verdetto.mid i { background: var(--amber); }
+.verdetto.ko { background: color-mix(in srgb, var(--cut) 12%, transparent); } .verdetto.ko i { background: var(--cut); }
+@media (max-width: 640px) { .verdetto { flex-wrap: wrap; } .verdetto .risolvi { margin-left: 0; width: 100%; } }
+.esito { border-left: 4px solid var(--green); background: var(--green-soft); border-radius: var(--r-s); padding: 12px 16px; display: grid; gap: 6px; }
 .esito.att { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 12%, transparent); }
 .esito ul { margin: 0; padding-left: 20px; }
 .esito .btn { justify-self: start; min-height: 36px; padding: 5px 12px; }
-details.controlli summary { cursor: pointer; font-weight: 600; font-size: .92rem; padding: 6px 0; }
+details.controlli summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 .voci { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
-.voci li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; background: #303134; border-radius: var(--r-m); padding: 10px 12px; font-size: .92rem; }
-.voci li > i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; color: #fff; background: var(--muted); font-size: .85rem; }
-.voci li.ok > i { background: var(--ok); } .voci li.mid > i { background: var(--amber); } .voci li.ko > i { background: var(--cut); }
+.voci li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; background: var(--card); box-shadow: var(--shadow); border-radius: var(--r-m); padding: 10px 12px; font-size: .94rem; }
+.voci li > i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; color: var(--card); background: var(--muted); font-size: .85rem; }
+.voci li.ok > i { background: var(--green); } .voci li.mid > i { background: var(--amber); } .voci li.ko > i { background: var(--cut); }
 .voci li div { display: grid; gap: 6px; }
 
-/* 1 · materiali: il resoconto */
-.materiali { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 16px; }
-.mat { border-radius: var(--r-l); padding: 20px 22px; display: grid; gap: 8px; align-content: start; }
-.mat .n { font: 400 2.8rem/1 var(--display); }
-.mat .n small { font: 600 .95rem var(--body); margin-left: 4px; }
-.mat b.t { font: 700 .82rem var(--body); letter-spacing: .14em; text-transform: uppercase; }
-.mat p { font-size: .92rem; }
-.mat ul { margin: 0; padding-left: 18px; font-size: .92rem; display: grid; gap: 4px; }
-.mat .field { margin-top: 4px; max-width: 220px; }
-.dopo { display: flex; justify-content: center; }
+/* 1 · materiali */
+.materiali { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 14px; }
+.mat { padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
+.mat .n { font: 800 2rem/1.1 var(--display); color: var(--green); }
+.mat .n small { font: 600 .9rem var(--body); margin-left: 4px; color: var(--muted); }
+.mat b.t { font-weight: 700; }
+.mat p, .mat div { font-size: .93rem; }
+.mat ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.mat .field { margin-top: 6px; max-width: 220px; }
 
 /* 2 · modellino e dime */
-.passi { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: s; }
+.passi { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: s; }
 .passi li { counter-increment: s; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; }
-.passi li::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font: 700 .9rem var(--mono); }
+.passi li::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: grid; place-items: center; font: 700 .95rem var(--mono); }
 .passi li > div > b { display: block; }
-.fogli { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+.fogli { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .foglio { background: #fff; border-radius: 4px; box-shadow: var(--shadow); aspect-ratio: 210 / 297; padding: 4%; }
 .foglio svg { width: 100%; height: 100%; display: block; }
-.dime { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
-.dima td.num { white-space: normal; }
-.dima { min-width: 0; border-radius: var(--r-l); padding: 16px 18px; display: grid; gap: 10px; align-content: start; }
+.dime { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+.dima { min-width: 0; padding: 16px 18px; display: grid; gap: 10px; align-content: start; }
 .dima-t { display: flex; align-items: center; gap: 10px; }
 .dima-t i { width: 16px; height: 16px; border-radius: 4px; background: var(--c); flex: none; }
-.dima svg { width: 100%; height: 190px; display: block; background: var(--paper); border-radius: var(--r-m); }
+.dima-t h3 { font: 800 1.5rem var(--display); }
+.dima svg { width: 100%; height: auto; display: block; border-radius: var(--r-m); }
 .dima table { border-collapse: collapse; font-size: .86rem; width: 100%; }
 .dima td, .dima th { padding: 3px 6px; border-bottom: 1px solid var(--rule); text-align: left; }
-.dima th { font-weight: 600; color: var(--muted); font-size: .76rem; }
+.dima td.num { white-space: normal; }
+.dima th { font-weight: 600; color: var(--muted); font-size: .78rem; }
+.come-dima { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 1250px) { .come-dima { grid-template-columns: minmax(0, 1fr); } }
 #stampa { display: none; }
 @media print {
   @page { size: A4; margin: 10mm; }
@@ -245,42 +269,45 @@ details.controlli summary { cursor: pointer; font-weight: 600; font-size: .92rem
   .pagina svg { width: 190mm; height: 277mm; display: block; }
 }
 
-/* 3 · costruzione: a sinistra la spiegazione scritta, a destra quella disegnata */
-.giunta { display: grid; gap: 14px; }
-.giunta h3 { font-size: 2.4rem; }
-.giunta h3 .num { color: var(--green); font-family: var(--display); }
-.montaggio .grafica { display: grid; gap: 14px; align-content: start; position: sticky; top: 76px; }
-.coppia-box { display: grid; gap: 8px; padding: 14px; margin: 0; }
-.coppia-box figcaption { text-align: center; }
-.coppia { width: 100%; height: auto; max-height: min(340px, 34vh); display: block; background: var(--paper); border-radius: var(--r-m); }
-.montaggio .vista canvas { aspect-ratio: 16 / 10; max-height: 27vh; }
-@media (max-width: 900px) { .montaggio .grafica { position: static; order: -1; } }
-.giunta .lt { font: 700 1.05rem var(--mono); color: var(--cut); }
-.codici summary { cursor: pointer; color: var(--green); font-weight: 600; font-size: .9rem; }
-.codici p { margin-top: 6px; }
-.pezzo { display: inline-flex; align-items: center; gap: 6px; font: 700 .95rem var(--mono); padding: 2px 10px; border-radius: 999px; background: color-mix(in srgb, var(--c) 22%, transparent); }
+/* 3 · costruzione: la giunzione, il disegno dei due pezzi, la spiegazione dentro «Info» */
+.giunta { display: grid; gap: 16px; }
+.giunta-testa { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.giunta-testa h3 { font: 800 1.8rem var(--display); }
+.giunta-testa h3 .num { color: var(--green); font-family: var(--display); }
+.giunta-testa .btnrow { margin-left: auto; }
+.coppia { width: 100%; height: auto; max-height: 46vh; display: block; background: var(--paper); border-radius: var(--r-m); }
+details.info { border: 1px solid var(--rule); border-radius: var(--r-m); background: var(--paper); }
+details.info > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-weight: 600; }
+details.info > summary::-webkit-details-marker { display: none; }
+details.info > summary i { width: 24px; height: 24px; border-radius: 50%; background: var(--green); color: var(--card); display: grid; place-items: center; font: 700 .85rem var(--display); font-style: italic; flex: none; }
+details.info > summary::after { content: "▸"; margin-left: auto; color: var(--muted); }
+details.info[open] > summary::after { content: "▾"; }
+details.info .info-corpo { padding: 4px 16px 16px; display: grid; gap: 12px; }
+.pezzo { display: inline-flex; align-items: center; gap: 6px; font: 700 .95rem var(--mono); padding: 2px 10px; border-radius: 999px; background: color-mix(in srgb, var(--c) 18%, transparent); }
 .pezzo i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
 .prog { height: 10px; background: var(--rule); border-radius: 999px; overflow: hidden; }
 .prog div { height: 100%; background: var(--green); width: 0; transition: width .3s; }
+.montaggio-3d canvas { aspect-ratio: 16 / 9; }
 .fine { text-align: center; justify-items: center; padding: 34px 22px; }
-.fine .grande { font-size: 3.4rem; line-height: 1; }
-.fine h3 { font-size: 3rem; }
+.fine .grande { font-size: 3.2rem; line-height: 1; }
 
-/* fondo: Indietro / Avanti */
-.fondo { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: color-mix(in srgb, #2b2c2e 94%, transparent); backdrop-filter: blur(8px); border-top: 1px solid #4a4c50; padding-bottom: env(safe-area-inset-bottom, 0px); }
-.fondo-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 74px; }
+/* fondo: Indietro / Avanti (solo sopra la colonna delle tappe) */
+.fondo { position: fixed; left: 0; right: calc(var(--simw) + 14px); bottom: 0; z-index: 25; background: color-mix(in srgb, var(--card) 94%, transparent); backdrop-filter: blur(8px); border-top: 1px solid var(--rule); padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (max-width: 900px) { .fondo { right: 0; } }
+.fondo-in { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 72px; }
 .fondo-in .hint { flex: 1; text-align: center; }
 .fondo-in .btn.big { white-space: nowrap; }
 .corto { display: none; }
-@media (max-width: 560px) { .fondo-in .hint { display: none; } .fondo-in .btn.big { padding: 12px 18px; } .lungo { display: none; } .corto { display: inline; } }
+@media (max-width: 1100px) { .fondo-in .hint { display: none; } }
+@media (max-width: 560px) { .fondo-in .btn.big { padding: 12px 18px; } .lungo { display: none; } .corto { display: inline; } }
 
 /* parole e finestre */
 .gl { font: inherit; color: inherit; background: none; border: 0; padding: 0; border-bottom: 2px dotted var(--green); cursor: help; }
-dialog.parole { width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 40px); border: 0; border-radius: var(--r-l); padding: 0; background: var(--card); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.45); }
-dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
+dialog.parole { width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 40px); border: 0; border-radius: var(--r-l); padding: 0; background: var(--card); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 .parole-in { padding: 20px 24px; display: grid; gap: 14px; }
 .parole dl { margin: 0; display: grid; gap: 12px; }
-.parole dt { font: 400 1.4rem var(--display); letter-spacing: .02em; }
+.parole dt { font-family: var(--display); font-weight: 700; font-size: 1.05rem; }
 .parole dd { margin: 2px 0 0; color: var(--muted); }
 .parole dt.qui, .parole dt.qui + dd { color: var(--green); }
 .pianta-ed { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
@@ -306,6 +333,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   <div class="barra"><div id="barra"></div></div>
 </header>
 
+<div class="corpo">
 <main class="gutter" id="main">
 
 <!-- Inizio: solo la parte in alto -->
@@ -315,17 +343,16 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
       <span class="occhiello">Officina delle Bolle</span>
       <h1>Costruiamo una bolla</h1>
       <p class="lede">Una <button class="gl" data-g="bolla">bolla</button> è una stanza gonfiabile: pannelli piatti di plastica trasparente, uniti tra loro e tenuti su da un ventilatore che soffia aria dentro. Ci si entra, ci si sta in piedi, ci si può fare lezione, una mostra o un gioco.</p>
-      <p>Tre tappe: progetti la bolla, provi il modellino di carta e tracci le dime, poi la costruisci. I calcoli li fa il sito: a te resta da scegliere, tagliare e montare.</p>
+      <p>Tre tappe: progetti la bolla, provi il modellino di carta e tracci le dime, poi la costruisci. Il simulatore qui a fianco te la mostra mentre la progetti.</p>
       <div class="riprendi"><button type="button" class="btn primary big" id="bInizia">Cominciamo</button><button type="button" class="btn big" id="bRiprendi" hidden></button></div>
     </div>
-    <figure class="vista" style="margin:0"><canvas id="cvHome" aria-label="Una cupola che gira, con una persona alta 1,75 m accanto per capire quanto è grande."></canvas><figcaption>Una cupola accanto a una persona alta 1,75 m</figcaption></figure>
   </div>
 </section>
 
 <!-- 1 · Progettazione: prendi le misure, progetta, materiali -->
 <section class="tappa" data-t="progettazione" hidden>
   <div class="blocco" id="bloccoArea">
-    <header class="titolone"><h2>Prendi le misure</h2><p>Recati nel posto scelto per il montaggio e prendi le misure dell'area di lavoro</p></header>
+    <header class="titolone"><span class="occhiello">Tappa 1 · Progettazione</span><h2>Prendi le misure</h2><p>Vai nel posto scelto per il montaggio e prendi le misure dell'<button class="gl" data-g="area">area di lavoro</button>.</p></header>
     <div class="xyz">
       <label class="asse-campo"><input type="number" id="aX" min="0.5" max="200" step="0.1" inputmode="decimal" placeholder="metri" aria-label="X: lunghezza dell'area, in metri"><b aria-hidden="true">X</b><span>lunghezza</span></label>
       <label class="asse-campo"><input type="number" id="aY" min="0.5" max="200" step="0.1" inputmode="decimal" placeholder="metri" aria-label="Y: larghezza dell'area, in metri"><b aria-hidden="true">Y</b><span>larghezza</span></label>
@@ -335,38 +362,33 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   </div>
 
   <div class="blocco" id="bloccoProgetta">
-    <header class="titolone"><h2>Progetta</h2><p>Progetta la tua bolla scegliendo la forma e le misure guardandola in tempo reale nel simulatore</p></header>
-    <div class="progetta">
-      <div class="cartella">
-        <div class="linguette" role="tablist" aria-label="Forme e misure">
-          <button type="button" role="tab" id="tabForme" aria-controls="pForme" aria-selected="true">Forme</button>
-          <button type="button" role="tab" id="tabMisure" aria-controls="pMisure" aria-selected="false">Misure</button>
-        </div>
-        <div class="pannello lastra" id="pForme" role="tabpanel" aria-labelledby="tabForme">
-          <div class="dafoto" id="daFoto">
-            <div class="ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="9" width="38" height="30" rx="5"/><path d="M5 33l10-10 8 8 6-6 14 14"/><circle cx="33" cy="18" r="3.5"/></svg></div>
-            <div><b>Hai già un'idea? Parti da un'immagine</b><p class="hint">Una foto, un disegno o uno schizzo: il sito trova il contorno e ne fa una bolla. Puoi anche trascinarla qui o incollarla (Ctrl+V).</p></div>
-            <div class="btnrow"><button type="button" class="btn primary" id="bImmagine">Carica un'immagine</button><button type="button" class="btn" id="bRitocca" hidden>Ritocca l'ultima</button></div>
-            <p class="warn" id="fErr" hidden style="grid-column:1/-1"></p>
-          </div>
-          <div class="forme-scorri" id="forme"></div>
-        </div>
-        <div class="pannello lastra" id="pMisure" role="tabpanel" aria-labelledby="tabMisure" hidden></div>
+    <header class="titolone"><h2>Progetta</h2><p>Scegli la forma e le misure: il simulatore qui a fianco la mostra in tempo reale.</p></header>
+    <div class="cartella">
+      <div class="linguette" role="tablist" aria-label="Forme e misure">
+        <button type="button" role="tab" id="tabForme" aria-controls="pForme" aria-selected="true">Forme</button>
+        <button type="button" role="tab" id="tabMisure" aria-controls="pMisure" aria-selected="false">Misure</button>
       </div>
-      <div class="simulatore">
-        <h3 class="sim-tit">Simulatore</h3>
-        <canvas id="cvSim" aria-label="La tua bolla in 3D, con una persona alta 1,75 m e, in tratteggio, l'area di lavoro. Trascina per girarla."></canvas>
-        <p class="sim-nota" id="simNota"></p>
-        <div class="dati" id="dati"></div>
-        <div class="verdetto" id="verdetto" aria-live="polite" hidden></div>
-        <div class="esito" id="esito" hidden></div>
-        <details class="controlli" id="controlli" hidden><summary>Che cosa abbiamo controllato</summary><ul class="voci" id="voci"></ul></details>
+      <div class="pannello lastra" id="pForme" role="tabpanel" aria-labelledby="tabForme">
+        <div class="dafoto" id="daFoto">
+          <div class="ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="9" width="38" height="30" rx="5"/><path d="M5 33l10-10 8 8 6-6 14 14"/><circle cx="33" cy="18" r="3.5"/></svg></div>
+          <div><b>Hai già un'idea? Parti da un'immagine</b><p class="hint">Una foto, un disegno o uno schizzo: il sito trova il contorno e ne fa una bolla. Puoi anche trascinarla qui o incollarla (Ctrl+V).</p></div>
+          <div class="btnrow"><button type="button" class="btn primary" id="bImmagine">Carica un'immagine</button><button type="button" class="btn" id="bRitocca" hidden>Ritocca l'ultima</button></div>
+          <p class="warn" id="fErr" hidden style="grid-column:1/-1"></p>
+        </div>
+        <div class="forme-scorri" id="forme"></div>
       </div>
+      <div class="pannello lastra" id="pMisure" role="tabpanel" aria-labelledby="tabMisure" hidden></div>
+    </div>
+    <div class="risultato">
+      <div class="dati" id="dati"></div>
+      <div class="verdetto" id="verdetto" aria-live="polite" hidden></div>
+      <div class="esito" id="esito" hidden></div>
+      <details class="controlli" id="controlli" hidden><summary>Che cosa abbiamo controllato</summary><ul class="voci" id="voci"></ul></details>
     </div>
   </div>
 
   <div class="blocco" id="bloccoMateriali">
-    <header class="titolone"><h2>Materiali</h2><p>Un resoconto completo di tutti i materiali necessari per il tuo progetto</p></header>
+    <header class="titolone"><h2>Materiali</h2><p>Un resoconto completo di tutti i materiali necessari per il tuo progetto.</p></header>
     <div class="materiali" id="materiali"></div>
   </div>
 </section>
@@ -374,9 +396,9 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
 <!-- 2 · Dima / Modellino -->
 <section class="tappa" data-t="dima" hidden>
   <div class="blocco">
-    <header class="titolone"><h2>Modellino</h2><p>Prova la bolla in piccolo, di carta: se si chiude bene, anche quella vera verrà bene</p></header>
+    <header class="titolone"><span class="occhiello">Tappa 2 · Dima / Modellino</span><h2>Il modellino di carta</h2><p>Prova la bolla in piccolo: se si chiude bene, anche quella vera verrà bene.</p></header>
     <div class="due">
-      <div class="card lastra">
+      <div class="card">
         <p id="modelloRiass"></p>
         <ol class="passi">
           <li><div><b>Stampa i fogli</b><span class="hint">Nella finestra di stampa scegli «Dimensioni effettive» o «100%», non «Adatta alla pagina». Su ogni foglio c'è un segmento di controllo: deve misurare 5 cm.</span></div></li>
@@ -392,15 +414,15 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     </div>
   </div>
   <div class="blocco">
-    <header class="titolone"><h2>Dime</h2><p>Le sagome dei pezzi: si tracciano una volta sola sul telo e si copiano</p></header>
-    <div class="due" style="grid-template-columns:minmax(0,1fr)">
-      <div class="card lastra"><h3>Come tracciare una dima</h3>
+    <header class="titolone"><h2>Le dime</h2><p>Le sagome dei pezzi: si tracciano una volta sola sul telo e si copiano. Ogni dima ha il suo nome: P1, P2, P3…</p></header>
+    <div class="come-dima">
+      <div class="card"><h3>Come tracciare una dima, anche con gli angoli storti</h3>
         <ol class="passi">
           <li><div><b>Stendi il telo a terra</b><span class="hint">Su un pavimento pulito e piano, fissato agli angoli con il nastro.</span></div></li>
-          <li><div><b>Traccia la base A–B</b><span class="hint">Una linea dritta lunga quanto scritto nella scheda, con il metro e un listello.</span></div></li>
-          <li><div><b>Trova gli altri angoli</b><span class="hint">Per ogni angolo: misura il «piede» lungo la base partendo da A, poi sali dritto con la squadra fino all'«altezza». Segna il punto.</span></div></li>
-          <li><div><b>Unisci i punti e controlla</b><span class="hint">Ogni lato deve misurare quanto scritto. Se uno sbaglia di più di un centimetro, rifai quel punto.</span></div></li>
-          <li><div><b>Taglia con il margine</b><span class="hint">Lascia 3 cm di plastica fuori dalla linea: serve per unire i pezzi. Su ogni copia scrivi il codice (per esempio P1-3) e le lettere degli angoli.</span></div></li>
+          <li><div><b>Traccia la base A–B</b><span class="hint">Una linea dritta lunga quanto scritto sotto il disegno, con il metro e un listello. Prolungala un po' dalle due parti, tratteggiata: serve per gli altri punti.</span></div></li>
+          <li><div><b>Trova ogni altro angolo con due misure</b><span class="hint">Parti da A e misura lungo la base la distanza scritta sotto la linea (se è negativa, vai a sinistra di A). Da lì sali dritto, a 90° con la squadra, dell'altezza scritta in verde. Segna il punto.</span></div></li>
+          <li><div><b>Unisci i punti e controlla</b><span class="hint">Ogni lato deve misurare quanto scritto nella tabella. Se uno sbaglia di più di un centimetro, rifai quel punto.</span></div></li>
+          <li><div><b>Taglia con il margine</b><span class="hint">Lascia 3 cm di plastica fuori dalla linea: serve per unire i pezzi. Su ogni copia scrivi il nome della dima (per esempio P1).</span></div></li>
         </ol>
         <div class="btnrow"><button type="button" class="btn" id="bStampaDime">Stampa le schede delle dime</button></div>
       </div>
@@ -412,23 +434,18 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
 <!-- 3 · Costruzione -->
 <section class="tappa" data-t="costruzione" hidden>
   <div class="blocco">
-    <header class="titolone"><h2>Montaggio</h2><p>Una giunzione alla volta: prima il pavimento, poi dal basso verso l'alto</p></header>
-    <div class="due montaggio">
-      <div class="card lastra giunta" id="giunta"></div>
-      <div class="grafica">
-        <figure class="card lastra coppia-box"><div id="coppia"></div><figcaption class="hint">I due pezzi stesi a terra, accostati lungo il lato rosso da unire</figcaption></figure>
-        <figure class="vista" style="margin:0"><canvas id="cvMontaggio" aria-label="La bolla in 3D con i due pezzi da unire colorati e il lato in rosso"></canvas><figcaption>Dove sono nella bolla: in colore i due pezzi, in rosso il lato · trascina per girarla</figcaption></figure>
-      </div>
-    </div>
+    <header class="titolone"><span class="occhiello">Tappa 3 · Costruzione</span><h2>Il montaggio</h2><p>Una giunzione alla volta: prima il pavimento, poi dal basso verso l'alto.</p></header>
+    <div class="card giunta" id="giunta"></div>
+    <figure class="vista montaggio-3d" style="margin:0"><canvas id="cvMontaggio" aria-label="La bolla in 3D con i due pezzi da unire colorati e il lato in rosso"></canvas><figcaption>Dove sono nella bolla: in colore i due pezzi, in rosso il lato · trascina per girarla</figcaption></figure>
     <div class="box-info"><b>La porta</b><span id="porta"></span></div>
   </div>
   <div class="blocco">
-    <header class="titolone"><h2>Si gonfia</h2><p>Prima di accendere il ventilatore controllate insieme questa lista</p></header>
+    <header class="titolone"><h2>Si gonfia</h2><p>Prima di accendere il ventilatore, controllate insieme questa lista.</p></header>
     <div class="due">
-      <div class="card lastra"><h3>Sicurezza</h3><div id="sicurezza" style="display:grid;gap:10px"></div></div>
-      <div class="card lastra fine">
+      <div class="card"><h3>Sicurezza</h3><div id="sicurezza" style="display:grid;gap:10px"></div></div>
+      <div class="card fine">
         <div class="grande" aria-hidden="true">✦</div>
-        <h3>Ce l'hai fatta!</h3>
+        <h2>Ce l'hai fatta!</h2>
         <p>Accendi il ventilatore e guarda la bolla prendere forma. Ricorda: sta su finché il ventilatore soffia.</p>
         <div class="btnrow" style="justify-content:center"><button type="button" class="btn primary" id="bAltra">Fai un'altra bolla</button></div>
       </div>
@@ -437,6 +454,23 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
 </section>
 
 </main>
+
+<button type="button" class="divisore" id="divisore" role="separator" aria-orientation="vertical" aria-label="Allarga o stringi il simulatore (trascina, o usa le frecce)" title="Trascina per allargare o stringere il simulatore · doppio clic: metà e metà"><span></span></button>
+
+<aside class="simpane" id="simpane" aria-label="Simulatore">
+  <div class="sim-testa">
+    <h2>Simulatore</h2>
+    <div class="sim-stato" id="simStato"></div>
+    <button type="button" class="btn riduci" id="bRiduci" aria-expanded="true">Riduci</button>
+  </div>
+  <div class="sim-scena" id="simScena">
+    <iframe id="vetrina" title="Il simulatore: la bolla nell'Abbofficina, con i gonfiatori e le persone" src="configuratore/index.html?vetrina=1" loading="eager"></iframe>
+    <canvas id="cvSim" hidden aria-label="La tua bolla in 3D, con una persona alta 1,75 m. Trascina per girarla."></canvas>
+    <div class="sim-vuoto" id="simVuoto"><p>Scegli una forma nella tappa Progettazione: qui la vedi gonfiarsi, alla sua grandezza vera.</p></div>
+  </div>
+  <p class="sim-nota" id="simNota">Trascina per girare la vista · rotella per avvicinarti</p>
+</aside>
+</div>
 
 <nav class="fondo" aria-label="Avanti e indietro">
   <div class="fondo-in gutter">
@@ -448,14 +482,14 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
 
 <dialog class="parole" id="parole" aria-labelledby="paroleTit">
   <div class="parole-in">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 id="paroleTit" style="font-size:2rem">Le parole della bolla</h2><button type="button" class="btn" id="bParoleX" aria-label="Chiudi">×</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 id="paroleTit" style="font-size:1.5rem">Le parole della bolla</h2><button type="button" class="btn" id="bParoleX" aria-label="Chiudi">×</button></div>
     <dl id="paroleLista"></dl>
   </div>
 </dialog>
 
 <dialog class="parole" id="pianta" aria-labelledby="piantaTit" style="width:min(860px, calc(100vw - 24px))">
   <div class="parole-in">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 id="piantaTit" style="font-size:2rem">Disegna la pianta</h2><button type="button" class="btn" id="bPiantaX" aria-label="Chiudi">×</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 id="piantaTit" style="font-size:1.5rem">Disegna la pianta</h2><button type="button" class="btn" id="bPiantaX" aria-label="Chiudi">×</button></div>
     <div class="pianta-ed">
       <svg id="piantaSvg" viewBox="-7.5 -7.5 15 15" role="img" aria-label="Griglia per disegnare la pianta: tocca per aggiungere un punto, trascina i punti per spostarli."></svg>
       <div style="display:grid;gap:12px;align-content:start">
@@ -489,11 +523,10 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   const plural = (n, uno, tanti) => `${n} ${n === 1 ? uno : tanti}`;
   const lettera = (i) => (i < 26 ? String.fromCharCode(65 + i) : String.fromCharCode(64 + Math.floor(i / 26)) + String.fromCharCode(65 + i % 26));
   const ridotto = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  // i colori si leggono dall'elemento: dentro i riquadri chiari valgono quelli scuri su chiaro
   const css = (n, el) => getComputedStyle(el || document.documentElement).getPropertyValue(n).trim();
   const rgb = (c) => { c = c.trim(); if (c[0] === "#") { const h = c.length === 4 ? c.slice(1).split("").map(x => x + x).join("") : c.slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); } const m = c.match(/\d+/g); return m ? m.slice(0, 3).map(Number) : [120, 120, 120]; };
   const tinta = (t, el) => css(`--t${(t % 8) + 1}`, el);
-  const COLORI = ["#ff3d3d", "#0098b3", "#00b85c", "#f5c400", "#c86de6", "#ff7620", "#36c9cf", "#d98ce8", "#5d6268"];   // le tessere delle forme, come nel disegno
+  const nomeDima = (t) => "P" + (t + 1);   // ogni dima si chiama P e il suo numero: P1, P2, P3…
 
   /* ---------- le parole ---------- */
   const PAROLE = {
@@ -501,15 +534,15 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     area: ["Area di lavoro", "Lo spazio dove monterai la bolla: lunghezza (X), larghezza (Y) e altezza libera (Z), fino al soffitto o ai rami. La bolla deve starci dentro."],
     pannello: ["Pannello (o pezzo)", "Uno dei pezzi piatti di plastica che formano la bolla: un triangolo, un quadrato, un trapezio…"],
     tipo: ["Tipo di pezzo", "Pezzi con la stessa forma e le stesse misure sono dello stesso tipo. Ogni tipo si traccia una volta sola (la dima) e poi si copia: meno tipi ci sono, meno lavoro."],
-    dima: ["Dima", "Il pezzo campione, tracciato con cura una volta sola. Ci si appoggia sopra il telo per tagliare tutte le copie uguali."],
+    dima: ["Dima", "Il pezzo campione, tracciato con cura una volta sola. Ci si appoggia sopra il telo per tagliare tutte le copie uguali. Ognuna ha un nome: P1, P2, P3…"],
     giunzione: ["Giunzione", "Il lato lungo cui due pezzi si uniscono, con nastro o saldatura. Il sito le numera nell'ordine in cui farle."],
     telo: ["Telo", "La plastica trasparente di cui è fatta la bolla. Si compra a rotoli: la larghezza del rotolo decide quanti metri servono."],
     pavimento: ["Pavimento", "La parte che appoggia a terra. Conta per sapere quante persone ci stanno: circa 0,8 m² a persona, in piedi."],
     modellino: ["Modellino", "La bolla in piccolo, di carta, fatta con gli stessi pezzi rimpiccioliti. Serve a controllare che tutto si chiuda prima di tagliare la plastica."],
     scala: ["Scala", "Quante volte il modellino è più piccolo della bolla vera. Scala 1:20 vuol dire che 1 cm del modellino è 20 cm della bolla."],
-    sviluppo: ["Sviluppo", "La bolla «aperta» e stesa in piano, come una scatola smontata: si stampa, si ritaglia e si richiude."],
     gonfiatore: ["Gonfiatore (ventilatore)", "Il ventilatore che soffia aria nella bolla. Deve restare acceso finché c'è qualcuno dentro."],
     pianta: ["Pianta", "La bolla vista dall'alto, come in una mappa: il contorno della pianta è la forma del pavimento."],
+    simulatore: ["Simulatore", "La parte destra dello schermo: è l'Abbofficina, che mostra la tua bolla mentre la progetti, con i gonfiatori e le persone. Trascina la tendina al centro per allargarlo."],
   };
   function apriParole(k) {
     $("paroleLista").innerHTML = Object.entries(PAROLE).map(([id, [t, d]]) => `<dt id="pa-${id}"${id === k ? ' class="qui"' : ""}>${t}</dt><dd>${d}</dd>`).join("");
@@ -530,7 +563,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     ["animali", "Animali e oggetti", [["balena", "Balena"], ["fungo", "Fungo"], ["tarta", "Tartaruga"], ["razzo", "Razzo"], ["boat", "Barca"], ["banana", "Banana"], ["scolo", "Scolopendra"], ["ananas", "Ananas"], ["pera", "Pera"]]],
   ].map(([k, t, l]) => [k, t, l.filter(f => SHAPES.some(s => s.id === f[0]))]);
   const FORME = FAMIGLIE.flatMap(f => f[2]);
-  const ALTRE = SHAPES.filter(s => s.id !== "foto" && !FORME.some(f => f[0] === s.id)).map(s => [s.id, s.name.split(" (")[0]]);   // le forme nuove del motore, in fondo
+  const ALTRE = SHAPES.filter(s => s.id !== "foto" && !FORME.some(f => f[0] === s.id)).map(s => [s.id, s.name.split(" (")[0]]);
   if (ALTRE.length) { FAMIGLIE.push(["altre", "Altre forme", ALTRE]); FORME.push(...ALTRE); }
   const nomeForma = (id) => id === "foto" ? "La tua immagine" : ((FORME.find(f => f[0] === id) || [])[1] || (SHAPES.find(s => s.id === id) || {}).name || "");
   const def = (id) => SHAPES.find(s => s.id === id);
@@ -551,8 +584,8 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   let rotolo = 2; try { const r = parseFloat(localStorage.getItem("bolle|rotolo")); if (r >= 0.5 && r <= 20) rotolo = r; } catch (e) { /* */ }
 
   /* ---------- la bolla: la forma del motore con le sue opzioni, poi allungata o schiacciata fino alle misure X, Y, Z ----------
-     Allungare in una direzione tiene piatti tutti i pannelli (è una trasformazione lineare), quindi la bolla resta costruibile;
-     con le proporzioni bloccate la forma resta quella del motore (per esempio i triangoli tutti uguali della cupola). */
+     Allungare in una direzione tiene piatti tutti i pannelli, quindi la bolla resta costruibile; con le proporzioni bloccate
+     la forma resta quella del motore (per esempio i triangoli tutti uguali della cupola). */
   const cacheBase = new Map();
   function base(id, p) {
     const k = id + "|" + JSON.stringify(p);
@@ -572,23 +605,24 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     m.H = dim.z; m.W = dim.x; m.D = dim.y; m.id = id;
     return m;
   }
-  const r2 = (x) => Math.round(x * 100) / 100;
+  // le misure si tengono precise (al micron): arrotondarle una per una al centimetro cambierebbe un poco le proporzioni,
+  // e i pezzi uguali (per esempio i triangoli della cupola) diventerebbero di tipi diversi. Si arrotonda solo quello che si legge.
+  const r2 = (x) => Math.round(x * 1e6) / 1e6;
   const scalaDim = (dim, k, h) => ({ x: Math.max(0.5, r2(dim.x * k)), y: Math.max(0.5, r2(dim.y * k)), z: Math.max(0.5, r2(dim.z * k * (h || 1))) });
   const areaMax = (a) => S.area[a] > 0 ? S.area[a] : Infinity;
-  // la bolla entra nell'area? (anche girata di un quarto in pianta)
-  function entra(dim) {
+  function entra(dim) {   // la bolla entra nell'area? 1 dritta, 2 girata di un quarto, 0 no
     const ax = areaMax("x"), ay = areaMax("y"), az = areaMax("z"), e = 1e-6;
     if (dim.z > az + e) return 0;
     if (dim.x <= ax + e && dim.y <= ay + e) return 1;
-    if (dim.y <= ax + e && dim.x <= ay + e) return 2;   // girata
+    if (dim.y <= ax + e && dim.x <= ay + e) return 2;
     return 0;
   }
   const haArea = () => ["x", "y", "z"].some(a => S.area[a] > 0);
   // una forma appena scelta parte grande per 12 persone, e se non entra nell'area si rimpicciolisce finché ci sta
   function dimIniziali(id, p, vere) {
     const b = base(id, p);
-    let k = vere ? 1 : (b.m.floorArea > 1e-6 ? Math.sqrt(12 * 0.8 / b.m.floorArea) : 1);
-    // le forme disegnate in pianta si allargano solo in pianta: le pareti restano alte uguali (se no una pianta piccola fa una bolla bassa)
+    const k = vere ? 1 : (b.m.floorArea > 1e-6 ? Math.sqrt(12 * 0.8 / b.m.floorArea) : 1);
+    // le forme disegnate in pianta si allargano solo in pianta: le pareti restano alte uguali
     let dim = { x: r2(b.w * k), y: r2(b.d * k), z: r2(b.h * (def(id).kind === "extrude" ? 1 : k)) };
     if (!entra(dim)) {
       const ax = areaMax("x"), ay = areaMax("y"), az = areaMax("z");
@@ -598,14 +632,14 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     return dim;
   }
   const persone = (m) => Math.max(0, Math.floor((m.floorArea || 0) / 0.8 + 1e-9));
-  // il giudizio del motore, più l'area di lavoro
-  function giudica(m, p) {
+  function giudica(m, p) {   // il giudizio del motore, più l'area di lavoro
     const g = giudizioForma(m, p, { scala: m.stampa ? m.stampa.scala : 20, id: m.id });
     if (haArea()) {
-      const dim = { x: m.W, y: m.D, z: m.H }, e = entra(dim), tA = ["x", "y", "z"].map(a => S.area[a] > 0 ? fmt(S.area[a], 2) : "∞").join(" × ");
+      const e = entra({ x: m.W, y: m.D, z: m.H }), tA = ["x", "y", "z"].map(a => S.area[a] > 0 ? fmt(S.area[a], 2) : "∞").join(" × ");
       if (e) g.voci.unshift({ c: "ok", k: "area", t: `Entra nell'area di lavoro (${tA} m)${e === 2 ? ", girata di un quarto" : ""}.` });
       else {
-        const troppo = [m.H > areaMax("z") + 1e-6 ? `alta ${metri(m.H)} ma lo spazio in alto è ${metri(areaMax("z"))}` : "", !(m.W <= areaMax("x") + 1e-6 && m.D <= areaMax("y") + 1e-6) && !(m.D <= areaMax("x") + 1e-6 && m.W <= areaMax("y") + 1e-6) ? `a terra occupa ${fmt(m.W, 2)} × ${fmt(m.D, 2)} m` : ""].filter(Boolean).join(", e ");
+        const aTerra = !(m.W <= areaMax("x") + 1e-6 && m.D <= areaMax("y") + 1e-6) && !(m.D <= areaMax("x") + 1e-6 && m.W <= areaMax("y") + 1e-6);
+        const troppo = [m.H > areaMax("z") + 1e-6 ? `alta ${metri(m.H)} ma lo spazio in alto è ${metri(areaMax("z"))}` : "", aTerra ? `a terra occupa ${fmt(m.W, 2)} × ${fmt(m.D, 2)} m` : ""].filter(Boolean).join(", e ");
         g.voci.unshift({ c: "ko", k: "area", t: `Non entra nell'area di lavoro (${tA} m): è ${troppo}.` });
         g.c = "ko";
       }
@@ -615,23 +649,26 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
 
   /* ---------- la bolla scelta ---------- */
   let cur = null, curErr = null, curKey = "", giuntaQui = null;
-  // leggero: solo forma e giudizio (mentre si cambiano le misure); completo: anche sviluppo e fogli del modellino
   function aggiornaBolla(leggero) {
     cur = null; curErr = null;
-    if (!S.shape || !S.base || !S.dim) return;
-    try { cur = costruisci(S.shape, S.base, S.dim); }
-    catch (e) { curErr = e.message || "Con queste misure la forma non si può costruire."; return; }
-    if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = sceltaScala(cur); }
-    cur.g = giudica(cur, S.base);
-    const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim);
-    if (k !== curKey) giuntaQui = null;
-    curKey = k;
-    if (!S.fatte[curKey]) S.fatte = { [curKey]: { dime: [], tagli: [], giunte: [] } };   // un progetto nuovo riparte con le spunte vuote
+    if (S.shape && S.base && S.dim) {
+      try { cur = costruisci(S.shape, S.base, S.dim); }
+      catch (e) { curErr = e.message || "Con queste misure la forma non si può costruire."; }
+    }
+    if (cur) {
+      if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = sceltaScala(cur); }
+      cur.g = giudica(cur, S.base);
+      const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim);
+      if (k !== curKey) giuntaQui = null;
+      curKey = k;
+      if (!S.fatte[curKey]) S.fatte = { [curKey]: { dime: [], tagli: [], giunte: [] } };   // un progetto nuovo riparte con le spunte vuote
+    }
+    simulatore();
   }
   const fatte = () => S.fatte[curKey] || (S.fatte[curKey] = { dime: [], tagli: [], giunte: [] });
 
-  /* ---------- disegno 3D: pannelli colorati per tipo (o di un colore solo), persona da 1,75 m, quota, area di lavoro ---------- */
-  function adatta(cv) { const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1; if (!r.width) return false; const w = Math.round(r.width * d), h = Math.round(r.height * d); if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; } return true; }
+  /* ---------- disegno 3D (anteprime delle forme, montaggio, e il simulatore di riserva se l'Abbofficina non si carica) ---------- */
+  function adatta(cv) { const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1; if (!r.width || !r.height) return false; const w = Math.round(r.width * d), h = Math.round(r.height * d); if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; } return true; }
   function disegna(cv, m, o) {
     o = o || {};
     if (!adatta(cv)) return;
@@ -640,16 +677,15 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     if (!m) return;
     const V = m.V, Ht = Math.max(...V.map(v => v[2])), xs = V.map(v => v[0]), ys = V.map(v => v[1]);
     const mx = (Math.min(...xs) + Math.max(...xs)) / 2, my = (Math.min(...ys) + Math.max(...ys)) / 2;
-    // l'area di lavoro: un parallelepipedo tratteggiato intorno alla bolla (girato se la bolla ci sta solo girata)
-    let box = null;
+    let box = null;   // l'area di lavoro: un parallelepipedo tratteggiato (girato se la bolla ci sta solo girata)
     if (o.area) {
-      const g = o.area.giro, ax = (g ? o.area.y : o.area.x) || 0, ay = (g ? o.area.x : o.area.y) || 0, az = o.area.z || 0;
+      const g = o.area.giro, ax = (g ? o.area.y : o.area.x) || 0, ay = (g ? o.area.x : o.area.y) || 0;
       if (ax > 0 || ay > 0) {
         const hx = (ax > 0 ? ax : Math.max(...xs) - Math.min(...xs)) / 2, hy = (ay > 0 ? ay : Math.max(...ys) - Math.min(...ys)) / 2;
-        box = { p: [[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy]].map(([x, y]) => [mx + x, my + y]), z: az, ok: o.area.ok };
+        box = { p: [[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy]].map(([x, y]) => [mx + x, my + y]), z: o.area.z || 0, ok: o.area.ok };
       }
     }
-    const tuttiZ = box && box.z ? Math.max(Ht, box.z) : Ht, zc = tuttiZ / 2;
+    const zc = (box && box.z ? Math.max(Ht, box.z) : Ht) / 2;
     let rad = Math.max(...V.map(v => Math.hypot(v[0] - mx, v[1] - my, v[2] - zc))) || 1;
     if (box) box.p.forEach(p => { rad = Math.max(rad, Math.hypot(p[0] - mx, p[1] - my, (box.z || Ht) - zc), Math.hypot(p[0] - mx, p[1] - my, zc)); });
     const pers = o.persona ? 1.3 : 0;
@@ -658,41 +694,34 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     const T = (p) => { const x = p[0] - mx, y = p[1] - my, z = p[2] - zc, x1 = x * cy - y * sy, y1 = x * sy + y * cy; return [x1, y1 * cp - z * sp, y1 * sp + z * cp]; };
     const S2 = (q) => [ox + q[0] * sc, oy - q[2] * sc];
     const tv = V.map(T), L = V3.norm([-0.45, -0.75, 0.5]), ink = css("--ink", cv), grey = rgb(css("--muted", cv));
-    const hl = o.hl ? new Set(o.hl) : null, unico = o.colore ? rgb(o.colore) : null;
-    const lineaBox = (a, b, dietro) => { const p = S2(T(a)), q = S2(T(b)); ctx.globalAlpha = dietro ? 0.35 : 0.9; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); };
+    const hl = o.hl ? new Set(o.hl) : null;
     const spigoliBox = () => { const out = []; if (!box) return out; const p = box.p; for (let i = 0; i < 4; i++) { const a = p[i], b = p[(i + 1) % 4]; out.push([[a[0], a[1], 0], [b[0], b[1], 0]]); if (box.z) { out.push([[a[0], a[1], box.z], [b[0], b[1], box.z]]); out.push([[a[0], a[1], 0], [a[0], a[1], box.z]]); } } return out; };
-    if (box) {   // l'area: prima tutta tenue (dietro la bolla), poi davanti più forte
-      ctx.save(); ctx.strokeStyle = box.ok ? css("--muted", cv) : css("--cut", cv); ctx.lineWidth = 1.6 * dpr; ctx.setLineDash([6 * dpr, 5 * dpr]);
-      spigoliBox().forEach(([a, b]) => lineaBox(a, b, true)); ctx.restore();
-    }
+    const tratteggio = (davanti) => { ctx.save(); ctx.strokeStyle = box.ok ? css("--muted", cv) : css("--cut", cv); ctx.lineWidth = 1.6 * dpr; ctx.setLineDash([6 * dpr, 5 * dpr]);
+      spigoliBox().forEach(([a, b]) => { const ta = T(a), tb = T(b); if (davanti !== null && ((ta[1] + tb[1]) / 2 < 0) !== davanti) return; const p = S2(ta), q = S2(tb); ctx.globalAlpha = davanti ? 0.9 : 0.4; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }); ctx.restore(); };
+    if (box) tratteggio(false);
     m.F.map((f, fi) => { const p = f.map(i => tv[i]); return { fi, p, n: V3.norm(newell(p)), d: p.reduce((a, q) => a + q[1], 0) / p.length }; })
       .sort((a, b) => b.d - a.d)
       .forEach(({ fi, p, n }) => {
         let lit = 0.62 + 0.45 * Math.abs(V3.dot(n, L)); if (n[1] >= 0) lit *= 0.65;
-        let base = unico || rgb(tinta(m.an.faceInfo[fi].type, cv)), a = 0.94;
+        let base = rgb(tinta(m.an.faceInfo[fi].type, cv)), a = 0.94;
         if (hl && !hl.has(fi)) { base = grey; a = 0.22; }
         const c = base.map(v => Math.min(255, Math.round(v * lit)));
         ctx.beginPath(); p.map(S2).forEach((s, i) => (i ? ctx.lineTo(s[0], s[1]) : ctx.moveTo(s[0], s[1]))); ctx.closePath();
         ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`; ctx.fill();
-        ctx.strokeStyle = o.bordo || ink; ctx.globalAlpha = hl && !hl.has(fi) ? 0.25 : (o.sottile ? 0.45 : 0.7); ctx.lineWidth = Math.max(1, W / (o.sottile ? 260 : 600)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = ink; ctx.globalAlpha = hl && !hl.has(fi) ? 0.25 : (o.sottile ? 0.5 : 0.85); ctx.lineWidth = Math.max(1, W / (o.sottile ? 260 : 600)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1;
       });
-    if (box) {
-      ctx.save(); ctx.strokeStyle = box.ok ? css("--muted", cv) : css("--cut", cv); ctx.lineWidth = 1.6 * dpr; ctx.setLineDash([6 * dpr, 5 * dpr]);
-      // davanti: gli spigoli più vicini a chi guarda (y girata più piccola del centro)
-      spigoliBox().forEach(([a, b]) => { const ya = T(a)[1], yb = T(b)[1]; if ((ya + yb) / 2 < 0) lineaBox(a, b, false); });
-      ctx.restore();
-    }
+    if (box) tratteggio(true);
     if (o.lato) { const a = S2(tv[o.lato[0]]), b = S2(tv[o.lato[1]]); ctx.save(); ctx.strokeStyle = css("--cut", cv); ctx.lineWidth = 6 * dpr; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.restore(); }
     const terra = oy + zc * cp * sc;
-    if (o.persona) {   // una persona alta 1,75 m, accanto alla bolla
+    if (o.persona) {
       const right = Math.max(...tv.map(q => q[0])), px = ox + (right + 0.7) * sc, h = 1.75 * cp * sc, w = h * 0.26;
-      ctx.save(); ctx.fillStyle = css("--muted", cv); ctx.globalAlpha = 0.9;
+      ctx.save(); ctx.fillStyle = css("--muted", cv); ctx.globalAlpha = 0.85;
       ctx.beginPath(); ctx.arc(px, terra - h + w * 0.42, w * 0.42, 0, 7); ctx.fill();
       ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px - w / 2, terra - h + w * 0.92, w, h * 0.5, w * 0.3) : ctx.rect(px - w / 2, terra - h + w * 0.92, w, h * 0.5); ctx.fill();
       ctx.fillRect(px - w * 0.42, terra - h * 0.5 + w * 0.6, w * 0.34, h * 0.5 - w * 0.6); ctx.fillRect(px + w * 0.08, terra - h * 0.5 + w * 0.6, w * 0.34, h * 0.5 - w * 0.6);
       ctx.restore();
     }
-    if (o.quote) {   // l'altezza, a sinistra
+    if (o.quote) {
       const left = Math.min(...tv.map(q => q[0])), qx = ox + left * sc - 18 * dpr, top = terra - Ht * cp * sc;
       ctx.save(); ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.lineWidth = 1.2 * dpr;
       ctx.beginPath(); ctx.moveTo(qx, terra); ctx.lineTo(qx, top); ctx.moveTo(qx - 5 * dpr, terra); ctx.lineTo(qx + 5 * dpr, terra); ctx.moveTo(qx - 5 * dpr, top); ctx.lineTo(qx + 5 * dpr, top); ctx.stroke();
@@ -700,7 +729,6 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
       ctx.restore();
     }
   }
-  // girare trascinando (tutte le viste grandi)
   const viste = {};
   function vista(id, crea) {
     const cv = $(id); if (!viste[id]) {
@@ -712,8 +740,57 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     }
     viste[id].crea = crea; ridisegna(id);
   }
-  function ridisegna(id) { const v = viste[id]; if (!v) return; const r = v.crea(); if (r) disegna($(id), r.m, Object.assign({ yaw: v.yaw, pitch: v.pitch }, r.o)); else disegna($(id), null); }
+  function ridisegna(id) { const v = viste[id]; if (!v) return; const r = v.crea(); disegna($(id), r ? r.m : null, r ? Object.assign({ yaw: v.yaw, pitch: v.pitch }, r.o) : {}); }
   addEventListener("resize", () => Object.keys(viste).forEach(ridisegna));
+
+  /* ---------- il simulatore: l'Abbofficina in vetrina, sempre a destra ----------
+     Riceve la bolla (vertici e facce in metri) con un messaggio; se non si carica (senza internet), resta il disegno di riserva. */
+  const fr = $("vetrina");
+  let vetrinaPronta = false, tSim = 0, ultimoInvio = "";
+  const opzArea = () => { if (!cur || !haArea()) return null; const e = entra({ x: cur.W, y: cur.D, z: cur.H }); return { x: S.area.x, y: S.area.y, z: S.area.z, ok: !!e, giro: e === 2 }; };
+  function inviaVetrina() {
+    if (!vetrinaPronta || !fr.contentWindow) return;
+    if (!S.shape) { fr.contentWindow.postMessage({ tipo: "bolla-officina", mesh: null }, "*"); ultimoInvio = ""; return; }
+    if (!cur) return;   // misure che non si costruiscono: resta la bolla di prima
+    const mm = (x) => Math.round(x * 1000) / 1000;
+    const msg = { tipo: "bolla-officina", mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, off: S.shape, nome: nomeForma(S.shape),
+      forma: S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)), W: cur.W, D: cur.D, area: opzArea() };
+    const firma = JSON.stringify([msg.forma, S.dim, msg.area]); if (firma === ultimoInvio) return; ultimoInvio = firma;
+    fr.contentWindow.postMessage(msg, "*");
+  }
+  addEventListener("message", e => { if (e.source === fr.contentWindow && e.data && e.data.tipo === "vetrina-pronta") { vetrinaPronta = true; $("cvSim").hidden = true; fr.hidden = false; ultimoInvio = ""; simulatore(); } });
+  // se l'Abbofficina non risponde (niente internet per three.js), il simulatore diventa il disegno 3D di questa pagina
+  setTimeout(() => { if (!vetrinaPronta) { fr.hidden = true; $("cvSim").hidden = false; $("simNota").textContent = "Simulatore semplice: per l'Abbofficina con i gonfiatori e le persone serve internet · trascina per girarla"; simulatore(); } }, 9000);
+  function simulatore() {
+    $("simVuoto").hidden = !!S.shape;
+    const g = cur && cur.g, icona = { ok: "✓", mid: "!", ko: "✕" };
+    $("simStato").innerHTML = !S.shape ? "" : !cur ? `<span class="pill ko"><i>✕</i>${esc(curErr || "Non si costruisce")}</span>`
+      : `<span class="pill"><b class="num">${persone(cur)}</b>&nbsp;${persone(cur) === 1 ? "persona" : "persone"}</span><span class="pill">${metri(cur.H)}</span><span class="pill ${g.c}"><i>${icona[g.c] || "i"}</i>${g.c === "ok" ? "Si può fare" : g.c === "mid" ? "Con attenzione" : "Non si può fare"}</span>`;
+    clearTimeout(tSim); tSim = setTimeout(inviaVetrina, 120);
+    if (!$("cvSim").hidden) vista("cvSim", () => cur && { m: cur, o: { persona: true, quote: true, area: opzArea() } });
+  }
+
+  /* ---------- la tendina: si trascina per allargare o stringere il simulatore ---------- */
+  (function () {
+    const div = $("divisore"), root = document.documentElement, MINS = 280, MINT = 420;
+    const metti = (px, salvala) => {
+      const w = Math.round(Math.max(MINS, Math.min(innerWidth - MINT, px)));
+      root.style.setProperty("--simw", w + "px");
+      div.setAttribute("aria-valuenow", Math.round(w / innerWidth * 100));
+      if (salvala) { try { localStorage.setItem("bolle|simW", String(w / innerWidth)); } catch (e) { /* */ } }
+      Object.keys(viste).forEach(ridisegna);
+    };
+    try { const f = parseFloat(localStorage.getItem("bolle|simW")); if (f > 0.1 && f < 0.9) metti(f * innerWidth); } catch (e) { /* */ }
+    let tira = false;
+    div.addEventListener("pointerdown", e => { tira = true; document.body.classList.add("trascina"); try { div.setPointerCapture(e.pointerId); } catch (er) { /* */ } e.preventDefault(); });
+    div.addEventListener("pointermove", e => { if (tira) metti(innerWidth - e.clientX - 7); });
+    const lascia = () => { if (!tira) return; tira = false; document.body.classList.remove("trascina"); metti(parseFloat(getComputedStyle(root).getPropertyValue("--simw")) || innerWidth * 0.42, true); };
+    div.addEventListener("pointerup", lascia); div.addEventListener("pointercancel", lascia);
+    div.addEventListener("dblclick", () => metti(innerWidth / 2, true));
+    div.addEventListener("keydown", e => { const w = parseFloat(getComputedStyle(root).getPropertyValue("--simw")) || innerWidth * 0.42; if (e.key === "ArrowLeft") { e.preventDefault(); metti(w + 40, true); } if (e.key === "ArrowRight") { e.preventDefault(); metti(w - 40, true); } });
+    addEventListener("resize", () => { const f = parseFloat(localStorage.getItem("bolle|simW")); if (f > 0.1 && f < 0.9) metti(f * innerWidth); });
+  })();
+  $("bRiduci").addEventListener("click", () => { const p = $("simpane"), r = !p.classList.contains("ridotto"); p.classList.toggle("ridotto", r); $("bRiduci").textContent = r ? "Mostra" : "Riduci"; $("bRiduci").setAttribute("aria-expanded", String(!r)); });
 
   /* ---------- le tappe ---------- */
   const TAPPE = [{ id: "home", nome: "Inizio" }, { id: "progettazione", nome: "Progettazione" }, { id: "dima", nome: "Dima / Modellino" }, { id: "costruzione", nome: "Costruzione" }];
@@ -722,7 +799,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   function vai(t, subito) {
     t = Math.max(0, Math.min(TAPPE.length - 1, t));
     if (t > 1) { aggiornaBolla(); if (!pronta()) t = 1; }
-    else if (t === 1) aggiornaBolla(true);
+    else aggiornaBolla(true);
     S.t = t; S.max = Math.max(S.max || 0, t); salva();
     document.querySelectorAll(".tappa").forEach(s => { s.hidden = s.dataset.t !== TAPPE[t].id; });
     if (RENDI[TAPPE[t].id]) RENDI[TAPPE[t].id]();
@@ -735,7 +812,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     TAPPE.forEach((tp, i) => {
       if (i === 0) return;
       if (i > 1) h += `<span class="sep" aria-hidden="true"></span>`;
-      const chiusa = i > 1 && !(i <= S.max && (i < 2 || pronta()));
+      const chiusa = i > 1 && !(i <= S.max && pronta());
       h += `<button type="button" data-i="${i}"${i === S.t ? ' aria-current="step"' : ""} class="${i < S.t ? "fatta" : ""}"${chiusa && i !== S.t ? " disabled" : ""} title="${tp.nome}"><i>${i < S.t ? "✓" : i}</i><span>${tp.nome}</span></button>`;
     });
     $("tappe").innerHTML = h;
@@ -745,7 +822,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   $("aCasa").addEventListener("click", e => { e.preventDefault(); vai(0); });
   function fondo() {
     const t = S.t, id = TAPPE[t].id;
-    document.querySelector(".fondo").hidden = t === 0;   // all'inizio c'è il pulsante grande «Cominciamo»
+    document.querySelector(".fondo").hidden = t === 0;
     $("bAvanti").hidden = t === TAPPE.length - 1;
     let ok = true, nota = "";
     if (id === "progettazione") {
@@ -761,18 +838,9 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   $("bIndietro").addEventListener("click", () => vai(S.t - 1));
   $("bInizia").addEventListener("click", () => vai(1));
   if (S.max > 0 && S.t > 0) { $("bRiprendi").hidden = false; $("bRiprendi").textContent = `Riprendi da «${TAPPE[S.t].nome}»`; $("bRiprendi").addEventListener("click", () => vai(S.t)); $("bInizia").textContent = "Ricomincia da capo"; }
-
-  /* ---------- inizio: una cupola che gira ---------- */
-  let giro = 0, giroA = 0;
-  const cupola = (() => { const d = def("d20"), p = parametriBase(d), m = buildShape(d, p, optBase(d)); m.an = analyze(m.V, m.F, m.floor); return m; })();
-  RENDI.home = () => {
-    cancelAnimationFrame(giroA);
-    const passo = () => { if (S.t !== 0) return; giro += 0.006; disegna($("cvHome"), cupola, { yaw: 0.6 + giro, pitch: 0.32, persona: true }); if (!ridotto) giroA = requestAnimationFrame(passo); };
-    passo();
-  };
+  RENDI.home = () => {};
 
   /* ===================== 1 · PROGETTAZIONE ===================== */
-  /* --- prendi le misure: l'area di lavoro --- */
   ["x", "y", "z"].forEach(a => {
     const el = $("a" + a.toUpperCase());
     el.addEventListener("input", () => {
@@ -783,7 +851,6 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   });
   function rendiArea() { ["x", "y", "z"].forEach(a => { const el = $("a" + a.toUpperCase()); if (document.activeElement !== el) el.value = S.area[a] > 0 ? S.area[a] : ""; }); }
 
-  /* --- le linguette Forme / Misure --- */
   function linguetta(t) {
     S.tab = t; salva();
     $("tabForme").setAttribute("aria-selected", String(t === "forme")); $("tabMisure").setAttribute("aria-selected", String(t === "misure"));
@@ -798,22 +865,21 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   const anteprime = {};
   const livello = (m) => { const n = m.an.types.length; return n <= 4 ? ["f", "Facile"] : n <= 15 ? ["m", "Media"] : ["i", "Impegnativa"]; };
   function costruisciForme() {
-    let i = 0;
-    const tessera = (id, nome) => `<button type="button" class="tessera" data-id="${id}" aria-pressed="false" data-c="${COLORI[i++ % COLORI.length]}"><canvas data-mini="${id}" aria-hidden="true"></canvas><b>${esc(nome)}</b><small data-liv="${id}"></small></button>`;
+    const tessera = (id, nome) => `<button type="button" class="tessera" data-id="${id}" aria-pressed="false"><canvas data-mini="${id}" aria-hidden="true"></canvas><b>${esc(nome)}</b><small data-liv="${id}"></small></button>`;
     const fam = (S.shape === "foto" ? [["foto", "La tua immagine", [["foto", "La tua immagine"]]]] : []).concat(FAMIGLIE);
-    $("forme").innerHTML = fam.map(([k, t, l]) => `<section class="famiglia" aria-label="${esc(t)}"><h4>${esc(t)}</h4><div class="tessere">${l.map(([id, n]) => tessera(id, n)).join("")}</div></section>`).join("");
+    $("forme").innerHTML = fam.map(([k, t, l]) => `<section class="famiglia" aria-label="${esc(t)}"><h3>${esc(t)}</h3><div class="tessere">${l.map(([id, n]) => tessera(id, n)).join("")}</div></section>`).join("");
   }
   function rendiForme() {
     if (!$("forme").children.length || (S.shape === "foto") !== !!$("forme").querySelector('[data-id="foto"]')) costruisciForme();
     document.querySelectorAll(".tessera").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === S.shape)));
     const ids = [...document.querySelectorAll(".tessera")].map(b => b.dataset.id); let i = 0;
-    const passo = () => {   // le anteprime una alla volta, così la pagina resta pronta
+    const passo = () => {
       if (i >= ids.length) return; const id = ids[i++];
       try {
         const proprie = id === "foto" || (id === "custom" && S.shape === "custom");
         if (!anteprime[id] || proprie) { const d = def(id), p = proprie ? S.base : parametriBase(d), m = buildShape(d, p, optBase(d)); m.an = analyze(m.V, m.F, m.floor); anteprime[id] = m; }
         const m = anteprime[id], b = document.querySelector(`.tessera[data-id="${id}"]`), cv = b && b.querySelector("canvas"), [k, t] = livello(m), el = b && b.querySelector("small");
-        if (cv) disegna(cv, m, { yaw: 0.6, pitch: 0.42, sottile: true, colore: b.dataset.c, bordo: "#1c2025" });
+        if (cv) disegna(cv, m, { yaw: 0.6, pitch: 0.42, sottile: true });
         if (el) { el.className = k; el.textContent = t; }
       } catch (e) { /* senza anteprima resta il nome */ }
       setTimeout(passo, 0);
@@ -833,7 +899,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   }
   $("forme").addEventListener("click", e => { const b = e.target.closest(".tessera"); if (b) scegliForma(b.dataset.id); });
 
-  /* --- la pianta disegnata (forma "custom"): punti su una griglia di 50 cm, agganciati ogni 25 cm --- */
+  /* --- la pianta disegnata (forma "custom") --- */
   const PIANTE = {
     rect: [[-3, -2], [3, -2], [3, 2], [-3, 2]],
     L: [[-3, -3], [-1, -3], [-1, 1], [3, 1], [3, 3], [-3, 3]],
@@ -847,14 +913,14 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   function puntoGriglia(e) { const m = $("piantaSvg").getScreenCTM(); if (!m) return [0, 0]; const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); return [p.x, p.y]; }
   function toccaPunto(e) { const r = puntoGriglia(e); let best = -1, bd = 0.5; puntiPianta().forEach((q, i) => { const d = Math.hypot(q[0] - r[0], q[1] - r[1]); if (d < bd) { bd = d; best = i; } }); return best; }
   function disegnaPianta() {
-    const svgEl = $("piantaSvg"), pts = puntiPianta(), n = pts.length, ink = css("--ink", svgEl), muted = css("--muted", svgEl), green = css("--green", svgEl), line = css("--rule", svgEl), cut = css("--cut", svgEl), card = css("--paper", svgEl);
+    const pts = puntiPianta(), n = pts.length, ink = css("--ink"), muted = css("--muted"), green = css("--green"), line = css("--rule"), cut = css("--cut"), card = css("--card");
     let s = "";
     for (let v = -7; v <= 7.001; v += 0.5) {
       const forte = Math.abs(v - Math.round(v)) < 1e-6, st = `stroke="${forte ? muted : line}" stroke-width="${forte ? 0.025 : 0.015}" opacity="${forte ? 0.5 : 1}"`;
       s += `<line x1="${v}" y1="-7" x2="${v}" y2="7" ${st}/><line x1="-7" y1="${v}" x2="7" y2="${v}" ${st}/>`;
     }
     for (let v = -6; v <= 6; v += 2) s += `<text x="${v}" y="7.38" font-size="0.32" text-anchor="middle" fill="${muted}" font-family="IBM Plex Mono, monospace">${v} m</text>`;
-    if (n >= 2) s += `<polygon points="${pts.map(p => p.join(",")).join(" ")}" fill="${green}" fill-opacity=".25" stroke="${ink}" stroke-width="0.06" stroke-linejoin="round"/>`;
+    if (n >= 2) s += `<polygon points="${pts.map(p => p.join(",")).join(" ")}" fill="${tinta(0)}" fill-opacity=".25" stroke="${ink}" stroke-width="0.06" stroke-linejoin="round"/>`;
     let a2 = 0; pts.forEach((p, i) => { const q = pts[(i + 1) % n]; a2 += p[0] * q[1] - q[0] * p[1]; });
     pts.forEach((p, i) => {
       if (n < 2) return;
@@ -863,7 +929,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
       s += `<text x="${(p[0] + q[0]) / 2 + o[0] * 0.35}" y="${(p[1] + q[1]) / 2 + o[1] * 0.35}" font-size="0.34" text-anchor="middle" dominant-baseline="middle" fill="${ink}" font-family="IBM Plex Mono, monospace" font-weight="600" paint-order="stroke" stroke="${card}" stroke-width="0.12">${fmt(L, 2)}</text>`;
     });
     pts.forEach((p, i) => { s += `<circle class="vtx" cx="${p[0]}" cy="${p[1]}" r="0.24" fill="${i === pd.drag ? cut : green}" stroke="${card}" stroke-width="0.06"/>`; });
-    svgEl.innerHTML = s;
+    $("piantaSvg").innerHTML = s;
     const prob = planProblem(pts, S.base && S.base.roof === "punta");
     $("piantaWarn").hidden = !prob; $("piantaWarn").textContent = prob || "";
     $("bPiantaOk").disabled = !!prob;
@@ -882,15 +948,15 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   }
   function chiudiPianta() {
     if ($("pianta").open) $("pianta").close();
-    if (planProblem(puntiPianta(), S.base.roof === "punta")) cambiaPianta(hexPts(3), true);   // una pianta sbagliata non resta salvata
-    S.dim = dimIniziali("custom", S.base, true);   // la pianta è disegnata con le misure vere
+    if (planProblem(puntiPianta(), S.base.roof === "punta")) cambiaPianta(hexPts(3), true);
+    S.dim = dimIniziali("custom", S.base, true);
     delete anteprime.custom; esito = null; salva(); aggiornaBolla(true); rendiForme(); rendiMisure(); rendiRisultato(); rendiMateriali(); fondo();
   }
   (function () {
     const svg = $("piantaSvg");
     svg.addEventListener("pointerdown", e => {
       const hit = toccaPunto(e);
-      try { svg.setPointerCapture(e.pointerId); } catch (er) { /* va bene anche senza */ }
+      try { svg.setPointerCapture(e.pointerId); } catch (er) { /* */ }
       if (e.detail > 1) return;
       if (hit >= 0) {
         pd.undo.push(puntiPianta().map(q => q.slice())); pd.drag = hit; pd.moved = false; clearTimeout(pd.press);
@@ -930,7 +996,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     $("pianta").addEventListener("cancel", e => { e.preventDefault(); chiudiPianta(); });
   })();
 
-  /* --- dalla tua immagine: la finestra di immagine.js, con il disegno 3D di questa pagina --- */
+  /* --- dalla tua immagine --- */
   const opzFoto = {
     disegna3d: (cv, m, v) => disegna(cv, m, { yaw: v.yaw, pitch: v.pitch, persona: true, quote: true }),
     scala: () => 20,
@@ -950,7 +1016,6 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   /* --- le misure: tre cursori verticali X, Y, Z, le opzioni della forma, le persone --- */
   const ASSI = [["x", "X", "lunghezza"], ["y", "Y", "larghezza"], ["z", "Z", "altezza"]];
   const MIN = 0.5;
-  // il fondo scala di ogni cursore: l'area di lavoro, se c'è; se no abbastanza per provare
   const fondoScala = (a) => S.area[a] > 0 ? S.area[a] : Math.max(a === "z" ? 8 : 12, Math.ceil((S.dim ? S.dim[a] : 4) * 1.6));
   function costruisciMisure() {
     const box = $("pMisure");
@@ -960,7 +1025,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
         <div class="vslider" role="slider" tabindex="0" data-a="${a}" aria-label="${L}: ${nome} della bolla, in metri" aria-valuemin="${MIN}"><div class="riemp"></div></div>
         <input type="number" data-a="${a}" min="${MIN}" step="0.05" inputmode="decimal" aria-label="${L} in metri"><small>${nome} · m</small></div>`).join("")}</div>
       <label class="check"><input type="checkbox" id="blocca"${S.lock ? " checked" : ""}> <span><b>Mantieni le proporzioni</b><br><span class="hint">Cambiando una misura cambiano anche le altre, e la forma resta la stessa (per esempio i triangoli tutti uguali della cupola). Togli la spunta per allungarla o schiacciarla.</span></span></label>
-      ${opz.length ? `<div><h3 style="font-size:1.5rem;margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(q => {
+      ${opz.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(q => {
         const v = S.base[q.key];
         if (q.type === "pick") return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><select id="o_${q.key}" data-k="${q.key}">${q.options.map(([a, b]) => `<option value="${a}"${a === v ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></div>`;
         return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><input type="number" id="o_${q.key}" data-k="${q.key}" min="${q.min}"${q.max ? ` max="${q.max}"` : ""} step="${q.type === "int" ? 1 : q.step || 1}" value="${v}"></div>`;
@@ -975,9 +1040,9 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     document.querySelectorAll("#pMisure .vslider").forEach(el => {
       const a = el.dataset.a, max = Math.max(fondoScala(a), MIN + 0.5), v = S.dim[a], p = Math.max(0, Math.min(1, (v - MIN) / (max - MIN)));
       el.setAttribute("aria-valuemax", max); el.setAttribute("aria-valuenow", v); el.setAttribute("aria-valuetext", metri(v));
-      el.querySelector(".riemp").style.height = `calc(48px + (100% - 48px) * ${p})`;
+      el.querySelector(".riemp").style.height = `calc(46px + (100% - 44px) * ${p})`;
     });
-    document.querySelectorAll("#pMisure input[data-a]").forEach(el => { if (document.activeElement !== el) el.value = S.dim[el.dataset.a]; });
+    document.querySelectorAll("#pMisure input[data-a]").forEach(el => { if (document.activeElement !== el) el.value = +S.dim[el.dataset.a].toFixed(2); });
     if (cur && $("nAdatta") && document.activeElement !== $("nAdatta")) $("nAdatta").value = Math.max(2, persone(cur));
   }
   function rendiMisure(soloCursori) { if (soloCursori && $("pMisure").querySelector(".vslider")) { aggiornaCursori(); return; } costruisciMisure(); }
@@ -993,7 +1058,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   (function () {
     const box = $("pMisure");
     let tiene = null;
-    const daY = (el, y) => { const r = el.getBoundingClientRect(), a = el.dataset.a, max = Math.max(fondoScala(a), MIN + 0.5), p = 1 - (y - r.top - 24) / Math.max(1, r.height - 48); return MIN + Math.max(0, Math.min(1, p)) * (max - MIN); };
+    const daY = (el, y) => { const r = el.getBoundingClientRect(), a = el.dataset.a, max = Math.max(fondoScala(a), MIN + 0.5), p = 1 - (y - r.top - 23) / Math.max(1, r.height - 46); return MIN + Math.max(0, Math.min(1, p)) * (max - MIN); };
     box.addEventListener("pointerdown", e => { const el = e.target.closest(".vslider"); if (!el) return; tiene = el; el.focus(); try { el.setPointerCapture(e.pointerId); } catch (er) { /* */ } cambiaAsse(el.dataset.a, Math.round(daY(el, e.clientY) * 20) / 20); e.preventDefault(); });
     box.addEventListener("pointermove", e => { if (!tiene) return; cambiaAsse(tiene.dataset.a, Math.round(daY(tiene, e.clientY) * 20) / 20); });
     const lascia = () => { tiene = null; };
@@ -1029,18 +1094,11 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     });
   })();
 
-  /* --- il simulatore e il risultato: si può fare? quante persone? --- */
+  /* --- il risultato: si può fare? quante persone? --- */
   let risolvendo = false, esito = null;
   function rendiRisultato() {
     const icona = { ok: "✓", mid: "!", ko: "✕", info: "i" };
-    const opzArea = () => { if (!cur || !haArea()) return null; const e = entra({ x: cur.W, y: cur.D, z: cur.H }); return { x: S.area.x, y: S.area.y, z: S.area.z, ok: !!e, giro: e === 2 }; };
-    vista("cvSim", () => cur && { m: cur, o: { persona: true, quote: true, area: opzArea() } });
-    $("simNota").textContent = cur ? `Trascina per girarla · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""}` : "";
-    if (!S.shape) {
-      $("dati").innerHTML = ""; $("verdetto").hidden = true; $("esito").hidden = true; $("controlli").hidden = true;
-      $("simNota").textContent = "Scegli una forma nella linguetta «Forme»: qui la vedi in 3D, alla sua grandezza vera.";
-      return;
-    }
+    if (!S.shape) { $("dati").innerHTML = ""; $("verdetto").hidden = true; $("esito").hidden = true; $("controlli").hidden = true; return; }
     const bRis = (c) => `<button type="button" class="btn ${c === "ko" ? "primary" : ""} big risolvi" id="bRisolvi"${risolvendo ? " disabled" : ""}>${risolvendo ? "Cerco le misure giuste…" : "✦ Risolvi"}</button>`;
     $("verdetto").hidden = false;
     if (!cur) {
@@ -1050,8 +1108,8 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     }
     const g = cur.g, n = persone(cur);
     $("verdetto").className = "verdetto " + g.c;
-    $("verdetto").innerHTML = `<i aria-hidden="true">${icona[g.c]}</i><div><h3>${g.c === "ok" ? "Si può fare!" : g.c === "mid" ? "Si può fare, con attenzione" : "Così non si può fare"}</h3><p>${g.c === "ok" ? "Puoi passare al modellino." : g.c === "mid" ? "Leggi i punti in giallo, oppure lascia che il sito li sistemi." : "Guarda i punti in rosso, oppure tocca «Risolvi»: il sito cambia le misure da solo."}</p></div>${g.c !== "ok" ? bRis(g.c) : ""}`;
-    $("dati").innerHTML = `<div class="persone-n"><span>Ci stanno</span><b>${n}</b><span>${n === 1 ? "persona" : "persone"}</span></div><div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>A terra</span><b>${fmt(cur.W, 1)}×${fmt(cur.D, 1)}</b></div><div><span>Porta</span><b>${g.porta >= 0.3 ? metri(Math.min(g.porta, 2)) : "—"}</b></div>`;
+    $("verdetto").innerHTML = `<i aria-hidden="true">${icona[g.c]}</i><div><h3>${g.c === "ok" ? "Sì, si può fare!" : g.c === "mid" ? "Sì, con qualche attenzione" : "Così non si può fare"}</h3><p>${g.c === "ok" ? "Puoi passare al modellino." : g.c === "mid" ? "Leggi i punti in giallo, oppure lascia che il sito li sistemi." : "Guarda i punti in rosso, oppure tocca «Risolvi»: il sito cambia le misure da solo."}</p></div>${g.c !== "ok" ? bRis(g.c) : ""}`;
+    $("dati").innerHTML = `<div class="persone-n"><span>Ci stanno</span><b>${n}</b><span>${n === 1 ? "persona" : "persone"} in piedi</span></div><div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>A terra</span><b>${fmt(cur.W, 1)} × ${fmt(cur.D, 1)} m</b></div><div><span>Porta</span><b>${g.porta >= 0.3 ? metri(Math.min(g.porta, 2)) : "—"}</b></div>`;
     const ordine = { ko: 0, mid: 1, ok: 2, info: 3 };
     const nota = (v) => v.k === "stabile" || v.k === "sporge" ? `<span class="hint">Si può fare: fissala a terra con pesi o picchetti, e tieni acceso il ventilatore.</span>` : "";
     $("voci").innerHTML = g.voci.filter(v => v.k !== "modellino").sort((a, b) => ordine[a.c] - ordine[b.c]).map(v => `<li class="${v.c}"><i aria-hidden="true">${icona[v.c]}</i><div><span>${esc(v.t)}</span>${v.c === "mid" ? nota(v) : ""}</div></li>`).join("");
@@ -1065,9 +1123,7 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     if (b.dataset.a === "forma") { linguetta("forme"); $("bloccoProgetta").scrollIntoView({ behavior: ridotto ? "auto" : "smooth" }); }
   });
 
-  /* «Risolvi»: il sito prova tante misure vicine a quelle scelte e tiene quella con meno problemi e meno cambiamenti.
-     Ingrandisce o rimpicciolisce tutta la bolla (k), alza o abbassa solo l'altezza (h), la fa stare nell'area di lavoro e,
-     se ci sono troppi tipi di pezzo o lati troppo corti, usa meno lati o spicchi. */
+  /* «Risolvi»: prova tante misure vicine a quelle scelte e tiene quella con meno problemi e meno cambiamenti */
   const PESO = { porta: 60, pavimento: 30, lato: 25, tipi: 15, stabile: 10, lunga: 10, alta: 10, punta: 8, sporge: 6 };
   const dettaglio = (q) => q.type === "int" && /^(Lati(?! della base)|Spicchi|Facce|Dettaglio|Segmenti|Tratti)/.test(q.label);
   const passoInt = (q) => (/multiplo di 4/.test(q.label) ? 4 : /dispari/.test(q.label) ? 2 : 1);
@@ -1082,12 +1138,12 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     const d = def(S.shape), p0 = JSON.parse(JSON.stringify(S.base)), dim0 = Object.assign({}, S.dim);
     risolvendo = true; rendiRisultato();
     const pausa = () => new Promise(r => setTimeout(r, 0));
-    let base0 = null; try { base0 = valuta(p0, dim0); } catch (er) { /* misure che non si costruiscono: qualsiasi soluzione è meglio */ }
+    let base0 = null; try { base0 = valuta(p0, dim0); } catch (er) { /* */ }
     const pena0 = base0 ? base0.pena : Infinity, problemi = new Set(base0 ? base0.g.voci.filter(v => v.c === "ko" || v.c === "mid").map(v => v.k) : []);
     const area = haArea();
     const K = [1, 1.1, 1.2, 1.35, 1.5, 1.7, 2, 2.4, 2.9, 0.9, 0.8, 0.7].concat(area ? [0.6, 0.5, 0.42, 0.35] : []);
     const Hs = [1, 1.15, 1.3, 1.5, 1.8, 2.2, 2.7].concat(area ? [0.9, 0.8, 0.7, 0.6] : []);
-    const costoK = (k) => 25 * Math.abs(Math.log(k));
+    const costoK = (k) => 25 * Math.abs(Math.log(k)), costoH = (h) => costoK(h) + (S.lock && h !== 1 ? 60 : 0);
     let best = null, n = 0;
     const prova = async (p, dim, extra) => {
       let m; try { m = valuta(p, dim); } catch (er) { return; }
@@ -1096,8 +1152,6 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
       if (++n % 10 === 0) await pausa();
     };
     let kh = [1, 1];
-    // con «Mantieni le proporzioni» cambiare solo l'altezza costa di più: si fa solo se ingrandire o rimpicciolire tutto non basta
-    const costoH = (h) => costoK(h) + (S.lock && h !== 1 ? 60 : 0);
     for (const k of K) for (const h of Hs) { const b0 = best; await prova(p0, scalaDim(dim0, k, h), costoK(k) + costoH(h)); if (best !== b0) kh = [k, h]; }
     if (problemi.has("tipi") || problemi.has("lato") || problemi.has("punta"))
       for (const q of visibili(d, p0).filter(dettaglio)) for (let j = 1; j <= 3; j++) {
@@ -1111,10 +1165,10 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
       esito = { att: true, html: `<b>${ko ? "Non sono riuscito a renderla fattibile cambiando le misure." : "Non ho trovato misure migliori di queste."}</b><span>${ko ? (area ? "Con questa forma e quest'area di lavoro i problemi in rosso restano: prova un'altra forma, o un posto più grande." : "Con questa forma i problemi in rosso restano: prova un'altra forma.") : "I punti in giallo restano: si può fare lo stesso, con un po' di attenzione."}</span>${ko ? `<button type="button" class="btn" data-a="forma">Scegli un'altra forma</button>` : ""}` };
       rendiRisultato(); return;
     }
-    const cambi = ASSI.filter(([a]) => best.dim[a] !== dim0[a]).map(([a, L, nome]) => `<li>${L} (${nome}): ${metri(dim0[a])} → <b>${metri(best.dim[a])}</b></li>`)
+    const cambi = ASSI.filter(([a]) => Math.abs(best.dim[a] - dim0[a]) > 0.005).map(([a, L, nome]) => `<li>${L} (${nome}): ${metri(dim0[a])} → <b>${metri(best.dim[a])}</b></li>`)
       .concat(visibili(d, best.p).filter(q => JSON.stringify(best.p[q.key]) !== JSON.stringify(p0[q.key])).map(q => `<li>${esc(etichetta(q))}: ${esc(String(p0[q.key]))} → <b>${esc(String(best.p[q.key]))}</b></li>`));
     const c = best.m.g.c, prima = base0 ? persone(base0) : 0, dopo = persone(best.m);
-    const sbloccata = S.lock && Math.abs(best.dim.z / dim0.z - best.dim.x / dim0.x) > 0.02;   // ha cambiato le proporzioni: si toglie il blocco, e lo si dice
+    const sbloccata = S.lock && Math.abs(best.dim.z / dim0.z - best.dim.x / dim0.x) > 0.02;
     esito = { prima: { dim: dim0, base: p0, lock: S.lock }, att: c === "ko", html: `<b>${c === "ok" ? "Risolto: ora si può fare!" : c === "mid" ? "Risolto: ora si può fare, con qualche attenzione." : "Migliorata, ma non ancora fattibile."}</b><span>Ho cambiato:</span><ul>${cambi.join("")}</ul>${sbloccata ? `<span>Per riuscirci ho cambiato le proporzioni: «Mantieni le proporzioni» ora è spento.</span>` : ""}<span>Ci stanno ${prima === dopo ? `sempre circa ${dopo}` : `circa ${dopo} (prima ${prima})`} persone.</span><button type="button" class="btn" data-a="annulla">↶ Annulla, rimetti le misure di prima</button>` };
     if (sbloccata) S.lock = false;
     S.dim = best.dim; S.base = best.p; S.okModello = false; salva(); aggiornaBolla(true); rendiMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
@@ -1133,21 +1187,19 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
       [`${fmt(seam * 2.2, 0)}<small>m</small>`, "Nastro", `Le giunzioni sono lunghe in tutto ${fmt(seam, 0)} m: il nastro va dentro e fuori, quindi ne serve più del doppio. In più biadesivo per i margini.`],
       [`${porte}<small>${porte === 1 ? "cerniera" : "cerniere"}</small>`, "Cerniera per la porta", "Lunga almeno 1,9 m, con nastro di rinforzo ai due lati del taglio."],
       [`${fmt(Math.abs(cur.volume || 0), 0)}<small>m³ d'aria</small>`, "Ventilatore", "Un gonfiatore sempre acceso, con un tubo fissato vicino a terra. Deve restare acceso finché c'è qualcuno dentro."],
-      [`${plural(an.types.length, "dima", "dime")}`, "Pezzi da tracciare e tagliare", `${plural(cur.F.length, "pezzo", "pezzi")} in tutto, di ${plural(an.types.length, "tipo", "tipi")}, e ${plural(an.seams.length, "giunzione", "giunzioni")} da fare.`],
+      [`${plural(an.types.length, "dima", "dime")}`, "Pezzi da tracciare e tagliare", `${plural(cur.F.length, "pezzo", "pezzi")} in tutto, da ${plural(an.types.length, "dima", "dime")} (P1${an.types.length > 1 ? "…P" + an.types.length : ""}), e ${plural(an.seams.length, "giunzione", "giunzioni")} da fare.`],
       [`${fmt(ore, 1)}<small>ore</small>`, "Tempo e persone", "Meglio in 4–6 persone: due tracciano, due tagliano, gli altri preparano il nastro."],
       ["✎", "Attrezzi", "<ul><li>Metro a nastro rigido da 5 m</li><li>Un listello dritto e una squadra grande</li><li>Pennarello indelebile fine</li><li>Forbici grandi o cutter</li><li>Nastro di carta per fissare il telo a terra</li></ul>"],
       ["▢", "Spazio per tagliare", "Un pavimento pulito e piano, più grande del pezzo più lungo."],
     ];
     box.innerHTML = voci.map(([n, t, p]) => `<div class="mat lastra"><span class="n">${n}</span><b class="t">${t}</b><div>${p}</div></div>`).join("");
   }
-  $("materiali").addEventListener("input", e => { if (e.target.id !== "rotolo") return; const v = parseFloat(e.target.value); if (v >= 0.5 && v <= 20) { rotolo = v; try { localStorage.setItem("bolle|rotolo", v); } catch (er) { /* */ } clearTimeout(rendiMateriali.t); rendiMateriali.t = setTimeout(() => { rendiMateriali(); const el = $("rotolo"); if (el) { el.focus(); const n = el.value.length; try { el.setSelectionRange(n, n); } catch (er) { /* i campi numerici non hanno il cursore */ } } }, 500); } });
+  $("materiali").addEventListener("input", e => { if (e.target.id !== "rotolo") return; const v = parseFloat(e.target.value); if (v >= 0.5 && v <= 20) { rotolo = v; try { localStorage.setItem("bolle|rotolo", v); } catch (er) { /* */ } clearTimeout(rendiMateriali.t); rendiMateriali.t = setTimeout(() => { rendiMateriali(); const el = $("rotolo"); if (el) el.focus(); }, 600); } });
 
   RENDI.progettazione = () => { rendiArea(); linguetta(S.shape ? S.tab : "forme"); rendiRisultato(); rendiMateriali(); };
 
   /* ===================== 2 · DIMA / MODELLINO ===================== */
-  const A4 = { w: 190, h: 277, m: 5 };   // area stampabile in mm, margine tra i gruppi
-  /* lo sviluppo del motore (unfold) tiene attaccati più pezzi possibile; per il modellino si divide in gruppi che stanno
-     ciascuno in un foglio: si parte da un pezzo e si aggiungono i vicini attaccati finché il gruppo entra nel foglio */
+  const A4 = { w: 190, h: 277, m: 5 };
   function impagina(m, scala) {
     const { placed, islands, tree, edgeFaces } = m.unf, k = 1000 / scala, HU = A4.h - 14;
     const box = (faces) => { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -1174,7 +1226,6 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     }
     return { scala, pagine, isole, gruppo };
   }
-  // la scala: un modellino alto circa 15 cm, con il lato più corto di almeno 5 mm e non più di 8 fogli
   function sceltaScala(m) {
     const SC = [10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200], lmin = Math.min(...m.an.types.flatMap(t => t.C.map((p, i) => len2(sub2(t.C[(i + 1) % t.C.length], p)))));
     let primo = null;
@@ -1185,9 +1236,9 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     }
     return primo;
   }
+  const T8 = ["#2f6f5a", "#3b6fb6", "#b9631b", "#8a4fb0", "#b8434f", "#24868b", "#7d6f12", "#586370"];
   function foglioSVG(m, r, pg, n, tot, testo) {
     const { placed, edgeFaces } = m.unf, k = 1000 / r.scala, an = m.an, tree = m.unf.tree;
-    const T8 = ["#2f6f5a", "#3b6fb6", "#b9631b", "#8a4fb0", "#b8434f", "#24868b", "#7d6f12", "#586370"];
     let s = "";
     pg.forEach(is => {
       const P = (fi, i) => { const p = placed[fi].pts[i], x = p[0] * k - is.x0, y = p[1] * k - is.y0; return is.giro ? [is.ox + y, is.oy + (is.h - x)] : [is.ox + x, is.oy + (is.h - y)]; };
@@ -1204,12 +1255,12 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
             s += `<text x="${(mx + dx / dl * fz * 0.9).toFixed(2)}" y="${(my + dy / dl * fz * 0.9).toFixed(2)}" font-size="${fz.toFixed(2)}" fill="#c22f57" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="IBM Plex Mono, monospace">${no}</text>`; }
         });
         const fz = Math.max(1.8, Math.min(4, lato * 0.16));
-        s += `<text x="${c[0].toFixed(2)}" y="${c[1].toFixed(2)}" font-size="${fz.toFixed(2)}" fill="#111" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="IBM Plex Mono, monospace">${t.id}</text>`;
+        s += `<text x="${c[0].toFixed(2)}" y="${c[1].toFixed(2)}" font-size="${fz.toFixed(2)}" fill="#111" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="IBM Plex Mono, monospace">${nomeDima(t.type)}</text>`;
       });
     });
     s += `<line x1="0" y1="${A4.h - 6}" x2="50" y2="${A4.h - 6}" stroke="#111" stroke-width="0.5"/><line x1="0" y1="${A4.h - 8}" x2="0" y2="${A4.h - 4}" stroke="#111" stroke-width="0.5"/><line x1="50" y1="${A4.h - 8}" x2="50" y2="${A4.h - 4}" stroke="#111" stroke-width="0.5"/>`;
-    s += `<text x="25" y="${A4.h - 1.5}" font-size="2.4" text-anchor="middle" font-family="Montserrat, sans-serif" fill="#111">deve misurare 5 cm</text>`;
-    s += `<text x="${A4.w}" y="${A4.h - 5}" font-size="2.6" text-anchor="end" font-family="Montserrat, sans-serif" fill="#555">${esc(testo)} · foglio ${n} di ${tot}</text>`;
+    s += `<text x="25" y="${A4.h - 1.5}" font-size="2.4" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" fill="#111">deve misurare 5 cm</text>`;
+    s += `<text x="${A4.w}" y="${A4.h - 5}" font-size="2.6" text-anchor="end" font-family="IBM Plex Sans, sans-serif" fill="#555">${esc(testo)} · foglio ${n} di ${tot}</text>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${A4.w} ${A4.h}" width="${A4.w}mm" height="${A4.h}mm">${s}</svg>`;
   }
   function rendiModellino() {
@@ -1226,29 +1277,55 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   function stampa(html) { $("stampa").innerHTML = html; setTimeout(() => { print(); }, 50); }
   $("bStampaModello").addEventListener("click", () => { const r = cur && cur.stampa; if (!r) return; const testo = `${nomeForma(S.shape)} · scala 1:${r.scala}`; stampa(r.pagine.map((pg, i) => `<div class="pagina">${foglioSVG(cur, r, pg, i + 1, r.pagine.length, testo)}</div>`).join("")); });
 
-  function dimaSVG(C, colore) {
-    const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-    const W = 300, H = 190, pad = 26, k = Math.min((W - 2 * pad) / ((x1 - x0) || 1), (H - 2 * pad) / ((y1 - y0) || 1));
-    const P = (p) => [pad + (p[0] - x0) * k + ((W - 2 * pad) - (x1 - x0) * k) / 2, H - pad - (p[1] - y0) * k - ((H - 2 * pad) - (y1 - y0) * k) / 2];
-    const pts = C.map(P), cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
-    let s = `<polygon points="${pts.map(p => p.join(",")).join(" ")}" fill="${colore}" fill-opacity=".22" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>`;
-    s += `<line x1="${pts[0][0]}" y1="${pts[0][1]}" x2="${pts[1][0]}" y2="${pts[1][1]}" stroke="${colore}" stroke-width="3.5" stroke-linecap="round"/>`;
-    pts.forEach((p, i) => { const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1; s += `<text x="${p[0] + dx / d * 13}" y="${p[1] + dy / d * 13}" font-size="13" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="currentColor" font-family="IBM Plex Mono, monospace">${lettera(i)}</text>`; });
-    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Forma della dima, con le lettere degli angoli">${s}</svg>`;
+  /* la dima con le misure semplificate, anche per gli angoli non a 90°: la base A–B dritta, e ogni altro angolo
+     trovato con due misure da A: quanto si va lungo la base (il «piede», sotto la linea; negativo = a sinistra di A)
+     e quanto si sale dritto a 90° (l'altezza, in verde). Come si fa con metro e squadra sul telo. */
+  function dimaSVG(C, colore, stampa) {
+    const col = stampa ? { fondo: "#ffffff", griglia: "#e3e8e5", ink: "#111", muted: "#555", verde: "#2f8a68", rosso: "#c22f57" }
+      : { fondo: "var(--paper)", griglia: "var(--line-strong)", ink: "var(--ink)", muted: "var(--muted)", verde: "var(--green)", rosso: "var(--cut)" };
+    const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(0, ...xs), x1 = Math.max(...xs), y0 = Math.min(0, ...ys), y1 = Math.max(...ys);
+    const W = 460, H = 340, padX = 46, padT = 34, padB = 96, k = Math.min((W - 2 * padX) / ((x1 - x0) || 1), (H - padT - padB) / ((y1 - y0) || 1));
+    const ox = padX + ((W - 2 * padX) - (x1 - x0) * k) / 2 - x0 * k, oy = H - padB + y0 * k - (((H - padT - padB) - (y1 - y0) * k) / 2) * 0;
+    const P = (p) => [ox + p[0] * k, oy - p[1] * k];
+    const pts = C.map(P), A = pts[0], B = pts[1], f = (v) => v.toFixed(1);
+    let s = `<rect width="${W}" height="${H}" fill="${col.fondo}"/>`;
+    // la griglia, ogni 50 cm (come i quadretti del telo)
+    const passo = 0.5 * k; if (passo > 8) { for (let x = ox % passo; x < W; x += passo) s += `<line x1="${f(x)}" y1="0" x2="${f(x)}" y2="${H}" stroke="${col.griglia}" stroke-width="1"/>`; for (let y = oy % passo; y < H; y += passo) s += `<line x1="0" y1="${f(y)}" x2="${W}" y2="${f(y)}" stroke="${col.griglia}" stroke-width="1"/>`; }
+    // la base prolungata, tratteggiata
+    const xl = Math.min(A[0], ...pts.map(p => p[0])) - 22, xr = Math.max(B[0], ...pts.map(p => p[0])) + 22;
+    s += `<line x1="${f(xl)}" y1="${f(A[1])}" x2="${f(xr)}" y2="${f(A[1])}" stroke="${col.muted}" stroke-width="1.6" stroke-dasharray="7 6"/>`;
+    s += `<polygon points="${pts.map(p => p.map(f).join(",")).join(" ")}" fill="${colore}" fill-opacity=".2" stroke="${col.ink}" stroke-width="2.6" stroke-linejoin="round"/>`;
+    // per ogni altro angolo: la perpendicolare tratteggiata, il quadratino dell'angolo retto, l'altezza e il piede
+    C.slice(2).forEach((c, j) => {
+      const p = pts[j + 2], piede = [p[0], A[1]], su = c[1] >= 0 ? 1 : -1, q = 9;
+      s += `<line x1="${f(p[0])}" y1="${f(p[1])}" x2="${f(piede[0])}" y2="${f(piede[1])}" stroke="${col.verde}" stroke-width="1.8" stroke-dasharray="6 5"/>`;
+      s += `<polyline points="${f(piede[0] + q)},${f(piede[1])} ${f(piede[0] + q)},${f(piede[1] - q * su)} ${f(piede[0])},${f(piede[1] - q * su)}" fill="none" stroke="${col.verde}" stroke-width="1.6"/>`;
+      s += `<circle cx="${f(piede[0])}" cy="${f(piede[1])}" r="3.5" fill="${col.verde}"/>`;
+      if (Math.abs(c[1]) > 1e-4) s += `<text x="${f(p[0] + 6)}" y="${f((p[1] + piede[1]) / 2)}" font-size="14" font-weight="700" dominant-baseline="middle" fill="${col.verde}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="4">${cm(Math.abs(c[1]))}</text>`;
+      s += `<text x="${f(piede[0])}" y="${f(A[1] + 42 + (j % 2) * 15)}" font-size="12.5" text-anchor="middle" fill="${col.muted}" font-family="IBM Plex Mono, monospace">${fmt(c[0] * 100, 1)} cm</text>`;
+    });
+    // gli angoli: A e B in rosso sulla base, gli altri chiari, con la loro lettera fuori dal pezzo
+    const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+    pts.forEach((p, i) => {
+      const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1, base = i < 2;
+      s += `<circle cx="${f(p[0])}" cy="${f(p[1])}" r="6" fill="${base ? col.rosso : col.fondo}" stroke="${base ? col.rosso : col.ink}" stroke-width="2"/>`;
+      s += `<text x="${f(p[0] + dx / d * 18 + (base ? (i ? 10 : -10) : 0))}" y="${f(p[1] + (base ? 20 : dy / d * 18))}" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace">${lettera(i)}</text>`;
+    });
+    // la misura della base A–B, sotto
+    const yb = H - 14;
+    s += `<line x1="${f(A[0])}" y1="${yb}" x2="${f(B[0])}" y2="${yb}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(A[0])}" y1="${yb - 7}" x2="${f(A[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(B[0])}" y1="${yb - 7}" x2="${f(B[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/>`;
+    s += `<text x="${f((A[0] + B[0]) / 2)}" y="${yb}" font-size="14" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="6">AB ${cm(len2(sub2(C[1], C[0])))}</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="La dima con la base A–B e, per ogni altro angolo, il piede lungo la base e l'altezza">${s}</svg>`;
   }
-  const T8L = ["#2f6f5a", "#3b6fb6", "#b9631b", "#8a4fb0", "#b8434f", "#24868b", "#7d6f12", "#586370"];   // i colori dei pezzi sui riquadri chiari
   function schedaDima(t, i, perStampa) {
-    const C = t.C, n = C.length, colore = perStampa ? "#2f6f5a" : T8L[i % 8];
+    const C = t.C, n = C.length, colore = T8[i % 8];
     const lati = C.map((p, j) => `<tr><td>${lettera(j)}–${lettera((j + 1) % n)}</td><td class="num">${cm(len2(sub2(C[(j + 1) % n], p)))}</td></tr>`).join("");
-    const piede = (x) => (x < -0.0005 ? `${cm(-x)} a sinistra di A` : cm(x));
-    const punti = C.slice(2).map((p, j) => `<tr><td>${lettera(j + 2)}</td><td class="num">${piede(p[0])}</td><td class="num">${cm(p[1])}</td></tr>`).join("");
     const pav = t.floors > 0 ? " · è il pavimento" : "", spec = t.mirrorCount ? ` (${t.mirrorCount} girate al rovescio)` : "";
     const f = fatte();
-    return `<div class="dima lastra" style="--c:${colore}"><div class="dima-t"><i></i><h3>Pezzo ${i + 1}</h3><span class="hint">ne servono <b>${t.faces.length}</b>${spec}${pav}</span></div>
-      ${dimaSVG(C, colore)}
-      <table><tr><th>Lato</th><th>Lunghezza</th></tr>${lati}</table>
-      ${punti ? `<table><tr><th>Angolo</th><th>Piede da A</th><th>Altezza</th></tr>${punti}</table>` : ""}
-      <p class="hint">Codici delle copie: ${t.faces.map(fi => cur.an.faceInfo[fi].id).slice(0, 8).join(", ")}${t.faces.length > 8 ? "…" : ""}</p>
+    return `<div class="dima lastra" style="--c:${colore}"><div class="dima-t"><i></i><h3>${nomeDima(i)}</h3><span class="hint">ne servono <b>${t.faces.length}</b>${spec}${pav}</span></div>
+      ${dimaSVG(C, colore, perStampa)}
+      <p class="hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.</p>
+      <table><tr><th>Controllo: lato</th><th>Lunghezza</th></tr>${lati}</table>
       ${perStampa ? "" : `<label class="check"><input type="checkbox" data-dima="${i}"${f.dime.includes(i) ? " checked" : ""}> <span>Dima tracciata</span></label><label class="check"><input type="checkbox" data-taglio="${i}"${f.tagli.includes(i) ? " checked" : ""}> <span>Tutte le ${t.faces.length} copie tagliate</span></label>`}</div>`;
   }
   function rendiDime() { if (!cur) return; $("dime").innerHTML = cur.an.types.map((t, i) => schedaDima(t, i, false)).join(""); }
@@ -1257,11 +1334,11 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     const i = +(el.dataset.dima != null ? el.dataset.dima : el.dataset.taglio), at = lista.indexOf(i);
     if (el.checked && at < 0) lista.push(i); if (!el.checked && at >= 0) lista.splice(at, 1); salva();
   });
-  $("bStampaDime").addEventListener("click", () => { if (!cur) return; stampa(`<div style="font-family:Montserrat,sans-serif;color:#111;display:grid;grid-template-columns:1fr 1fr;gap:8mm;--paper:#f2f2f2;--rule:#ccc;--muted:#555;--lastra:#fff">${cur.an.types.map((t, i) => schedaDima(t, i, true)).join("")}</div>`); });
+  $("bStampaDime").addEventListener("click", () => { if (!cur) return; stampa(`<div style="font-family:IBM Plex Sans,sans-serif;color:#111;display:grid;grid-template-columns:1fr 1fr;gap:8mm;--card:#fff;--paper:#fff;--rule:#ccc;--muted:#555;--ink:#111">${cur.an.types.map((t, i) => schedaDima(t, i, true)).join("")}</div>`); });
   RENDI.dima = () => { rendiModellino(); rendiDime(); };
 
   /* ===================== 3 · COSTRUZIONE ===================== */
-  /* i due pezzi stesi a terra, accostati lungo il lato da unire: sopra quello già montato (o il primo), sotto l'altro */
+  /* i due pezzi stesi a terra, accostati lungo il lato da unire (in rosso), con il nome della dima: niente lettere agli angoli */
   function coppiaSVG(s, sopra, sotto, stato) {
     const V = cur.V, v1 = s.p.a, v2 = s.p.b, o = V[v1], ex = V3.norm(V3.sub(V[v2], o));
     const piano = (fi, lato) => {
@@ -1281,29 +1358,20 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     const dentroP = (Q, x, y) => { let c = false; for (let i = 0, j = Q.length - 1; i < Q.length; j = i++) if ((Q[i][1] > y) !== (Q[j][1] > y) && x < (Q[j][0] - Q[i][0]) * (y - Q[i][1]) / (Q[j][1] - Q[i][1]) + Q[i][0]) c = !c; return c; };
     const distLati = (Q, x, y) => Math.min(...Q.map((a, i) => { const b = Q[(i + 1) % Q.length], ab = [b[0] - a[0], b[1] - a[1]], L2 = ab[0] * ab[0] + ab[1] * ab[1] || 1, t = Math.max(0, Math.min(1, ((x - a[0]) * ab[0] + (y - a[1]) * ab[1]) / L2)); return Math.hypot(x - a[0] - ab[0] * t, y - a[1] - ab[1] * t); }));
     [[sopra, A], [sotto, B]].forEach(([fi, P], w) => {
-      const inf = cur.an.faceInfo[fi], col = T8L[inf.type % 8], Q = P.map(T), f = cur.F[fi];
+      const inf = cur.an.faceInfo[fi], col = T8[inf.type % 8], Q = P.map(T);
       const qx = Q.map(p => p[0]), qy = Q.map(p => p[1]); let cx = qx.reduce((a, v) => a + v, 0) / Q.length, cy = qy.reduce((a, v) => a + v, 0) / Q.length, bd = dentroP(Q, cx, cy) ? distLati(Q, cx, cy) : -1;
       for (let gx = 1; gx < 24; gx++) for (let gy = 1; gy < 24; gy++) { const x = Math.min(...qx) + (Math.max(...qx) - Math.min(...qx)) * gx / 24, y = Math.min(...qy) + (Math.max(...qy) - Math.min(...qy)) * gy / 24;
         if (!dentroP(Q, x, y)) continue; const d = distLati(Q, x, y); if (d > bd * 1.15) { bd = d; cx = x; cy = y; } }
-      let a2 = 0; Q.forEach((p, i) => { const q = Q[(i + 1) % Q.length]; a2 += p[0] * q[1] - q[0] * p[1]; });
       svg += `<polygon points="${Q.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" style="fill:${col};fill-opacity:.2;stroke:${col};stroke-width:2.5;stroke-linejoin:round"/>`;
-      Q.forEach((p, i) => {
-        const a = Q[(i - 1 + Q.length) % Q.length], b = Q[(i + 1) % Q.length], la = Math.hypot(a[0] - p[0], a[1] - p[1]) || 1, lb = Math.hypot(b[0] - p[0], b[1] - p[1]) || 1;
-        let dx = (a[0] - p[0]) / la + (b[0] - p[0]) / lb, dy = (a[1] - p[1]) / la + (b[1] - p[1]) / lb, d = Math.hypot(dx, dy);
-        if (d < 1e-6) { dx = -(b[1] - p[1]) / lb; dy = (b[0] - p[0]) / lb; d = 1; }
-        const rientra = Math.sign((p[0] - a[0]) * (b[1] - p[1]) - (p[1] - a[1]) * (b[0] - p[0])) !== Math.sign(a2);
-        if (rientra) { dx = -dx; dy = -dy; }
-        const r = Math.max(9, Math.min(19, Math.min(la, lb) * 0.4)), suLato = f[i] === v1 || f[i] === v2;
-        svg += `<text x="${(p[0] + dx / d * r).toFixed(1)}" y="${(p[1] + dy / d * r).toFixed(1)}" font-size="${suLato ? 17 : 13}" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="fill:${suLato ? "var(--cut)" : "var(--muted)"}" font-family="IBM Plex Mono, monospace">${lettera(inf.letters[i])}</text>`;
-      });
-      svg += `<text x="${cx.toFixed(1)}" y="${(cy + (w ? 6 : -6)).toFixed(1)}" font-size="20" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="fill:var(--ink)" font-family="IBM Plex Mono, monospace">${inf.id}</text>`;
+      svg += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" font-size="24" font-weight="800" text-anchor="middle" dominant-baseline="middle" style="fill:var(--ink)" font-family="Bricolage Grotesque, sans-serif">${nomeDima(inf.type)}</text>`;
       const yy = w ? Math.max(...Q.map(p => p[1])) + 18 : Math.min(...Q.map(p => p[1])) - 14;
-      svg += `<text x="${cx.toFixed(1)}" y="${yy.toFixed(1)}" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle" style="fill:var(--muted)" font-family="Montserrat, sans-serif">${inf.id} · ${stato[w]}</text>`;
+      svg += `<text x="${cx.toFixed(1)}" y="${yy.toFixed(1)}" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle" style="fill:var(--muted)" font-family="IBM Plex Sans, sans-serif">${stato[w]}</text>`;
     });
     const a = T([0, 0]), b = T([V3.len(V3.sub(V[v2], o)), 0]);
     svg += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" style="stroke:var(--cut);stroke-width:5;stroke-linecap:round"/>`;
     return `<svg class="coppia" viewBox="0 0 ${W} ${H}" role="img" aria-label="I due pezzi accostati lungo il lato da unire, in rosso">${svg}</svg>`;
   }
+  let infoAperta = false;   // il pannello «Info» resta come lo si è lasciato, da una giunzione all'altra
   function rendiMontaggio() {
     if (!cur) return;
     const an = cur.an, N = an.seams.length, f = fatte();
@@ -1312,27 +1380,26 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
     const montati = new Set(); an.seams.slice(0, giuntaQui).forEach(x => { montati.add(x.p.fi); montati.add(x.q.fi); });
     const mp = montati.has(s.p.fi), mq = montati.has(s.q.fi);
     const [sopra, sotto] = mq && !mp ? [s.q.fi, s.p.fi] : [s.p.fi, s.q.fi];
-    const let_ = (fi, v) => lettera(an.faceInfo[fi].letters[cur.F[fi].indexOf(v)]);
-    const pz = (fi) => { const inf = an.faceInfo[fi]; return `<span class="pezzo" style="--c:${T8L[inf.type % 8]}"><i></i>${inf.id}</span>`; };
-    const v1 = s.p.a, v2 = s.p.b;
+    const pz = (fi) => { const inf = an.faceInfo[fi]; return `<span class="pezzo" style="--c:${T8[inf.type % 8]}"><i></i>${nomeDima(inf.type)}</span>`; };
     const stato = mp && mq ? ["già nella bolla", "già nella bolla"] : mp || mq ? ["già nella bolla", "pezzo nuovo"] : ["pezzo nuovo", "pezzo nuovo"];
     const prendi = mp && mq ? `I pezzi ${pz(sopra)} e ${pz(sotto)} sono <b>già tutti e due nella bolla</b>: ora si chiude il lato tra loro.`
-      : mp || mq ? `Prendi il <b>pezzo nuovo</b> ${pz(sotto)} e attaccalo a ${pz(sopra)}, che è <b>già nella bolla</b>.`
-      : `Prendi <b>due pezzi nuovi</b>: ${pz(sopra)} e ${pz(sotto)}.`;
+      : mp || mq ? `Prendi un <b>pezzo nuovo</b> ${pz(sotto)} e attaccalo al pezzo ${pz(sopra)} che è <b>già nella bolla</b>.`
+      : `Prendi <b>due pezzi nuovi</b>: un ${pz(sopra)} e un ${pz(sotto)}.`;
     const fase = s.floor ? "Prima il pavimento e le pareti basse" : "Ora le pareti, dal basso verso l'alto";
-    $("giunta").innerHTML = `<span class="occhiello">${fase}</span>
-      <h3>Giunzione <span class="num">${s.no}</span> di <span class="num">${N}</span></h3>
-      <ol class="passi">
-        <li><div><b>Trova i pezzi</b><span>${prendi}</span></div></li>
-        <li><div><b>Accostali come nel disegno</b><span>Il lato rosso di un pezzo contro il lato rosso dell'altro. È lungo <b class="num">${metri(s.len)}</b>.</span></div></li>
-        <li><div><b>Controlla gli angoli</b><span>Si devono toccare <b class="lt">${let_(sopra, v1)}</b> con <b class="lt">${let_(sotto, v1)}</b> e <b class="lt">${let_(sopra, v2)}</b> con <b class="lt">${let_(sotto, v2)}</b>. Se non tornano, hai preso il lato sbagliato o un pezzo rovesciato.</span></div></li>
-        <li><div><b>Unisci il lato</b><span>Nastro biadesivo nel margine, poi nastro trasparente sopra, dentro e fuori.</span></div></li>
-      </ol>
-      <details class="codici"><summary>Come leggere i codici e le lettere</summary><p class="hint">Il codice <b>${an.faceInfo[sotto].id}</b> vuol dire pezzo di tipo <b>${an.faceInfo[sotto].type + 1}</b> (la dima ${an.faceInfo[sotto].type + 1}), copia numero <b>${an.faceInfo[sotto].copy + 1}</b>: è quello che hai scritto sul pezzo quando l'hai tagliato. Le lettere sono gli angoli, scritti anche loro sul pezzo, come sulla dima.</p></details>
+    $("giunta").innerHTML = `<div class="giunta-testa"><div><span class="occhiello">${fase}</span><h3>Giunzione <span class="num">${s.no}</span> di <span class="num">${N}</span></h3></div>
+        <div class="btnrow"><button type="button" class="btn" id="gPrima"${giuntaQui === 0 ? " disabled" : ""} aria-label="Giunzione prima">←</button><button type="button" class="btn primary big" id="gFatta">${fatta ? "Fatta ✓ · avanti" : "Fatta! Avanti"}</button><button type="button" class="btn" id="gDopo"${giuntaQui >= N - 1 ? " disabled" : ""} aria-label="Giunzione dopo">→</button></div></div>
+      <div id="coppia">${coppiaSVG(s, sopra, sotto, stato)}</div>
+      <details class="info" id="infoGiunta"${infoAperta ? " open" : ""}><summary><i aria-hidden="true">i</i>Info: come si fa questa giunzione</summary><div class="info-corpo">
+        <ol class="passi">
+          <li><div><b>Trova i pezzi</b><span>${prendi}</span></div></li>
+          <li><div><b>Accostali come nel disegno</b><span>Il lato rosso di un pezzo contro il lato rosso dell'altro: sono lunghi uguali, <b class="num">${metri(s.len)}</b>. I pezzi devono combaciare come nel disegno, senza girarne uno.</span></div></li>
+          <li><div><b>Unisci il lato</b><span>Nastro biadesivo nel margine, poi nastro trasparente sopra, dentro e fuori.</span></div></li>
+        </ol>
+        <p class="hint">Ogni pezzo ha il nome della sua dima (P1, P2…), scritto quando l'hai tagliato. Nel simulatore e nel disegno 3D qui sotto vedi dove va nella bolla.</p>
+      </div></details>
       <div class="prog"><div style="width:${f.giunte.length / N * 100}%"></div></div>
-      <p class="hint">${plural(f.giunte.length, "giunzione fatta", "giunzioni fatte")} su ${N}</p>
-      <div class="btnrow"><button type="button" class="btn" id="gPrima"${giuntaQui === 0 ? " disabled" : ""} aria-label="Giunzione prima">←</button><button type="button" class="btn primary big" id="gFatta">${fatta ? "Fatta ✓ · avanti" : "Fatta! Avanti"}</button><button type="button" class="btn" id="gDopo"${giuntaQui >= N - 1 ? " disabled" : ""} aria-label="Giunzione dopo">→</button></div>`;
-    $("coppia").innerHTML = coppiaSVG(s, sopra, sotto, stato);
+      <p class="hint">${plural(f.giunte.length, "giunzione fatta", "giunzioni fatte")} su ${N}</p>`;
+    $("infoGiunta").addEventListener("toggle", e => { infoAperta = e.target.open; });
     const P = porteForma(cur.V, cur.F, S.shape), hp = P ? Math.max(0, P.h - 0.15) : 0;
     $("porta").textContent = `Alla fine taglia la porta: un taglio verticale in un pannello basso, dove la bolla è più alta (qui fino a ${metri(Math.min(hp, 2))}). Fissa la cerniera ai due bordi del taglio, con nastro o saldatura, e rinforzali con il nastro. La porta è anche l'uscita: deve aprirsi facilmente.`;
     vista("cvMontaggio", () => cur && { m: cur, o: { hl: [s.p.fi, s.q.fi], lato: s.key.split("_").map(Number) } });
@@ -1341,8 +1408,9 @@ dialog.parole::backdrop { background: rgba(10, 12, 14, .6); }
   $("giunta").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b || !cur) return; const an = cur.an, f = fatte();
     if (b.id === "gPrima") giuntaQui = Math.max(0, giuntaQui - 1);
-    if (b.id === "gDopo") giuntaQui = Math.min(an.seams.length - 1, giuntaQui + 1);
-    if (b.id === "gFatta") { const no = an.seams[giuntaQui].no; if (!f.giunte.includes(no)) f.giunte.push(no); salva(); if (giuntaQui < an.seams.length - 1) giuntaQui++; else { document.querySelector("#sicurezza").scrollIntoView({ behavior: ridotto ? "auto" : "smooth", block: "center" }); } }
+    else if (b.id === "gDopo") giuntaQui = Math.min(an.seams.length - 1, giuntaQui + 1);
+    else if (b.id === "gFatta") { const no = an.seams[giuntaQui].no; if (!f.giunte.includes(no)) f.giunte.push(no); salva(); if (giuntaQui < an.seams.length - 1) giuntaQui++; else $("sicurezza").scrollIntoView({ behavior: ridotto ? "auto" : "smooth", block: "center" }); }
+    else return;
     rendiMontaggio();
   });
   const SICUREZZA = [
