@@ -1294,6 +1294,7 @@ function porteForma(V, F, id) {
 const gFmt = (x, d) => Number(x.toFixed(d)).toLocaleString("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d });
 const gMetri = (x) => (Math.abs(x) < 1 ? gFmt(x * 100, 0) + " cm" : gFmt(x, 2) + " m");
 const gPlur = (n, uno, tanti) => `${n} ${n === 1 ? uno : tanti}`;
+const M2_PERSONA = 1.5;   // lo spazio vitale: ogni persona dentro la bolla ha almeno 1,5 m² di pavimento
 /* si può fare? Porta, pavimento, quantità di lavoro, pezzi difficili, stabilità, modellino; le stesse soglie dell'Abbofficina dove ci sono.
    m: una forma costruita (buildShape + an = analyze); p: i suoi parametri; o: { scala del modellino, id della forma (per le porte) }.
    Ogni voce ha c (ok, mid, ko, info), t (il testo) e k (di che cosa parla: porta, pavimento, tipi, lato, punta, stabile, sporge, lunga, alta, modellino, telo). */
@@ -1311,7 +1312,7 @@ function giudizioForma(m, p, o) {
   }
   const A = m.floorArea || 0;
   if (A < 1.5) add("ko", `Pavimento di ${gFmt(A, 1)} m²: troppo piccolo per entrarci.`, "pavimento");
-  else add(A < 4 ? "mid" : "ok", `Pavimento di ${gFmt(A, 1)} m²: ci stanno in piedi circa ${Math.max(1, Math.floor(A / 0.8))} persone.`, "pavimento");
+  else add(A < 4 ? "mid" : "ok", `Pavimento di ${gFmt(A, 1)} m²: ci stanno circa ${Math.max(1, Math.floor(A / M2_PERSONA + 1e-9))} persone, con almeno ${gFmt(M2_PERSONA, 1)} m² di spazio a testa.`, "pavimento");
   const nt = an.types.length, nf = m.F.length, meno = !foto ? "i lati o gli spicchi (meno pezzi diversi)" : p.modo === "tonda" ? "il dettaglio o i lati attorno" : "il dettaglio del contorno";
   if (nt <= 25) add("ok", `${gPlur(nf, "pezzo", "pezzi")} di ${gPlur(nt, "tipo", "tipi")}: un lavoro alla portata.`, "tipi");
   else add("mid", `${gPlur(nf, "pezzo", "pezzi")} di ${nt} tipi diversi: ogni tipo è una sagoma da tracciare a parte. Per meno lavoro abbassate ${meno}.`, "tipi");

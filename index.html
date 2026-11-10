@@ -89,14 +89,10 @@ select option { background: var(--card); color: var(--ink); }
 .tappe .sep { width: 18px; height: 1.5px; background: var(--rule); flex: none; }
 .testa-az { flex: none; display: flex; align-items: center; gap: 8px; }
 .testa-az .btn { min-height: 38px; padding: 6px 12px; font-size: .85rem; }
-nav.app { flex: none; display: flex; gap: 2px; padding: 3px; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
-nav.app a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 7px; font-size: .86rem; font-weight: 600; line-height: 1; color: var(--muted); text-decoration: none; white-space: nowrap; min-height: 34px; }
-nav.app a[href]:hover { color: var(--ink); background: var(--green-soft); }
-nav.app a[aria-current] { background: var(--green); color: var(--card); cursor: default; }
 .barra { height: 3px; background: var(--rule); }
 .barra div { height: 100%; width: 0; background: var(--green); transition: width .3s; }
 @media (max-width: 1100px) { .tappe button:not([aria-current="step"]) span { display: none; } }
-@media (max-width: 720px) { .marchio b { display: none; } nav.app a span, .testa-az .btn span { display: none; } .tappe .sep { width: 8px; } }
+@media (max-width: 720px) { .marchio b { display: none; } .testa-az .btn span { display: none; } .tappe .sep { width: 8px; } }
 @media (max-width: 520px) { .tappe button span { display: none !important; } .testa-in { gap: 8px; } }
 
 /* il corpo: a sinistra le tappe, al centro la tendina, a destra il simulatore sempre in vista */
@@ -108,14 +104,21 @@ nav.app a[aria-current] { background: var(--green); color: var(--card); cursor: 
 .divisore:hover::before, .divisore:focus-visible::before, body.trascina .divisore::before { background: var(--green); }
 body.trascina, body.trascina * { cursor: col-resize !important; user-select: none; }
 body.trascina iframe { pointer-events: none; }
-.simpane { position: sticky; top: var(--testa); height: calc(100vh - var(--testa)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; padding: 12px 14px 14px 4px; min-width: 0; }
-.sim-testa { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.simpane { position: sticky; top: var(--testa); height: calc(100vh - var(--testa)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 0; padding: 12px 14px 14px 4px; min-width: 0; }
+.sim-testa { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.sim-stato { padding-bottom: 6px; }
+.sim-nota { padding-top: 8px; }
 .sim-testa h2 { font-size: 1.15rem; letter-spacing: .02em; }
+/* la finestra con due linguette: Simulatore (l'Abbofficina) e Schema (il disegno 3D dei pezzi) */
+.sim-linguette { display: flex; gap: 4px; align-items: flex-end; }
+.sim-linguette button { font: 700 .95rem var(--display); color: var(--muted); background: var(--mat); border: 0; border-radius: 10px 10px 0 0; padding: 8px 16px 7px; cursor: pointer; min-height: 38px; }
+.sim-linguette button[aria-selected="true"] { background: var(--card); color: var(--green); box-shadow: 0 -1px 0 var(--rule) inset; }
+.sim-linguette button small { font: 500 .7rem var(--body); color: var(--muted); margin-left: 4px; }
 .sim-stato { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: .86rem; }
 .sim-stato .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--rule); font-weight: 600; white-space: nowrap; }
 .sim-stato .pill i { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .72rem; color: var(--card); background: var(--muted); }
 .sim-stato .pill.ok i { background: var(--green); } .sim-stato .pill.mid i { background: var(--amber); } .sim-stato .pill.ko i { background: var(--cut); }
-.sim-scena { position: relative; border-radius: var(--r-l); overflow: hidden; background: var(--card); box-shadow: var(--shadow); min-height: 0; }
+.sim-scena { position: relative; border-radius: 4px var(--r-l) var(--r-l) var(--r-l); overflow: hidden; background: var(--card); box-shadow: var(--shadow); min-height: 0; }
 .sim-scena iframe, .sim-scena canvas { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
 .sim-scena canvas { cursor: grab; touch-action: none; }
 .sim-vuoto { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted); background: color-mix(in srgb, var(--card) 88%, transparent); }
@@ -287,7 +290,17 @@ details.info .info-corpo { padding: 4px 16px 16px; display: grid; gap: 12px; }
 .pezzo i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
 .prog { height: 10px; background: var(--rule); border-radius: 999px; overflow: hidden; }
 .prog div { height: 100%; background: var(--green); width: 0; transition: width .3s; }
-.montaggio-3d canvas { aspect-ratio: 16 / 9; }
+/* FAQ: una domanda per riga, si apre con un clic */
+.faq { display: grid; gap: 10px; max-width: 860px; width: 100%; justify-self: center; }
+.faq details { background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow); }
+.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-weight: 600; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::before { content: "?"; width: 28px; height: 28px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: grid; place-items: center; font: 800 .95rem var(--display); flex: none; }
+.faq summary::after { content: "+"; margin-left: auto; font: 700 1.3rem var(--mono); color: var(--muted); }
+.faq details[open] summary::after { content: "−"; }
+.faq .risposta { padding: 0 18px 16px 58px; display: grid; gap: 6px; color: var(--ink); }
+.faq .risposta ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.faq h3 { font-size: 1.05rem; color: var(--muted); margin-top: 10px; }
 .fine { text-align: center; justify-items: center; padding: 34px 22px; }
 .fine .grande { font-size: 3.2rem; line-height: 1; }
 
@@ -324,10 +337,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <nav class="tappe" id="tappe" aria-label="Le tre tappe"></nav>
     <div class="testa-az">
       <button type="button" class="btn" id="bParole" title="Le parole della bolla, spiegate"><b aria-hidden="true">?</b><span>Parole</span></button>
-      <nav class="app" aria-label="Officina delle Bolle">
-        <a aria-current="page" title="Officina: progetta la bolla, il modellino, le dime e la costruzione"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 15.5 10 3l7 12.5z"/><path d="M10 3v12.5M3 15.5l7-4 7 4"/></svg><span>Officina</span></a>
-        <a href="configuratore/" id="vaiConf" aria-label="Abbofficina" title="Abbofficina: più bolle collegate, aria, persone e costi"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="11" r="4.5"/><circle cx="14.5" cy="8" r="3.5"/></svg><span>Abbofficina</span></a>
-      </nav>
     </div>
   </div>
   <div class="barra"><div id="barra"></div></div>
@@ -436,20 +445,30 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   <div class="blocco">
     <header class="titolone"><span class="occhiello">Tappa 3 · Costruzione</span><h2>Il montaggio</h2><p>Una giunzione alla volta: prima il pavimento, poi dal basso verso l'alto.</p></header>
     <div class="card giunta" id="giunta"></div>
-    <figure class="vista montaggio-3d" style="margin:0"><canvas id="cvMontaggio" aria-label="La bolla in 3D con i due pezzi da unire colorati e il lato in rosso"></canvas><figcaption>Dove sono nella bolla: in colore i due pezzi, in rosso il lato · trascina per girarla</figcaption></figure>
+    <p class="hint" style="text-align:center">Nello <b>Schema</b>, a destra, vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
     <div class="box-info"><b>La porta</b><span id="porta"></span></div>
   </div>
+</section>
+
+<!-- 4 · Si gonfia: la fine, e le domande frequenti -->
+<section class="tappa" data-t="gonfia" hidden>
   <div class="blocco">
-    <header class="titolone"><h2>Si gonfia</h2><p>Prima di accendere il ventilatore, controllate insieme questa lista.</p></header>
-    <div class="due">
-      <div class="card"><h3>Sicurezza</h3><div id="sicurezza" style="display:grid;gap:10px"></div></div>
-      <div class="card fine">
-        <div class="grande" aria-hidden="true">✦</div>
-        <h2>Ce l'hai fatta!</h2>
-        <p>Accendi il ventilatore e guarda la bolla prendere forma. Ricorda: sta su finché il ventilatore soffia.</p>
-        <div class="btnrow" style="justify-content:center"><button type="button" class="btn primary" id="bAltra">Fai un'altra bolla</button></div>
-      </div>
+    <header class="titolone"><span class="occhiello">Ultima tappa</span><h2>Si gonfia!</h2><p>La bolla è montata: adesso si accende il ventilatore.</p></header>
+    <div class="card fine">
+      <div class="grande" aria-hidden="true">✦</div>
+      <h2>Ce l'hai fatta!</h2>
+      <ol class="passi" style="text-align:left;max-width:60ch">
+        <li><div><b>Libera la porta</b><span class="hint">Davanti non ci deve essere niente: la porta è anche l'uscita.</span></div></li>
+        <li><div><b>Accendi il ventilatore</b><span class="hint">La bolla si alza in pochi minuti. Sta su finché il ventilatore soffia: lascialo sempre acceso finché c'è qualcuno dentro.</span></div></li>
+        <li><div><b>Entra quando è tesa</b><span class="hint">Una persona resta fuori a controllare. Dentro niente oggetti appuntiti, meglio senza scarpe.</span></div></li>
+      </ol>
+      <p class="hint">Se qualcosa non va, guarda qui sotto: ci sono i problemi più comuni e come si risolvono.</p>
+      <div class="btnrow" style="justify-content:center"><button type="button" class="btn primary" id="bAltra">Fai un'altra bolla</button></div>
     </div>
+  </div>
+  <div class="blocco">
+    <header class="titolone"><h2>FAQ</h2><p>Le domande più frequenti: tocca un problema per leggere come si risolve.</p></header>
+    <div class="faq" id="faq"></div>
   </div>
 </section>
 
@@ -457,15 +476,18 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
 <button type="button" class="divisore" id="divisore" role="separator" aria-orientation="vertical" aria-label="Allarga o stringi il simulatore (trascina, o usa le frecce)" title="Trascina per allargare o stringere il simulatore · doppio clic: metà e metà"><span></span></button>
 
-<aside class="simpane" id="simpane" aria-label="Simulatore">
+<aside class="simpane" id="simpane" aria-label="Simulatore e schema">
   <div class="sim-testa">
-    <h2>Simulatore</h2>
+    <div class="sim-linguette" role="tablist" aria-label="Simulatore e schema">
+      <button type="button" role="tab" id="tabSim" aria-controls="simScena" aria-selected="true">Simulatore</button>
+      <button type="button" role="tab" id="tabSchema" aria-controls="simScena" aria-selected="false">Schema</button>
+    </div>
     <div class="sim-stato" id="simStato"></div>
     <button type="button" class="btn riduci" id="bRiduci" aria-expanded="true">Riduci</button>
   </div>
-  <div class="sim-scena" id="simScena">
+  <div class="sim-scena" id="simScena" role="tabpanel">
     <iframe id="vetrina" title="Il simulatore: la bolla nell'Abbofficina, con i gonfiatori e le persone" src="configuratore/index.html?vetrina=1" loading="eager"></iframe>
-    <canvas id="cvSim" hidden aria-label="La tua bolla in 3D, con una persona alta 1,75 m. Trascina per girarla."></canvas>
+    <canvas id="cvSchema" hidden aria-label="Lo schema della bolla in 3D: i pezzi colorati per dima. Trascina per girarla."></canvas>
     <div class="sim-vuoto" id="simVuoto"><p>Scegli una forma nella tappa Progettazione: qui la vedi gonfiarsi, alla sua grandezza vera.</p></div>
   </div>
   <p class="sim-nota" id="simNota">Trascina per girare la vista · rotella per avvicinarti</p>
@@ -527,6 +549,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const rgb = (c) => { c = c.trim(); if (c[0] === "#") { const h = c.length === 4 ? c.slice(1).split("").map(x => x + x).join("") : c.slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); } const m = c.match(/\d+/g); return m ? m.slice(0, 3).map(Number) : [120, 120, 120]; };
   const tinta = (t, el) => css(`--t${(t % 8) + 1}`, el);
   const nomeDima = (t) => "P" + (t + 1);   // ogni dima si chiama P e il suo numero: P1, P2, P3…
+  const M2P = typeof M2_PERSONA === "number" ? M2_PERSONA : 1.5;   // lo spazio vitale a persona (motore.js)
 
   /* ---------- le parole ---------- */
   const PAROLE = {
@@ -537,12 +560,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     dima: ["Dima", "Il pezzo campione, tracciato con cura una volta sola. Ci si appoggia sopra il telo per tagliare tutte le copie uguali. Ognuna ha un nome: P1, P2, P3…"],
     giunzione: ["Giunzione", "Il lato lungo cui due pezzi si uniscono, con nastro o saldatura. Il sito le numera nell'ordine in cui farle."],
     telo: ["Telo", "La plastica trasparente di cui è fatta la bolla. Si compra a rotoli: la larghezza del rotolo decide quanti metri servono."],
-    pavimento: ["Pavimento", "La parte che appoggia a terra. Conta per sapere quante persone ci stanno: circa 0,8 m² a persona, in piedi."],
+    pavimento: ["Pavimento", "La parte che appoggia a terra. Conta per sapere quante persone ci stanno: ognuna deve avere almeno 1,5 m² di spazio vitale."],
     modellino: ["Modellino", "La bolla in piccolo, di carta, fatta con gli stessi pezzi rimpiccioliti. Serve a controllare che tutto si chiuda prima di tagliare la plastica."],
     scala: ["Scala", "Quante volte il modellino è più piccolo della bolla vera. Scala 1:20 vuol dire che 1 cm del modellino è 20 cm della bolla."],
     gonfiatore: ["Gonfiatore (ventilatore)", "Il ventilatore che soffia aria nella bolla. Deve restare acceso finché c'è qualcuno dentro."],
     pianta: ["Pianta", "La bolla vista dall'alto, come in una mappa: il contorno della pianta è la forma del pavimento."],
-    simulatore: ["Simulatore", "La parte destra dello schermo: è l'Abbofficina, che mostra la tua bolla mentre la progetti, con i gonfiatori e le persone. Trascina la tendina al centro per allargarlo."],
+    simulatore: ["Simulatore", "La finestra a destra: è l'Abbofficina, che mostra la tua bolla mentre la progetti, con i gonfiatori e le persone. Trascina la tendina al centro per allargarla."],
+    schema: ["Schema", "L'altra linguetta della finestra a destra: la bolla disegnata pezzo per pezzo, colorata per dima. Mentre la costruisci mostra i pezzi già montati, i lati già uniti in bianco e quello da fare in rosso."],
   };
   function apriParole(k) {
     $("paroleLista").innerHTML = Object.entries(PAROLE).map(([id, [t, d]]) => `<dt id="pa-${id}"${id === k ? ' class="qui"' : ""}>${t}</dt><dd>${d}</dd>`).join("");
@@ -621,7 +645,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   // una forma appena scelta parte grande per 12 persone, e se non entra nell'area si rimpicciolisce finché ci sta
   function dimIniziali(id, p, vere) {
     const b = base(id, p);
-    const k = vere ? 1 : (b.m.floorArea > 1e-6 ? Math.sqrt(12 * 0.8 / b.m.floorArea) : 1);
+    const k = vere ? 1 : (b.m.floorArea > 1e-6 ? Math.sqrt(12 * M2P / b.m.floorArea) : 1);
     // le forme disegnate in pianta si allargano solo in pianta: le pareti restano alte uguali
     let dim = { x: r2(b.w * k), y: r2(b.d * k), z: r2(b.h * (def(id).kind === "extrude" ? 1 : k)) };
     if (!entra(dim)) {
@@ -631,7 +655,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     return dim;
   }
-  const persone = (m) => Math.max(0, Math.floor((m.floorArea || 0) / 0.8 + 1e-9));
+  const persone = (m) => Math.max(0, Math.floor((m.floorArea || 0) / M2P + 1e-9));   // almeno 1,5 m² di spazio vitale a testa
   function giudica(m, p) {   // il giudizio del motore, più l'area di lavoro
     const g = giudizioForma(m, p, { scala: m.stampa ? m.stampa.scala : 20, id: m.id });
     if (haArea()) {
@@ -694,7 +718,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const T = (p) => { const x = p[0] - mx, y = p[1] - my, z = p[2] - zc, x1 = x * cy - y * sy, y1 = x * sy + y * cy; return [x1, y1 * cp - z * sp, y1 * sp + z * cp]; };
     const S2 = (q) => [ox + q[0] * sc, oy - q[2] * sc];
     const tv = V.map(T), L = V3.norm([-0.45, -0.75, 0.5]), ink = css("--ink", cv), grey = rgb(css("--muted", cv));
-    const hl = o.hl ? new Set(o.hl) : null;
+    const hl = o.hl ? new Set(o.hl) : null, montati = o.montati || null;
+    // i lati già uniti (montaggio): si disegnano in bianco subito dopo la loro faccia, così quelli dietro restano coperti
+    const fattiDi = new Map(); (o.fatti || []).forEach(([a, b, f1, f2]) => [f1, f2].forEach(fi => (fattiDi.get(fi) || fattiDi.set(fi, []).get(fi)).push([a, b])));   // [vertice, vertice, faccia, faccia]
+    const vivo = (fi) => !hl || hl.has(fi) || (montati && montati.has(fi));
     const spigoliBox = () => { const out = []; if (!box) return out; const p = box.p; for (let i = 0; i < 4; i++) { const a = p[i], b = p[(i + 1) % 4]; out.push([[a[0], a[1], 0], [b[0], b[1], 0]]); if (box.z) { out.push([[a[0], a[1], box.z], [b[0], b[1], box.z]]); out.push([[a[0], a[1], 0], [a[0], a[1], box.z]]); } } return out; };
     const tratteggio = (davanti) => { ctx.save(); ctx.strokeStyle = box.ok ? css("--muted", cv) : css("--cut", cv); ctx.lineWidth = 1.6 * dpr; ctx.setLineDash([6 * dpr, 5 * dpr]);
       spigoliBox().forEach(([a, b]) => { const ta = T(a), tb = T(b); if (davanti !== null && ((ta[1] + tb[1]) / 2 < 0) !== davanti) return; const p = S2(ta), q = S2(tb); ctx.globalAlpha = davanti ? 0.9 : 0.4; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }); ctx.restore(); };
@@ -704,11 +731,17 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       .forEach(({ fi, p, n }) => {
         let lit = 0.62 + 0.45 * Math.abs(V3.dot(n, L)); if (n[1] >= 0) lit *= 0.65;
         let base = rgb(tinta(m.an.faceInfo[fi].type, cv)), a = 0.94;
-        if (hl && !hl.has(fi)) { base = grey; a = 0.22; }
+        if (!vivo(fi)) { base = grey; a = 0.16; }
+        else if (hl && !hl.has(fi)) a = 0.8;   // già montato: colorato, un po' meno del pezzo di adesso
         const c = base.map(v => Math.min(255, Math.round(v * lit)));
         ctx.beginPath(); p.map(S2).forEach((s, i) => (i ? ctx.lineTo(s[0], s[1]) : ctx.moveTo(s[0], s[1]))); ctx.closePath();
         ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`; ctx.fill();
-        ctx.strokeStyle = ink; ctx.globalAlpha = hl && !hl.has(fi) ? 0.25 : (o.sottile ? 0.5 : 0.85); ctx.lineWidth = Math.max(1, W / (o.sottile ? 260 : 600)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = ink; ctx.globalAlpha = !vivo(fi) ? 0.22 : (o.sottile ? 0.5 : 0.85); ctx.lineWidth = Math.max(1, W / (o.sottile ? 260 : 600)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1;
+        (fattiDi.get(fi) || []).forEach(([u, w]) => {   // lato già unito: bianco, con un filo scuro sotto perché si veda anche sul chiaro
+          const A = S2(tv[u]), B = S2(tv[w]); ctx.save(); ctx.lineCap = "round";
+          ctx.strokeStyle = "rgba(0,0,0,.45)"; ctx.lineWidth = 6 * dpr; ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke();
+          ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3.2 * dpr; ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke(); ctx.restore();
+        });
       });
     if (box) tratteggio(true);
     if (o.lato) { const a = S2(tv[o.lato[0]]), b = S2(tv[o.lato[1]]); ctx.save(); ctx.strokeStyle = css("--cut", cv); ctx.lineWidth = 6 * dpr; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.restore(); }
@@ -758,16 +791,47 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const firma = JSON.stringify([msg.forma, S.dim, msg.area]); if (firma === ultimoInvio) return; ultimoInvio = firma;
     fr.contentWindow.postMessage(msg, "*");
   }
-  addEventListener("message", e => { if (e.source === fr.contentWindow && e.data && e.data.tipo === "vetrina-pronta") { vetrinaPronta = true; $("cvSim").hidden = true; fr.hidden = false; ultimoInvio = ""; simulatore(); } });
-  // se l'Abbofficina non risponde (niente internet per three.js), il simulatore diventa il disegno 3D di questa pagina
-  setTimeout(() => { if (!vetrinaPronta) { fr.hidden = true; $("cvSim").hidden = false; $("simNota").textContent = "Simulatore semplice: per l'Abbofficina con i gonfiatori e le persone serve internet · trascina per girarla"; simulatore(); } }, 9000);
+  /* la finestra ha due linguette: Simulatore (l'Abbofficina) e Schema (la bolla disegnata pezzo per pezzo, colorata per dima).
+     Nella Costruzione si apre da sola lo Schema, che mostra la bolla che cresce; nelle altre tappe torna la scelta di prima.
+     Se l'Abbofficina non risponde (niente internet per three.js), resta lo Schema. */
+  let vetrinaMorta = false, tabScelta = "sim";
+  try { if (localStorage.getItem("bolle|simTab") === "schema") tabScelta = "schema"; } catch (e) { /* */ }
+  const schemaVisibile = () => !$("cvSchema").hidden;
+  function mostraTab(t, scelta) {
+    if (scelta) { tabScelta = t; try { localStorage.setItem("bolle|simTab", t); } catch (e) { /* */ } }
+    const schema = t === "schema" || vetrinaMorta;
+    $("tabSim").setAttribute("aria-selected", String(!schema)); $("tabSchema").setAttribute("aria-selected", String(schema));
+    fr.hidden = schema; $("cvSchema").hidden = !schema;
+    disegnaSchema();
+  }
+  $("tabSim").addEventListener("click", () => mostraTab("sim", true));
+  $("tabSchema").addEventListener("click", () => mostraTab("schema", true));
+  $("simpane").querySelector(".sim-linguette").addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const t = schemaVisibile() ? "sim" : "schema"; mostraTab(t, true); $(t === "sim" ? "tabSim" : "tabSchema").focus(); } });
+  addEventListener("message", e => { if (e.source === fr.contentWindow && e.data && e.data.tipo === "vetrina-pronta") { vetrinaPronta = true; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; simulatore(); } });
+  setTimeout(() => { if (!vetrinaPronta) { vetrinaMorta = true; $("tabSim").innerHTML = "Simulatore <small>serve internet</small>"; mostraTab(tabScelta); } }, 9000);
+  // lo schema: nella Costruzione con i pezzi montati in colore, i lati già uniti in bianco e quello da fare in rosso
+  function opzMontaggio() {
+    const an = cur.an, N = an.seams.length; if (!N) return {};
+    const f = fatte(), qui = Math.min(giuntaQui == null ? 0 : giuntaQui, N - 1), s = an.seams[qui], fatti = [], montati = new Set();
+    an.seams.forEach((x, i) => { if (f.giunte.includes(x.no)) { fatti.push([x.p.a, x.p.b, x.p.fi, x.q.fi]); montati.add(x.p.fi); montati.add(x.q.fi); } else if (i < qui) { montati.add(x.p.fi); montati.add(x.q.fi); } });
+    return { hl: [s.p.fi, s.q.fi], lato: s.key.split("_").map(Number), fatti, montati };
+  }
+  const inCostruzione = () => TAPPE[S.t] && TAPPE[S.t].id === "costruzione";
+  function disegnaSchema() {
+    const nota = !schemaVisibile() ? "Trascina per girare la vista · rotella per avvicinarti"
+      : (vetrinaMorta ? "Senza internet il simulatore non si carica: ecco lo schema · " : "")
+        + (inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla" : `I pezzi colorati per dima · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""} · trascina per girarla`);
+    $("simNota").textContent = nota;
+    if (!schemaVisibile()) return;
+    vista("cvSchema", () => cur && (inCostruzione() ? { m: cur, o: opzMontaggio() } : { m: cur, o: { persona: true, quote: true, area: opzArea() } }));
+  }
   function simulatore() {
     $("simVuoto").hidden = !!S.shape;
     const g = cur && cur.g, icona = { ok: "✓", mid: "!", ko: "✕" };
     $("simStato").innerHTML = !S.shape ? "" : !cur ? `<span class="pill ko"><i>✕</i>${esc(curErr || "Non si costruisce")}</span>`
       : `<span class="pill"><b class="num">${persone(cur)}</b>&nbsp;${persone(cur) === 1 ? "persona" : "persone"}</span><span class="pill">${metri(cur.H)}</span><span class="pill ${g.c}"><i>${icona[g.c] || "i"}</i>${g.c === "ok" ? "Si può fare" : g.c === "mid" ? "Con attenzione" : "Non si può fare"}</span>`;
     clearTimeout(tSim); tSim = setTimeout(inviaVetrina, 120);
-    if (!$("cvSim").hidden) vista("cvSim", () => cur && { m: cur, o: { persona: true, quote: true, area: opzArea() } });
+    disegnaSchema();
   }
 
   /* ---------- la tendina: si trascina per allargare o stringere il simulatore ---------- */
@@ -793,7 +857,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   $("bRiduci").addEventListener("click", () => { const p = $("simpane"), r = !p.classList.contains("ridotto"); p.classList.toggle("ridotto", r); $("bRiduci").textContent = r ? "Mostra" : "Riduci"; $("bRiduci").setAttribute("aria-expanded", String(!r)); });
 
   /* ---------- le tappe ---------- */
-  const TAPPE = [{ id: "home", nome: "Inizio" }, { id: "progettazione", nome: "Progettazione" }, { id: "dima", nome: "Dima / Modellino" }, { id: "costruzione", nome: "Costruzione" }];
+  const TAPPE = [{ id: "home", nome: "Inizio" }, { id: "progettazione", nome: "Progettazione" }, { id: "dima", nome: "Dima / Modellino" }, { id: "costruzione", nome: "Costruzione" }, { id: "gonfia", nome: "Si gonfia" }];
   const RENDI = {};
   const pronta = () => !!cur && cur.g.c !== "ko";
   function vai(t, subito) {
@@ -803,6 +867,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     S.t = t; S.max = Math.max(S.max || 0, t); salva();
     document.querySelectorAll(".tappa").forEach(s => { s.hidden = s.dataset.t !== TAPPE[t].id; });
     if (RENDI[TAPPE[t].id]) RENDI[TAPPE[t].id]();
+    mostraTab(TAPPE[t].id === "costruzione" ? "schema" : tabScelta);   // nella Costruzione lo Schema, che mostra la bolla che cresce
     testata(); fondo();
     scrollTo({ top: 0, behavior: subito || ridotto ? "auto" : "smooth" });
     document.title = (t ? TAPPE[t].nome + " · " : "") + "Costruiamo una bolla · Officina delle Bolle";
@@ -831,8 +896,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     if (id === "dima") nota = S.okModello ? "Modellino fatto: ora si costruisce" : "Quando il modellino si chiude bene, vai avanti";
     if (id === "costruzione" && cur) { const n = fatte().giunte.length; nota = `${n} di ${cur.an.seams.length} giunzioni fatte`; }
+    if (id === "gonfia") nota = "Se qualcosa non va, guarda le FAQ";
     $("bAvanti").disabled = !ok; $("fondoNota").textContent = nota;
-    $("bAvanti").innerHTML = `<span class="lungo">${id === "progettazione" ? "Dima e modellino" : id === "dima" ? "Costruzione" : "Avanti"}</span><span class="corto">Avanti</span> →`;
+    $("bAvanti").innerHTML = `<span class="lungo">${id === "progettazione" ? "Dima e modellino" : id === "dima" ? "Costruzione" : id === "costruzione" ? "Si gonfia" : "Avanti"}</span><span class="corto">Avanti</span> →`;
   }
   $("bAvanti").addEventListener("click", () => vai(S.t + 1));
   $("bIndietro").addEventListener("click", () => vai(S.t - 1));
@@ -1089,7 +1155,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       if (e.target.closest("#bRitocca2")) ImmagineBolla.riapri(opzFoto);
       if (e.target.closest("#bAdatta")) {
         const n = Math.round(+$("nAdatta").value); if (!(n >= 2 && n <= 80) || !cur || !(cur.floorArea > 0)) return;
-        S.dim = scalaDim(S.dim, Math.sqrt(n * 0.8 / cur.floorArea)); esito = null; cambiato();
+        S.dim = scalaDim(S.dim, Math.sqrt(n * M2P / cur.floorArea)); esito = null; cambiato();
       }
     });
   })();
@@ -1109,7 +1175,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const g = cur.g, n = persone(cur);
     $("verdetto").className = "verdetto " + g.c;
     $("verdetto").innerHTML = `<i aria-hidden="true">${icona[g.c]}</i><div><h3>${g.c === "ok" ? "Sì, si può fare!" : g.c === "mid" ? "Sì, con qualche attenzione" : "Così non si può fare"}</h3><p>${g.c === "ok" ? "Puoi passare al modellino." : g.c === "mid" ? "Leggi i punti in giallo, oppure lascia che il sito li sistemi." : "Guarda i punti in rosso, oppure tocca «Risolvi»: il sito cambia le misure da solo."}</p></div>${g.c !== "ok" ? bRis(g.c) : ""}`;
-    $("dati").innerHTML = `<div class="persone-n"><span>Ci stanno</span><b>${n}</b><span>${n === 1 ? "persona" : "persone"} in piedi</span></div><div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>A terra</span><b>${fmt(cur.W, 1)} × ${fmt(cur.D, 1)} m</b></div><div><span>Porta</span><b>${g.porta >= 0.3 ? metri(Math.min(g.porta, 2)) : "—"}</b></div>`;
+    $("dati").innerHTML = `<div class="persone-n"><span>Ci stanno</span><b>${n}</b><span>${n === 1 ? "persona" : "persone"}, ${fmt(M2P, 1)} m² a testa</span></div><div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>A terra</span><b>${fmt(cur.W, 1)} × ${fmt(cur.D, 1)} m</b></div><div><span>Porta</span><b>${g.porta >= 0.3 ? metri(Math.min(g.porta, 2)) : "—"}</b></div>`;
     const ordine = { ko: 0, mid: 1, ok: 2, info: 3 };
     const nota = (v) => v.k === "stabile" || v.k === "sporge" ? `<span class="hint">Si può fare: fissala a terra con pesi o picchetti, e tieni acceso il ventilatore.</span>` : "";
     $("voci").innerHTML = g.voci.filter(v => v.k !== "modellino").sort((a, b) => ordine[a.c] - ordine[b.c]).map(v => `<li class="${v.c}"><i aria-hidden="true">${icona[v.c]}</i><div><span>${esc(v.t)}</span>${v.c === "mid" ? nota(v) : ""}</div></li>`).join("");
@@ -1402,26 +1468,46 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("infoGiunta").addEventListener("toggle", e => { infoAperta = e.target.open; });
     const P = porteForma(cur.V, cur.F, S.shape), hp = P ? Math.max(0, P.h - 0.15) : 0;
     $("porta").textContent = `Alla fine taglia la porta: un taglio verticale in un pannello basso, dove la bolla è più alta (qui fino a ${metri(Math.min(hp, 2))}). Fissa la cerniera ai due bordi del taglio, con nastro o saldatura, e rinforzali con il nastro. La porta è anche l'uscita: deve aprirsi facilmente.`;
-    vista("cvMontaggio", () => cur && { m: cur, o: { hl: [s.p.fi, s.q.fi], lato: s.key.split("_").map(Number) } });
+    disegnaSchema();   // lo Schema a destra: la bolla che cresce, giunzione dopo giunzione
     fondo();
   }
   $("giunta").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b || !cur) return; const an = cur.an, f = fatte();
     if (b.id === "gPrima") giuntaQui = Math.max(0, giuntaQui - 1);
     else if (b.id === "gDopo") giuntaQui = Math.min(an.seams.length - 1, giuntaQui + 1);
-    else if (b.id === "gFatta") { const no = an.seams[giuntaQui].no; if (!f.giunte.includes(no)) f.giunte.push(no); salva(); if (giuntaQui < an.seams.length - 1) giuntaQui++; else $("sicurezza").scrollIntoView({ behavior: ridotto ? "auto" : "smooth", block: "center" }); }
+    else if (b.id === "gFatta") { const no = an.seams[giuntaQui].no; if (!f.giunte.includes(no)) f.giunte.push(no); salva(); if (giuntaQui < an.seams.length - 1) giuntaQui++; else { vai(TAPPE.findIndex(t => t.id === "gonfia")); return; } }
     else return;
     rendiMontaggio();
   });
-  const SICUREZZA = [
-    "Il ventilatore resta acceso finché c'è qualcuno dentro, e nessuno ci gioca con l'interruttore.",
-    "La porta si apre facilmente e davanti non c'è niente: è anche l'uscita.",
-    "Una persona resta fuori a controllare mentre la bolla è gonfia.",
-    "Dentro niente oggetti appuntiti né taglienti; meglio togliersi le scarpe.",
-    "All'aperto fissala a terra con pesi o picchetti: il vento la sposta facilmente.",
-    "Per sgonfiarla, prima fai uscire tutti, poi spegni il ventilatore.",
+  RENDI.costruzione = () => { rendiMontaggio(); };
+
+  /* ===================== 4 · SI GONFIA: la fine e le FAQ ===================== */
+  // le domande frequenti, a gruppi: cliccando la domanda si apre la risposta
+  const FAQ = [
+    ["Si gonfia", [
+      ["La bolla non si gonfia, o resta molle", ["Controlla che il ventilatore sia acceso e che il tubo dell'aria sia fissato bene alla bolla, con il nastro tutto intorno.", "Chiudi la porta: con la cerniera aperta l'aria esce più in fretta di quanto entra.", "Cerca i buchi: passa la mano lungo le giunzioni, senti dove esce l'aria e ripassa il nastro.", "Se la bolla è molto grande, un ventilatore piccolo non basta: usane uno più potente, o due."]],
+      ["Si gonfia, ma da un lato resta afflosciata o piena di pieghe", ["Di solito un pezzo è montato al rovescio o su un lato sbagliato: guarda lo Schema e controlla che ogni pezzo abbia il nome giusto (P1, P2…).", "Controlla che i lati uniti siano lunghi uguali: se uno è più corto, il telo tira e fa le pieghe.", "Qualche piega piccola è normale: sparisce quando la bolla è ben tesa."]],
+      ["Esce aria da una giunzione, o il nastro si stacca", ["Il nastro tiene solo sul telo pulito e asciutto: pulisci con un panno e riattacca.", "Metti il nastro da tutte e due le parti, dentro e fuori, premendo bene con il pollice.", "Al freddo il nastro tiene meno: scaldalo un po' con le mani prima di attaccarlo."]],
+      ["Un pannello si è bucato o strappato", ["Un buco piccolo: un pezzo di nastro dentro e uno fuori, più grandi del buco.", "Uno strappo grande: fai uscire tutti, spegni il ventilatore, metti sopra un pezzo di telo più grande dello strappo e fissalo con il nastro da tutte e due le parti."]],
+      ["La porta non si chiude bene o perde aria", ["Rinforza i due lati del taglio con il nastro: la cerniera tiene meglio.", "Un po' d'aria esce sempre dalla porta: è normale, il ventilatore la rimpiazza. Tienila chiusa quando non entra nessuno."]],
+    ]],
+    ["Dentro la bolla", [
+      ["Quante persone possono entrare?", [`Ognuna deve avere almeno ${fmt(M2P, 1)} m² di spazio vitale: il numero giusto per la tua bolla lo trovi in alto nel simulatore («persone»).`, "Se ci si muove o si gioca, meglio qualcuno in meno."]],
+      ["È sicuro stare dentro?", ["Il ventilatore resta acceso finché c'è qualcuno dentro, e nessuno gioca con l'interruttore.", "La porta si apre facilmente e davanti non c'è niente: è anche l'uscita.", "Una persona resta fuori a controllare mentre la bolla è gonfia.", "Dentro niente oggetti appuntiti né taglienti; meglio togliersi le scarpe."]],
+      ["Dentro fa caldo, o il telo si appanna", ["Al sole la bolla si scalda in fretta: montala all'ombra se puoi.", "Apri la porta ogni tanto per cambiare l'aria; il ventilatore porta dentro aria fresca.", "Un po' di condensa sul telo è normale e non fa danni."]],
+      ["Cosa succede se va via la corrente?", ["Il ventilatore si ferma e la bolla si affloscia piano piano: c'è tutto il tempo per uscire con calma dalla porta.", "Il telo è leggero e non fa male; per questo la porta deve restare sempre libera."]],
+    ]],
+    ["All'aperto, dopo, e il ventilatore", [
+      ["Il vento la sposta o la solleva", ["Fissala a terra con pesi o picchetti, agli angoli e lungo il bordo del pavimento.", "Con vento forte non gonfiarla all'aperto."]],
+      ["Il ventilatore fa troppo rumore o vibra", ["Appoggialo su un tappetino o su un panno piegato.", "Mettilo un po' lontano dalla bolla, con un tubo più lungo, e lontano dalla porta."]],
+      ["Il modellino si chiudeva, ma la bolla vera no", ["Controlla le dime: ogni lato deve misurare quanto scritto nella tabella, entro un centimetro.", "Controlla i nomi dei pezzi (P1, P2…) e l'ordine delle giunzioni: nello Schema vedi quali lati hai già unito.", "Ricorda il margine di 3 cm fuori dalla linea: le giunzioni si fanno sulla linea, non sul bordo del ritaglio."]],
+      ["Come la sgonfio e la conservo?", ["Fai uscire tutti, poi spegni il ventilatore e apri la porta.", "Piegala senza fare spigoli stretti, asciutta, e tienila lontana dal sole e da oggetti taglienti."]],
+    ]],
   ];
-  RENDI.costruzione = () => { rendiMontaggio(); $("sicurezza").innerHTML = SICUREZZA.map(t => `<label class="check"><input type="checkbox"> <span>${t}</span></label>`).join(""); };
+  RENDI.gonfia = () => {
+    if ($("faq").children.length) return;
+    $("faq").innerHTML = FAQ.map(([gruppo, l]) => `<h3>${esc(gruppo)}</h3>` + l.map(([d, r]) => `<details><summary>${esc(d)}</summary><div class="risposta">${r.length > 1 ? `<ul>${r.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p>${esc(r[0])}</p>`}</div></details>`).join("")).join("");
+  };
   $("bAltra").addEventListener("click", () => { S.shape = null; S.base = null; S.dim = null; esito = null; S.okModello = false; S.max = 1; S.tab = "forme"; salva(); vai(1); });
 
   /* ---------- tornando dall'Abbofficina (#apri={shape, params}) si riapre la stessa forma, con le sue misure vere ---------- */
