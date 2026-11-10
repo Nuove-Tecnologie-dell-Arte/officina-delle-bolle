@@ -875,13 +875,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function testata() {
     let h = "";
     TAPPE.forEach((tp, i) => {
-      if (i === 0) return;
+      if (i === 0 || tp.id === "gonfia") return;   // «Si gonfia» è la fine della Costruzione: c'è, ma non tra le tappe in alto
       if (i > 1) h += `<span class="sep" aria-hidden="true"></span>`;
       const chiusa = i > 1 && !(i <= S.max && pronta());
       h += `<button type="button" data-i="${i}"${i === S.t ? ' aria-current="step"' : ""} class="${i < S.t ? "fatta" : ""}"${chiusa && i !== S.t ? " disabled" : ""} title="${tp.nome}"><i>${i < S.t ? "✓" : i}</i><span>${tp.nome}</span></button>`;
     });
     $("tappe").innerHTML = h;
-    $("barra").style.width = (S.t / (TAPPE.length - 1) * 100) + "%";
+    $("barra").style.width = (Math.min(S.t, 3) / 3 * 100) + "%";   // tre tappe in alto: con «Si gonfia» la barra è piena
   }
   $("tappe").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (b && !b.disabled) vai(+b.dataset.i); });
   $("aCasa").addEventListener("click", e => { e.preventDefault(); vai(0); });
