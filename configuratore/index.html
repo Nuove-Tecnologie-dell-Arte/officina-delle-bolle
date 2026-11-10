@@ -927,8 +927,25 @@
   </section>
 </main>
 
+<script>
+// [Officina] dentro il sito (vetrina) ogni errore si dice al sito, che lo mostra al posto del simulatore: così si sa perché non parte
+if (/[?&]vetrina(=|&|$)/.test(location.search) && window.parent !== window) {
+  addEventListener('error', e => { try { parent.postMessage({ tipo: 'vetrina-errore', msg: String(e.message || 'errore') + (e.lineno ? ' (riga ' + e.lineno + ')' : '') }, '*'); } catch (er) {} });
+  addEventListener('unhandledrejection', e => { try { parent.postMessage({ tipo: 'vetrina-errore', msg: 'Promessa rifiutata: ' + String(e.reason && e.reason.message || e.reason) }, '*'); } catch (er) {} });
+}
+</script>
+<!-- [Officina] three.js da tre CDN: se la prima non risponde (rete lenta o bloccata) si prova la seconda, poi la terza -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>window.THREE || document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');</script>
+<script>window.THREE || document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');</script>
+<script>window.THREE && document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');</script>
+<script>window.THREE && !THREE.OrbitControls && document.write('<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');</script>
+<script>
+if (!window.THREE || !THREE.OrbitControls) {   // [Officina] senza three.js la scena non c'è: lo si dice (al sito, se siamo in vetrina) e ci si ferma qui
+  const msg = !window.THREE ? 'three.js non è arrivato da nessuna delle tre CDN (cdnjs, jsdelivr, unpkg): la rete le blocca o non risponde.' : 'OrbitControls (three.js) non è arrivato da internet.';
+  try { if (window.parent !== window) parent.postMessage({ tipo: 'vetrina-errore', msg, rete: true }, '*'); } catch (e) {}
+}
+</script>
 <script>
 (() => {
 'use strict';

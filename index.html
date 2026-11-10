@@ -500,6 +500,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <iframe id="vetrina" title="Il simulatore: la bolla nell'Abbofficina, con i gonfiatori e le persone" src="configuratore/index.html?vetrina=1" loading="eager"></iframe>
     <canvas id="cvSchema" hidden aria-label="Lo schema della bolla in 3D: i pezzi colorati per dima. Trascina per girarla."></canvas>
     <div class="sim-vuoto" id="simVuoto"><p>Scegli una forma nella tappa Progettazione: qui la vedi gonfiarsi, alla sua grandezza vera.</p></div>
+    <div class="sim-vuoto sim-guasto" id="simGuasto" hidden><div><p id="simGuastoTesto"></p><button type="button" class="btn primary" id="bRiprovaSim">Riprova</button></div></div>
   </div>
   <div class="sim-piede">
     <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option><option value="foto">La tua foto 360°…</option><option value="modello">Il tuo modello 3D (GLB)…</option></select></label>
@@ -867,22 +868,32 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* la finestra ha due linguette: Simulatore (l'Abbofficina) e Schema (la bolla disegnata pezzo per pezzo, colorata per dima).
      Nella Costruzione si apre da sola lo Schema, che mostra la bolla che cresce; nelle altre tappe torna la scelta di prima.
      Se l'Abbofficina non risponde (niente internet per three.js), resta lo Schema. */
-  let vetrinaMorta = false, tabScelta = "sim", fuoriAree = [];
+  let vetrinaMorta = false, tabScelta = "sim", fuoriAree = [], guastoTesto = "";
   try { if (localStorage.getItem("bolle|simTab") === "schema") tabScelta = "schema"; } catch (e) { /* */ }
   const schemaVisibile = () => !$("cvSchema").hidden;
   function mostraTab(t, scelta) {
     if (scelta) { tabScelta = t; try { localStorage.setItem("bolle|simTab", t); } catch (e) { /* */ } }
-    const schema = t === "schema" || vetrinaMorta;
+    // se il simulatore non è partito si apre lo Schema; toccando «Simulatore» si legge perché, con «Riprova»
+    const schema = t === "schema" || (vetrinaMorta && !scelta && !guastoTesto);
     $("tabSim").setAttribute("aria-selected", String(!schema)); $("tabSchema").setAttribute("aria-selected", String(schema));
     fr.hidden = schema; $("cvSchema").hidden = !schema; $("scenarioBox").hidden = schema;   // lo scenario è del simulatore
+    $("simGuasto").hidden = schema || !guastoTesto;
     disegnaSchema();
   }
   $("tabSim").addEventListener("click", () => mostraTab("sim", true));
   $("tabSchema").addEventListener("click", () => mostraTab("schema", true));
   $("simpane").querySelector(".sim-linguette").addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const t = schemaVisibile() ? "sim" : "schema"; mostraTab(t, true); $(t === "sim" ? "tabSim" : "tabSchema").focus(); } });
+  // il simulatore che non parte: si dice perché, al suo posto, con «Riprova» (ricarica solo il simulatore)
+  function guasto(testo, prima) {
+    if (prima && guastoTesto) return;   // il primo motivo è quello vero (per esempio three.js che non arriva)
+    guastoTesto = testo || ""; if (testo) $("simGuastoTesto").textContent = testo;
+    $("simGuasto").hidden = !testo || !$("cvSchema").hidden;
+  }
+  $("bRiprovaSim").addEventListener("click", () => { guasto(""); vetrinaPronta = false; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; mostraTab(tabScelta); attesaVetrina(); fr.src = "configuratore/index.html?vetrina=1&r=" + Date.now(); });
   addEventListener("message", e => {
     if (e.source !== fr.contentWindow || !e.data) return; const M = e.data;
-    if (M.tipo === "vetrina-pronta") { vetrinaPronta = true; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); simulatore(); }
+    if (M.tipo === "vetrina-errore" && !vetrinaPronta) guasto((M.rete ? "Il simulatore non si carica. " : "Il simulatore si è fermato: ") + M.msg + (M.rete ? " Prova «Riprova», o un'altra rete. Intanto c'è lo Schema." : ""), true);
+    if (M.tipo === "vetrina-pronta") { const tardi = vetrinaMorta; vetrinaPronta = true; vetrinaMorta = false; guasto(""); $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); if (tardi) mostraTab(TAPPE[S.t] && TAPPE[S.t].id === "costruzione" ? "schema" : tabScelta); simulatore(); }   // arrivato in ritardo: torna da solo
     if (M.tipo === "vetrina-posizioni") {   // le bolle spostate (o girate) nel simulatore, e l'area in cui sono
       const prima = S.area;
       (M.pos || []).forEach(q => { const b = PR.bolle.find(x => x.id === q.id); if (!b) return; b.pos = { x: q.x, z: q.z, ang: q.ang || 0 }; if (q.area != null && PR.aree.some(a => a.id === q.area)) b.areaId = q.area; });
@@ -897,7 +908,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     if (M.tipo === "vetrina-scegli") { const i = PR.bolle.findIndex(x => x.id === M.id); if (i >= 0) scegliBolla(i); }   // toccata una bolla nel simulatore: si apre quella
   });
-  setTimeout(() => { if (!vetrinaPronta) { vetrinaMorta = true; $("tabSim").innerHTML = "Simulatore <small>serve internet</small>"; mostraTab(tabScelta); } }, 9000);
+  // si aspetta il simulatore fino a 25 secondi (three.js arriva da internet); intanto c'è lo Schema, e quando arriva torna da solo
+  let tAttesa = 0;
+  function attesaVetrina() { clearTimeout(tAttesa); tAttesa = setTimeout(() => { if (vetrinaPronta) return; vetrinaMorta = true; $("tabSim").innerHTML = "Simulatore <small>non risponde</small>"; mostraTab(tabScelta);
+    if (!guastoTesto) guasto("Il simulatore non risponde. Di solito è la rete lenta, o il sito aperto in un modo che il browser blocca: prova «Riprova», oppure aprilo da un server (per esempio GitHub Pages). Intanto c'è lo Schema."); }, 25000); }
+  attesaVetrina();
   // lo schema: nella Costruzione con i pezzi montati in colore, i lati già uniti in bianco e quello da fare in rosso
   function opzMontaggio() {
     const an = cur.an, N = an.seams.length; if (!N) return {};

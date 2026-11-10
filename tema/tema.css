@@ -2,9 +2,9 @@
    Sfondo di plastica stropicciata, titoli Bebas Neue rossi, pannelli grigi trasparenti con il nastro sugli angoli,
    campi come strisce di nastro, il foglio giallo dei materiali. Si carica dopo lo stile della pagina e lo ricopre. */
 :root {
-  --rosso: #ee3f3c; --rosso-scuro: #c72d2a; --nero: #151515;
+  --rosso: #e3101e; --rosso-scuro: #b30a16; --nero: #151515;
   --paper: #ecebe8; --card: rgba(236, 235, 232, .62); --mat: rgba(150, 147, 141, .42);
-  --green: var(--rosso); --green-soft: rgba(238, 63, 60, .10); --line: rgba(20, 20, 20, .10); --line-strong: rgba(20, 20, 20, .24);
+  --green: var(--rosso); --green-soft: rgba(227, 16, 30, .10); --line: rgba(20, 20, 20, .10); --line-strong: rgba(20, 20, 20, .24);
   --ink: var(--nero); --muted: #5b5853; --rule: rgba(20, 20, 20, .16); --cut: #b3261e; --on-t: #ffffff;
   --ok: #2f6f4a; --amber: #b9771b;
   --shadow: none;
@@ -102,15 +102,18 @@ input[type="number"], select { font: 500 1rem var(--body); background: rgba(255,
 .linguette button { font: 400 1.25rem/1 var(--display); letter-spacing: .04em; color: #575550; background: var(--scheda-off); border-radius: 0; padding: 8px 40px 6px; min-height: 0; }
 .linguette button[aria-selected="true"] { font-size: 1.8rem; color: var(--rosso); background: var(--pannello); padding: 10px 46px 6px; }
 .pannello { border-radius: 0; padding: 28px 30px 54px; min-height: 480px; }
-/* le forme: un'unica griglia di riquadri grigi con il disegno a fil di ferro (il nome si legge passandoci sopra) */
-.forme-scorri { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 26px 30px; justify-items: center; max-height: 560px; overflow-y: auto; padding: 4px 6px 10px; scrollbar-width: thin; scrollbar-color: rgba(20, 20, 20, .3) transparent; }
-.famiglia, .tessere { display: contents; }
-.famiglia h3 { display: none; }
+/* le forme, divise per tipo: riquadri grigi con il disegno a fil di ferro; se ne vedono due righe e il resto scorre.
+   Il nome della forma scelta compare sotto il suo riquadro, in rosso (le altre lo dicono passandoci sopra). */
+.forme-scorri { display: block; max-height: 352px; overflow-y: auto; padding: 0 8px 4px 2px; scroll-snap-type: y proximity; scrollbar-width: thin; scrollbar-color: rgba(20, 20, 20, .35) transparent; }
+.famiglia { display: grid; gap: 10px; margin-bottom: 14px; scroll-snap-align: start; }
+.famiglia h3 { position: sticky; top: 0; z-index: 2; margin: 0; padding: 6px 0 4px; background: #d3d1cd; font: 400 1.45rem/1 var(--display); letter-spacing: .04em; color: var(--nero); }
+.tessere { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 34px 30px; justify-items: center; padding-bottom: 26px; }
+.tessera[aria-pressed="true"] b { position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); width: auto; height: auto; overflow: visible; clip: auto; white-space: nowrap; font: 400 1.15rem/1 var(--display); letter-spacing: .04em; color: var(--rosso); }
 .tessera { width: 104px; height: 116px; padding: 6px; background: var(--tessera); border: 3px solid transparent; border-radius: 9px; gap: 0; align-content: center; }
 .tessera:hover { border-color: rgba(255, 255, 255, .55); transform: translateY(-2px); }
-.tessera[aria-pressed="true"] { border-color: var(--rosso); background: var(--tessera); box-shadow: 0 0 0 2px rgba(238, 63, 60, .25); }
+.tessera[aria-pressed="true"] { border-color: var(--rosso); background: var(--tessera); box-shadow: 0 0 0 2px rgba(227, 16, 30, .25); }
 .tessera canvas { max-width: 90px; }
-.tessera b, .tessera small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tessera small, .tessera:not([aria-pressed="true"]) b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .dafoto { border: 0; background: rgba(236, 235, 232, .55); border-radius: 3px; }
 .dafoto.sopra { background: rgba(255, 255, 255, .8); outline: 2px dashed var(--rosso); }
 .dafoto .ico { background: var(--rosso); border-radius: 6px; }
@@ -218,3 +221,8 @@ dialog.parole { background: #efeeeb; border-radius: 3px; }
 .dati div { flex-wrap: nowrap; white-space: nowrap; }
 /* con un'area sola il suo nome non serve */
 .aree.una .area-testa { display: none; }
+
+/* il simulatore che non parte: il motivo e «Riprova», sopra la scena */
+.sim-guasto { z-index: 2; background: rgba(236, 235, 232, .92); }
+.sim-guasto > div { display: grid; gap: 14px; justify-items: center; max-width: 46ch; }
+.sim-guasto p { font: 400 1.25rem/1.25 var(--display); letter-spacing: .03em; color: var(--nero); }

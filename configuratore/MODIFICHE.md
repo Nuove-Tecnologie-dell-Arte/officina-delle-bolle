@@ -430,6 +430,8 @@ Tutto segnato `[Officina]`.
 - Trascinando una bolla (`VETRINA_AZ.vincola`, chiamata dal `pointermove` della scena): se è dentro un'area o nella stanza ci resta, fino al bordo e scivolando lungo; non salta in un'altra area. Fuori da tutto si muove libera finché non entra.
 - Le bolle nuove vanno nel primo posto libero di un'area (da un lato verso l'altro), poi nella stanza, poi accanto alle altre.
 - ⟲ ⟳ (`.ruota`, in `#sovra`) sotto il nome della bolla scelta la girano di 15°: resta nella sua area e, se c'è posto, non tocca le altre.
+- three.js arriva da tre CDN in fila (cdnjs, poi jsdelivr, poi unpkg) e OrbitControls da due: se la prima non risponde o è bloccata si prova la successiva. In vetrina ogni errore (anche three.js che non arriva) si dice al sito con `{ tipo: 'vetrina-errore', msg, rete }`, che lo mostra al posto della scena con «Riprova».
+- In vetrina la scena è sempre chiara (`data-theme="light"`), come il tema del sito.
 - Con una stanza con le pareti (foto 360°) le aree non ci sono: lo spazio di lavoro è la stanza. La vetrina lo dice al sito con `{ tipo: 'vetrina-stanza', stanza: { nome, H, pareti } }`, e quando arriva la stanza le bolle nelle pareti entrano nel primo posto libero (`postoLibero`), se c'è.
 - `{ tipo: 'vetrina-scenario', id }` mette una stanza pronta (`corridoio`) o la toglie (id vuoto); `{ tipo: 'vetrina-scenario', file }` mette una foto 360° o un modello GLB. In vetrina `stanzaDB` non fa niente: le stanze salvate dell'Abbofficina non si toccano.
 - Il rosso di una bolla che entra in un'altra, rimandato al fotogramma dopo, ora si ricontrolla: se intanto la bolla è stata spostata non resta rossa.
