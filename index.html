@@ -670,6 +670,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
 #rqSim.grande { position: fixed; inset: 0; z-index: 300; border-radius: 0; padding: 8px 10px 10px; grid-template-rows: auto minmax(0, 1fr); background: var(--paper); }
 #rqSim.grande .simFrame { height: 100%; }
 body.simGrande { overflow: hidden; }
+body.simGrande .cs-sim .simCasa { position: static; }   /* [Semplice] a tutto schermo la colonna ferma non deve tenere la simulazione sotto la barra in alto (copriva il pulsante per tornare) */
 .matScelte { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .matScelte .rotoloF { grid-column: 1 / -1; }
 @media (max-width: 520px) { .matScelte { grid-template-columns: minmax(0, 1fr); } }

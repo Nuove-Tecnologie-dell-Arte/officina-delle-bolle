@@ -94,3 +94,7 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - **Secondo tocco** su un pannello dello stesso pezzo, o il pulsante «Vai al pezzo ›»: la pagina va a quel pezzo nella sezione Pezzi e lo apre (`goToPiece`). Toccando un altro pezzo il riquadro passa a quello.
 - Il riquadro si chiude con ×, con Esc, toccando fuori, girando la figura o cambiando le misure. Dove la figura è stretta (telefono, colonna di Misure bolla) il riquadro sta sotto la figura; nella figura grande in alto sta nell'angolo lontano dal tocco.
 - Prima un tocco portava subito al pezzo.
+
+## Corretto: la simulazione a tutto schermo non si chiudeva
+
+- Sul computer, a tutto schermo, la barra in alto della pagina copriva il pulsante ↙ per tornare: la colonna ferma della simulazione (`position: sticky`) la teneva sotto la barra. A tutto schermo la colonna non è più ferma (`body.simGrande .cs-sim .simCasa`), e il pulsante si vede e funziona. Esc funzionava già.
