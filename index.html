@@ -678,18 +678,19 @@ body:not([data-modo="model"]) .scalaSez { display: none !important; }
 .piece-head .quante { margin-left: auto; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 .piece-head canvas.where { display: none; }
 details.piece[open] .piece-head canvas.where { display: block; }
-/* [Semplice] la simulazione sempre in vista: finestra in basso a destra mentre si scorre il resto della pagina */
-.simCasa { min-width: 0; }
-#rqSim.fluttua { position: fixed; right: 16px; bottom: 16px; width: min(400px, calc(100vw - 32px)); z-index: 150; padding: 8px 10px 10px; gap: 6px; box-shadow: 0 18px 44px rgba(0,0,0,.38); border-color: var(--green); }
-#rqSim.fluttua .simFrame { height: 250px; }
-#rqSim.fluttua .rq-testa h2 { font-size: 1rem; }
-#rqSim.fluttua .rq-testa .hint { display: none; }
-#rqSim.fluttua .rq-testa .btn { min-width: 34px; min-height: 34px; padding: 0 8px; }
-#rqSim.fluttua .rq-riduci { margin-left: auto; }
-#rqSim.fluttua .rq-grande { margin-left: 0; }
-#rqSim.fluttua.ridotta .simFrame { height: 0; border: 0; }
-#rqSim.fluttua.ridotta { gap: 0; }
-@media (max-width: 640px) { #rqSim.fluttua { width: min(260px, 64vw); right: 10px; bottom: 10px; } #rqSim.fluttua .simFrame { height: 160px; } }
+/* [Semplice] la simulazione ferma a destra: comincia accanto a Misure bolla e finisce prima di Cartamodello e montaggio */
+.conSim { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: "mis sim" "resto sim"; gap: 18px 22px; align-items: start; }
+.cs-mis { grid-area: mis; min-width: 0; }
+.cs-sim { grid-area: sim; align-self: stretch; min-width: 0; }
+.cs-sim .simCasa { position: sticky; top: 76px; }
+.cs-sim .simFrame { height: min(620px, calc(100vh - 190px)); min-height: 360px; }
+.cs-resto { grid-area: resto; min-width: 0; display: grid; gap: 18px; align-content: start; }
+.cs-resto > section { display: grid !important; gap: 22px; margin-top: 40px; min-width: 0; }
+@media (max-width: 960px) {
+  .conSim { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mis" "sim" "resto"; }
+  .cs-sim .simCasa { position: static; }
+  .cs-sim .simFrame { height: clamp(360px, 60vh, 520px); }
+}
 /* [Semplice] attraversare la pagina: il nome in alto è un collegamento; Materiali e Lista si aprono con un tocco */
 a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:hover b { color: var(--green); }
 .riquadro.chiuso > :not(.rq-testa) { display: none !important; }
@@ -787,7 +788,10 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     </div>
     <p class="warn" id="fotoErr" hidden style="grid-column: 1 / -1"></p>
   </div>
-  <div class="coppia">
+</section>
+
+<div class="conSim"><!-- [Semplice] due colonne: la simulazione resta ferma a destra fino alla fine dei Pezzi -->
+  <div class="cs-mis">
     <div class="riquadro" id="rqMisure">
       <div class="rq-testa"><h2>Misure bolla</h2>
         <div class="seg rq-schede" role="tablist" aria-label="Misure bolla"><button type="button" role="tab" data-rq="misure" aria-selected="true">Misure</button><button type="button" role="tab" data-rq="numeri" aria-selected="false">Numeri</button><button type="button" role="tab" data-rq="altro" aria-selected="false">Altre opzioni</button></div></div>
@@ -879,15 +883,17 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
         </details>
       </div>
     </div>
-    <div class="simCasa" id="simCasa"><!-- [Semplice] il posto della simulazione: quando esce dallo schermo, il riquadro resta in vista in basso a destra -->
+  </div>
+  <aside class="cs-sim" aria-label="Simulazione">
+    <div class="simCasa" id="simCasa"><!-- [Semplice] la simulazione resta ferma a destra mentre si scorrono Misure, Materiali, Lista e Pezzi -->
     <div class="riquadro" id="rqSim">
       <div class="rq-testa"><h2>Simulazione</h2><span class="hint" id="simNotaV" aria-live="polite">Gonfiatori, Sonny e aria</span>
-        <button type="button" class="btn rq-riduci" id="simRiduci" aria-label="Rimpicciolisci la simulazione" title="Rimpicciolisci" hidden>–</button><button type="button" class="btn rq-grande" id="simGrande" aria-label="Apri la simulazione a tutto schermo" title="A tutto schermo">↗</button></div>
+        <button type="button" class="btn rq-grande" id="simGrande" aria-label="Apri la simulazione a tutto schermo" title="A tutto schermo">↗</button></div>
       <div class="simFrame"><iframe id="sim" src="configuratore/index.html?incorporata=1" title="Simulazione della bolla: gonfiatori, persone e aria"></iframe></div>
     </div>
     </div>
-  </div>
-  <div class="coppia">
+  </aside>
+  <div class="cs-resto">
     <div class="riquadro apribile chiuso" id="prepara">
       <div class="rq-testa"><h2><button type="button" class="rq-apri" aria-expanded="false" aria-controls="prepara">Materiali bolla vera</button></h2><span class="hint rq-sintesi" id="matSintesi"></span></div>
       <p class="hint">Sono già scelti quelli del lab. Cambiano anche la simulazione e la lista.</p>
@@ -908,7 +914,6 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
       <p class="hint" id="listaNota">La stessa lista della simulazione: i prezzi che scrivete qui valgono anche là.</p>
       <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"><tr><td colspan="4" class="hint">La simulazione si sta aprendo…</td></tr></tbody></table></div>
     </div>
-  </div>
   <div class="about" id="about" hidden></div>
   <details class="box more" id="projects">
     <summary><span class="tag">Progetti del gruppo</span><span class="hint">Salvate e riaprite forma e misure</span></summary>
@@ -928,8 +933,6 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     <p class="hint" id="projStatus">Caricamento dei progetti…</p>
     <ul class="projlist" id="projList"></ul>
   </details>
-</section>
-
 <section id="pezzi" class="sez2">
   <div class="sechead"><div class="txt"><h2>Pezzi</h2><p>Come disegnare i pezzi per la bolla: <span id="piecesTitle"></span>. Aprite un pezzo e seguite i passi con metro e squadra. Le spunte restano salvate.</p></div></div>
   <div class="interruttore"><div class="seg" role="group" aria-label="Pezzi della bolla vera o del modellino"><button type="button" data-u="real" aria-pressed="true">Bolla</button><button type="button" data-u="model" aria-pressed="false">Modellino</button></div>
@@ -981,6 +984,8 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   </div>
   </details>
 </section>
+  </div>
+</div>
 
 <section id="modellino" class="sez3" data-build="net">
   <div class="sechead"><div class="txt"><h2>Cartamodello e montaggio</h2><p>Prima il modellino di carta: se si chiude bene, anche la bolla vera verrà bene. Poi il montaggio della bolla vera.</p></div></div>
@@ -3038,33 +3043,18 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   function avvisoSim(t) { const n = $("simNotaV"); if (n) { n.textContent = t; clearTimeout(avvisoSim.t); avvisoSim.t = setTimeout(() => { n.textContent = ""; }, 3500); } }
   addEventListener("message", e => {
     const m = e.data; if (!m || !m.bolle || e.source !== simWin()) return;
-    if (m.tipo === "pronta") { sim.pronta = true; sim.ultima = ""; inviaSim(); aSim({ tipo: "mini", si: $("rqSim").classList.contains("fluttua") }); }   // [Semplice] la finestra piccola mostra solo la scena anche se si apriva prima che la simulazione fosse pronta
+    if (m.tipo === "pronta") { sim.pronta = true; sim.ultima = ""; inviaSim(); }
     else if (m.tipo === "misure") daSimulazione(m.tipoB, m.d || {});
     else if (m.tipo === "esci") grandeSim(false);
     else if (m.tipo === "stato") { mostraMateriali(m); mostraLista(m); }
   });
   $("simGrande").addEventListener("click", () => grandeSim(!$("rqSim").classList.contains("grande")));
   function grandeSim(si) {
-    if (si) fluttuaSim(false);   // a tutto schermo non serve la finestra
     $("rqSim").classList.toggle("grande", si); document.body.classList.toggle("simGrande", si);
     $("simGrande").textContent = si ? "↙" : "↗"; $("simGrande").setAttribute("aria-label", si ? "Torna alla pagina" : "Apri la simulazione a tutto schermo"); $("simGrande").title = si ? "Torna alla pagina (Esc)" : "A tutto schermo";
     aSim({ tipo: "grande", si }); if (si) $("sim").focus();
-    if (!si) { const rr = $("simCasa").getBoundingClientRect(); fluttuaSim(rr.bottom < innerHeight * 0.3 || rr.top > innerHeight * 0.7); }   // [Semplice] tornando alla pagina: finestra se il suo posto non si vede
   }
   document.addEventListener("keydown", e => { if (e.key === "Escape" && $("rqSim").classList.contains("grande")) grandeSim(false); });
-  // [Semplice] la simulazione resta in vista: quando il suo posto esce dallo schermo, il riquadro diventa una finestra in basso a destra (non si sposta nella pagina, così non si ricarica)
-  let simRidotta = false; try { simRidotta = localStorage.getItem("bolle|simRidotta") === "1"; } catch (e) { /* aperta */ }
-  function fluttuaSim(si) {
-    const r = $("rqSim"), casa = $("simCasa");
-    if (si === r.classList.contains("fluttua") && !si) return;
-    if (si) { if (!r.classList.contains("fluttua")) casa.style.minHeight = casa.offsetHeight + "px"; } else casa.style.minHeight = "";
-    r.classList.toggle("fluttua", si); r.classList.toggle("ridotta", si && simRidotta);
-    $("simRiduci").hidden = !si; $("simRiduci").textContent = simRidotta ? "+" : "–"; $("simRiduci").title = simRidotta ? "Mostra la simulazione" : "Rimpicciolisci";
-    $("simRiduci").setAttribute("aria-label", $("simRiduci").title);
-    aSim({ tipo: "mini", si });
-  }
-  $("simRiduci").addEventListener("click", () => { simRidotta = !simRidotta; try { localStorage.setItem("bolle|simRidotta", simRidotta ? "1" : "0"); } catch (e) { /* solo per questa visita */ } fluttuaSim(true); });
-  if ("IntersectionObserver" in window) new IntersectionObserver(es => { for (const e of es) { if ($("rqSim").classList.contains("grande")) return; fluttuaSim(e.intersectionRatio < 0.35); } }, { threshold: [0, 0.35, 0.6] }).observe($("simCasa"));
   // materiali della bolla vera: le scelte vanno alla simulazione, che rimanda la lista con i prezzi
   const opzioni = (sel, l, v) => { sel.innerHTML = l.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join(""); sel.value = v; if (sel.selectedIndex < 0) sel.value = l.some(([k]) => k === "cerniera") ? "cerniera" : l[0][0]; };
   function mostraMateriali(m) {
