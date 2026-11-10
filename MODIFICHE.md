@@ -62,3 +62,8 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - **La barra in alto segue lo scorrimento** (`segnaNav`): si accende la sezione in cui si è, non solo quella cliccata; in fondo alla pagina si accende l'ultima.
 - **Il nome in alto** («Officina delle Bolle» e la forma scelta) è un collegamento che riporta a «Scegli forma» (`a.brand`, `#gallery`).
 - **Materiali bolla vera e Lista materiali e prezzi partono chiusi** (`.riquadro.apribile`, `apriRiquadro`): si aprono e si chiudono toccando il titolo, e il browser ricorda la scelta (`bolle|aperto|…`). Chiusi mostrano una riga di riassunto (materiali: telo, giunti e porte, `#matSintesi`; lista: il totale). Si aprono da soli quando ci si arriva dalla ricerca.
+
+## La simulazione sempre in vista, niente «profondità»
+
+- **La simulazione resta in vista in tutta la pagina** (`fluttuaSim`, `#simCasa`): quando il suo posto nella sezione 1 esce dallo schermo, il riquadro diventa una finestra in basso a destra (400 × 250 px, sul telefono 260 × 160). Non si sposta nella pagina, quindi la simulazione non si ricarica e resta collegata alle misure. Nella finestra si vede solo la scena (nell'Abbofficina la classe `mini` nasconde barre e pannelli); «–» la rimpicciolisce al solo titolo (ricordato in `bolle|simRidotta`), ↗ la apre a tutto schermo. Tornando al suo posto, torna il riquadro normale.
+- **Tolta la scritta «profondità»** sotto la larghezza, nelle figure con la persona: non aveva freccia e cambiava a ogni giro della forma, quindi confondeva. Restano altezza e larghezza con le loro frecce; la profondità del pavimento resta nella scheda Numeri.

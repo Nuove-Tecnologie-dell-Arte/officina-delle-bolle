@@ -20,6 +20,7 @@
   body.piccola #vCostruisci { display: block !important; }
   body.piccola #vCostruisci > #scena { position: absolute; inset: 0; height: 100%; }
   body.incorporata .app, body.incorporata #bOfficina, body.incorporata .vaiOfficina { display: none !important; }
+  body.mini .sinistra, body.mini .barraScena, body.mini #pannelloP, body.mini #pannelloS, body.mini #pannelloSt, body.mini #pannelloO, body.mini #avviso, body.mini #sovra .eti { display: none !important; }   /* [Officina] finestra in basso a destra: solo la scena */
   body { background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
   button, select, input { font: inherit; color: inherit; }
   button { cursor: pointer; border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 8px 12px; }
@@ -4959,6 +4960,7 @@ if (INCORPORATA) {
       for (const k of ['mat', 'gsm', 'giunti', 'adW', 'adLati', 'porte', 'coll']) if (x[k] != null) D[k] = x[k];
       aggiornaSpessore(); for (const l of link) l.porta.tipo = D.porte; costruisciDati(); strutturaCambiata(); }
     else if (m.tipo === 'prezzo') { if (m.v === '' || m.v == null) delete prezzi[m.id]; else prezzi[m.id] = +m.v; salvaBudget(); aggiornaMateriali(true); mandaStato(); }
+    else if (m.tipo === 'mini') { document.body.classList.toggle('mini', !!m.si); requestAnimationFrame(() => dispatchEvent(new Event('resize'))); }
     else if (m.tipo === 'grande') { document.body.classList.toggle('piccola', !m.si); requestAnimationFrame(() => dispatchEvent(new Event('resize'))); }
   });
   manda({ tipo: 'pronta' }); mandaStato();

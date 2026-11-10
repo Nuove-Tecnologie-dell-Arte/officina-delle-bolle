@@ -678,6 +678,18 @@ body:not([data-modo="model"]) .scalaSez { display: none !important; }
 .piece-head .quante { margin-left: auto; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 .piece-head canvas.where { display: none; }
 details.piece[open] .piece-head canvas.where { display: block; }
+/* [Semplice] la simulazione sempre in vista: finestra in basso a destra mentre si scorre il resto della pagina */
+.simCasa { min-width: 0; }
+#rqSim.fluttua { position: fixed; right: 16px; bottom: 16px; width: min(400px, calc(100vw - 32px)); z-index: 150; padding: 8px 10px 10px; gap: 6px; box-shadow: 0 18px 44px rgba(0,0,0,.38); border-color: var(--green); }
+#rqSim.fluttua .simFrame { height: 250px; }
+#rqSim.fluttua .rq-testa h2 { font-size: 1rem; }
+#rqSim.fluttua .rq-testa .hint { display: none; }
+#rqSim.fluttua .rq-testa .btn { min-width: 34px; min-height: 34px; padding: 0 8px; }
+#rqSim.fluttua .rq-riduci { margin-left: auto; }
+#rqSim.fluttua .rq-grande { margin-left: 0; }
+#rqSim.fluttua.ridotta .simFrame { height: 0; border: 0; }
+#rqSim.fluttua.ridotta { gap: 0; }
+@media (max-width: 640px) { #rqSim.fluttua { width: min(260px, 64vw); right: 10px; bottom: 10px; } #rqSim.fluttua .simFrame { height: 160px; } }
 /* [Semplice] attraversare la pagina: il nome in alto è un collegamento; Materiali e Lista si aprono con un tocco */
 a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:hover b { color: var(--green); }
 .riquadro.chiuso > :not(.rq-testa) { display: none !important; }
@@ -867,10 +879,12 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
         </details>
       </div>
     </div>
+    <div class="simCasa" id="simCasa"><!-- [Semplice] il posto della simulazione: quando esce dallo schermo, il riquadro resta in vista in basso a destra -->
     <div class="riquadro" id="rqSim">
       <div class="rq-testa"><h2>Simulazione</h2><span class="hint" id="simNotaV" aria-live="polite">Gonfiatori, Sonny e aria</span>
-        <button type="button" class="btn rq-grande" id="simGrande" aria-label="Apri la simulazione a tutto schermo" title="A tutto schermo">↗</button></div>
+        <button type="button" class="btn rq-riduci" id="simRiduci" aria-label="Rimpicciolisci la simulazione" title="Rimpicciolisci" hidden>–</button><button type="button" class="btn rq-grande" id="simGrande" aria-label="Apri la simulazione a tutto schermo" title="A tutto schermo">↗</button></div>
       <div class="simFrame"><iframe id="sim" src="configuratore/index.html?incorporata=1" title="Simulazione della bolla: gonfiatori, persone e aria"></iframe></div>
+    </div>
     </div>
   </div>
   <div class="coppia">
@@ -2477,7 +2491,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     ctx.strokeStyle = PAL.ink;
     arrow(left, qy, right, qy);
     label("larghezza " + mR(ext.x1 - ext.x0), cx, qy, "center");
-    ctx.save(); ctx.globalAlpha = 0.8 * qa; label("profondità " + mR(ext.y1 - ext.y0), cx, qy + 22 * dpr, "center"); ctx.restore();
+    // [Semplice] niente più «profondità» sotto la larghezza: senza freccia e diversa a ogni giro della forma, confondeva
     ctx.restore();
     if (o.person) {
       const ph = 1.75 * cp * sc, px = Math.min(W - 18 * dpr, right + 26 * dpr), u = ph / 7.5, bw = u * 1.5, top = groundY - ph;
@@ -3024,18 +3038,33 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   function avvisoSim(t) { const n = $("simNotaV"); if (n) { n.textContent = t; clearTimeout(avvisoSim.t); avvisoSim.t = setTimeout(() => { n.textContent = ""; }, 3500); } }
   addEventListener("message", e => {
     const m = e.data; if (!m || !m.bolle || e.source !== simWin()) return;
-    if (m.tipo === "pronta") { sim.pronta = true; sim.ultima = ""; inviaSim(); }
+    if (m.tipo === "pronta") { sim.pronta = true; sim.ultima = ""; inviaSim(); aSim({ tipo: "mini", si: $("rqSim").classList.contains("fluttua") }); }   // [Semplice] la finestra piccola mostra solo la scena anche se si apriva prima che la simulazione fosse pronta
     else if (m.tipo === "misure") daSimulazione(m.tipoB, m.d || {});
     else if (m.tipo === "esci") grandeSim(false);
     else if (m.tipo === "stato") { mostraMateriali(m); mostraLista(m); }
   });
   $("simGrande").addEventListener("click", () => grandeSim(!$("rqSim").classList.contains("grande")));
   function grandeSim(si) {
+    if (si) fluttuaSim(false);   // a tutto schermo non serve la finestra
     $("rqSim").classList.toggle("grande", si); document.body.classList.toggle("simGrande", si);
     $("simGrande").textContent = si ? "↙" : "↗"; $("simGrande").setAttribute("aria-label", si ? "Torna alla pagina" : "Apri la simulazione a tutto schermo"); $("simGrande").title = si ? "Torna alla pagina (Esc)" : "A tutto schermo";
     aSim({ tipo: "grande", si }); if (si) $("sim").focus();
+    if (!si) { const rr = $("simCasa").getBoundingClientRect(); fluttuaSim(rr.bottom < innerHeight * 0.3 || rr.top > innerHeight * 0.7); }   // [Semplice] tornando alla pagina: finestra se il suo posto non si vede
   }
   document.addEventListener("keydown", e => { if (e.key === "Escape" && $("rqSim").classList.contains("grande")) grandeSim(false); });
+  // [Semplice] la simulazione resta in vista: quando il suo posto esce dallo schermo, il riquadro diventa una finestra in basso a destra (non si sposta nella pagina, così non si ricarica)
+  let simRidotta = false; try { simRidotta = localStorage.getItem("bolle|simRidotta") === "1"; } catch (e) { /* aperta */ }
+  function fluttuaSim(si) {
+    const r = $("rqSim"), casa = $("simCasa");
+    if (si === r.classList.contains("fluttua") && !si) return;
+    if (si) { if (!r.classList.contains("fluttua")) casa.style.minHeight = casa.offsetHeight + "px"; } else casa.style.minHeight = "";
+    r.classList.toggle("fluttua", si); r.classList.toggle("ridotta", si && simRidotta);
+    $("simRiduci").hidden = !si; $("simRiduci").textContent = simRidotta ? "+" : "–"; $("simRiduci").title = simRidotta ? "Mostra la simulazione" : "Rimpicciolisci";
+    $("simRiduci").setAttribute("aria-label", $("simRiduci").title);
+    aSim({ tipo: "mini", si });
+  }
+  $("simRiduci").addEventListener("click", () => { simRidotta = !simRidotta; try { localStorage.setItem("bolle|simRidotta", simRidotta ? "1" : "0"); } catch (e) { /* solo per questa visita */ } fluttuaSim(true); });
+  if ("IntersectionObserver" in window) new IntersectionObserver(es => { for (const e of es) { if ($("rqSim").classList.contains("grande")) return; fluttuaSim(e.intersectionRatio < 0.35); } }, { threshold: [0, 0.35, 0.6] }).observe($("simCasa"));
   // materiali della bolla vera: le scelte vanno alla simulazione, che rimanda la lista con i prezzi
   const opzioni = (sel, l, v) => { sel.innerHTML = l.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join(""); sel.value = v; if (sel.selectedIndex < 0) sel.value = l.some(([k]) => k === "cerniera") ? "cerniera" : l[0][0]; };
   function mostraMateriali(m) {
