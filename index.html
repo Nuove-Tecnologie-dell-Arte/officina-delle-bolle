@@ -825,7 +825,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function opzAreaTutte() {   // l'area di lavoro nel simulatore: deve contenere tutte le bolle
     const L = PR.bolle.filter(conForma); if (!haArea() || !L.length) return null;
     const e = L.map(b => entra(b.dim));
-    return { x: S.area.x, y: S.area.y, z: S.area.z, ok: e.every(Boolean), giro: L.length === 1 && e[0] === 2 };
+    return { x: S.area.x, y: S.area.y, z: S.area.z, ok: e.every(Boolean), giro: L.length === 1 && e[0] === 2, pos: PR.areaPos || null };   // pos: dove sta l'area nel simulatore (ferma, si sposta trascinandola)
   }
   const chiaveForma = (b) => b.shape + "|" + JSON.stringify(b.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v));
   function meshBolla(b) {   // una bolla che non è quella scelta: solo vertici e facce alle sue misure, quanto basta al simulatore
@@ -841,7 +841,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
     }).filter(Boolean);
     const msg = { tipo: "bolle-officina", bolle, att: S.id, area: opzAreaTutte() };
-    const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.area]); if (firma === ultimoInvio) return; ultimoInvio = firma;
+    const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.area && { ...msg.area, pos: null }]);   // il posto dell'area lo tiene la vetrina if (firma === ultimoInvio) return; ultimoInvio = firma;
     fr.contentWindow.postMessage(msg, "*");
   }
   /* lo scenario del simulatore: la stanza di sfondo dell'Abbofficina (una pronta, o una foto 360° o un modello 3D vostri) */
@@ -880,6 +880,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (e.source !== fr.contentWindow || !e.data) return; const M = e.data;
     if (M.tipo === "vetrina-pronta") { vetrinaPronta = true; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); simulatore(); }
     if (M.tipo === "vetrina-posizioni") { (M.pos || []).forEach(q => { const b = PR.bolle.find(x => x.id === q.id); if (b) b.pos = { x: q.x, z: q.z, ang: q.ang || 0 }; }); salva(); }   // le bolle spostate nel simulatore
+    if (M.tipo === "vetrina-area-pos" && M.pos) { PR.areaPos = { x: +M.pos.x || 0, z: +M.pos.z || 0, giro: !!M.pos.giro }; salva(); }   // l'area di lavoro spostata nel simulatore
     if (M.tipo === "vetrina-area") { areaInsieme = !!M.ok; disegnaSchema(); }   // tutte insieme entrano nell'area di lavoro?
     if (M.tipo === "vetrina-scegli") { const i = PR.bolle.findIndex(x => x.id === M.id); if (i >= 0) scegliBolla(i); }   // toccata una bolla nel simulatore: si apre quella
   });
@@ -897,7 +898,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const nota = !schemaVisibile() ? (tante ? "Trascina una bolla per spostarla · toccala per modificarla · trascina il resto per girare la vista" : "Trascina la bolla per spostarla · trascina il resto per girare la vista · rotella per avvicinarti")
       : (vetrinaMorta ? "Senza internet il simulatore non si carica: ecco lo schema · " : "")
         + (inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla" : `I pezzi colorati per dima · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""} · trascina per girarla`);
-    $("simNota").textContent = (!areaInsieme && !schemaVisibile() && haArea() ? "Tutte insieme le bolle non entrano nell'area di lavoro (in rosso): avvicinale · " : "") + nota;
+    $("simNota").textContent = (!areaInsieme && !schemaVisibile() && haArea() ? "Le bolle escono dall'area di lavoro (in rosso): spostale dentro, o sposta l'area trascinandone il bordo o l'etichetta · " : "") + nota;
     if (!schemaVisibile()) return;
     vista("cvSchema", () => cur && (inCostruzione() ? { m: cur, o: opzMontaggio() } : { m: cur, o: { persona: true, quote: true, area: opzArea() } }));
   }

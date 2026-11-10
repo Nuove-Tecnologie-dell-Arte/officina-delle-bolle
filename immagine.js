@@ -120,7 +120,7 @@ const ImmagineBolla = (function () {
     collega();
   }
   const fileIn = document.createElement("input"); fileIn.type = "file"; fileIn.accept = "image/*";
-  fileIn.addEventListener("change", e => { const f = e.target.files[0]; e.target.value = ""; if (f) fotoCarica(f); });
+  fileIn.addEventListener("change", e => { const f = e.target.files[0]; e.target.value = ""; if (f) { prepara(); fotoCarica(f); } });   // la finestra si crea anche se si parte dal pulsante «Carica un'immagine»
 
   const FD = { modoC: "auto", punti: [], undoP: [], spec: false, sagAuto: null, segni: [], undoS: [], rett: null, iaPunti: [], undoIa: [], iaRis: null, iaAuto: null, px: null, w: 0, h: 0, src: null, alpha: false, seed: null, sens: 1, inv: false, sag: null, raw: null, auto: null, p: null, toccati: new Set(), modello: null, errore: null, yaw: 0.6, pitch: 0.32 };
   const fotoDef = () => SHAPES.find(s => s.id === "foto");

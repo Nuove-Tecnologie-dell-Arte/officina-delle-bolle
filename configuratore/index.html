@@ -618,11 +618,15 @@
   details.aspetto > summary h2::before { content: '▸ '; } details.aspetto[open] > summary h2::before { content: '▾ '; }
   /* [Officina] VETRINA (?vetrina): dentro il sito dell'Officina si vede solo la scena, senza pannelli né comandi */
   html.vetrina body > header, html.vetrina aside, html.vetrina #manico, html.vetrina .linguetta, html.vetrina #scena .sinistra,
-  html.vetrina #pannelloP, html.vetrina #suggScena, html.vetrina #avviso, html.vetrina #pannelloS, html.vetrina #povInfo, html.vetrina #pannelloO, html.vetrina #pannelloSt,
+  html.vetrina #pannelloP, html.vetrina #suggScena, html.vetrina #pannelloS, html.vetrina #povInfo, html.vetrina #pannelloO, html.vetrina #pannelloSt,
   html.vetrina #barraScena, html.vetrina #guida, html.vetrina #cerca, html.vetrina dialog, html.vetrina .lampo, html.vetrina .menuProve, html.vetrina .menuComp { display: none !important; }
   html.vetrina main, html.vetrina #vCostruisci { position: fixed; inset: 0; display: block; }
   html.vetrina #scena { position: absolute; inset: 0; height: auto; }
-  html.vetrina #sovra > :not(.eti), html.vetrina .eti .lnk { display: none !important; }   /* [Officina] in vetrina sopra le bolle restano solo i nomi: un tocco sceglie la bolla */
+  html.vetrina #sovra > :not(.eti):not(.etiArea), html.vetrina .eti .lnk { display: none !important; }
+  .etiArea { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: move; touch-action: none; user-select: none; font: 600 12px/1 system-ui, sans-serif; color: #16221e; background: rgba(232,238,242,.92); border: 1px dashed #55665f; border-radius: 999px; padding: 5px 10px; white-space: nowrap; }
+  .etiArea.ko { background: rgba(255,93,112,.92); border-color: #b8434f; color: #fff; }
+  body.spostaArea, body.spostaArea * { cursor: move !important; }
+  html.vetrina #avviso { bottom: 14px; }   /* [Officina] in vetrina gli avvisi restano: dicono perché una stanza non arriva o una bolla è rossa */   /* [Officina] in vetrina sopra le bolle restano solo i nomi: un tocco sceglie la bolla */
 </style>
 </head>
 <body>
@@ -3670,7 +3674,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
   if (VETRINA) {   // [Officina] in vetrina le bolle si spostano trascinandole, o si sceglie quella da modificare con un tocco; il resto della scena gira la vista
     if (e.button !== 0 || pov) return;
     puntaMouse(e); const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
-    const hit = ray.intersectObjects(ogg, false)[0]; if (!hit) { presa = null; return; }
+    const hit = ray.intersectObjects(ogg, false)[0]; if (!hit) { presa = null; if (VETRINA_AZ.areaGiu) VETRINA_AZ.areaGiu(e); return; }   // fuori dalle bolle: il bordo dell'area di lavoro si trascina
     const p = hit.object.userData.pezzo, v = suPiano(e); presa = { p, dx: v ? p.x - v.x : 0, dz: v ? p.z - v.z : 0, x0: e.clientX, y0: e.clientY, mosso: false }; ctrl.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); return;
   }
   if (window.oggetti && window.oggetti.occupato()) return;   // sto usando la maniglia di un oggetto
@@ -4152,7 +4156,7 @@ function carica(dati, opz = {}) {   // [Officina] opz.storia: da Annulla / Ripet
   { const r = { pezzi, link }; for (let i = 0; i < 6000; i++) passoRete(r, 0.05, false); }
   mettiPersona(); caricando = false; disegnaComp();
   if (opz.storia) return;
-  stanzaVoluta = { id: comp.attiva, s: dati.stanza || null }; applicaStanza();   // [Officina] si parte sempre senza stanza, poi arriva quella salvata
+  if (!VETRINA) { stanzaVoluta = { id: comp.attiva, s: dati.stanza || null }; applicaStanza(); }   // [Officina] in vetrina no: lo scenario lo manda il sito   // [Officina] si parte sempre senza stanza, poi arriva quella salvata
   applicaOggetti(dati.oggetti || []);   // [Officina] e gli oggetti 3D di questa composizione
   storia.indietro = []; storia.avanti = []; storia.ora = statoStoria(); aggiornaStoria();   // [Officina] ogni composizione ha la sua storia
 }
@@ -5059,12 +5063,21 @@ function stanzaDaModello(gltf, nome) {
 // stanze pronte, nella cartella stanze/ accanto al configuratore
 // Il corridoio è ricostruito dalla foto: l'angolo del chiostro con due bracci, letto dal bordo tra pavimento e pareti
 // (porta verde a destra, porta aperta e il pilastro d'angolo con le finestre). Misure in multipli dell'altezza di scatto.
-const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'stanze/corridoio.jpg', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · ricostruito in 3D',
+const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'stanze/corridoio.jpg', js: 'stanze/corridoio.js', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · ricostruito in 3D',
   par: { pianta: [[2.6, 2.2], [-34, 2.2], [-34, -1.8], [-1.75, -1.8], [-1.75, -34], [2.6, -34]], W: 12, P: 12, H: 8, fy: 0.9, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
 function stanzaPronta(S, par) {   // [Officina] par: le misure salvate nella composizione, sopra quelle della stanza pronta
   const g0 = genStanza;
-  fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { if (g0 !== genStanza) return; Object.assign(ST, S.par, par || {}); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); })
-    .catch(() => avviso('Non trovo ' + S.file + ': apri l\'Abbofficina dal sito, non come file sul computer.', 6000));
+  const usa = b => { if (g0 !== genStanza) return; Object.assign(ST, S.par, par || {}); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); };
+  fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(usa)
+    .catch(() => stanzaDaScript(S).then(usa).catch(() => avviso('Non trovo ' + S.file + ': apri l\'Abbofficina dal sito, non come file sul computer.', 6000)));
+}
+function stanzaDaScript(S) {   // [Officina] aperta come file (file://) fetch non legge la foto: arriva da uno script, scritta come testo (base64)
+  return new Promise((ok, no) => {
+    const fatto = () => { const d = (window.STANZE_DATI || {})[S.id]; if (!d) { no(); return; } const bin = atob(d), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); ok(new Blob([u], { type: 'image/jpeg' })); };
+    if ((window.STANZE_DATI || {})[S.id]) { fatto(); return; }
+    if (!S.js) { no(); return; }
+    const el = document.createElement('script'); el.src = S.js; el.onload = fatto; el.onerror = no; document.head.appendChild(el);
+  });
 }
 // [Officina] i lettori di three.js che non sono già nella pagina si scaricano la prima volta che servono (quelli degli oggetti 3D).
 // GLTFLoader e RGBELoader restano nei <script> in fondo: così, aperta una volta la pagina con internet, la stanza funziona anche offline.
@@ -5179,7 +5192,8 @@ $('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; 
 $('stTogli').onclick = () => togliStanza();
 $('stInterne').onchange = e => { ST.interne = e.target.checked; aggiornaStanza(); salvaParStanza(); };
 addEventListener('load', () => {   // dopo il caricamento dei lettori GLB e HDR
-  stanzaPronti = true; stanzaDB('vecchia');
+  stanzaPronti = true; if (VETRINA) return;   // [Officina] in vetrina la stanza la sceglie il sito (lo scenario): quella della composizione non si mette
+  stanzaDB('vecchia');
   if (!stanzaVoluta) stanzaVoluta = { id: comp.attiva, s: (compAttiva() && compAttiva().dati && compAttiva().dati.stanza) || null };
   applicaStanza();
 });
@@ -5616,32 +5630,76 @@ if (VETRINA) {
   const togliArea = () => { if (areaV) { scena.remove(areaV); areaV.geometry.dispose(); areaV.material.dispose(); areaV = null; } };
   const areaInsieme = ok => { if (areaInsieme.ok === ok) return; areaInsieme.ok = ok; try { parent.postMessage({ tipo: 'vetrina-area', ok }, '*'); } catch (e) {} };   // le bolle, tutte insieme, entrano nell'area di lavoro?
   const posizioni = () => { try { parent.postMessage({ tipo: 'vetrina-posizioni', pos: pezzi.map(p => ({ id: p.idOff, x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: p.ang || 0 })) }, '*'); } catch (e) {} };
+  // l'area di lavoro sta ferma dove è: la prima volta si mette attorno alle bolle, poi si sposta solo trascinandola
+  // (dal bordo tratteggiato o dall'etichetta «Area di lavoro»). Il suo posto torna al sito con 'vetrina-area-pos'.
+  let areaPos = null, areaRett = null, areaPresa = null;
+  const etiArea = document.createElement('div'); etiArea.className = 'etiArea'; etiArea.hidden = true;
+  etiArea.innerHTML = '<span aria-hidden="true">✥</span> Area di lavoro'; etiArea.title = 'Trascina per spostare l\'area di lavoro';
+  $('sovra').appendChild(etiArea);
+  const inviaAreaPos = () => { try { parent.postMessage({ tipo: 'vetrina-area-pos', pos: { x: +areaPos.x.toFixed(3), z: +areaPos.z.toFixed(3), giro: !!areaPos.giro } }, '*'); } catch (e) {} };
   function mettiArea(M) {
-    togliArea(); const A = M.area, gr = pezzi.filter(p => p.g3 && p.g3.grp); if (!A || !gr.length) { mettiArea.ultima = null; areaInsieme(true); return; }
+    togliArea(); areaRett = null; etiArea.hidden = true;
+    const A = M.area, gr = pezzi.filter(p => p.g3 && p.g3.grp);
+    if (!A) { mettiArea.ultima = null; areaInsieme(true); return; }
+    if (!areaPos && A.pos) areaPos = { x: A.pos.x, z: A.pos.z, giro: !!A.pos.giro };
     const b = new THREE.Box3(); gr.forEach(p => b.expandByObject(p.g3.grp));
-    const c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3()), e = 1e-3;
-    let giro, ok = A.ok;
-    if (gr.length === 1) {   // una bolla sola: l'area è X × Y dell'Officina, e si allinea confrontando le misure a terra con quelle vere
-      const B = (M.bolle || []).find(x => x.id === gr[0].idOff) || { W: s.x, D: s.z };
-      const dritta = Math.abs(s.x - B.W) + Math.abs(s.z - B.D) <= Math.abs(s.x - B.D) + Math.abs(s.z - B.W); giro = !!A.giro !== !dritta;
-    } else {   // più bolle: l'area le deve contenere tutte, dritta o girata
-      const sta = (ax, az) => (!ax || s.x <= ax + e) && (!az || s.z <= az + e);
-      giro = !sta(A.x, A.y) && sta(A.y, A.x); ok = ok && (sta(A.x, A.y) || sta(A.y, A.x));
+    const c = gr.length ? b.getCenter(new THREE.Vector3()) : new THREE.Vector3(), s = gr.length ? b.getSize(new THREE.Vector3()) : new THREE.Vector3(4, 0, 4), e = 1e-3;
+    if (!areaPos) {   // la prima volta: attorno alle bolle, girata se così le contiene e dritta no
+      if (!gr.length) { areaInsieme(true); return; }
+      let giro;
+      if (gr.length === 1) { const B = (M.bolle || []).find(x => x.id === gr[0].idOff) || { W: s.x, D: s.z };
+        const dritta = Math.abs(s.x - B.W) + Math.abs(s.z - B.D) <= Math.abs(s.x - B.D) + Math.abs(s.z - B.W); giro = !!A.giro !== !dritta; }
+      else { const sta = (ax, az) => (!ax || s.x <= ax + e) && (!az || s.z <= az + e); giro = !sta(A.x, A.y) && sta(A.y, A.x); }
+      areaPos = { x: c.x, z: c.z, giro }; inviaAreaPos();
     }
-    areaInsieme(gr.length < 2 || ok);
-    const ax = (giro ? A.y : A.x) || s.x, az = (giro ? A.x : A.y) || s.z, ay = A.z || 0;
+    const giro = areaPos.giro, lx = (giro ? A.y : A.x) || 0, lz = (giro ? A.x : A.y) || 0, ay = A.z || 0;
+    // un lato senza limite segue le bolle (lungo quanto loro), quello con il limite sta fermo
+    const ax = lx || Math.max(s.x, 1), az = lz || Math.max(s.z, 1), cx = lx ? areaPos.x : c.x, cz = lz ? areaPos.z : c.z;
+    areaRett = { x0: cx - ax / 2, x1: cx + ax / 2, z0: cz - az / 2, z1: cz + az / 2, lx, lz, y: ay };
+    // tutte le bolle dentro? ogni punto dell'impronta nel rettangolo, e nessuna più alta dello spazio in alto
+    const ok = pezzi.every(p => (p.scafo || scafo(p)).every(([x, z]) => (!lx || (x >= areaRett.x0 - e && x <= areaRett.x1 + e)) && (!lz || (z >= areaRett.z0 - e && z <= areaRett.z1 + e))) && (!ay || p.F.H <= ay + e));
+    areaInsieme(ok);
     const g = new THREE.EdgesGeometry(new THREE.BoxGeometry(ax, ay || 0.001, az)), m = new THREE.LineDashedMaterial({ color: ok ? 0xe8eef2 : 0xff5d70, dashSize: 0.35, gapSize: 0.22 });
-    areaV = new THREE.LineSegments(g, m); areaV.computeLineDistances(); areaV.position.set(c.x, (ay || 0.001) / 2, c.z); scena.add(areaV);
-    const chiave = [ax, az, ay, gr.length].join();   // un'area nuova: la vista si allontana quanto basta per vederla tutta (poi la si gira come si vuole)
+    areaV = new THREE.LineSegments(g, m); areaV.computeLineDistances(); areaV.position.set(cx, (ay || 0.001) / 2, cz); scena.add(areaV);
+    etiArea.hidden = !(lx || lz); etiArea.classList.toggle('ko', !ok);
+    const chiave = [ax, az, ay].join();   // un'area nuova: la vista si allontana quanto basta per vederla tutta (poi la si gira come si vuole)
     if (chiave !== mettiArea.ultima) { mettiArea.ultima = chiave; const L = Math.max(ax, az, ay * 1.4) + 3, dir = camera.position.clone().sub(ctrl.target).normalize();
-      ctrl.target.set(c.x, 0.9, c.z); camera.position.copy(ctrl.target).addScaledVector(dir, L * 1.15 + 3); ctrl.update(); inquadra.L = L; }
+      ctrl.target.set(cx, 0.9, cz); camera.position.copy(ctrl.target).addScaledVector(dir, L * 1.15 + 3); ctrl.update(); inquadra.L = L; }
   }
+  // l'etichetta segue l'angolo dell'area più vicino a chi guarda
+  (function segui() {
+    requestAnimationFrame(segui);
+    if (!areaRett || etiArea.hidden) return;
+    const R = areaRett, v = new THREE.Vector3(); let best = null, bd = Infinity;
+    for (const [x, z] of [[R.x0, R.z0], [R.x1, R.z0], [R.x1, R.z1], [R.x0, R.z1]]) { const d = camera.position.distanceToSquared(v.set(x, 0, z)); if (d < bd) { bd = d; best = [x, z]; } }
+    v.set(best[0], 0, best[1]).project(camera);
+    const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+    etiArea.style.visibility = v.z > 1 ? 'hidden' : '';
+    etiArea.style.transform = `translate(${((v.x + 1) / 2 * w).toFixed(1)}px, ${((1 - v.y) / 2 * h).toFixed(1)}px) translate(-50%, 8px)`;
+  })();
+  // vicino al bordo dell'area (sul pavimento)? Con un margine che cresce con la distanza, così si prende anche da lontano
+  function sulBordo(e) {
+    if (!areaRett || etiArea.hidden) return null; const q = suPiano(e); if (!q) return null;
+    const R = areaRett, tol = Math.max(0.25, camera.position.distanceTo(q) * 0.025);
+    const dentroX = q.x >= R.x0 - tol && q.x <= R.x1 + tol, dentroZ = q.z >= R.z0 - tol && q.z <= R.z1 + tol;
+    const vicino = (dentroZ && (Math.abs(q.x - R.x0) < tol || Math.abs(q.x - R.x1) < tol)) || (dentroX && (Math.abs(q.z - R.z0) < tol || Math.abs(q.z - R.z1) < tol));
+    return vicino ? q : null;
+  }
+  function prendiArea(e, q) { areaPresa = { dx: areaPos.x - q.x, dz: areaPos.z - q.z }; ctrl.enabled = false; document.body.classList.add('spostaArea'); e.preventDefault(); }
+  VETRINA_AZ.areaGiu = e => { const q = sulBordo(e); if (!q) return false; prendiArea(e, q); try { renderer.domElement.setPointerCapture(e.pointerId); } catch (er) {} return true; };
+  etiArea.addEventListener('pointerdown', e => { if (e.button !== 0) return; const q = suPiano(e); if (!q) return; e.stopPropagation(); prendiArea(e, q); try { etiArea.setPointerCapture(e.pointerId); } catch (er) {} });
+  const muoviArea = e => { if (!areaPresa) return; const q = suPiano(e); if (!q) return; areaPos.x = q.x + areaPresa.dx; areaPos.z = q.z + areaPresa.dz; if (M_ultimo) { const u = mettiArea.ultima; mettiArea(M_ultimo); mettiArea.ultima = u; } };
+  const lasciaArea = () => { if (!areaPresa) return; areaPresa = null; ctrl.enabled = true; document.body.classList.remove('spostaArea'); inviaAreaPos(); };
+  addEventListener('pointermove', muoviArea, true); addEventListener('pointerup', lasciaArea, true); addEventListener('pointercancel', lasciaArea, true);
+  renderer.domElement.addEventListener('pointermove', e => { if (e.buttons || presa || areaPresa) return;   // il cursore dice che cosa si prende
+    puntaMouse(e); const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
+    renderer.domElement.style.cursor = ray.intersectObjects(ogg, false).length ? 'grab' : sulBordo(e) ? 'move' : ''; });
   // tutte le bolle del progetto, ognuna al suo posto (pos), separate tra loro; quella che si sta modificando (att) è scelta.
   // Una bolla nuova, senza posto, va accanto alle altre (o nel primo posto libero della stanza) e il posto torna al sito.
   function mostra(M) {
     const L = (M.bolle || []).filter(B => B && B.mesh);
     attiva = M.att;
-    const chiave = JSON.stringify([L.map(B => [B.id, B.nome, B.forma, B.dim, B.pos]), M.area]);
+    const chiave = JSON.stringify([L.map(B => [B.id, B.nome, B.forma, B.dim, B.pos]), M.area && { ...M.area, pos: null }]);   // il posto dell'area lo tiene la vetrina
     if (chiave === chiaveG && pezzi.length) { selezionato = pezzi.find(p => p.idOff === attiva) || null; return; }   // è cambiata solo la bolla scelta
     chiaveG = chiave;
     if (!L.length) { togliArea(); carica({ ...fotografa(), pezzi: [], manuali: [], staccati: [] }, { storia: true }); ultime.clear(); ultimeQ.clear(); return; }
@@ -5677,12 +5735,12 @@ if (VETRINA) {
       if (D.speed === 1) velocita(5);
       mostra.t = setInterval(() => { if (pezzi.every(p => p.Va >= p.V0 * 0.97)) { clearInterval(mostra.t); velocita(1); } }, 400);
     } else if (D.speed !== 1) velocita(1);
-    if (nuoveIds || daGonfiare.length) { inquadra.L = 0; mettiArea.ultima = null; }
+    if (nuoveIds || daGonfiare.length) inquadra.L = 0;
     if (!M.area) inquadra();   // con l'area di lavoro la vista resta quella che la mostra tutta
     mettiArea(M);
   }
   // spostata trascinandola: il nuovo posto torna al sito; toccata (o toccato il suo nome): il sito apre quella bolla
-  VETRINA_AZ.mossa = () => { selezionato = pezzi.find(p => p.idOff === attiva) || null; if (M_ultimo && M_ultimo.area) mettiArea(M_ultimo); posizioni(); };
+  VETRINA_AZ.mossa = () => { selezionato = pezzi.find(p => p.idOff === attiva) || null; if (M_ultimo && M_ultimo.area) mettiArea(M_ultimo); posizioni(); };   // l'area resta dov'è: cambia solo il colore
   VETRINA_AZ.scelta = p => { try { parent.postMessage({ tipo: 'vetrina-scegli', id: p.idOff }, '*'); } catch (e) {} };
   $('sovra').addEventListener('click', e => { const el = e.target.closest && e.target.closest('.eti'); if (!el || !el._p) return; e.stopImmediatePropagation(); e.preventDefault(); VETRINA_AZ.scelta(el._p); }, true);
   // gli scenari: la stanza di sfondo (una pronta, una foto 360° o un modello GLB), come nell'Abbofficina
