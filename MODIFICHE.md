@@ -77,7 +77,7 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 ## La stanza
 
 - **Nuovo riquadro «La stanza»** (`#rqStanza`), tra «Scegli forma» e Misure bolla: larghezza, lunghezza e altezza del soffitto della stanza in cui andrà la bolla, in metri. Il browser le ricorda (`bolle|stanza|…`); «Senza stanza» le cancella.
-- **La pagina controlla che la bolla ci stia** (`controllaStanza`, a ogni cambio di misure della bolla o della stanza), confrontando altezza e ingombro a terra della bolla con la stanza (il lato lungo con il lato lungo):
+- **La pagina controlla che la bolla ci stia** (`controllaStanza`, a ogni cambio di misure della bolla o della stanza). Il messaggio (`#stEsito`) esce in Misure bolla, sotto le caselle delle misure, così si vede mentre si cambiano. Confronta altezza e ingombro a terra della bolla con la stanza (il lato lungo con il lato lungo):
   - **Ci sta** (bordo verde): restano almeno 30 cm sopra e 50 cm intorno;
   - **Ci sta di poco** (bordo giallo): meno di 30 cm sopra o meno di 50 cm intorno, perché gonfiandosi la bolla si allarga un po';
   - **Non ci sta** (bordo rosso): più alta del soffitto o più grande della stanza a terra, con il consiglio di rimpicciolirla.

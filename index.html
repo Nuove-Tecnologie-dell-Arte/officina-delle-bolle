@@ -798,14 +798,13 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     <p class="warn" id="fotoErr" hidden style="grid-column: 1 / -1"></p>
   </div>
   <div class="riquadro stanzaRq" id="rqStanza"><!-- [Semplice] le misure della stanza in cui va la bolla -->
-    <div class="rq-testa"><h2>La stanza</h2><span class="hint">Dove metterete la bolla: la pagina controlla che ci stia, e nella simulazione la bolla appare dentro la stanza.</span></div>
+    <div class="rq-testa"><h2>La stanza</h2><span class="hint">Dove metterete la bolla: sotto le misure della bolla vedrete se ci sta, e nella simulazione la bolla appare dentro la stanza.</span></div>
     <div class="fields stanzaCampi">
       <div class="field"><label for="stW">Larghezza (m)</label><input id="stW" type="number" min="1" max="100" step="0.1" placeholder="es. 8" inputmode="decimal"></div>
       <div class="field"><label for="stL">Lunghezza (m)</label><input id="stL" type="number" min="1" max="100" step="0.1" placeholder="es. 6" inputmode="decimal"></div>
       <div class="field"><label for="stH">Altezza del soffitto (m)</label><input id="stH" type="number" min="1.5" max="30" step="0.05" placeholder="es. 4" inputmode="decimal"></div>
       <button type="button" class="btn" id="stVia" hidden>Senza stanza</button>
     </div>
-    <p class="stanzaEsito" id="stEsito" aria-live="polite"></p>
   </div>
 </section>
 
@@ -833,6 +832,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
           </div>
           <p class="hint notaScala" id="notaScala"></p>
           <div class="fields" id="params"></div>
+          <p class="stanzaEsito" id="stEsito" aria-live="polite"></p><!-- [Semplice] se la bolla sta nella stanza: sotto le misure, dove si cambiano -->
         </div>
       </div>
         </div></div>
@@ -3053,12 +3053,12 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   function controllaStanza() {
     const S = stanzaV(), e = $("stEsito"), tutte = S.W && S.L && S.H; $("stVia").hidden = !(S.W || S.L || S.H);
     e.className = "stanzaEsito";
-    if (!tutte) { e.textContent = S.W || S.L || S.H ? "Scrivete tutte e tre le misure della stanza." : ""; return; }
+    if (!tutte) { e.textContent = S.W || S.L || S.H ? "Per sapere se la bolla sta nella stanza, scrivete tutte e tre le sue misure (riquadro «La stanza»)." : ""; return; }
     if (!cur) { e.textContent = ""; return; }
     const H = cur.H, a = Math.max(cur.dx, cur.dy), b = Math.min(cur.dx, cur.dy), lungo = Math.max(S.W, S.L), corto = Math.min(S.W, S.L);
     const sopra = S.H - H, ai = Math.min(lungo - a, corto - b) / 2, m = x => mR(Math.max(0, x));
     const dims = `La bolla è alta ${mR(H)} e occupa ${mR(a)} × ${mR(b)} a terra; la stanza è ${fmt(lungo, 1)} × ${fmt(corto, 1)} m, alta ${fmt(S.H, 2)} m.`;
-    if (sopra < 0 || ai < 0) { e.classList.add("ko"); e.textContent = `Non ci sta: ${sopra < 0 ? `è più alta del soffitto di ${m(-sopra)}` : `a terra è più grande della stanza`}. ${dims} Rimpicciolitela in Misure bolla o scegliete una stanza più grande.`; }
+    if (sopra < 0 || ai < 0) { e.classList.add("ko"); e.textContent = `Non ci sta: ${sopra < 0 ? `è più alta del soffitto di ${m(-sopra)}` : `a terra è più grande della stanza`}. ${dims} Rimpicciolitela cambiando le misure qui sopra, o scegliete una stanza più grande.`; }
     else if (sopra < 0.3 || ai < 0.5) { e.classList.add("mid"); e.textContent = `Ci sta di poco: ${[sopra < 0.3 ? `restano ${m(sopra)} sopra la bolla` : "", ai < 0.5 ? `restano ${m(ai)} di spazio ai lati` : ""].filter(Boolean).join(" e ")}. Gonfiandosi la bolla si allarga un po': meglio almeno 30 cm sopra e 50 cm intorno. ${dims}`; }
     else { e.classList.add("ok"); e.textContent = `Ci sta: restano ${m(sopra)} sopra la bolla e almeno ${m(ai)} intorno. ${dims}`; }
   }
