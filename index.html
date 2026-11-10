@@ -686,6 +686,8 @@ details.piece[open] .piece-head canvas.where { display: block; }
 .cs-sim .simFrame { height: min(620px, calc(100vh - 190px)); min-height: 360px; }
 .cs-resto { grid-area: resto; min-width: 0; display: grid; gap: 18px; align-content: start; }
 .cs-resto > section { display: grid !important; gap: 22px; margin-top: 40px; min-width: 0; }
+.cs-resto .piece-body { grid-template-columns: minmax(0, 1fr); gap: 18px; }   /* [Semplice] nella colonna più stretta il disegno del pezzo sta sopra i passi, grande, così le misure si leggono */
+.cs-resto .piece-body .drawing .mat { max-width: 460px; }
 @media (max-width: 960px) {
   .conSim { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mis" "sim" "resto"; }
   .cs-sim .simCasa { position: static; }
@@ -1279,7 +1281,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   }
   // scelta una forma, le misure devono essere in vista: la scelta si vede e si continua da lì
   function versoMisure() {
-    const m = document.querySelector("#forma .mat"), t = m.getBoundingClientRect().top;
+    const m = document.querySelector("#rqMisure"), t = m.getBoundingClientRect().top;   // [Semplice] Misure bolla sta nella colonna sotto «Scegli forma»
     if (t > innerHeight * 0.7 || t < 0) m.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
   }
   function scriviTipi(id, r) { const el = document.querySelector(`[data-tipi="${id}"]`); if (el && r.an) el.textContent = plural(r.an.types.length, "tipo", "tipi") + " di pezzo"; }
@@ -2182,10 +2184,10 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     const minX = Math.min(0, ...xs), maxX = Math.max(AB, ...xs), maxY = Math.max(...ys);
     const span = Math.max(maxX - minX, maxY, 1e-6), pad = span * 0.12, f = span / 100;
     const labels = n <= 8;
-    const bottom = labels ? 22 * f : 10 * f;
-    const vb = `${minX - pad} ${-maxY - pad} ${maxX - minX + 2 * pad} ${maxY + pad + bottom}`;
+    const bottom = labels ? 30 * f : 10 * f, padX = labels ? span * 0.32 : pad;   // [Semplice] più spazio per le scritte grandi
+    const vb = `${minX - padX} ${-maxY - pad} ${maxX - minX + 2 * padX} ${maxY + pad + bottom}`;
     const ink = css("--ink"), green = css("--green"), muted = css("--muted"), cut = css("--cut"), col = tcol(ti), halo = css("--mat");
-    const T = (x, y, str, size, color, anchor, weight) => `<text x="${x}" y="${y}" font-size="${size}" font-family="IBM Plex Mono, monospace" font-weight="${weight || 500}" fill="${color}" text-anchor="${anchor || "middle"}" dominant-baseline="middle" paint-order="stroke" stroke="${halo}" stroke-width="${1.4 * f}" stroke-linejoin="round">${str}</text>`;
+    const T = (x, y, str, size, color, anchor, weight) => `<text x="${x}" y="${y}" font-size="${size}" font-family="IBM Plex Mono, monospace" font-weight="${weight || 500}" fill="${color}" text-anchor="${anchor || "middle"}" dominant-baseline="middle" paint-order="stroke" stroke="${halo}" stroke-width="${2.2 * f}" stroke-linejoin="round">${str}</text>`;
     let s = `<svg viewBox="${vb}" role="img" aria-label="Costruzione del pezzo con linea di base, perpendicolari e quote">`;
     s += `<polygon points="${C.map(p => `${p[0]},${-p[1]}`).join(" ")}" fill="${col}" fill-opacity=".22" stroke="none"/>`;
     s += `<line x1="${minX - pad * 0.8}" y1="0" x2="${maxX + pad * 0.8}" y2="0" stroke="${muted}" stroke-width="${0.5 * f}" stroke-dasharray="${2 * f} ${1.5 * f}"/>`;
@@ -2200,12 +2202,12 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     if (labels) {
       C.forEach((p, i) => {
         if (i < 2 || p[1] < 1e-9) return;
-        s += T(p[0] + 1.6 * f, -p[1] / 2, Lx(p[1]), 3.3 * f, green, "start", 600);
-        if (Math.abs(p[0]) > 5e-4 && Math.abs(p[0] - AB) > 5e-4) s += T(p[0], 8.5 * f, Lx(p[0]), 2.9 * f, muted);
+        s += T(p[0] + 2 * f, -p[1] / 2, Lx(p[1]), 5.6 * f, green, "start", 700);
+        if (Math.abs(p[0]) > 5e-4 && Math.abs(p[0] - AB) > 5e-4) s += T(p[0], 10 * f, Lx(p[0]), 4.8 * f, ink, "middle", 600);
       });
-      s += `<line x1="0" y1="${15 * f}" x2="${AB}" y2="${15 * f}" stroke="${ink}" stroke-width="${0.35 * f}"/>`;
-      [0, AB].forEach(x => { s += `<line x1="${x}" y1="${13.5 * f}" x2="${x}" y2="${16.5 * f}" stroke="${ink}" stroke-width="${0.35 * f}"/>`; });
-      s += T(AB / 2, 15 * f, "AB " + Lx(AB), 3.3 * f, ink, "middle", 600);
+      s += `<line x1="0" y1="${21 * f}" x2="${AB}" y2="${21 * f}" stroke="${ink}" stroke-width="${0.45 * f}"/>`;
+      [0, AB].forEach(x => { s += `<line x1="${x}" y1="${18.5 * f}" x2="${x}" y2="${23.5 * f}" stroke="${ink}" stroke-width="${0.45 * f}"/>`; });
+      s += T(AB / 2, 21 * f, "AB " + Lx(AB), 5.6 * f, ink, "middle", 700);
     }
     const cx = xs.reduce((a, b) => a + b, 0) / n, cy = ys.reduce((a, b) => a + b, 0) / n;
     C.forEach((p, i) => {
@@ -2213,7 +2215,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
       const lx = i < 2 ? p[0] + (i === 0 ? -3.5 * f : 3.5 * f) : p[0] + d[0] / L * off;
       const ly = i < 2 ? -4 * f : p[1] + d[1] / L * off;
       s += `<circle cx="${p[0]}" cy="${-p[1]}" r="${1.3 * f}" fill="${i < 2 ? cut : ink}"/>`;
-      s += T(lx, -ly, letter(i), 4.6 * f, ink, "middle", 700);
+      s += T(lx, -ly, letter(i), 6 * f, ink, "middle", 800);
     });
     // punto del passo in corso (modalità cantiere): cerchio rosso e perpendicolare in evidenza
     (hl || []).forEach(k => {

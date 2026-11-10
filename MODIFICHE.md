@@ -67,3 +67,9 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 
 - **La simulazione ferma a destra** (`.conSim`): sotto «Scegli forma» la pagina ha due colonne. A sinistra Misure bolla, Materiali bolla vera, Lista materiali e prezzi, Salva e riapri e la sezione Pezzi; a destra la simulazione, che resta ferma in vista (`position: sticky`) mentre si scorre la colonna di sinistra e finisce prima di Cartamodello e montaggio. Sul telefono la colonna è una sola e la simulazione sta sotto Misure bolla. (Una prima prova con una finestra in basso a destra è stata tolta.)
 - **Tolta la scritta «profondità»** sotto la larghezza, nelle figure con la persona: non aveva freccia e cambiava a ogni giro della forma, quindi confondeva. Restano altezza e larghezza con le loro frecce; la profondità del pavimento resta nella scheda Numeri.
+
+## Misure dei pezzi leggibili
+
+- **Le scritte nel disegno di ogni pezzo sono più grandi e più leggibili** (`pieceSVG`): altezze e AB da 3,3 a 5,6 (in centesimi del pezzo), piedi da 2,9 a 4,8 e scuri invece che grigi, lettere degli angoli da 4,6 a 6, tutte in grassetto e con un bordo scuro più largo dietro. Più spazio ai lati e sotto, così non escono dal disegno. Sullo schermo passano da circa 8 px a 13–19 px.
+- **Nella colonna dei Pezzi il disegno sta sopra i passi** (fino a 460 px di larghezza), invece che di fianco: nella colonna più stretta accanto alla simulazione era troppo piccolo.
+- Corretto: scegliendo una forma la pagina non scendeva più alle misure, perché cercava il riquadro Misure al vecchio posto (`versoMisure` ora cerca `#rqMisure`).
