@@ -1239,8 +1239,8 @@ function formaOfficinaFine(O, V, E, conn) {
     peso: () => pesoTelo(), luce: Math.max(0.5, O.luce) };
 }
 // [Officina] le forme dell'Officina nella griglia "Bolle": il motore si legge dalla pagina dell'Officina (stesso sito), senza copiarlo
-const FORME_OFF = [['d20', 'Cupola'], ['geo', 'Sfera liscia'], ['sferaU', 'Sfera a triangoli uguali'], ['sferaP', 'Sfera a triangoli piccoli'], ['calcio', 'Pallone da calcio'], ['d12', 'Palla di 12 pentagoni'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Ciambella'], ['tunnel', 'Tunnel'],
-  ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Millepiedi'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga'],
+const FORME_OFF = [['d20', 'Icosaedro'], ['geo', 'Sfera geodetica'], ['sferaU', 'Esacisicosaedro'], ['sferaP', 'Esacisicosaedro suddiviso'], ['calcio', 'Icosaedro troncato'], ['d12', 'Dodecaedro'], ['L', 'Forma a L'], ['C', 'Forma a C'], ['arrow', 'Freccia'], ['snake', 'Serpente'], ['torus', 'Toro (ciambella)'], ['tunnel', 'Tunnel'],
+  ['boat', 'Barca'], ['banana', 'Banana'], ['scolo', 'Scolopendra'], ['balena', 'Balena'], ['fungo', 'Fungo'], ['razzo', 'Razzo'], ['tarta', 'Tartaruga'],
   ['ananas', 'Ananas'], ['pera', 'Pera']];
 let MOTORE_OFF = null;
 const _ofMesh = new Map();   // forma + misure → mesh già costruita

@@ -99,16 +99,15 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 
 - Sul computer, a tutto schermo, la barra in alto della pagina copriva il pulsante ↙ per tornare: la colonna ferma della simulazione (`position: sticky`) la teneva sotto la barra. A tutto schermo la colonna non è più ferma (`body.simGrande .cs-sim .simCasa`), e il pulsante si vede e funziona. Esc funzionava già.
 
-## Nomi delle forme più chiari
+## Nomi delle forme: la figura esatta
 
-- Nomi nuovi, senza parole da geometria (`motore.js`; gli stessi nell'elenco delle forme dell'Abbofficina, `FORME_OFF`). La parte prima della parentesi è quella delle schede di «Scegli forma»:
-  - Cupola (20 triangoli) → **Cupola** (triangoli tutti uguali): i pezzi sono 16, non 20;
-  - Cubo (6 quadrati) → **Cubo**;
-  - Sfera geodetica (tipo d100) → **Sfera liscia** (tanti triangoli);
-  - Sfera di triangoli uguali → **Sfera a triangoli uguali**; Sfera di triangoli piccoli → **Sfera a triangoli piccoli** (più pezzi);
-  - Pallone (pentagoni ed esagoni) → **Pallone da calcio** (pentagoni ed esagoni);
-  - Dodecaedro (12 pentagoni) → **Palla di 12 pentagoni**;
-  - Prisma (base con n lati) → **Torre** (pareti dritte, base a scelta); Piramide (base con n lati) → **Piramide** (base a scelta);
-  - Piramide senza punta (tronco) → **Piramide tagliata** (senza punta); Parallelepipedo → **Scatola** (rettangolare);
-  - Barca (scafo con piramide) → **Barca**; Scolopendra → **Millepiedi**.
-- I nomi dei gruppi restano. Le forme si salvano con il codice (`d20`, `geo`…), non con il nome: forme e progetti salvati si riaprono come prima.
+- Dove la forma è una figura geometrica, il nome è quello esatto, così non ci sono equivoci (`motore.js`, e gli stessi nell'elenco dell'Abbofficina, `FORME_OFF`):
+  - Cupola (20 triangoli) → **Icosaedro** (20 triangoli): anche perché nell'Abbofficina «Cupola» è un'altra forma, la mezza sfera;
+  - Sfera geodetica (tipo d100) → **Sfera geodetica** (80, 180 o 320 triangoli);
+  - Sfera di triangoli uguali → **Esacisicosaedro** (120 triangoli uguali; con 48 è l'esacisottaedro);
+  - Sfera di triangoli piccoli → **Esacisicosaedro suddiviso** (480 o 1080 triangoli);
+  - Pallone (pentagoni ed esagoni) → **Icosaedro troncato** (12 pentagoni e 20 esagoni);
+  - Piramide senza punta (tronco) → **Tronco di piramide**;
+  - Ciambella → **Toro** (ciambella).
+- Cubo, Dodecaedro, Prisma, Piramide e Parallelepipedo avevano già il nome esatto. Le forme a pianta (L, C, freccia, stella), i tubi e le figure (barca, banana, balena…) non sono figure geometriche con un nome: restano come prima. I gruppi restano.
+- Le forme si salvano con il codice (`d20`, `geo`…), non con il nome: forme e progetti salvati si riaprono come prima.
