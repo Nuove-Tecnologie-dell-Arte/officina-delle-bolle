@@ -184,6 +184,15 @@ main { max-width: 1080px; margin: 0 auto; width: 100%; padding-top: 30px; paddin
 .asse-campo b { font: 800 2.6rem/1 var(--display); color: var(--green); }
 .asse-campo span { grid-column: 1 / -1; text-align: center; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .nota-area { text-align: center; color: var(--muted); font-size: .92rem; max-width: 64ch; justify-self: center; }
+/* più aree di lavoro: una scheda per area, con le sue X, Y, Z e le bolle che ha dentro */
+.aree { display: grid; gap: 14px; justify-items: center; }
+.area-card { width: 100%; max-width: 880px; padding: 14px 20px 18px; display: grid; gap: 12px; border: 2px solid transparent; }
+.area-card.qui { border-color: color-mix(in srgb, var(--green) 55%, transparent); }
+.area-testa { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.area-testa h3 { font-size: 1.15rem; }
+.area-testa .bx { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 0; background: none; color: var(--muted); font: 600 1.2rem/1 var(--body); cursor: pointer; }
+.area-testa .bx:hover { background: color-mix(in srgb, var(--cut) 14%, transparent); color: var(--cut); }
+.area-card .xyz { max-width: none; }
 
 /* 1 · progetta: la cartella con le linguette Forme / Misure */
 .cartella { display: grid; min-width: 0; }
@@ -380,12 +389,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <section class="tappa" data-t="progettazione" hidden>
   <div class="blocco" id="bloccoArea">
     <header class="titolone"><span class="occhiello">Tappa 1 · Progettazione</span><h2>Prendi le misure</h2><p>Vai nel posto scelto per il montaggio e prendi le misure dell'<button class="gl" data-g="area">area di lavoro</button>.</p></header>
-    <div class="xyz">
-      <label class="asse-campo"><input type="number" id="aX" min="0.5" max="200" step="0.1" inputmode="decimal" placeholder="metri" aria-label="X: lunghezza dell'area, in metri"><b aria-hidden="true">X</b><span>lunghezza</span></label>
-      <label class="asse-campo"><input type="number" id="aY" min="0.5" max="200" step="0.1" inputmode="decimal" placeholder="metri" aria-label="Y: larghezza dell'area, in metri"><b aria-hidden="true">Y</b><span>larghezza</span></label>
-      <label class="asse-campo"><input type="number" id="aZ" min="0.5" max="100" step="0.1" inputmode="decimal" placeholder="metri" aria-label="Z: altezza dell'area (fino al soffitto o ai rami), in metri"><b aria-hidden="true">Z</b><span>altezza</span></label>
-    </div>
-    <p class="nota-area">In metri. La Z è lo spazio libero in alto: il soffitto, una trave, i rami. Se non hai ancora scelto il posto lascia vuoto: la bolla non avrà limiti, e potrai metterle dopo.</p>
+    <div class="box-info" id="areaScenario" hidden></div>
+    <div class="aree" id="aree"></div>
+    <div class="btnrow" style="justify-content:center"><button type="button" class="btn" id="bNuovaArea">+ Aggiungi un'area di lavoro</button></div>
+    <p class="nota-area" id="notaArea">In metri. La Z è lo spazio libero in alto: il soffitto, una trave, i rami. Se non hai ancora scelto il posto lascia vuoto: la bolla non avrà limiti, e potrai metterle dopo. Puoi avere più aree (per esempio due cortili): nel simulatore ogni bolla resta dentro la sua.</p>
   </div>
 
   <div class="blocco" id="bloccoProgetta">
@@ -577,7 +584,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* ---------- le parole ---------- */
   const PAROLE = {
     bolla: ["Bolla", "Una stanza gonfiabile fatta di pannelli piatti di plastica uniti tra loro. Sta su perché un ventilatore ci soffia dentro aria di continuo."],
-    area: ["Area di lavoro", "Lo spazio dove monterai la bolla: lunghezza (X), larghezza (Y) e altezza libera (Z), fino al soffitto o ai rami. La bolla deve starci dentro."],
+    area: ["Area di lavoro", "Lo spazio dove monterai la bolla: lunghezza (X), larghezza (Y) e altezza libera (Z), fino al soffitto o ai rami. La bolla deve starci dentro. Puoi averne più d'una; nel simulatore una bolla che è dentro un'area ci resta, e l'area si sposta trascinandone il bordo, con le bolle che ha dentro. Con uno scenario, l'area è lo spazio della stanza."],
     pannello: ["Pannello (o pezzo)", "Uno dei pezzi piatti di plastica che formano la bolla: un triangolo, un quadrato, un trapezio…"],
     tipo: ["Tipo di pezzo", "Pezzi con la stessa forma e le stesse misure sono dello stesso tipo. Ogni tipo si traccia una volta sola (la dima) e poi si copia: meno tipi ci sono, meno lavoro."],
     dima: ["Dima", "Il pezzo campione, tracciato con cura una volta sola. Ci si appoggia sopra il telo per tagliare tutte le copie uguali. Ognuna ha un nome: P1, P2, P3…"],
@@ -633,9 +640,20 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (!v || typeof v !== "object") v = {};
     PR = { att: 0, prossimo: 2, area: v.area, bolle: [Object.assign(bollaVuota(1), { t: 0, max: 0 }, v, { id: 1 })] };
   }
-  PR.area = Object.assign({ x: null, y: null, z: null }, PR.area);
+  /* le aree di lavoro: una o più (per esempio due cortili), ognuna con X, Y, Z e il suo posto nel simulatore (pos).
+     Ogni bolla sta in un'area (areaId, lo dice il simulatore). Con uno scenario con le pareti l'area è lo spazio dello scenario. */
+  const num = (v) => (v > 0 ? +v : null);
+  if (!Array.isArray(PR.aree) || !PR.aree.length) { const A = PR.area || {}; PR.aree = [{ id: 1, x: A.x, y: A.y, z: A.z, pos: PR.areaPos || null }]; }
+  PR.aree = PR.aree.filter(a => a && typeof a === "object").map((a, i) => ({ id: a.id || i + 1, x: num(a.x), y: num(a.y), z: num(a.z), pos: a.pos || null }));
+  if (!PR.aree.length) PR.aree = [{ id: 1, x: null, y: null, z: null, pos: null }];
+  PR.prossimaArea = Math.max(PR.prossimaArea || 0, ...PR.aree.map(a => a.id + 1));
+  delete PR.area; delete PR.areaPos;
+  let stanzaInfo = null, scenarioInfo = null;   // dal simulatore: lo scenario aperto e, se ha le pareti, la sua altezza
+  const nomeArea = (i) => "Area " + (i + 1);
+  const areaDi = (b) => stanzaInfo ? { x: null, y: null, z: stanzaInfo.H || null, stanza: true } : (PR.aree.find(a => a.id === b.areaId) || PR.aree[0]);
   function sistemaBolla(b) {
-    b = Object.assign(bollaVuota(b.id), b); b.area = PR.area;   // l'area di lavoro è la stessa per tutte
+    b = Object.assign(bollaVuota(b.id), b);
+    Object.defineProperty(b, "area", { get() { return areaDi(this); }, enumerable: false, configurable: true });   // l'area della bolla: la sua, o lo scenario
     if (b.shape && (!def(b.shape) || !b.base || !b.dim)) { b.shape = null; b.base = null; b.dim = null; b.t = Math.min(b.t, 1); }
     return b;
   }
@@ -699,12 +717,14 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function giudica(m, p) {   // il giudizio del motore, più l'area di lavoro
     const g = giudizioForma(m, p, { scala: m.stampa ? m.stampa.scala : 20, id: m.id });
     if (haArea()) {
-      const e = entra({ x: m.W, y: m.D, z: m.H }), tA = ["x", "y", "z"].map(a => S.area[a] > 0 ? fmt(S.area[a], 2) : "∞").join(" × ");
-      if (e) g.voci.unshift({ c: "ok", k: "area", t: `Entra nell'area di lavoro (${tA} m)${e === 2 ? ", girata di un quarto" : ""}.` });
+      const AR = S.area, e = entra({ x: m.W, y: m.D, z: m.H });
+      const tA = AR.stanza ? `alto ${fmt(AR.z, 2)} m` : ["x", "y", "z"].map(a => AR[a] > 0 ? fmt(AR[a], 2) : "∞").join(" × ") + " m";
+      const dove = AR.stanza ? `nello spazio dello scenario${scenarioInfo ? " «" + scenarioInfo.nome + "»" : ""}` : PR.aree.length > 1 ? `nell'${nomeArea(PR.aree.indexOf(AR))}` : "nell'area di lavoro";
+      if (e) g.voci.unshift({ c: "ok", k: "area", t: `Entra ${dove} (${tA})${e === 2 ? ", girata di un quarto" : ""}.` });
       else {
         const aTerra = !(m.W <= areaMax("x") + 1e-6 && m.D <= areaMax("y") + 1e-6) && !(m.D <= areaMax("x") + 1e-6 && m.W <= areaMax("y") + 1e-6);
         const troppo = [m.H > areaMax("z") + 1e-6 ? `alta ${metri(m.H)} ma lo spazio in alto è ${metri(areaMax("z"))}` : "", aTerra ? `a terra occupa ${fmt(m.W, 2)} × ${fmt(m.D, 2)} m` : ""].filter(Boolean).join(", e ");
-        g.voci.unshift({ c: "ko", k: "area", t: `Non entra nell'area di lavoro (${tA} m): è ${troppo}.` });
+        g.voci.unshift({ c: "ko", k: "area", t: `Non entra ${dove} (${tA}): è ${troppo}.` });
         g.c = "ko";
       }
     }
@@ -822,11 +842,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   let vetrinaPronta = false, tSim = 0, ultimoInvio = "";
   const opzArea = () => { if (!cur || !haArea()) return null; const e = entra({ x: cur.W, y: cur.D, z: cur.H }); return { x: S.area.x, y: S.area.y, z: S.area.z, ok: !!e, giro: e === 2 }; };
   const conForma = (b) => !!(b.shape && b.base && b.dim);
-  function opzAreaTutte() {   // l'area di lavoro nel simulatore: deve contenere tutte le bolle
-    const L = PR.bolle.filter(conForma); if (!haArea() || !L.length) return null;
-    const e = L.map(b => entra(b.dim));
-    return { x: S.area.x, y: S.area.y, z: S.area.z, ok: e.every(Boolean), giro: L.length === 1 && e[0] === 2, pos: PR.areaPos || null };   // pos: dove sta l'area nel simulatore (ferma, si sposta trascinandola)
-  }
+  // le aree di lavoro nel simulatore (quelle con almeno una misura a terra); con lo scenario con le pareti nessuna: c'è la stanza
+  const opzAree = () => stanzaInfo ? [] : PR.aree.map((a, i) => ({ id: a.id, nome: nomeArea(i), x: a.x, y: a.y, z: a.z, pos: a.pos || null })).filter(a => a.x > 0 || a.y > 0);
   const chiaveForma = (b) => b.shape + "|" + JSON.stringify(b.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v));
   function meshBolla(b) {   // una bolla che non è quella scelta: solo vertici e facce alle sue misure, quanto basta al simulatore
     try { const B = base(b.shape, b.base), sx = b.dim.x / B.w, sy = b.dim.y / B.d, sz = b.dim.z / B.h; if (!(sx > 0 && sy > 0 && sz > 0)) return null;
@@ -840,8 +857,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       if (!conForma(b)) return null; const m = b === S ? cur : meshBolla(b); if (!m) return null;
       return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
     }).filter(Boolean);
-    const msg = { tipo: "bolle-officina", bolle, att: S.id, area: opzAreaTutte() };
-    const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.area && { ...msg.area, pos: null }]);   // il posto dell'area lo tiene la vetrina if (firma === ultimoInvio) return; ultimoInvio = firma;
+    const msg = { tipo: "bolle-officina", bolle, att: S.id, aree: opzAree() };
+    const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.aree.map(a => [a.id, a.nome, a.x, a.y, a.z])]);   // il posto delle aree lo tiene la vetrina
+    if (firma === ultimoInvio) return; ultimoInvio = firma;
     fr.contentWindow.postMessage(msg, "*");
   }
   /* lo scenario del simulatore: la stanza di sfondo dell'Abbofficina (una pronta, o una foto 360° o un modello 3D vostri) */
@@ -863,7 +881,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* la finestra ha due linguette: Simulatore (l'Abbofficina) e Schema (la bolla disegnata pezzo per pezzo, colorata per dima).
      Nella Costruzione si apre da sola lo Schema, che mostra la bolla che cresce; nelle altre tappe torna la scelta di prima.
      Se l'Abbofficina non risponde (niente internet per three.js), resta lo Schema. */
-  let vetrinaMorta = false, tabScelta = "sim", areaInsieme = true;
+  let vetrinaMorta = false, tabScelta = "sim", fuoriAree = [];
   try { if (localStorage.getItem("bolle|simTab") === "schema") tabScelta = "schema"; } catch (e) { /* */ }
   const schemaVisibile = () => !$("cvSchema").hidden;
   function mostraTab(t, scelta) {
@@ -879,9 +897,18 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   addEventListener("message", e => {
     if (e.source !== fr.contentWindow || !e.data) return; const M = e.data;
     if (M.tipo === "vetrina-pronta") { vetrinaPronta = true; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); simulatore(); }
-    if (M.tipo === "vetrina-posizioni") { (M.pos || []).forEach(q => { const b = PR.bolle.find(x => x.id === q.id); if (b) b.pos = { x: q.x, z: q.z, ang: q.ang || 0 }; }); salva(); }   // le bolle spostate nel simulatore
-    if (M.tipo === "vetrina-area-pos" && M.pos) { PR.areaPos = { x: +M.pos.x || 0, z: +M.pos.z || 0, giro: !!M.pos.giro }; salva(); }   // l'area di lavoro spostata nel simulatore
-    if (M.tipo === "vetrina-area") { areaInsieme = !!M.ok; disegnaSchema(); }   // tutte insieme entrano nell'area di lavoro?
+    if (M.tipo === "vetrina-posizioni") {   // le bolle spostate (o girate) nel simulatore, e l'area in cui sono
+      const prima = S.area;
+      (M.pos || []).forEach(q => { const b = PR.bolle.find(x => x.id === q.id); if (!b) return; b.pos = { x: q.x, z: q.z, ang: q.ang || 0 }; if (q.area != null && PR.aree.some(a => a.id === q.area)) b.areaId = q.area; });
+      salva(); if (S.area !== prima) { esito = null; aggiornaBolla(true); rendiMisure(true); rendiRisultato(); fondo(); } rendiArea();
+    }
+    if (M.tipo === "vetrina-area-pos" && M.pos) { const A = PR.aree.find(a => a.id === M.id); if (A) { A.pos = { x: +M.pos.x || 0, z: +M.pos.z || 0, giro: !!M.pos.giro }; salva(); } }   // un'area spostata nel simulatore
+    if (M.tipo === "vetrina-area") { fuoriAree = M.fuori || []; disegnaSchema(); rendiArea(); }   // le bolle fuori dalle aree (o dallo scenario)
+    if (M.tipo === "vetrina-stanza") {   // lo scenario: con le pareti diventa lo spazio di lavoro
+      const prima = JSON.stringify([scenarioInfo, stanzaInfo]);
+      scenarioInfo = M.stanza || null; stanzaInfo = scenarioInfo && scenarioInfo.pareti ? scenarioInfo : null;
+      if (JSON.stringify([scenarioInfo, stanzaInfo]) !== prima) { esito = null; ultimoInvio = ""; aggiornaBolla(true); rendiMisure(true); rendiRisultato(); fondo(); rendiArea(); }
+    }
     if (M.tipo === "vetrina-scegli") { const i = PR.bolle.findIndex(x => x.id === M.id); if (i >= 0) scegliBolla(i); }   // toccata una bolla nel simulatore: si apre quella
   });
   setTimeout(() => { if (!vetrinaPronta) { vetrinaMorta = true; $("tabSim").innerHTML = "Simulatore <small>serve internet</small>"; mostraTab(tabScelta); } }, 9000);
@@ -895,10 +922,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const inCostruzione = () => TAPPE[S.t] && TAPPE[S.t].id === "costruzione";
   function disegnaSchema() {
     const tante = PR.bolle.filter(conForma).length > 1;
-    const nota = !schemaVisibile() ? (tante ? "Trascina una bolla per spostarla · toccala per modificarla · trascina il resto per girare la vista" : "Trascina la bolla per spostarla · trascina il resto per girare la vista · rotella per avvicinarti")
+    const nota = !schemaVisibile() ? (tante ? "Trascina una bolla per spostarla · ⟲ ⟳ per girarla · toccala per modificarla · trascina il resto per girare la vista" : "Trascina la bolla per spostarla · ⟲ ⟳ per girarla · trascina il resto per girare la vista")
       : (vetrinaMorta ? "Senza internet il simulatore non si carica: ecco lo schema · " : "")
         + (inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla" : `I pezzi colorati per dima · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""} · trascina per girarla`);
-    $("simNota").textContent = (!areaInsieme && !schemaVisibile() && haArea() ? "Le bolle escono dall'area di lavoro (in rosso): spostale dentro, o sposta l'area trascinandone il bordo o l'etichetta · " : "") + nota;
+    const fuori = fuoriAree.map(id => PR.bolle.findIndex(b => b.id === id)).filter(i => i >= 0).map(nomeBolla);
+    $("simNota").textContent = (fuori.length && !schemaVisibile() ? `${fuori.join(", ")} ${fuori.length > 1 ? "sono" : "è"} fuori ${stanzaInfo ? "dallo spazio dello scenario" : "dalle aree di lavoro"}: ${fuori.length > 1 ? "trascinale dentro, poi ci restano" : "trascinala dentro, poi ci resta"} · ` : "") + nota;
     if (!schemaVisibile()) return;
     vista("cvSchema", () => cur && (inCostruzione() ? { m: cur, o: opzMontaggio() } : { m: cur, o: { persona: true, quote: true, area: opzArea() } }));
   }
@@ -1012,15 +1040,45 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   RENDI.home = () => {};
 
   /* ===================== 1 · PROGETTAZIONE ===================== */
-  ["x", "y", "z"].forEach(a => {
-    const el = $("a" + a.toUpperCase());
-    el.addEventListener("input", () => {
-      const v = el.value.trim() === "" ? null : parseFloat(el.value.replace(",", "."));
-      if (v !== null && !(v >= 0.5 && v <= 200)) return;
-      S.area[a] = v; esito = null; salva(); aggiornaBolla(true); rendiMisure(true); rendiRisultato(); rendiMateriali(); fondo();
+  const ASSI_AREA = [["x", "X", "lunghezza", 200], ["y", "Y", "larghezza", 200], ["z", "Z", "altezza", 100]];
+  function rendiArea() {
+    // con uno scenario con le pareti l'area di lavoro è la stanza: le aree tornano scegliendo «Nessuno»
+    $("areaScenario").hidden = !scenarioInfo;
+    if (scenarioInfo) $("areaScenario").innerHTML = stanzaInfo
+      ? `<b>Lavori nello scenario «${esc(scenarioInfo.nome)}»</b><span>L'area di lavoro è lo spazio della stanza${stanzaInfo.H ? `, alta ${fmt(stanzaInfo.H, 2)} m` : ""}: nel simulatore le bolle restano dentro le pareti. Per usare le tue aree scegli «Nessuno» come scenario, sotto il simulatore.</span>`
+      : `<b>Scenario «${esc(scenarioInfo.nome)}»</b><span>Questo scenario non ha pareti note: valgono le tue aree di lavoro.</span>`;
+    $("aree").hidden = $("bNuovaArea").hidden = $("notaArea").hidden = !!stanzaInfo;
+    if (stanzaInfo) return;
+    const firma = PR.aree.map(a => a.id).join();
+    if ($("aree").dataset.f !== firma) {
+      $("aree").dataset.f = firma;
+      $("aree").innerHTML = PR.aree.map((A, i) => `<div class="area-card lastra" data-area="${A.id}"><div class="area-testa"><h3>${nomeArea(i)}</h3><span class="hint" data-dentro></span>${PR.aree.length > 1 ? `<button type="button" class="bx" data-via-area="${A.id}" aria-label="Elimina la ${nomeArea(i)}" title="Elimina la ${nomeArea(i)}">×</button>` : ""}</div>
+        <div class="xyz">${ASSI_AREA.map(([a, L, nome, mx]) => `<label class="asse-campo"><input type="number" data-area="${A.id}" data-a="${a}" min="0.5" max="${mx}" step="0.1" inputmode="decimal" placeholder="metri" aria-label="${L}: ${nome} della ${nomeArea(i)}, in metri"><b aria-hidden="true">${L}</b><span>${nome}</span></label>`).join("")}</div></div>`).join("");
+    }
+    PR.aree.forEach((A, i) => {
+      const card = $("aree").querySelector(`[data-area="${A.id}"]`); if (!card) return;
+      card.querySelectorAll("input[data-a]").forEach(el => { if (document.activeElement !== el) el.value = A[el.dataset.a] > 0 ? A[el.dataset.a] : ""; });
+      const qui = PR.bolle.map((b, j) => [b, j]).filter(([b]) => conForma(b) && areaDi(b) === A && !fuoriAree.includes(b.id)).map(([b, j]) => nomeBolla(j));
+      card.querySelector("[data-dentro]").textContent = qui.length ? "Dentro: " + qui.join(", ") : (PR.aree.length > 1 ? "Nessuna bolla" : "");
+      card.classList.toggle("qui", PR.aree.length > 1 && areaDi(S) === A);
     });
+  }
+  const dopoArea = () => { esito = null; salva(); aggiornaBolla(true); rendiMisure(true); rendiRisultato(); rendiMateriali(); fondo(); rendiArea(); };
+  $("aree").addEventListener("input", e => {
+    const el = e.target, A = el.dataset.a && PR.aree.find(a => a.id === +el.dataset.area); if (!A) return;
+    const v = el.value.trim() === "" ? null : parseFloat(el.value.replace(",", "."));
+    if (v !== null && !(v >= 0.5 && v <= 200)) return;
+    A[el.dataset.a] = v; dopoArea();
   });
-  function rendiArea() { ["x", "y", "z"].forEach(a => { const el = $("a" + a.toUpperCase()); if (document.activeElement !== el) el.value = S.area[a] > 0 ? S.area[a] : ""; }); }
+  $("aree").addEventListener("click", e => {
+    const b = e.target.closest("[data-via-area]"); if (!b) return; const i = PR.aree.findIndex(a => a.id === +b.dataset.viaArea); if (i < 0 || PR.aree.length < 2) return;
+    if (!confirm(`Eliminare la ${nomeArea(i)}? Le bolle che ha dentro restano dove sono, senza area.`)) return;
+    const id = PR.aree[i].id; PR.aree.splice(i, 1); PR.bolle.forEach(x => { if (x.areaId === id) delete x.areaId; }); dopoArea();
+  });
+  $("bNuovaArea").addEventListener("click", () => {
+    PR.aree.push({ id: PR.prossimaArea++, x: null, y: null, z: null, pos: null }); salva(); rendiArea();
+    const el = $("aree").lastElementChild && $("aree").lastElementChild.querySelector("input"); if (el) { el.focus(); el.scrollIntoView({ block: "center", behavior: ridotto ? "auto" : "smooth" }); }
+  });
 
   function linguetta(t) {
     S.tab = t; salva();

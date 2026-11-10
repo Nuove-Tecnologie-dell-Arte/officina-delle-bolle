@@ -422,5 +422,14 @@ Tutto segnato `[Officina]`.
 - In vetrina la stanza della composizione salvata non si mette (né all'avvio né al `load`): lo scenario lo sceglie il sito. Così una stanza chiesta appena aperta la pagina non viene tolta.
 - `stanzaPronta`: se `fetch` della foto non va (sito aperto come file, `file://`) la foto arriva da `stanze/corridoio.js`, scritta in base64 (`STANZE_DATI`). Se si cambia `corridoio.jpg` va rigenerato anche quel file.
 - In vetrina gli avvisi (`#avviso`) ora si vedono, in basso: dicono per esempio che una bolla è nelle pareti della stanza.
+
+### Vetrina: più aree di lavoro, bolle intrappolate, rotazione, scenario come spazio di lavoro
+
+- Il messaggio porta `aree: [{ id, nome, x, y, z, pos }]` al posto di `area`. Ogni area è un parallelepipedo tratteggiato fermo con la sua etichetta (`.etiArea`); la prima si mette attorno alle bolle, le altre a destra. Si sposta dal bordo o dall'etichetta e si porta dietro le bolle che ha dentro; il posto torna con `{ tipo: 'vetrina-area-pos', id, pos }`.
+- `vetrina-posizioni` dice anche l'area di ogni bolla (`area`); `{ tipo: 'vetrina-area', fuori: [id] }` le bolle fuori dalle aree (o dalle pareti).
+- Trascinando una bolla (`VETRINA_AZ.vincola`, chiamata dal `pointermove` della scena): se è dentro un'area o nella stanza ci resta, fino al bordo e scivolando lungo; non salta in un'altra area. Fuori da tutto si muove libera finché non entra.
+- Le bolle nuove vanno nel primo posto libero di un'area (da un lato verso l'altro), poi nella stanza, poi accanto alle altre.
+- ⟲ ⟳ (`.ruota`, in `#sovra`) sotto il nome della bolla scelta la girano di 15°: resta nella sua area e, se c'è posto, non tocca le altre.
+- Con una stanza con le pareti (foto 360°) le aree non ci sono: lo spazio di lavoro è la stanza. La vetrina lo dice al sito con `{ tipo: 'vetrina-stanza', stanza: { nome, H, pareti } }`, e quando arriva la stanza le bolle nelle pareti entrano nel primo posto libero (`postoLibero`), se c'è.
 - `{ tipo: 'vetrina-scenario', id }` mette una stanza pronta (`corridoio`) o la toglie (id vuoto); `{ tipo: 'vetrina-scenario', file }` mette una foto 360° o un modello GLB. In vetrina `stanzaDB` non fa niente: le stanze salvate dell'Abbofficina non si toccano.
 - Il rosso di una bolla che entra in un'altra, rimandato al fotogramma dopo, ora si ricontrolla: se intanto la bolla è stata spostata non resta rossa.
