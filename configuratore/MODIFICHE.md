@@ -412,3 +412,12 @@ Tutto segnato `[Officina]`.
 - In vetrina `salvaComp` non salva (le composizioni vere restano come sono), non si aprono le scelte di materiale e non si riapre l'ultima composizione.
 - Il sito dell'Officina manda la bolla con `postMessage({ tipo: 'bolla-officina', mesh: { v, f }, off, nome, forma, W, D, area })`: si mette come pezzo `officina` alle misure vere (nessun ingrandimento), con i gonfiatori consigliati e i Sonny dentro; quando cambia la forma si rigonfia da zero (veloce, poi di nuovo a velocità normale). L'area di lavoro è un parallelepipedo tratteggiato, rosso se la bolla non ci sta. All'avvio la vetrina risponde `{ tipo: 'vetrina-pronta' }`.
 - Tutte le righe sono segnate `[Officina]` o stanno nel blocco `if (VETRINA)` in fondo allo script.
+
+### Vetrina con più bolle e con lo scenario
+
+- Il messaggio ora è `{ tipo: 'bolle-officina', bolle: [{ id, nome, mesh, off, forma, dim, W, D, pos }], att, area }`: tutte le bolle del progetto, ognuna al suo posto. Sono separate (in vetrina `collega` non unisce le bolle tra loro), ognuna con il suo ingresso; quella `att` è selezionata (cuciture e nome evidenziati). Si rigonfia da zero solo la bolla la cui forma è cambiata.
+- Una bolla senza `pos` va accanto alle altre (`mettiSeparato`, o il primo posto libero nella stanza) e la vetrina manda i posti con `{ tipo: 'vetrina-posizioni', pos }`.
+- In vetrina le bolle si trascinano (senza agganci: restano dove si lasciano) e il nuovo posto torna con `vetrina-posizioni`; un tocco su una bolla o sul suo nome manda `{ tipo: 'vetrina-scegli', id }`. Dei nomi sopra la scena (`#sovra`) restano solo quelli delle bolle.
+- L'area di lavoro tratteggiata contiene tutte le bolle; se insieme non ci stanno è rossa e la vetrina lo dice con `{ tipo: 'vetrina-area', ok }`.
+- `{ tipo: 'vetrina-scenario', id }` mette una stanza pronta (`corridoio`) o la toglie (id vuoto); `{ tipo: 'vetrina-scenario', file }` mette una foto 360° o un modello GLB. In vetrina `stanzaDB` non fa niente: le stanze salvate dell'Abbofficina non si toccano.
+- Il rosso di una bolla che entra in un'altra, rimandato al fotogramma dopo, ora si ricontrolla: se intanto la bolla è stata spostata non resta rossa.

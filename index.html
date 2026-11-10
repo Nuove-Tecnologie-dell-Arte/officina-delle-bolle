@@ -21,7 +21,7 @@
   --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
-  --testa: 62px;        /* l'altezza della testata */
+  --testa: 100px;       /* l'altezza della testata: marchio e tappe, le schede delle bolle, la barra */
   --simw: 42vw;         /* la larghezza del simulatore: si cambia trascinando la tendina */
 }
 @media (prefers-color-scheme: dark) {
@@ -77,7 +77,21 @@ select option { background: var(--card); color: var(--ink); }
 
 /* testata: marchio, le tre tappe, parole, il selettore Officina / Abbofficina */
 .testa { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
-.testa-in { display: flex; align-items: center; gap: 14px; min-height: calc(var(--testa) - 3px); }
+.testa-in { display: flex; align-items: center; gap: 14px; min-height: 59px; }
+/* le schede delle bolle: una per bolla, come le finestre di un browser; la scelta è quella che si modifica */
+.bolle { display: flex; align-items: flex-end; gap: 4px; height: 38px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.bolle::-webkit-scrollbar { display: none; }
+.bolle button { flex: none; border: 0; cursor: pointer; font-family: var(--display); }
+.bolle .bt { display: flex; align-items: baseline; gap: 8px; font-weight: 700; font-size: .92rem; color: var(--muted); background: var(--mat); border-radius: 10px 10px 0 0; padding: 7px 14px 6px; min-height: 34px; white-space: nowrap; max-width: 260px; }
+.bolle .bt small { font: 500 .74rem var(--body); overflow: hidden; text-overflow: ellipsis; }
+.bolle .bt:hover { color: var(--ink); }
+.bolle .bt[aria-selected="true"] { background: var(--green); color: var(--card); }
+.bolle .bt[aria-selected="true"] small { color: color-mix(in srgb, var(--card) 85%, transparent); }
+.bolle .bx { align-self: center; width: 26px; height: 26px; border-radius: 50%; background: none; color: var(--muted); font: 600 1.1rem/1 var(--body); margin-left: -2px; }
+.bolle .bx:hover { background: color-mix(in srgb, var(--cut) 14%, transparent); color: var(--cut); }
+.bolle .bpiu { align-self: center; display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: .86rem; color: var(--green); background: none; border: 1.5px dashed var(--line-strong); border-radius: 999px; padding: 4px 12px; margin-left: 6px; min-height: 30px; white-space: nowrap; }
+.bolle .bpiu:hover { border-color: var(--green); background: var(--green-soft); }
+@media (max-width: 560px) { .bolle .bt small, .bolle .bpiu span { display: none; } .bolle .bt { padding: 7px 12px 6px; } }
 .marchio { flex: none; display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.05rem; text-decoration: none; color: var(--ink); white-space: nowrap; }
 .marchio i { width: 30px; height: 30px; border-radius: 50%; background: var(--green); display: grid; place-items: center; color: var(--card); font-style: normal; }
 .tappe { flex: 1; display: flex; justify-content: safe center; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
@@ -107,7 +121,6 @@ body.trascina iframe { pointer-events: none; }
 .simpane { position: sticky; top: var(--testa); height: calc(100vh - var(--testa)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 0; padding: 12px 14px 14px 4px; min-width: 0; }
 .sim-testa { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
 .sim-stato { padding-bottom: 6px; }
-.sim-nota { padding-top: 8px; }
 .sim-testa h2 { font-size: 1.15rem; letter-spacing: .02em; }
 /* la finestra con due linguette: Simulatore (l'Abbofficina) e Schema (il disegno 3D dei pezzi) */
 .sim-linguette { display: flex; gap: 4px; align-items: flex-end; }
@@ -122,12 +135,16 @@ body.trascina iframe { pointer-events: none; }
 .sim-scena iframe, .sim-scena canvas { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
 .sim-scena canvas { cursor: grab; touch-action: none; }
 .sim-vuoto { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted); background: color-mix(in srgb, var(--card) 88%, transparent); }
-.sim-nota { text-align: center; font-size: .78rem; color: var(--muted); }
+.sim-piede { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-top: 8px; }
+.sim-nota { flex: 1; min-width: 14rem; text-align: right; font-size: .78rem; color: var(--muted); }
+/* lo scenario: la stanza di sfondo del simulatore, come nell'Abbofficina */
+.scenario { display: flex; align-items: center; gap: 8px; font-size: .84rem; font-weight: 600; color: var(--muted); }
+.scenario select { width: auto; max-width: 15rem; min-height: 34px; padding: 4px 8px; font-size: .86rem; }
 @media (max-width: 900px) {
   .corpo { grid-template-columns: minmax(0, 1fr); }
   .divisore { display: none; }
   .simpane { order: -1; top: var(--testa); z-index: 20; height: 40vh; padding: 8px 12px; background: var(--paper); border-bottom: 1px solid var(--rule); }
-  .simpane.ridotto { height: auto; grid-template-rows: auto; } .simpane.ridotto .sim-scena, .simpane.ridotto .sim-nota { display: none; }
+  .simpane.ridotto { height: auto; grid-template-rows: auto; } .simpane.ridotto .sim-scena, .simpane.ridotto .sim-piede { display: none; }
 }
 .riduci { display: none; }
 @media (max-width: 900px) { .riduci { display: inline-flex; min-height: 32px; padding: 4px 10px; font-size: .8rem; } .sim-testa { flex-wrap: nowrap; } .sim-testa h2 { font-size: 1rem; } .sim-stato { gap: 4px; font-size: .78rem; } .sim-stato .pill { padding: 3px 8px; } }
@@ -138,7 +155,7 @@ main { max-width: 1080px; margin: 0 auto; width: 100%; padding-top: 30px; paddin
 .tappa { display: grid; gap: 64px; animation: entra .35s ease both; }
 @keyframes entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .tappa { animation: none; } html { scroll-behavior: auto; } }
-.blocco { display: grid; gap: 26px; scroll-margin-top: 80px; }
+.blocco { display: grid; gap: 26px; scroll-margin-top: 116px; }
 .titolone { display: grid; gap: 10px; justify-items: center; text-align: center; }
 .titolone h2 { font-size: clamp(2.2rem, 5vw, 3.4rem); }
 .titolone p { font-size: 1.05rem; color: var(--muted); max-width: 60ch; }
@@ -339,6 +356,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       <button type="button" class="btn" id="bParole" title="Le parole della bolla, spiegate"><b aria-hidden="true">?</b><span>Parole</span></button>
     </div>
   </div>
+  <div class="bolle gutter" id="bolle" role="tablist" aria-label="Le tue bolle"></div>
   <div class="barra"><div id="barra"></div></div>
 </header>
 
@@ -463,7 +481,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         <li><div><b>Entra quando è tesa</b><span class="hint">Una persona resta fuori a controllare. Dentro niente oggetti appuntiti, meglio senza scarpe.</span></div></li>
       </ol>
       <p class="hint">Se qualcosa non va, guarda qui sotto: ci sono i problemi più comuni e come si risolvono.</p>
-      <div class="btnrow" style="justify-content:center"><button type="button" class="btn primary" id="bAltra">Fai un'altra bolla</button></div>
+      <div class="btnrow" style="justify-content:center"><button type="button" class="btn primary" id="bAltra">+ Fai un'altra bolla</button></div>
+      <p class="hint">Si apre in una scheda nuova, accanto a questa: nel simulatore le vedi insieme.</p>
     </div>
   </div>
   <div class="blocco">
@@ -490,7 +509,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <canvas id="cvSchema" hidden aria-label="Lo schema della bolla in 3D: i pezzi colorati per dima. Trascina per girarla."></canvas>
     <div class="sim-vuoto" id="simVuoto"><p>Scegli una forma nella tappa Progettazione: qui la vedi gonfiarsi, alla sua grandezza vera.</p></div>
   </div>
-  <p class="sim-nota" id="simNota">Trascina per girare la vista · rotella per avvicinarti</p>
+  <div class="sim-piede">
+    <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option><option value="foto">La tua foto 360°…</option><option value="modello">Il tuo modello 3D (GLB)…</option></select></label>
+    <p class="sim-nota" id="simNota"></p>
+  </div>
+  <input type="file" id="scenarioFile" hidden>
 </aside>
 </div>
 
@@ -565,7 +588,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     scala: ["Scala", "Quante volte il modellino è più piccolo della bolla vera. Scala 1:20 vuol dire che 1 cm del modellino è 20 cm della bolla."],
     gonfiatore: ["Gonfiatore (ventilatore)", "Il ventilatore che soffia aria nella bolla. Deve restare acceso finché c'è qualcuno dentro."],
     pianta: ["Pianta", "La bolla vista dall'alto, come in una mappa: il contorno della pianta è la forma del pavimento."],
-    simulatore: ["Simulatore", "La finestra a destra: è l'Abbofficina, che mostra la tua bolla mentre la progetti, con i gonfiatori e le persone. Trascina la tendina al centro per allargarla."],
+    simulatore: ["Simulatore", "La finestra a destra: è l'Abbofficina, che mostra le tue bolle mentre le progetti, con i gonfiatori e le persone. Trascina una bolla per spostarla, toccala per modificarla. Sotto scegli lo scenario: la stanza intorno alle bolle. Trascina la tendina al centro per allargarla."],
+    schede: ["Schede delle bolle", "In alto, sotto le tappe: una scheda per ogni bolla (Bolla 1, Bolla 2…). Quella in verde è quella che stai modificando; con «+ Nuova bolla» ne aggiungi un'altra. Nel simulatore si vedono tutte, nello Schema solo quella scelta."],
     schema: ["Schema", "L'altra linguetta della finestra a destra: la bolla disegnata pezzo per pezzo, colorata per dima. Mentre la costruisci mostra i pezzi già montati, i lati già uniti in bianco e quello da fare in rosso."],
   };
   function apriParole(k) {
@@ -598,13 +622,29 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const etichetta = (q) => q.label.replace(/\s*\(m\)$/, "");
 
   /* ---------- lo stato, salvato nel browser: si riprende da dove si era ---------- */
-  const CHIAVE = "bolle|progetto";
-  let S = null;
-  try { S = JSON.parse(localStorage.getItem(CHIAVE) || "null"); } catch (e) { S = null; }
-  if (!S || typeof S !== "object") S = {};
-  S = Object.assign({ t: 0, max: 0, area: { x: null, y: null, z: null }, shape: null, base: null, dim: null, lock: true, tab: "forme", fatte: {}, okModello: false }, S);
-  if (S.shape && (!def(S.shape) || !S.base || !S.dim)) { S.shape = null; S.base = null; S.dim = null; S.t = Math.min(S.t, 1); }
-  const salva = () => { try { localStorage.setItem(CHIAVE, JSON.stringify(S)); } catch (e) { /* solo per questa visita */ } };
+  /* più bolle, una per scheda (come le finestre di un browser): ognuna ha la sua forma, le sue misure, la sua tappa e le sue spunte,
+     e il suo posto nel simulatore (pos). L'area di lavoro è una sola: le bolle si montano tutte nello stesso posto. S è la bolla scelta. */
+  const CHIAVE = "bolle|progetti", VECCHIA = "bolle|progetto";
+  const bollaVuota = (id) => ({ id, t: 1, max: 1, shape: null, base: null, dim: null, lock: true, tab: "forme", fatte: {}, okModello: false, pos: null });
+  let PR = null;
+  try { PR = JSON.parse(localStorage.getItem(CHIAVE) || "null"); } catch (e) { PR = null; }
+  if (!PR || typeof PR !== "object" || !Array.isArray(PR.bolle) || !PR.bolle.length) {   // la prima volta, o dal progetto di una bolla sola di prima
+    let v = null; try { v = JSON.parse(localStorage.getItem(VECCHIA) || "null"); } catch (e) { v = null; }
+    if (!v || typeof v !== "object") v = {};
+    PR = { att: 0, prossimo: 2, area: v.area, bolle: [Object.assign(bollaVuota(1), { t: 0, max: 0 }, v, { id: 1 })] };
+  }
+  PR.area = Object.assign({ x: null, y: null, z: null }, PR.area);
+  function sistemaBolla(b) {
+    b = Object.assign(bollaVuota(b.id), b); b.area = PR.area;   // l'area di lavoro è la stessa per tutte
+    if (b.shape && (!def(b.shape) || !b.base || !b.dim)) { b.shape = null; b.base = null; b.dim = null; b.t = Math.min(b.t, 1); }
+    return b;
+  }
+  PR.bolle = PR.bolle.filter(b => b && typeof b === "object").map((b, i) => sistemaBolla(Object.assign({ id: i + 1 }, b)));
+  PR.prossimo = Math.max(PR.prossimo || 0, ...PR.bolle.map(b => b.id + 1));
+  PR.att = Math.max(0, Math.min(PR.bolle.length - 1, PR.att | 0));
+  let S = PR.bolle[PR.att];
+  const salva = () => { try { localStorage.setItem(CHIAVE, JSON.stringify(PR, function (k, v) { return k === "area" && this !== PR ? undefined : v; })); } catch (e) { /* solo per questa visita */ } };
+  const nomeBolla = (i) => "Bolla " + (i + 1);
   let rotolo = 2; try { const r = parseFloat(localStorage.getItem("bolle|rotolo")); if (r >= 0.5 && r <= 20) rotolo = r; } catch (e) { /* */ }
 
   /* ---------- la bolla: la forma del motore con le sue opzioni, poi allungata o schiacciata fino alle misure X, Y, Z ----------
@@ -781,33 +821,68 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const fr = $("vetrina");
   let vetrinaPronta = false, tSim = 0, ultimoInvio = "";
   const opzArea = () => { if (!cur || !haArea()) return null; const e = entra({ x: cur.W, y: cur.D, z: cur.H }); return { x: S.area.x, y: S.area.y, z: S.area.z, ok: !!e, giro: e === 2 }; };
+  const conForma = (b) => !!(b.shape && b.base && b.dim);
+  function opzAreaTutte() {   // l'area di lavoro nel simulatore: deve contenere tutte le bolle
+    const L = PR.bolle.filter(conForma); if (!haArea() || !L.length) return null;
+    const e = L.map(b => entra(b.dim));
+    return { x: S.area.x, y: S.area.y, z: S.area.z, ok: e.every(Boolean), giro: L.length === 1 && e[0] === 2 };
+  }
+  const chiaveForma = (b) => b.shape + "|" + JSON.stringify(b.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v));
+  function meshBolla(b) {   // una bolla che non è quella scelta: solo vertici e facce alle sue misure, quanto basta al simulatore
+    try { const B = base(b.shape, b.base), sx = b.dim.x / B.w, sy = b.dim.y / B.d, sz = b.dim.z / B.h; if (!(sx > 0 && sy > 0 && sz > 0)) return null;
+      return { V: B.m.V.map(v => [v[0] * sx, v[1] * sy, v[2] * sz]), F: B.m.F, W: b.dim.x, D: b.dim.y }; } catch (e) { return null; }
+  }
   function inviaVetrina() {
     if (!vetrinaPronta || !fr.contentWindow) return;
-    if (!S.shape) { fr.contentWindow.postMessage({ tipo: "bolla-officina", mesh: null }, "*"); ultimoInvio = ""; return; }
-    if (!cur) return;   // misure che non si costruiscono: resta la bolla di prima
+    if (conForma(S) && !cur) return;   // misure che non si costruiscono: resta la bolla di prima
     const mm = (x) => Math.round(x * 1000) / 1000;
-    const msg = { tipo: "bolla-officina", mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, off: S.shape, nome: nomeForma(S.shape),
-      forma: S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)), W: cur.W, D: cur.D, area: opzArea() };
-    const firma = JSON.stringify([msg.forma, S.dim, msg.area]); if (firma === ultimoInvio) return; ultimoInvio = firma;
+    const bolle = PR.bolle.map((b, i) => {
+      if (!conForma(b)) return null; const m = b === S ? cur : meshBolla(b); if (!m) return null;
+      return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
+    }).filter(Boolean);
+    const msg = { tipo: "bolle-officina", bolle, att: S.id, area: opzAreaTutte() };
+    const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.area]); if (firma === ultimoInvio) return; ultimoInvio = firma;
     fr.contentWindow.postMessage(msg, "*");
   }
+  /* lo scenario del simulatore: la stanza di sfondo dell'Abbofficina (una pronta, o una foto 360° o un modello 3D vostri) */
+  let scenario = "", fileScenario = null;
+  try { scenario = localStorage.getItem("bolle|scenario") || ""; } catch (e) { /* */ }
+  if (scenario !== "corridoio") scenario = "";
+  $("scenario").value = scenario;
+  function inviaScenario() { if (vetrinaPronta && fr.contentWindow) fr.contentWindow.postMessage(fileScenario ? { tipo: "vetrina-scenario", file: fileScenario } : { tipo: "vetrina-scenario", id: scenario }, "*"); }
+  function opzioneTua() { let o = $("scenario").querySelector('option[value="tuo"]'); if (!fileScenario) { if (o) o.remove(); return; } if (!o) { o = document.createElement("option"); o.value = "tuo"; $("scenario").insertBefore(o, $("scenario").querySelector('option[value="foto"]')); } o.textContent = "La tua: " + fileScenario.name; }
+  $("scenario").addEventListener("change", e => {
+    const v = e.target.value;
+    if (v === "foto" || v === "modello") {   // si sceglie il file; finché non arriva resta lo scenario di prima
+      $("scenarioFile").accept = v === "foto" ? ".jpg,.jpeg,.png,.webp,.hdr,image/*" : ".glb"; e.target.value = fileScenario ? "tuo" : scenario; $("scenarioFile").click(); return; }
+    if (v === "tuo") return;
+    scenario = v; fileScenario = null; opzioneTua(); try { localStorage.setItem("bolle|scenario", v); } catch (er) { /* */ }
+    inviaScenario();
+  });
+  $("scenarioFile").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return; fileScenario = f; opzioneTua(); $("scenario").value = "tuo"; inviaScenario(); });
   /* la finestra ha due linguette: Simulatore (l'Abbofficina) e Schema (la bolla disegnata pezzo per pezzo, colorata per dima).
      Nella Costruzione si apre da sola lo Schema, che mostra la bolla che cresce; nelle altre tappe torna la scelta di prima.
      Se l'Abbofficina non risponde (niente internet per three.js), resta lo Schema. */
-  let vetrinaMorta = false, tabScelta = "sim";
+  let vetrinaMorta = false, tabScelta = "sim", areaInsieme = true;
   try { if (localStorage.getItem("bolle|simTab") === "schema") tabScelta = "schema"; } catch (e) { /* */ }
   const schemaVisibile = () => !$("cvSchema").hidden;
   function mostraTab(t, scelta) {
     if (scelta) { tabScelta = t; try { localStorage.setItem("bolle|simTab", t); } catch (e) { /* */ } }
     const schema = t === "schema" || vetrinaMorta;
     $("tabSim").setAttribute("aria-selected", String(!schema)); $("tabSchema").setAttribute("aria-selected", String(schema));
-    fr.hidden = schema; $("cvSchema").hidden = !schema;
+    fr.hidden = schema; $("cvSchema").hidden = !schema; $("scenarioBox").hidden = schema;   // lo scenario è del simulatore
     disegnaSchema();
   }
   $("tabSim").addEventListener("click", () => mostraTab("sim", true));
   $("tabSchema").addEventListener("click", () => mostraTab("schema", true));
   $("simpane").querySelector(".sim-linguette").addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const t = schemaVisibile() ? "sim" : "schema"; mostraTab(t, true); $(t === "sim" ? "tabSim" : "tabSchema").focus(); } });
-  addEventListener("message", e => { if (e.source === fr.contentWindow && e.data && e.data.tipo === "vetrina-pronta") { vetrinaPronta = true; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; simulatore(); } });
+  addEventListener("message", e => {
+    if (e.source !== fr.contentWindow || !e.data) return; const M = e.data;
+    if (M.tipo === "vetrina-pronta") { vetrinaPronta = true; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); simulatore(); }
+    if (M.tipo === "vetrina-posizioni") { (M.pos || []).forEach(q => { const b = PR.bolle.find(x => x.id === q.id); if (b) b.pos = { x: q.x, z: q.z, ang: q.ang || 0 }; }); salva(); }   // le bolle spostate nel simulatore
+    if (M.tipo === "vetrina-area") { areaInsieme = !!M.ok; disegnaSchema(); }   // tutte insieme entrano nell'area di lavoro?
+    if (M.tipo === "vetrina-scegli") { const i = PR.bolle.findIndex(x => x.id === M.id); if (i >= 0) scegliBolla(i); }   // toccata una bolla nel simulatore: si apre quella
+  });
   setTimeout(() => { if (!vetrinaPronta) { vetrinaMorta = true; $("tabSim").innerHTML = "Simulatore <small>serve internet</small>"; mostraTab(tabScelta); } }, 9000);
   // lo schema: nella Costruzione con i pezzi montati in colore, i lati già uniti in bianco e quello da fare in rosso
   function opzMontaggio() {
@@ -818,10 +893,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
   const inCostruzione = () => TAPPE[S.t] && TAPPE[S.t].id === "costruzione";
   function disegnaSchema() {
-    const nota = !schemaVisibile() ? "Trascina per girare la vista · rotella per avvicinarti"
+    const tante = PR.bolle.filter(conForma).length > 1;
+    const nota = !schemaVisibile() ? (tante ? "Trascina una bolla per spostarla · toccala per modificarla · trascina il resto per girare la vista" : "Trascina la bolla per spostarla · trascina il resto per girare la vista · rotella per avvicinarti")
       : (vetrinaMorta ? "Senza internet il simulatore non si carica: ecco lo schema · " : "")
         + (inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla" : `I pezzi colorati per dima · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""} · trascina per girarla`);
-    $("simNota").textContent = nota;
+    $("simNota").textContent = (!areaInsieme && !schemaVisibile() && haArea() ? "Tutte insieme le bolle non entrano nell'area di lavoro (in rosso): avvicinale · " : "") + nota;
     if (!schemaVisibile()) return;
     vista("cvSchema", () => cur && (inCostruzione() ? { m: cur, o: opzMontaggio() } : { m: cur, o: { persona: true, quote: true, area: opzArea() } }));
   }
@@ -881,9 +957,37 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       h += `<button type="button" data-i="${i}"${i === S.t ? ' aria-current="step"' : ""} class="${i < S.t ? "fatta" : ""}"${chiusa && i !== S.t ? " disabled" : ""} title="${tp.nome}"><i>${i < S.t ? "✓" : i}</i><span>${tp.nome}</span></button>`;
     });
     $("tappe").innerHTML = h;
+    rendiBolle();
     $("barra").style.width = (Math.min(S.t, 3) / 3 * 100) + "%";   // tre tappe in alto: con «Si gonfia» la barra è piena
   }
   $("tappe").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (b && !b.disabled) vai(+b.dataset.i); });
+  /* le schede delle bolle: scegli quale modificare, aggiungine una nuova, elimina quella scelta */
+  function rendiBolle() {
+    $("bolle").innerHTML = PR.bolle.map((b, i) => {
+      const forma = b.shape ? nomeForma(b.shape) : "da progettare", sc = i === PR.att;
+      return `<button type="button" role="tab" class="bt" data-b="${i}" aria-selected="${sc}" title="${esc(nomeBolla(i) + " · " + forma)}"><span>${nomeBolla(i)}</span><small>${esc(forma)}</small></button>`
+        + (sc && PR.bolle.length > 1 ? `<button type="button" class="bx" data-via="${i}" aria-label="Elimina la ${nomeBolla(i)}" title="Elimina la ${nomeBolla(i)}">×</button>` : "");
+    }).join("") + `<button type="button" class="bpiu" id="bNuovaBolla" title="Aggiungi una bolla: si progetta nella sua scheda, e nel simulatore si vede accanto alle altre"><b aria-hidden="true">+</b><span>Nuova bolla</span></button>`;
+  }
+  function apriBolla(i) {
+    PR.att = i; S = PR.bolle[i]; cur = null; curErr = null; curKey = ""; giuntaQui = null; esito = null; infoAperta = false;
+    salva(); vai(S.t, true);
+    const el = $("bolle").querySelector(`[data-b="${i}"]`); if (el) el.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+  function scegliBolla(i) { if (i !== PR.att && PR.bolle[i]) apriBolla(i); }
+  function nuovaBolla() { PR.bolle.push(sistemaBolla(bollaVuota(PR.prossimo++))); apriBolla(PR.bolle.length - 1); }
+  function eliminaBolla(i) {
+    const b = PR.bolle[i]; if (!b || PR.bolle.length < 2) return;
+    if (!confirm(`Eliminare la ${nomeBolla(i)}${b.shape ? " (" + nomeForma(b.shape) + ")" : ""}? La forma, le misure e le spunte del montaggio di questa bolla si perdono.`)) return;
+    PR.bolle.splice(i, 1); apriBolla(Math.min(i, PR.bolle.length - 1));
+  }
+  $("bolle").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.id === "bNuovaBolla") nuovaBolla();
+    else if (b.dataset.via != null) eliminaBolla(+b.dataset.via);
+    else if (b.dataset.b != null) scegliBolla(+b.dataset.b);
+  });
+  $("bolle").addEventListener("keydown", e => { if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return; const i = (PR.att + (e.key === "ArrowRight" ? 1 : PR.bolle.length - 1)) % PR.bolle.length; if (i !== PR.att) { scegliBolla(i); const el = $("bolle").querySelector(`[data-b="${i}"]`); if (el) el.focus(); } });
   $("aCasa").addEventListener("click", e => { e.preventDefault(); vai(0); });
   function fondo() {
     const t = S.t, id = TAPPE[t].id;
@@ -1508,7 +1612,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if ($("faq").children.length) return;
     $("faq").innerHTML = FAQ.map(([gruppo, l]) => `<h3>${esc(gruppo)}</h3>` + l.map(([d, r]) => `<details><summary>${esc(d)}</summary><div class="risposta">${r.length > 1 ? `<ul>${r.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p>${esc(r[0])}</p>`}</div></details>`).join("")).join("");
   };
-  $("bAltra").addEventListener("click", () => { S.shape = null; S.base = null; S.dim = null; esito = null; S.okModello = false; S.max = 1; S.tab = "forme"; salva(); vai(1); });
+  $("bAltra").addEventListener("click", () => nuovaBolla());   // un'altra bolla: in una scheda nuova, e questa resta
 
   /* ---------- tornando dall'Abbofficina (#apri={shape, params}) si riapre la stessa forma, con le sue misure vere ---------- */
   (function () {
