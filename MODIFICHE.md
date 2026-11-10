@@ -83,3 +83,7 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
   - **Non ci sta** (bordo rosso): più alta del soffitto o più grande della stanza a terra, con il consiglio di rimpicciolirla.
 - **La stessa stanza nella simulazione** (`inviaStanza` → messaggio `stanza`; nell'Abbofficina `stanzaDallaPagina`): una stanza semplice a pareti chiare con quelle misure, con la bolla al centro. Pareti e soffitto contano come per le stanze vere: se la bolla non ci sta, nella simulazione diventa rossa. Con «Senza stanza» la stanza sparisce anche dalla simulazione.
 - **La stanza nell'anteprima di Misure bolla**: quando ci sono tutte e tre le misure, intorno alla bolla c'è una scatola tratteggiata con le misure della stanza (`stanzaDisegno`, `o.stanza` in `renderView`), appoggiata al pavimento e girata con il lato lungo come quello della bolla, come nel controllo. Gira insieme alla bolla; gli spigoli dietro sono più chiari. Il colore segue il messaggio: chiara se ci sta, gialla se ci sta di poco, rossa se non ci sta. L'inquadratura si allarga per farci stare la stanza intera.
+
+## Tolto «Come si traccia un pezzo senza compasso?»
+
+- Via il riquadro in fondo alla sezione Pezzi (il metodo, la regola 3-4-5, i due metri a nastro, i pezzi speculari), con il disegno della regola 3-4-5 (`rule345`), il suo stile (`.method`) e la sua voce nella ricerca. Ogni pezzo ha già i suoi passi.
