@@ -937,7 +937,7 @@ const fmt = (x, d = 0) => (Math.round(x * 10 ** d) / 10 ** d).toFixed(d).replace
 const fmtT = t => t == null ? 'mai' : t < 90 ? fmt(t) + ' s' : Math.floor(t / 60) + ' min ' + String(Math.round(t % 60)).padStart(2, '0') + ' s';
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const VETRINA = /[?&]vetrina(=|&|$)/.test(location.search);   // [Officina] la scena dentro il sito dell'Officina: solo da guardare, niente si salva
-if (VETRINA) document.documentElement.classList.add('vetrina');
+if (VETRINA) { document.documentElement.classList.add('vetrina'); document.documentElement.dataset.theme = 'light'; }   // [Officina] in vetrina sempre chiara, come il tema del sito
 const VETRINA_AZ = {};   // [Officina] in vetrina: che cosa fare quando una bolla si sposta o si sceglie (lo decide il blocco VETRINA in fondo)
 const liscio = (x, a, b) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 

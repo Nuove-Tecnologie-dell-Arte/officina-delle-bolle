@@ -1,0 +1,220 @@
+/* Officina delle Bolle · il tema «cellophane e nastro di carta»
+   Sfondo di plastica stropicciata, titoli Bebas Neue rossi, pannelli grigi trasparenti con il nastro sugli angoli,
+   campi come strisce di nastro, il foglio giallo dei materiali. Si carica dopo lo stile della pagina e lo ricopre. */
+:root {
+  --rosso: #ee3f3c; --rosso-scuro: #c72d2a; --nero: #151515;
+  --paper: #ecebe8; --card: rgba(236, 235, 232, .62); --mat: rgba(150, 147, 141, .42);
+  --green: var(--rosso); --green-soft: rgba(238, 63, 60, .10); --line: rgba(20, 20, 20, .10); --line-strong: rgba(20, 20, 20, .24);
+  --ink: var(--nero); --muted: #5b5853; --rule: rgba(20, 20, 20, .16); --cut: #b3261e; --on-t: #ffffff;
+  --ok: #2f6f4a; --amber: #b9771b;
+  --shadow: none;
+  --t1: #2f6f5a; --t2: #3b6fb6; --t3: #b9631b; --t4: #8a4fb0; --t5: #b8434f; --t6: #24868b; --t7: #7d6f12; --t8: #586370;
+  --r-s: 3px; --r-m: 6px; --r-l: 4px;
+  --display: "Bebas Neue", "Oswald", "Arial Narrow", Impact, sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --pannello: rgba(206, 204, 200, .62);
+  --scheda-off: rgba(160, 157, 151, .62);
+  --tessera: #a29f99;
+  color-scheme: light;
+}
+html { background: #e7e5e1; }
+body { background: #e7e5e1 url("plastica.svg") center / cover fixed; color: var(--nero); font: 400 17px/1.55 var(--body); }
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: .01em; line-height: 1; }
+h1 { font-size: clamp(3.4rem, 8vw, 6.2rem); color: var(--rosso); }
+h2 { font-size: clamp(2.4rem, 5vw, 3.6rem); color: var(--rosso); }
+h3 { font-size: 1.5rem; color: var(--nero); }
+.hint { color: #4f4c47; }
+.occhiello { font: 400 1.05rem var(--display); letter-spacing: .14em; color: #6a665f; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* bottoni: Bebas; il principale rosso, gli altri grigi come il pannello */
+.btn { font: 400 1.25rem/1 var(--display); letter-spacing: .04em; color: var(--nero); background: rgba(236, 235, 232, .72); border: 0; border-radius: 3px; padding: 10px 18px 8px; }
+.btn:hover { background: rgba(255, 255, 255, .85); border: 0; }
+.btn.primary { background: var(--rosso); color: #fff; }
+.btn.primary:hover { background: var(--rosso-scuro); }
+.btn.big { font-size: 1.6rem; padding: 12px 26px 10px; border-radius: 3px; }
+.seg { border: 0; border-radius: 3px; }
+.seg button { font: 400 1.15rem var(--display); letter-spacing: .04em; background: rgba(236, 235, 232, .72); }
+.seg button[aria-pressed="true"] { background: var(--rosso); color: #fff; }
+input[type="number"], select { font: 500 1rem var(--body); background: rgba(255, 255, 255, .62); border: 0; border-bottom: 2px solid rgba(20, 20, 20, .28); border-radius: 2px; }
+.check { font: 400 1.25rem/1.15 var(--display); letter-spacing: .03em; }
+.check .hint, .check span span { font: 400 .88rem/1.4 var(--body); letter-spacing: 0; }
+.check input { accent-color: var(--rosso); }
+.field label { font: 400 1.05rem var(--display); letter-spacing: .04em; color: #4a4741; }
+.gl { border-bottom-color: var(--rosso); }
+
+/* il nastro di carta sugli angoli dei pannelli: a L in alto a destra e in basso a sinistra */
+.nastrato { position: relative; }
+.nastrato::before, .nastrato::after { content: ""; position: absolute; pointer-events: none; z-index: 2; background: no-repeat center / 100% 100%; }
+.nastrato::before { width: 72px; height: 132px; top: -14px; right: -26px; background-image: url("angolo-alto.svg"); }
+.nastrato::after { width: 72px; height: 132px; bottom: -16px; left: -26px; background-image: url("angolo-basso.svg"); }
+/* la riga tratteggiata in fondo ai pannelli */
+.tratteggio { background-image: repeating-linear-gradient(90deg, #777 0 15px, transparent 15px 23px); background-repeat: no-repeat; background-size: calc(100% - 52px) 3px; background-position: 26px calc(100% - 20px); }
+
+/* pannelli e schede: grigi trasparenti, angoli vivi, niente ombre */
+.card, .lastra { background-color: var(--pannello); border-radius: 3px; box-shadow: none; backdrop-filter: blur(1.5px); -webkit-backdrop-filter: blur(1.5px); }
+.box-info { border-left: 0; background: rgba(236, 235, 232, .72); border-radius: 3px; }
+.box-info b { font: 400 1.4rem var(--display); letter-spacing: .03em; color: var(--rosso); }
+
+/* la testata */
+.testa { background: rgba(236, 235, 232, .78); border-bottom: 0; backdrop-filter: blur(6px); }
+.marchio { font: 400 1.7rem/1 var(--display); letter-spacing: .03em; color: var(--rosso); }
+.marchio i { background: var(--rosso); color: #fff; width: 28px; height: 28px; font-size: .9rem; }
+.tappe button { font: 400 1.25rem/1 var(--display); letter-spacing: .04em; color: #6a665f; padding: 6px 10px 4px; }
+.tappe button i { font: 400 .85rem/1 var(--display); border-width: 2px; }
+.tappe button[aria-current="step"] { color: var(--rosso); background: none; }
+.tappe .sep { background: rgba(20, 20, 20, .25); height: 2px; }
+.testa-az .btn { font-size: 1.1rem; }
+.barra { background: rgba(20, 20, 20, .12); }
+.barra div { background: var(--rosso); }
+/* le schede delle bolle: come le linguette Forme / Misure */
+.bolle .bt { font: 400 1.25rem/1 var(--display); letter-spacing: .04em; color: #575550; background: var(--scheda-off); border-radius: 0; padding: 8px 18px 6px; }
+.bolle .bt small { font: 400 .95rem var(--display); letter-spacing: .03em; color: #6a665f; }
+.bolle .bt[aria-selected="true"] { background: var(--pannello); color: var(--rosso); }
+.bolle .bt[aria-selected="true"] small { color: #575550; }
+.bolle .bpiu { font: 400 1.15rem/1 var(--display); letter-spacing: .04em; color: var(--rosso); border: 2px dashed rgba(20, 20, 20, .3); border-radius: 2px; }
+
+/* i titoli delle parti: grandi, rossi; sotto una riga nera in Bebas */
+.titolone h2 { font-size: clamp(3.2rem, 7vw, 5.6rem); color: var(--rosso); line-height: .92; }
+.titolone p { font: 400 clamp(1.15rem, 1.9vw, 1.45rem)/1.25 var(--display); letter-spacing: .03em; color: var(--nero); max-width: 62ch; }
+.titolone .gl { font: inherit; }
+.hero .tit { gap: 18px; }
+.hero h1 { line-height: .9; }
+.hero .lede { font-size: 1.2rem; }
+
+/* prendi le misure: le strisce di nastro con la X, la Y e la Z rosse */
+.asse-campo { gap: 0 10px; }
+.asse-campo input { height: 64px; border: 0; border-radius: 0; box-shadow: none; padding: 4px 20px 0; background: url("nastro.svg") no-repeat center / 100% 100%; font: 400 2rem/1 var(--display); letter-spacing: .04em; color: var(--nero); }
+.asse-campo input::placeholder { color: rgba(60, 45, 15, .45); }
+.asse-campo input:focus-visible { outline: 2px dashed var(--rosso); outline-offset: 3px; }
+.asse-campo b { font: 400 4rem/1 var(--display); color: var(--rosso); }
+.asse-campo span { font: 400 1rem var(--display); letter-spacing: .12em; color: #6a665f; }
+.nota-area { font-size: .95rem; color: #4f4c47; }
+.area-card { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; border: 0; padding: 6px 0 0; }
+.area-card.qui { border: 0; }
+.area-card.qui h3 { color: var(--rosso); }
+.area-testa h3 { font-size: 1.7rem; }
+.area-testa .hint { font: 400 1.1rem var(--display); letter-spacing: .04em; }
+
+/* progetta: la cartella con le linguette Forme / Misure */
+.cartella { max-width: 720px; }
+.linguette { gap: 0; padding-left: 0; align-items: flex-end; }
+.linguette button { font: 400 1.25rem/1 var(--display); letter-spacing: .04em; color: #575550; background: var(--scheda-off); border-radius: 0; padding: 8px 40px 6px; min-height: 0; }
+.linguette button[aria-selected="true"] { font-size: 1.8rem; color: var(--rosso); background: var(--pannello); padding: 10px 46px 6px; }
+.pannello { border-radius: 0; padding: 28px 30px 54px; min-height: 480px; }
+/* le forme: un'unica griglia di riquadri grigi con il disegno a fil di ferro (il nome si legge passandoci sopra) */
+.forme-scorri { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 26px 30px; justify-items: center; max-height: 560px; overflow-y: auto; padding: 4px 6px 10px; scrollbar-width: thin; scrollbar-color: rgba(20, 20, 20, .3) transparent; }
+.famiglia, .tessere { display: contents; }
+.famiglia h3 { display: none; }
+.tessera { width: 104px; height: 116px; padding: 6px; background: var(--tessera); border: 3px solid transparent; border-radius: 9px; gap: 0; align-content: center; }
+.tessera:hover { border-color: rgba(255, 255, 255, .55); transform: translateY(-2px); }
+.tessera[aria-pressed="true"] { border-color: var(--rosso); background: var(--tessera); box-shadow: 0 0 0 2px rgba(238, 63, 60, .25); }
+.tessera canvas { max-width: 90px; }
+.tessera b, .tessera small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.dafoto { border: 0; background: rgba(236, 235, 232, .55); border-radius: 3px; }
+.dafoto.sopra { background: rgba(255, 255, 255, .8); outline: 2px dashed var(--rosso); }
+.dafoto .ico { background: var(--rosso); border-radius: 6px; }
+.dafoto b { font: 400 1.45rem/1.05 var(--display); letter-spacing: .03em; }
+/* le misure: X Y Z grandi e i cursori a pillola, rossi */
+.cursori { gap: 18px; padding-top: 4px; }
+.vcursore .asse { font: 400 3.6rem/1 var(--display); color: var(--nero); }
+.vslider { width: 46px; height: 230px; background: #ecebe8; border: 0; }
+.vslider .riemp { left: 0; right: 0; bottom: 0; background: var(--rosso); }
+.vcursore input { width: 92px; text-align: center; font: 400 1.5rem/1 var(--display); letter-spacing: .03em; background: transparent; border-bottom-color: transparent; padding: 4px; }
+.vcursore input:focus { border-bottom-color: var(--rosso); }
+.vcursore small { font: 400 .95rem var(--display); letter-spacing: .12em; color: #6a665f; }
+.riga-persone { border-top: 0; font: 400 1.25rem var(--display); letter-spacing: .03em; }
+.riga-persone input { font: 400 1.4rem var(--display); }
+.vuoto h3 { color: var(--rosso); font-size: 2rem; }
+
+/* si può fare? il verdetto grande e rosso, sotto le misure in una riga */
+.risultato { gap: 18px; }
+.verdetto { flex-direction: column; text-align: center; gap: 10px; padding: 8px 0; background: none !important; }
+.verdetto > i { display: none; }
+.verdetto h3 { font: 400 clamp(3.4rem, 8vw, 6rem)/.9 var(--display); color: var(--rosso); }
+.verdetto p { font: 400 clamp(1.1rem, 1.8vw, 1.4rem)/1.25 var(--display); letter-spacing: .03em; color: var(--nero); }
+.verdetto .risolvi { margin: 4px auto 0; }
+.dati { grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 10px 26px; }
+.dati div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 0 .35em; background: none; box-shadow: none; padding: 0; }
+.dati span, .dati b, .dati .persone-n b { font: 400 clamp(1.5rem, 2.6vw, 2.2rem)/1.05 var(--display); letter-spacing: .03em; color: var(--nero); }
+.dati .persone-n { background: none; }
+.dati .persone-n b { color: var(--rosso); }
+@media (max-width: 760px) { .dati { grid-template-columns: repeat(2, auto); justify-content: space-around; } }
+.esito { border-left: 0; background: rgba(236, 235, 232, .72); border-radius: 3px; }
+.esito b { font: 400 1.5rem var(--display); letter-spacing: .03em; color: var(--rosso); }
+details.controlli summary { font: 400 1.35rem var(--display); letter-spacing: .04em; }
+.voci li { background: rgba(236, 235, 232, .72); box-shadow: none; border-radius: 3px; }
+.voci li.ok > i, .sim-stato .pill.ok i { background: var(--ok); }
+.voci li.mid > i, .sim-stato .pill.mid i { background: var(--amber); }
+.voci li.ko > i, .sim-stato .pill.ko i { background: var(--cut); }
+
+/* materiali: il foglio giallo strappato, con il nastro in alto */
+#bloccoMateriali { position: relative; background: url("carta.svg") no-repeat center / 100% 100%; filter: drop-shadow(10px 8px 10px rgba(0, 0, 0, .22)); padding: 64px clamp(22px, 5vw, 64px) 54px; margin-top: 30px; gap: 20px; }
+#bloccoMateriali::before { content: ""; position: absolute; top: -26px; left: 50%; width: 230px; height: 62px; transform: translateX(-50%) rotate(-1.5deg); background: url("nastro-oliva.svg") no-repeat center / 100% 100%; }
+#bloccoMateriali .titolone p { font-size: 1.2rem; }
+.materiali { gap: 22px 30px; }
+.mat, .mat.lastra { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0 0 14px; border-bottom: 2px dashed rgba(90, 75, 30, .3); border-radius: 0; }
+.mat .n { font: 400 2.8rem/1 var(--display); color: var(--rosso); }
+.mat .n small { font: 400 1.1rem var(--display); letter-spacing: .04em; color: #5b5341; }
+.mat b.t { font: 400 1.45rem/1.1 var(--display); letter-spacing: .03em; }
+.mat input { background: rgba(255, 255, 255, .5); }
+
+/* dima / modellino e costruzione */
+.passi li::before { background: var(--rosso); color: #fff; font: 400 1.1rem/1 var(--display); }
+.passi li > div > b { font: 400 1.35rem/1.1 var(--display); letter-spacing: .03em; }
+.foglio { background: #fff; border-radius: 1px; box-shadow: 3px 4px 10px rgba(0, 0, 0, .14); position: relative; }
+.foglio::before { content: ""; position: absolute; top: -10px; left: 50%; width: 70px; height: 22px; transform: translateX(-50%) rotate(2deg); background: url("nastro.svg") no-repeat center / 100% 100%; opacity: .9; }
+.dima-t h3 { font-size: 2.2rem; color: var(--rosso); }
+.dima-t i { border-radius: 2px; }
+.dima th { font: 400 1rem var(--display); letter-spacing: .05em; }
+.giunta-testa h3 { font-size: 2.6rem; }
+.giunta-testa h3 .num { color: var(--rosso); font-family: var(--display); }
+.coppia { background: rgba(255, 255, 255, .55); border-radius: 3px; }
+details.info { border: 0; background: rgba(236, 235, 232, .72); border-radius: 3px; }
+details.info > summary { font: 400 1.3rem var(--display); letter-spacing: .04em; }
+details.info > summary i { background: var(--rosso); font: 400 1rem var(--display); font-style: normal; }
+.pezzo { font: 400 1.15rem var(--display); letter-spacing: .04em; }
+.prog { background: rgba(20, 20, 20, .12); height: 8px; border-radius: 0; }
+.prog div { background: var(--rosso); }
+.fine .grande { color: var(--rosso); }
+.fine h2 { font-size: clamp(3rem, 7vw, 5rem); }
+/* FAQ: le domande come strisce grigie, il ? rosso */
+.faq details { background: rgba(236, 235, 232, .72); border-radius: 3px; box-shadow: none; }
+.faq summary { font: 400 1.4rem/1.1 var(--display); letter-spacing: .03em; }
+.faq summary::before { background: var(--rosso); color: #fff; font: 400 1.05rem var(--display); }
+.faq summary::after { font: 400 1.6rem var(--display); }
+.faq h3 { font-size: 1.6rem; color: var(--rosso); }
+
+/* il simulatore a destra: linguette come Forme / Misure, la scena in un pannello grigio con il nastro */
+.sim-linguette { gap: 0; }
+.sim-linguette button { font: 400 1.25rem/1 var(--display); letter-spacing: .04em; color: #575550; background: var(--scheda-off); border-radius: 0; padding: 8px 22px 6px; }
+.sim-linguette button[aria-selected="true"] { color: var(--rosso); background: var(--pannello); box-shadow: none; font-size: 1.55rem; }
+.sim-linguette button small { font: 400 .85rem var(--display); }
+.sim-scena { border-radius: 0 3px 3px 3px; background: var(--pannello); box-shadow: none; }
+.simpane::after { content: ""; position: absolute; top: 48px; right: -12px; width: 60px; height: 110px; background: url("angolo-alto.svg") no-repeat center / 100% 100%; pointer-events: none; z-index: 3; }
+.sim-stato .pill { font: 400 1.15rem/1 var(--display); letter-spacing: .03em; background: rgba(236, 235, 232, .78); border: 0; border-radius: 2px; padding: 5px 10px 3px; }
+.sim-stato .pill i { font: 400 .8rem/1 var(--display); }
+.scenario { font: 400 1.15rem var(--display); letter-spacing: .04em; color: #4a4741; }
+.scenario select { font: 400 1.05rem var(--display); letter-spacing: .03em; }
+.sim-nota { color: #4a4741; }
+.sim-vuoto { background: rgba(236, 235, 232, .78); font: 400 1.3rem/1.2 var(--display); letter-spacing: .03em; }
+.divisore::before { background: rgba(20, 20, 20, .2); }
+.divisore span { background: rgba(236, 235, 232, .9); border: 0; box-shadow: none; }
+.divisore span::after { border-color: #6a665f; }
+@media (max-width: 900px) { .simpane { background: rgba(231, 229, 225, .94); border-bottom: 0; } .simpane::after { display: none; } }
+
+/* il fondo con Indietro / Avanti */
+.fondo { background: rgba(236, 235, 232, .82); border-top: 0; }
+.fondo-in .hint { font: 400 1.2rem var(--display); letter-spacing: .04em; color: #4a4741; }
+
+/* finestre */
+dialog.parole { background: #efeeeb; border-radius: 3px; }
+.parole dt { font: 400 1.5rem var(--display); letter-spacing: .03em; color: var(--nero); }
+.parole dt.qui, .parole dt.qui + dd { color: var(--rosso); }
+
+/* come nella prova: prima «Si può fare!», poi altezza, larghezza, lunghezza (e le persone) */
+.risultato > .verdetto { order: 1; } .risultato > .dati { order: 2; } .risultato > .esito { order: 3; } .risultato > .controlli { order: 4; }
+.dati { display: flex; flex-wrap: wrap; justify-content: space-between; }   /* in una riga finché ci stanno, poi vanno a capo */
+.dati div { flex-wrap: nowrap; white-space: nowrap; }
+/* con un'area sola il suo nome non serve */
+.aree.una .area-testa { display: none; }

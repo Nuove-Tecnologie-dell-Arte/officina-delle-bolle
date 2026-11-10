@@ -6,7 +6,7 @@
 <title>Costruiamo una bolla · Officina delle Bolle</title>
 <meta name="description" content="Progetta una bolla gonfiabile, stampa il modellino e le dime, costruiscila un pezzo alla volta.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 /* Officina delle Bolle: tre tappe (Progettazione, Dima/Modellino, Costruzione) a sinistra, e a destra il simulatore, sempre in vista:
    l'Abbofficina in «vetrina» (configuratore/?vetrina), che riceve la bolla mentre la si progetta. Il motore delle forme è in motore.js,
@@ -23,22 +23,6 @@
   --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
   --testa: 100px;       /* l'altezza della testata: marchio e tappe, le schede delle bolle, la barra */
   --simw: 42vw;         /* la larghezza del simulatore: si cambia trascinando la tendina */
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #0e1412; --card: #141c19; --mat: #17221e; --green: #62bb98; --green-soft: rgba(98,187,152,.10);
-    --line: rgba(98,187,152,.07); --line-strong: rgba(98,187,152,.17); --ink: #e3ece8; --muted: #93a59d; --rule: #26332e;
-    --cut: #ff7396; --on-t: #0e1412; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
-    --t1: #6cc3a0; --t2: #86adef; --t3: #f0a25c; --t4: #c69ae6; --t5: #f2878f; --t6: #6fd0d4; --t7: #d8c65e; --t8: #a7b2bf;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --paper: #0e1412; --card: #141c19; --mat: #17221e; --green: #62bb98; --green-soft: rgba(98,187,152,.10);
-  --line: rgba(98,187,152,.07); --line-strong: rgba(98,187,152,.17); --ink: #e3ece8; --muted: #93a59d; --rule: #26332e;
-  --cut: #ff7396; --on-t: #0e1412; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
-  --t1: #6cc3a0; --t2: #86adef; --t3: #f0a25c; --t4: #c69ae6; --t5: #f2878f; --t6: #6fd0d4; --t7: #d8c65e; --t8: #a7b2bf;
-  color-scheme: dark;
 }
 :root { --amber: var(--t3); --ok: var(--green); }
 * { box-sizing: border-box; }
@@ -354,6 +338,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 #piantaSvg { width: 100%; aspect-ratio: 1 / 1; display: block; background: var(--paper); border-radius: var(--r-m); touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
 #piantaSvg .vtx { cursor: grab; }
 </style>
+<link rel="stylesheet" href="tema/tema.css"><!-- il tema: cellophane, nastro di carta, titoli rossi in Bebas Neue -->
 </head>
 <body>
 
@@ -388,7 +373,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <!-- 1 · Progettazione: prendi le misure, progetta, materiali -->
 <section class="tappa" data-t="progettazione" hidden>
   <div class="blocco" id="bloccoArea">
-    <header class="titolone"><span class="occhiello">Tappa 1 · Progettazione</span><h2>Prendi le misure</h2><p>Vai nel posto scelto per il montaggio e prendi le misure dell'<button class="gl" data-g="area">area di lavoro</button>.</p></header>
+    <header class="titolone"><span class="occhiello">Tappa 1 · Progettazione</span><h2>Prendi le misure</h2><p>Recati nel luogo da te scelto per il montaggio e prendi le misure per l'<button class="gl" data-g="area">area di lavoro</button></p></header>
     <div class="box-info" id="areaScenario" hidden></div>
     <div class="aree" id="aree"></div>
     <div class="btnrow" style="justify-content:center"><button type="button" class="btn" id="bNuovaArea">+ Aggiungi un'area di lavoro</button></div>
@@ -396,13 +381,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   </div>
 
   <div class="blocco" id="bloccoProgetta">
-    <header class="titolone"><h2>Progetta</h2><p>Scegli la forma e le misure: il simulatore qui a fianco la mostra in tempo reale.</p></header>
+    <header class="titolone"><h2>Progetta</h2><p>Prendi la forma e le misure: il simulatore le mostrerà in tempo reale</p></header>
     <div class="cartella">
       <div class="linguette" role="tablist" aria-label="Forme e misure">
         <button type="button" role="tab" id="tabForme" aria-controls="pForme" aria-selected="true">Forme</button>
         <button type="button" role="tab" id="tabMisure" aria-controls="pMisure" aria-selected="false">Misure</button>
       </div>
-      <div class="pannello lastra" id="pForme" role="tabpanel" aria-labelledby="tabForme">
+      <div class="pannello lastra nastrato tratteggio" id="pForme" role="tabpanel" aria-labelledby="tabForme">
         <div class="dafoto" id="daFoto">
           <div class="ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="9" width="38" height="30" rx="5"/><path d="M5 33l10-10 8 8 6-6 14 14"/><circle cx="33" cy="18" r="3.5"/></svg></div>
           <div><b>Hai già un'idea? Parti da un'immagine</b><p class="hint">Una foto, un disegno o uno schizzo: il sito trova il contorno e ne fa una bolla. Puoi anche trascinarla qui o incollarla (Ctrl+V).</p></div>
@@ -411,7 +396,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         </div>
         <div class="forme-scorri" id="forme"></div>
       </div>
-      <div class="pannello lastra" id="pMisure" role="tabpanel" aria-labelledby="tabMisure" hidden></div>
+      <div class="pannello lastra nastrato tratteggio" id="pMisure" role="tabpanel" aria-labelledby="tabMisure" hidden></div>
     </div>
     <div class="risultato">
       <div class="dati" id="dati"></div>
@@ -432,7 +417,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   <div class="blocco">
     <header class="titolone"><span class="occhiello">Tappa 2 · Dima / Modellino</span><h2>Il modellino di carta</h2><p>Prova la bolla in piccolo: se si chiude bene, anche quella vera verrà bene.</p></header>
     <div class="due">
-      <div class="card">
+      <div class="card nastrato">
         <p id="modelloRiass"></p>
         <ol class="passi">
           <li><div><b>Stampa i fogli</b><span class="hint">Nella finestra di stampa scegli «Dimensioni effettive» o «100%», non «Adatta alla pagina». Su ogni foglio c'è un segmento di controllo: deve misurare 5 cm.</span></div></li>
@@ -450,7 +435,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   <div class="blocco">
     <header class="titolone"><h2>Le dime</h2><p>Le sagome dei pezzi: si tracciano una volta sola sul telo e si copiano. Ogni dima ha il suo nome: P1, P2, P3…</p></header>
     <div class="come-dima">
-      <div class="card"><h3>Come tracciare una dima, anche con gli angoli storti</h3>
+      <div class="card nastrato"><h3>Come tracciare una dima, anche con gli angoli storti</h3>
         <ol class="passi">
           <li><div><b>Stendi il telo a terra</b><span class="hint">Su un pavimento pulito e piano, fissato agli angoli con il nastro.</span></div></li>
           <li><div><b>Traccia la base A–B</b><span class="hint">Una linea dritta lunga quanto scritto sotto il disegno, con il metro e un listello. Prolungala un po' dalle due parti, tratteggiata: serve per gli altri punti.</span></div></li>
@@ -469,7 +454,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <section class="tappa" data-t="costruzione" hidden>
   <div class="blocco">
     <header class="titolone"><span class="occhiello">Tappa 3 · Costruzione</span><h2>Il montaggio</h2><p>Una giunzione alla volta: prima il pavimento, poi dal basso verso l'alto.</p></header>
-    <div class="card giunta" id="giunta"></div>
+    <div class="card giunta nastrato" id="giunta"></div>
     <p class="hint" style="text-align:center">Nello <b>Schema</b>, a destra, vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
     <div class="box-info"><b>La porta</b><span id="porta"></span></div>
   </div>
@@ -479,7 +464,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <section class="tappa" data-t="gonfia" hidden>
   <div class="blocco">
     <header class="titolone"><span class="occhiello">Ultima tappa</span><h2>Si gonfia!</h2><p>La bolla è montata: adesso si accende il ventilatore.</p></header>
-    <div class="card fine">
+    <div class="card fine nastrato">
       <div class="grande" aria-hidden="true">✦</div>
       <h2>Ce l'hai fatta!</h2>
       <ol class="passi" style="text-align:left;max-width:60ch">
@@ -795,6 +780,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         else if (hl && !hl.has(fi)) a = 0.8;   // già montato: colorato, un po' meno del pezzo di adesso
         const c = base.map(v => Math.min(255, Math.round(v * lit)));
         ctx.beginPath(); p.map(S2).forEach((s, i) => (i ? ctx.lineTo(s[0], s[1]) : ctx.moveTo(s[0], s[1]))); ctx.closePath();
+        if (o.filo) { const nF = m.F.length; ctx.strokeStyle = "#1c1b19"; ctx.globalAlpha = nF > 150 ? 0.55 : 0.85; ctx.lineWidth = Math.max(0.6, W / (nF > 150 ? 340 : nF > 50 ? 220 : 140)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1; return; }   // a fil di ferro: solo gli spigoli, anche quelli dietro
         ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`; ctx.fill();
         ctx.strokeStyle = ink; ctx.globalAlpha = !vivo(fi) ? 0.22 : (o.sottile ? 0.5 : 0.85); ctx.lineWidth = Math.max(1, W / (o.sottile ? 260 : 600)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1;
         (fattiDi.get(fi) || []).forEach(([u, w]) => {   // lato già unito: bianco, con un filo scuro sotto perché si veda anche sul chiaro
@@ -1049,6 +1035,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       : `<b>Scenario «${esc(scenarioInfo.nome)}»</b><span>Questo scenario non ha pareti note: valgono le tue aree di lavoro.</span>`;
     $("aree").hidden = $("bNuovaArea").hidden = $("notaArea").hidden = !!stanzaInfo;
     if (stanzaInfo) return;
+    $("aree").classList.toggle("una", PR.aree.length === 1);
     const firma = PR.aree.map(a => a.id).join();
     if ($("aree").dataset.f !== firma) {
       $("aree").dataset.f = firma;
@@ -1094,7 +1081,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const anteprime = {};
   const livello = (m) => { const n = m.an.types.length; return n <= 4 ? ["f", "Facile"] : n <= 15 ? ["m", "Media"] : ["i", "Impegnativa"]; };
   function costruisciForme() {
-    const tessera = (id, nome) => `<button type="button" class="tessera" data-id="${id}" aria-pressed="false"><canvas data-mini="${id}" aria-hidden="true"></canvas><b>${esc(nome)}</b><small data-liv="${id}"></small></button>`;
+    const tessera = (id, nome) => `<button type="button" class="tessera" data-id="${id}" aria-pressed="false" title="${esc(nome)}"><canvas data-mini="${id}" aria-hidden="true"></canvas><b>${esc(nome)}</b><small data-liv="${id}"></small></button>`;
     const fam = (S.shape === "foto" ? [["foto", "La tua immagine", [["foto", "La tua immagine"]]]] : []).concat(FAMIGLIE);
     $("forme").innerHTML = fam.map(([k, t, l]) => `<section class="famiglia" aria-label="${esc(t)}"><h3>${esc(t)}</h3><div class="tessere">${l.map(([id, n]) => tessera(id, n)).join("")}</div></section>`).join("");
   }
@@ -1108,7 +1095,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         const proprie = id === "foto" || (id === "custom" && S.shape === "custom");
         if (!anteprime[id] || proprie) { const d = def(id), p = proprie ? S.base : parametriBase(d), m = buildShape(d, p, optBase(d)); m.an = analyze(m.V, m.F, m.floor); anteprime[id] = m; }
         const m = anteprime[id], b = document.querySelector(`.tessera[data-id="${id}"]`), cv = b && b.querySelector("canvas"), [k, t] = livello(m), el = b && b.querySelector("small");
-        if (cv) disegna(cv, m, { yaw: 0.6, pitch: 0.42, sottile: true });
+        if (cv) disegna(cv, m, { yaw: 0.6, pitch: 0.42, filo: true });   // a fil di ferro, come nel disegno del tema
         if (el) { el.className = k; el.textContent = t; }
       } catch (e) { /* senza anteprima resta il nome */ }
       setTimeout(passo, 0);
@@ -1337,8 +1324,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     const g = cur.g, n = persone(cur);
     $("verdetto").className = "verdetto " + g.c;
-    $("verdetto").innerHTML = `<i aria-hidden="true">${icona[g.c]}</i><div><h3>${g.c === "ok" ? "Sì, si può fare!" : g.c === "mid" ? "Sì, con qualche attenzione" : "Così non si può fare"}</h3><p>${g.c === "ok" ? "Puoi passare al modellino." : g.c === "mid" ? "Leggi i punti in giallo, oppure lascia che il sito li sistemi." : "Guarda i punti in rosso, oppure tocca «Risolvi»: il sito cambia le misure da solo."}</p></div>${g.c !== "ok" ? bRis(g.c) : ""}`;
-    $("dati").innerHTML = `<div class="persone-n"><span>Ci stanno</span><b>${n}</b><span>${n === 1 ? "persona" : "persone"}, ${fmt(M2P, 1)} m² a testa</span></div><div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>A terra</span><b>${fmt(cur.W, 1)} × ${fmt(cur.D, 1)} m</b></div><div><span>Porta</span><b>${g.porta >= 0.3 ? metri(Math.min(g.porta, 2)) : "—"}</b></div>`;
+    $("verdetto").innerHTML = `<i aria-hidden="true">${icona[g.c]}</i><div><h3>${g.c === "ok" ? "Si può fare!" : g.c === "mid" ? "Si può fare, con attenzione" : "Così non si può fare"}</h3><p>${g.c === "ok" ? "La forma è fattibile, tutto funziona bene: è l'ora di costruirla!" : g.c === "mid" ? "Leggi i punti in giallo, oppure lascia che il sito li sistemi." : "Guarda i punti in rosso, oppure tocca «Risolvi»: il sito cambia le misure da solo."}</p></div>${g.c !== "ok" ? bRis(g.c) : ""}`;
+    $("dati").innerHTML = `<div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>Larghezza</span><b>${metri(cur.D)}</b></div><div><span>Lunghezza</span><b>${metri(cur.W)}</b></div><div class="persone-n" title="almeno ${fmt(M2P, 1)} m² a testa"><span>Persone</span><b>${n}</b></div>`;
     const ordine = { ko: 0, mid: 1, ok: 2, info: 3 };
     const nota = (v) => v.k === "stabile" || v.k === "sporge" ? `<span class="hint">Si può fare: fissala a terra con pesi o picchetti, e tieni acceso il ventilatore.</span>` : "";
     $("voci").innerHTML = g.voci.filter(v => v.k !== "modellino").sort((a, b) => ordine[a.c] - ordine[b.c]).map(v => `<li class="${v.c}"><i aria-hidden="true">${icona[v.c]}</i><div><span>${esc(v.t)}</span>${v.c === "mid" ? nota(v) : ""}</div></li>`).join("");

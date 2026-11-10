@@ -29,6 +29,8 @@ Un sito per progettare e costruire bolle gonfiabili in plastica fatte di pannell
 
 **Dall'Abbofficina**: il selettore in alto torna qui con `#apri={shape, params}` e la pagina riapre quella forma, con le sue misure vere.
 
+**Il tema** («cellophane e nastro di carta») sta in `tema/`: `tema.css` ricopre lo stile della pagina; lo sfondo di plastica stropicciata (`plastica.svg`), i nastri di carta (`nastro.svg`, `nastro-oliva.svg`, `angolo-alto.svg`, `angolo-basso.svg`) e il foglio giallo dei materiali (`carta.svg`) sono disegni generati da `plastica.py` e `nastri.py` (si rigenerano con Python, senza altre librerie). Titoli in Bebas Neue rossi, testi in Barlow; pannelli grigi trasparenti con il nastro sugli angoli e la riga tratteggiata; campi X, Y, Z come strisce di nastro; le forme a fil di ferro su riquadri grigi. Il tema è solo chiaro, e anche il simulatore in vetrina resta chiaro.
+
 **I file**: `index.html` (il sito), `motore.js` (il motore delle forme, usato anche dall'Abbofficina), `immagine.js` (la finestra «bolla da un'immagine»), `guida.html` (rimanda a `index.html`) e `configuratore/` (l'Abbofficina, anche in vetrina).
 
 Il sito si apre anche senza server: basta aprire `index.html` nel browser. L'Abbofficina vera, aperta da sola, legge il motore con una richiesta, quindi vuole il sito pubblicato o un server locale; il simulatore in vetrina invece riceve la bolla già fatta e funziona anche così (serve internet per three.js).
