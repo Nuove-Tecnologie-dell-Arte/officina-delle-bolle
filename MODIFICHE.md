@@ -111,3 +111,14 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
   - Ciambella → **Toro** (ciambella).
 - Cubo, Dodecaedro, Prisma, Piramide e Parallelepipedo avevano già il nome esatto. Le forme a pianta (L, C, freccia, stella), i tubi e le figure (barca, banana, balena…) non sono figure geometriche con un nome: restano come prima. I gruppi restano.
 - Le forme si salvano con il codice (`d20`, `geo`…), non con il nome: forme e progetti salvati si riaprono come prima.
+
+## Misure più semplici: Larghezza, Profondità, Altezza
+
+- **Per ogni forma, in alto, Larghezza, Profondità e Altezza** (X, Y, Z) della bolla vera, in metri (`SEMPLICI`, `cambiaAsse`).
+  - **Figure regolari** (icosaedro, cubo, sfera geodetica, esacisicosaedro, dodecaedro, icosaedro troncato): se ne scrive una e le altre due seguono, così i pezzi restano tutti uguali (cambia solo il lato o il diametro).
+  - **Parallelepipedo**: X, Y, Z sono le sue tre misure.
+  - **Tutte le altre** (prisma, piramide, L, C, freccia, stella, tubi, figure): la forma si allunga o si schiaccia fino a X, Y, Z. Nel motore è `opt.size` (`buildShape`, `sc` nel risultato): le facce restano piane. Le misure che davano la grandezza (lato, diametro, lunghezza del corpo…) non si vedono più: danno solo le proporzioni.
+- **Sotto restano solo le misure tipiche della forma**: lati della base, punte della stella, curvatura della banana, zampe, antenne, appoggio… Quelle che dipendono dalla grandezza sono in % di un'altra misura (`perc`), così seguono X, Y, Z: per esempio «Lunghezza del picciolo (% del corpo)».
+- **Le misure tecniche vanno in «Altre opzioni» → «Dettagli della forma»** (`#paramsTec`): lati del tubo, spicchi, segmenti, facce, quanti triangoli nelle sfere.
+- La pianta disegnata da voi e la forma da un'immagine restano come prima.
+- X, Y, Z si salvano con la forma (`opt.size`) e tornano con «Annulla» e riaprendo la pagina. «Adatta la forma a un pavimento» le libera di nuovo. Con X, Y, Z scelte la simulazione riceve la forma vera (non il cubo o il prisma del configuratore); se là si ingrandisce la bolla, crescono anche X, Y, Z. La ricerca trova i campi come si vedono.

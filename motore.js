@@ -997,6 +997,16 @@ function buildShape(def, p, opt) {
     V = V.map(v => V3.mul(v, k));
     floorArea *= k * k; volume *= k * k * k;
   }
+  // [Officina] X, Y, Z scelte nella pagina: la forma si allunga o si schiaccia fino a quelle misure (le facce restano piane)
+  let sc = null;
+  if (opt.size && opt.size.x > 0 && opt.size.y > 0 && opt.size.z > 0) {
+    const ext = (i) => { const c = V.map(v => v[i]); return Math.max(...c) - Math.min(...c); }, ex = ext(0), ey = ext(1), ez = ext(2);
+    if (ex > 1e-9 && ey > 1e-9 && ez > 1e-9) {
+      sc = [opt.size.x / ex, opt.size.y / ey, opt.size.z / ez];
+      V = V.map(v => [v[0] * sc[0], v[1] * sc[1], v[2] * sc[2]]);
+      floorArea *= sc[0] * sc[1]; volume *= sc[0] * sc[1] * sc[2];
+    }
+  }
   let open = false;
   if ((def.kind === "extrude" || def.floorToggle) && !opt.cut) {
     const keep = F.map(f => !isFloor(f));
@@ -1007,7 +1017,7 @@ function buildShape(def, p, opt) {
     if (F.length !== n0) cluster = null;
   }
   const floor = F.map(isFloor);
-  return { V, F, floor, floorArea, volume, k, levels, orients, open, cutUsed, cluster };
+  return { V, F, floor, floorArea, volume, k, sc, levels, orients, open, cutUsed, cluster };
 }
 
 /* ---------- pezzi ---------- */
