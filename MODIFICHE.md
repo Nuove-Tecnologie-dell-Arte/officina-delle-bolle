@@ -87,3 +87,10 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 ## Tolto «Come si traccia un pezzo senza compasso?»
 
 - Via il riquadro in fondo alla sezione Pezzi (il metodo, la regola 3-4-5, i due metri a nastro, i pezzi speculari), con il disegno della regola 3-4-5 (`rule345`), il suo stile (`.method`) e la sua voce nella ricerca. Ogni pezzo ha già i suoi passi.
+
+## Toccare un pannello: prima le misure, poi il pezzo
+
+- **Primo tocco** su un pannello della bolla (nella figura di Misure bolla e in quella grande in alto): si apre un piccolo riquadro con solo le misure del pezzo (`apriPezzo`, `.pzCard`). In alto il numero e il nome del pezzo e quanti ne servono; poi il disegno del pezzo con le lettere degli angoli (`svgPezzo`) e la lunghezza dei lati, con i lati uguali insieme (`latiPezzo`: «Tutti i lati 2,200 m», «AB, CD 1,800 m»…). Il pannello toccato resta acceso e la figura smette di girare.
+- **Secondo tocco** su un pannello dello stesso pezzo, o il pulsante «Vai al pezzo ›»: la pagina va a quel pezzo nella sezione Pezzi e lo apre (`goToPiece`). Toccando un altro pezzo il riquadro passa a quello.
+- Il riquadro si chiude con ×, con Esc, toccando fuori, girando la figura o cambiando le misure. Dove la figura è stretta (telefono, colonna di Misure bolla) il riquadro sta sotto la figura; nella figura grande in alto sta nell'angolo lontano dal tocco.
+- Prima un tocco portava subito al pezzo.

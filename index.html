@@ -228,6 +228,24 @@ input[type="number"]:hover, select:hover { border-color: var(--line-strong); }
 .tip { position: absolute; left: 0; top: 0; pointer-events: none; background: var(--ink); color: var(--card); font: 600 .8rem var(--mono); padding: 5px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); z-index: 3; }
 canvas.pickable { cursor: grab; touch-action: none; }
 canvas.pickable.over { cursor: pointer; }
+/* [Semplice] il riquadro del pezzo toccato nella figura: solo le misure */
+.pzCard { position: absolute; z-index: 6; width: min(250px, calc(100% - 16px)); background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--r-m); box-shadow: var(--shadow); padding: 10px 12px 12px; display: grid; gap: 8px; font-size: .9rem; text-align: left; }
+.pzCard[hidden] { display: none; }
+.pzCard.inFila { position: static; width: auto; box-shadow: none; background: var(--paper); }   /* figura stretta (telefono): il riquadro sta sotto la figura, non sopra */
+.pzTesta { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pzTesta .sw-dot { flex: none; }
+.pzTesta b { flex: 1; min-width: 0; line-height: 1.25; }
+.pzX { all: unset; cursor: pointer; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); font-size: 1.2rem; flex: none; }
+.pzX:hover, .pzX:focus-visible { color: var(--ink); background: var(--paper); }
+.pzCorpo { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; }
+.pzCorpo svg { width: 96px; height: 96px; display: block; }
+.pzLati { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font: 500 .82rem var(--mono); max-width: 260px; }
+.pzLati li { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.pzLati span { color: var(--muted); }
+.pzLati b { font-weight: 700; white-space: nowrap; }
+.pzPiede { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pzPiede .btn { min-height: 36px; padding: 0 12px; }
+.pzPiede .hint { font-size: .8rem; }
 /* vetrina: la figura in alto mostra a turno tutte le forme */
 
 /* ---------- galleria delle forme ---------- */
@@ -645,7 +663,7 @@ canvas#view { aspect-ratio: 16 / 10; max-height: 38vh; }
 .rq-schede button[aria-selected="true"] { background: var(--green); color: var(--card); border-color: var(--green); }
 .rq-grande { min-width: 40px; min-height: 40px; font-size: 1.1rem; padding: 0 10px; }
 #rqMisure .bench2 { grid-template-columns: minmax(0, 1fr); }
-#rqMisure .mini-stage { position: static; }
+#rqMisure .mini-stage { position: relative; top: auto; }   /* relative: il riquadro del pezzo e il suggerimento si appoggiano qui */
 #rqMisure canvas#mini { max-height: 300px; }
 .simFrame { position: relative; height: clamp(380px, 60vh, 620px); border-radius: var(--r-m); overflow: hidden; border: 1px solid var(--rule); background: var(--paper); }
 .simFrame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -2544,8 +2562,10 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     const v = views[name];
     if (!cur || !PAL || !fitCanvas(v.cv)) return;
     const o = { yaw: v.rot.yaw, pitch: v.rot.pitch, colors: state.colors }, altra = name === "hero" && inVetrina();
-    if (name === "hero") Object.assign(o, { annot: true, person: state.person, hlFace: altra ? null : v.hover });
-    if (name === "mini") { o.hlFace = v.hover; o.stanza = stanzaDisegno(); }
+    if (v.card && !v.card.hidden && v.cardCur !== firmaPezzi()) chiudiPezzo(v, false);   // [Semplice] cambiate le misure: il riquadro del pezzo si chiude
+    const acceso = v.hover != null ? v.hover : v.selF;
+    if (name === "hero") Object.assign(o, { annot: true, person: state.person, hlFace: altra ? null : acceso });
+    if (name === "mini") { o.hlFace = acceso; o.stanza = stanzaDisegno(); }
     if (name === "seam") Object.assign(o, { hlSeam: seamSel ? { key: seamSel.key, faces: [seamSel.p.fi, seamSel.q.fi] } : null, done: doneSeams() });
     let m = altra ? thumbs.get(vetrina.id) : cur;
     if (name === "hero" && vetrina.anim) { const g = gonfia(); m = g.m; Object.assign(o, { frame: g.frame, quote: g.quote, hlFace: null }); }
@@ -2619,6 +2639,50 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   }
   function drawAll() { if (!PAL) palette(); Object.keys(views).forEach(drawView); drawWhere(); }
 
+  // [Semplice] primo tocco su un pannello: un riquadro con il pezzo e le misure dei lati; secondo tocco (o «Vai al pezzo»): il pezzo nella sezione Pezzi
+  function svgPezzo(C, t) {
+    const n = C.length, cx = C.reduce((a, p) => a + p[0], 0) / n, cy = C.reduce((a, p) => a + p[1], 0) / n;
+    const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const span = Math.max(x1 - x0, y1 - y0, 1e-6), pad = span * 0.26, f = span / 100, ink = css("--ink");
+    let o = `<svg viewBox="${x0 - pad} ${-y1 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}" aria-hidden="true">`;
+    o += `<polygon points="${C.map(p => `${p[0]},${-p[1]}`).join(" ")}" fill="${tcol(t)}" fill-opacity=".6" stroke="${ink}" stroke-width="${1.8 * f}" stroke-linejoin="round"/>`;
+    if (n <= 12) C.forEach((p, i) => {
+      const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1, k = 12 * f;
+      o += `<text x="${p[0] + dx / d * k}" y="${-(p[1] + dy / d * k)}" font-size="${(n <= 6 ? 16 : 11) * f}" font-family="IBM Plex Mono, monospace" font-weight="700" fill="${ink}" text-anchor="middle" dominant-baseline="middle">${letter(i)}</text>`;
+    });
+    return o + "</svg>";
+  }
+  function latiPezzo(C) {   // lati uguali insieme: «AB, BC, CA  2,200 m»
+    const n = C.length, gruppi = [];
+    for (let i = 0; i < n; i++) {
+      const L = len2(sub2(C[(i + 1) % n], C[i])), nome = letter(i) + letter((i + 1) % n);
+      const g = gruppi.find(x => Math.abs(x.L - L) < 5e-4); if (g) g.nomi.push(nome); else gruppi.push({ L, nomi: [nome] });
+    }
+    return gruppi.map(g => `<li><span>${g.nomi.length === n && n > 2 ? "Tutti i lati" : g.nomi.length > 4 ? `${g.nomi.length} lati` : g.nomi.join(", ")}</span><b>${mR(g.L)}</b></li>`).join("");
+  }
+  function apriPezzo(v, fi, e) {
+    const inf = cur.an.faceInfo[fi], t = inf.type, T = cur.an.types[t], card = v.card;
+    v.selF = fi; v.selT = t; v.cardCur = firmaPezzi(); spin = false;
+    card.innerHTML = `<div class="pzTesta"><i class="sw-dot" style="--c:${tvar(t)}"></i><b>Pezzo ${t + 1} · ${esc(cap(pieceName(T.C)))} <span class="muted">× ${T.faces.length}</span></b><button type="button" class="pzX" aria-label="Chiudi">×</button></div>
+      <div class="pzCorpo">${svgPezzo(T.C, t)}<ul class="pzLati">${latiPezzo(T.C)}</ul></div>
+      <div class="pzPiede"><button type="button" class="btn primary pzVai">Vai al pezzo ›</button><span class="hint">o toccatelo di nuovo</span></div>`;
+    card.querySelector(".pzX").addEventListener("click", () => chiudiPezzo(v));
+    card.querySelector(".pzVai").addEventListener("click", () => { chiudiPezzo(v); goToPiece(t); });
+    const box = v.cv.parentElement.getBoundingClientRect(), x = e.clientX - box.left;
+    card.classList.toggle("inFila", box.width < 560); card.hidden = false;
+    if (box.width >= 560) { const cw = card.offsetWidth; card.style.left = (x > box.width / 2 ? 10 : box.width - cw - 10) + "px"; card.style.top = "10px"; }   // in alto, dal lato lontano dal tocco: il pannello resta in vista
+    else { card.style.left = card.style.top = ""; if (card.getBoundingClientRect().bottom > innerHeight) card.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" }); }
+    drawView(v === views.hero ? "hero" : "mini");
+  }
+  const firmaPezzi = () => cur ? cur.an.types.map(T => T.C.map(p => p[0].toFixed(4) + "," + p[1].toFixed(4)).join(";")).join("|") : "";   // le misure dei pezzi: se cambiano, il riquadro è vecchio
+  function chiudiPezzo(v, ridisegna = true) {
+    if (!v.card) return;
+    v.card.hidden = true; const c = v.selF != null; v.selF = null; v.selT = null;
+    if (c && ridisegna) drawView(v === views.hero ? "hero" : "mini");
+  }
+  document.addEventListener("keydown", e => { if (e.key === "Escape") for (const n of ["hero", "mini"]) if (views[n].card && !views[n].card.hidden) chiudiPezzo(views[n]); });
+  document.addEventListener("pointerdown", e => { for (const n of ["hero", "mini"]) { const v = views[n]; if (v.card && !v.card.hidden && !v.card.contains(e.target) && e.target !== v.cv) chiudiPezzo(v); } });
+
   function pick(v, e) {
     const r = v.cv.getBoundingClientRect(), x = (e.clientX - r.left) * v.cv.width / r.width, y = (e.clientY - r.top) * v.cv.height / r.height;
     const inside = (pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
@@ -2631,12 +2695,13 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
     const v = views[name], cv = v.cv;
     let drag = false, moved = 0, lx = 0, ly = 0;
     const hideTip = () => { if (v.tip) v.tip.hidden = true; };
+    if (name !== "seam") { v.card = document.createElement("div"); v.card.className = "pzCard"; v.card.hidden = true; v.card.setAttribute("role", "group"); v.card.setAttribute("aria-label", "Misure del pezzo"); cv.after(v.card); v.selF = null; }
     cv.addEventListener("pointerdown", e => { drag = true; moved = 0; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); });
     cv.addEventListener("pointermove", e => {
       if (drag) {
         const dx = e.clientX - lx, dy = e.clientY - ly;
         moved += Math.abs(dx) + Math.abs(dy);
-        if (moved > 4) { spin = false; v.target = null; if (name === "hero") vetrina.prossimo = Date.now() + 8000; v.rot.yaw += dx * 0.01; v.rot.pitch = Math.max(-0.2, Math.min(1.2, v.rot.pitch + dy * 0.01)); hideTip(); redraw(name); }
+        if (moved > 4) { spin = false; v.target = null; if (name === "hero") vetrina.prossimo = Date.now() + 8000; v.rot.yaw += dx * 0.01; v.rot.pitch = Math.max(-0.2, Math.min(1.2, v.rot.pitch + dy * 0.01)); hideTip(); if (v.card && !v.card.hidden) chiudiPezzo(v, false); redraw(name); }
         lx = e.clientX; ly = e.clientY; return;
       }
       if (name === "seam" || !cur) return;
@@ -2644,7 +2709,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
       const fi = pick(v, e);
       cv.classList.toggle("over", fi != null);
       if (fi !== v.hover) { v.hover = fi; redraw(name); }
-      if (fi == null) { hideTip(); return; }
+      if (fi == null || (v.card && !v.card.hidden)) { hideTip(); return; }   // con il riquadro aperto basta il riquadro
       const inf = cur.an.faceInfo[fi], box = cv.parentElement.getBoundingClientRect();
       v.tip.textContent = `${inf.id} · ${pieceName(cur.an.types[inf.type].C)}`;
       v.tip.style.left = (e.clientX - box.left) + "px"; v.tip.style.top = (e.clientY - box.top) + "px";
@@ -2654,7 +2719,12 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
       const click = drag && moved <= 4;
       drag = false;
       if (click && name === "hero" && inVetrina()) { const id = vetrina.id; fermaVetrina(); selectShape(id); scriviVetrina(); return; }
-      if (click && name !== "seam" && cur) { const fi = pick(v, e); if (fi != null) { hideTip(); goToPiece(cur.an.faceInfo[fi].type); } }
+      if (click && name !== "seam" && cur) {
+        const fi = pick(v, e); hideTip();
+        if (fi == null) { chiudiPezzo(v); return; }
+        const t = cur.an.faceInfo[fi].type;
+        if (!v.card.hidden && v.selT === t) { chiudiPezzo(v); goToPiece(t); } else apriPezzo(v, fi, e);   // [Semplice] prima le misure, poi il pezzo
+      }
     });
     cv.addEventListener("pointercancel", () => { drag = false; });
     cv.addEventListener("pointerleave", () => { if (v.hover != null) { v.hover = null; redraw(name); } hideTip(); cv.classList.remove("over"); });
