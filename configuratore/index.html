@@ -4937,6 +4937,19 @@ function formaDallaPagina(M) {
   if (nuovoTipo) { p.porte = p.F.conn.slice(); p.f = gonfConsigliati({ tipo: p.tipo, d: p.d }) || { ...TIPI[p.tipo].f }; } else p.porte = p.porte.filter(i => i < p.F.E.length);
   firmaLegata = firmaPezzo(p); riallinea(p, legami); strutturaCambiata(); if (selezionato === p) ispettore();
 }
+function stanzaDallaPagina(m) {   // [Officina] una stanza semplice (pareti chiare, nessuna foto) con le misure scritte nella pagina: pareti e soffitto contano come per le stanze vere
+  if (m.via) { if (ST.pagina) { togliStanza(false); ST.pagina = false; aggiornaStanza(); } return; }
+  if (!(m.W > 0 && m.P > 0 && m.H > 0)) return;
+  if (!ST.pagina || !ST.grp) {
+    togliStanza(false);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xdfe3e6, roughness: 0.95, side: THREE.BackSide }); mat.userData.colore = new THREE.Color(0xdfe3e6);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat); box.renderOrder = -1; box.receiveShadow = true;
+    const om = ombraStanza(), g = new THREE.Group(); g.add(box, om); g.userData = { box, ombra: om };
+    ST.grp = g; ST.mats = [mat]; ST.tipo = 'foto'; ST.nome = 'La stanza della pagina'; ST.pagina = true; ST.pianta = null; scena.add(g);
+  }
+  Object.assign(ST, { W: m.W, P: m.P, H: m.H, x: 0, z: 0, rot: 0, fx: 0, fy: 1.6, fz: 0, interne: true });
+  aggiornaStanza(); disegnaStanza();
+}
 let tStato = 0;
 function mandaStato() {   // materiali scelti e distinta con i prezzi: la pagina li mostra con gli stessi numeri
   clearTimeout(tStato); tStato = setTimeout(() => {
@@ -4959,6 +4972,7 @@ if (INCORPORATA) {
       for (const k of ['mat', 'gsm', 'giunti', 'adW', 'adLati', 'porte', 'coll']) if (x[k] != null) D[k] = x[k];
       aggiornaSpessore(); for (const l of link) l.porta.tipo = D.porte; costruisciDati(); strutturaCambiata(); }
     else if (m.tipo === 'prezzo') { if (m.v === '' || m.v == null) delete prezzi[m.id]; else prezzi[m.id] = +m.v; salvaBudget(); aggiornaMateriali(true); mandaStato(); }
+    else if (m.tipo === 'stanza') stanzaDallaPagina(m);
     else if (m.tipo === 'grande') { document.body.classList.toggle('piccola', !m.si); requestAnimationFrame(() => dispatchEvent(new Event('resize'))); }
   });
   manda({ tipo: 'pronta' }); mandaStato();

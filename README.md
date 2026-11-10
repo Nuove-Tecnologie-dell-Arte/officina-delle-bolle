@@ -12,6 +12,7 @@ Una pagina sola, con tre sezioni una sotto l'altra. La barra in alto porta a cia
 
 - **In alto** il titolo, due righe di presentazione e la figura della forma scelta, con una persona alta 1,75 m e le quote di altezza e larghezza, così si capisce subito quanto è grande.
 - **Scegli forma**: 4 forme per cominciare (cupola, cubo, sfera geodetica, pallone); le altre si aprono con «Altre forme» e si aprono da sole se la forma scelta è una di quelle. Ogni forma dice quanti tipi di pezzo ha. Sotto, il riquadro per partire da un'immagine.
+- **La stanza**: larghezza, lunghezza e altezza del soffitto della stanza in cui va la bolla. La pagina dice se la bolla ci sta, ci sta di poco o non ci sta, e nella simulazione la bolla appare dentro quella stanza.
 - **Misure bolla**, in tre schede:
   - *Misure*: l'anteprima 3D e i campi, sempre della bolla vera, in metri. Toccando un campo, nell'anteprima la parte che cambia si colora e si muove, e una riga spiega che cosa vuol dire. Sotto l'anteprima si legge quanto lavoro chiede la forma. Un valore fuori misura si dice sul campo («Minimo 0,10 m: resta 2,20 m»); «Annulla» (o Ctrl+Z) torna indietro di un cambiamento alla volta. Per la pianta disegnata a mano compare qui la griglia per disegnarla.
   - *Numeri*: altezza, pavimento, persone e gli altri numeri principali, l'avviso se la porta da 1,80 m non ci sta e i consigli per la bolla vera.

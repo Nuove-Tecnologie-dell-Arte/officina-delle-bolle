@@ -73,3 +73,12 @@ Il sito in una pagina sola, con tre sezioni, dai disegni del quaderno (pagine 23
 - **Le scritte nel disegno di ogni pezzo sono più grandi e più leggibili** (`pieceSVG`): altezze e AB da 3,3 a 5,6 (in centesimi del pezzo), piedi da 2,9 a 4,8 e scuri invece che grigi, lettere degli angoli da 4,6 a 6, tutte in grassetto e con un bordo scuro più largo dietro. Più spazio ai lati e sotto, così non escono dal disegno. Sullo schermo passano da circa 8 px a 13–19 px.
 - **Nella colonna dei Pezzi il disegno sta sopra i passi** (fino a 460 px di larghezza), invece che di fianco: nella colonna più stretta accanto alla simulazione era troppo piccolo.
 - Corretto: scegliendo una forma la pagina non scendeva più alle misure, perché cercava il riquadro Misure al vecchio posto (`versoMisure` ora cerca `#rqMisure`).
+
+## La stanza
+
+- **Nuovo riquadro «La stanza»** (`#rqStanza`), tra «Scegli forma» e Misure bolla: larghezza, lunghezza e altezza del soffitto della stanza in cui andrà la bolla, in metri. Il browser le ricorda (`bolle|stanza|…`); «Senza stanza» le cancella.
+- **La pagina controlla che la bolla ci stia** (`controllaStanza`, a ogni cambio di misure della bolla o della stanza), confrontando altezza e ingombro a terra della bolla con la stanza (il lato lungo con il lato lungo):
+  - **Ci sta** (bordo verde): restano almeno 30 cm sopra e 50 cm intorno;
+  - **Ci sta di poco** (bordo giallo): meno di 30 cm sopra o meno di 50 cm intorno, perché gonfiandosi la bolla si allarga un po';
+  - **Non ci sta** (bordo rosso): più alta del soffitto o più grande della stanza a terra, con il consiglio di rimpicciolirla.
+- **La stessa stanza nella simulazione** (`inviaStanza` → messaggio `stanza`; nell'Abbofficina `stanzaDallaPagina`): una stanza semplice a pareti chiare con quelle misure, con la bolla al centro. Pareti e soffitto contano come per le stanze vere: se la bolla non ci sta, nella simulazione diventa rossa. Con «Senza stanza» la stanza sparisce anche dalla simulazione.

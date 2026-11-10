@@ -678,6 +678,13 @@ body:not([data-modo="model"]) .scalaSez { display: none !important; }
 .piece-head .quante { margin-left: auto; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 .piece-head canvas.where { display: none; }
 details.piece[open] .piece-head canvas.where { display: block; }
+/* [Semplice] la stanza */
+.stanzaCampi { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: end; }
+.stanzaCampi #stVia { grid-row: 2; align-self: stretch; }
+@media (max-width: 640px) { .stanzaCampi { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stanzaCampi #stVia { grid-column: 1 / -1; grid-row: auto; min-height: 44px; } }
+.stanzaEsito { margin: 0; font-size: .95rem; padding: 10px 12px; border-radius: var(--r-m); background: var(--paper); border-left: 4px solid var(--rule); }
+.stanzaEsito.ok { border-left-color: var(--green); } .stanzaEsito.mid { border-left-color: var(--avviso, #c98a1a); } .stanzaEsito.ko { border-left-color: var(--cut); }
+.stanzaEsito:empty { display: none; }
 /* [Semplice] la simulazione ferma a destra: comincia accanto a Misure bolla e finisce prima di Cartamodello e montaggio */
 .conSim { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: "mis sim" "resto sim"; gap: 18px 22px; align-items: start; }
 .cs-mis { grid-area: mis; min-width: 0; }
@@ -789,6 +796,16 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
       <button type="button" class="btn" id="fotoRiapri" hidden>Ritocca l'ultima immagine</button>
     </div>
     <p class="warn" id="fotoErr" hidden style="grid-column: 1 / -1"></p>
+  </div>
+  <div class="riquadro stanzaRq" id="rqStanza"><!-- [Semplice] le misure della stanza in cui va la bolla -->
+    <div class="rq-testa"><h2>La stanza</h2><span class="hint">Dove metterete la bolla: la pagina controlla che ci stia, e nella simulazione la bolla appare dentro la stanza.</span></div>
+    <div class="fields stanzaCampi">
+      <div class="field"><label for="stW">Larghezza (m)</label><input id="stW" type="number" min="1" max="100" step="0.1" placeholder="es. 8" inputmode="decimal"></div>
+      <div class="field"><label for="stL">Lunghezza (m)</label><input id="stL" type="number" min="1" max="100" step="0.1" placeholder="es. 6" inputmode="decimal"></div>
+      <div class="field"><label for="stH">Altezza del soffitto (m)</label><input id="stH" type="number" min="1.5" max="30" step="0.05" placeholder="es. 4" inputmode="decimal"></div>
+      <button type="button" class="btn" id="stVia" hidden>Senza stanza</button>
+    </div>
+    <p class="stanzaEsito" id="stEsito" aria-live="polite"></p>
   </div>
 </section>
 
@@ -1747,6 +1764,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   }
   function renderBridge(ok) {
     if (ok) inviaSim();   // [Semplice] la simulazione segue le misure
+    controllaStanza();
     const a = $("bridgeGo"), b = $("bridgeAdd"), r = ok && cur ? perConfiguratore() : { no: "Prima sistemate le misure in Misure bolla." };
     if (r.no) { for (const x of [a, b]) { x.setAttribute("aria-disabled", "true"); x.removeAttribute("href"); x.tabIndex = -1; } $("bridgeNote").textContent = r.no; return; }
     const nome = ($("projName").value.trim() || shortName(def())).slice(0, 60), pacco = { v: 1, nome, tipo: r.tipo, d: r.d, src: statoForma() };
@@ -3027,9 +3045,29 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
       if (!cur || !sim.pronta) return;
       const r = perConfiguratore(); if (!r || r.no) return;
       const pacco = { v: 1, nome: ($("projName").value.trim() || shortName(def())).slice(0, 60), tipo: r.tipo, d: r.d, src: statoForma() }, f = JSON.stringify([pacco.tipo, pacco.d, pacco.nome]);
-      if (f === sim.ultima) return; sim.ultima = f; aSim({ tipo: "forma", pacco });
+      if (f === sim.ultima) return; sim.ultima = f; aSim({ tipo: "forma", pacco }); inviaStanza();
     }, 350);
   }
+  // [Semplice] la stanza: tre misure, il controllo che la bolla ci stia e la stessa stanza nella simulazione
+  const stanzaV = () => { const v = id => { const x = parseFloat(String($(id).value).replace(",", ".")); return Number.isFinite(x) && x > 0 ? x : null; }; return { W: v("stW"), L: v("stL"), H: v("stH") }; };
+  function controllaStanza() {
+    const S = stanzaV(), e = $("stEsito"), tutte = S.W && S.L && S.H; $("stVia").hidden = !(S.W || S.L || S.H);
+    e.className = "stanzaEsito";
+    if (!tutte) { e.textContent = S.W || S.L || S.H ? "Scrivete tutte e tre le misure della stanza." : ""; return; }
+    if (!cur) { e.textContent = ""; return; }
+    const H = cur.H, a = Math.max(cur.dx, cur.dy), b = Math.min(cur.dx, cur.dy), lungo = Math.max(S.W, S.L), corto = Math.min(S.W, S.L);
+    const sopra = S.H - H, ai = Math.min(lungo - a, corto - b) / 2, m = x => mR(Math.max(0, x));
+    const dims = `La bolla è alta ${mR(H)} e occupa ${mR(a)} × ${mR(b)} a terra; la stanza è ${fmt(lungo, 1)} × ${fmt(corto, 1)} m, alta ${fmt(S.H, 2)} m.`;
+    if (sopra < 0 || ai < 0) { e.classList.add("ko"); e.textContent = `Non ci sta: ${sopra < 0 ? `è più alta del soffitto di ${m(-sopra)}` : `a terra è più grande della stanza`}. ${dims} Rimpicciolitela in Misure bolla o scegliete una stanza più grande.`; }
+    else if (sopra < 0.3 || ai < 0.5) { e.classList.add("mid"); e.textContent = `Ci sta di poco: ${[sopra < 0.3 ? `restano ${m(sopra)} sopra la bolla` : "", ai < 0.5 ? `restano ${m(ai)} di spazio ai lati` : ""].filter(Boolean).join(" e ")}. Gonfiandosi la bolla si allarga un po': meglio almeno 30 cm sopra e 50 cm intorno. ${dims}`; }
+    else { e.classList.add("ok"); e.textContent = `Ci sta: restano ${m(sopra)} sopra la bolla e almeno ${m(ai)} intorno. ${dims}`; }
+  }
+  function inviaStanza() { const S = stanzaV(); aSim(S.W && S.L && S.H ? { tipo: "stanza", W: S.W, P: S.L, H: S.H } : { tipo: "stanza", via: true }); }
+  for (const id of ["stW", "stL", "stH"]) {
+    try { const v = localStorage.getItem("bolle|stanza|" + id); if (v) $(id).value = v; } catch (e) { /* vuota */ }
+    $(id).addEventListener("input", () => { try { localStorage.setItem("bolle|stanza|" + id, $(id).value); } catch (e) { /* solo per questa visita */ } controllaStanza(); clearTimeout(inviaStanza.t); inviaStanza.t = setTimeout(inviaStanza, 400); });
+  }
+  $("stVia").addEventListener("click", () => { for (const id of ["stW", "stL", "stH"]) { $(id).value = ""; try { localStorage.removeItem("bolle|stanza|" + id); } catch (e) { /* niente */ } } controllaStanza(); inviaStanza(); });
   // dalla simulazione alle misure: le bolle di là hanno le loro misure (cubo, poligono, piramide…) o una scala (forma vera)
   function daSimulazione(t, d) {
     const id = def().id, p = { ...state.params }, L = Object.fromEntries(def().params.map(q => [q.key, isLength(q)]));
@@ -3045,7 +3083,7 @@ a.brand { color: inherit; text-decoration: none; border-radius: 8px; } a.brand:h
   function avvisoSim(t) { const n = $("simNotaV"); if (n) { n.textContent = t; clearTimeout(avvisoSim.t); avvisoSim.t = setTimeout(() => { n.textContent = ""; }, 3500); } }
   addEventListener("message", e => {
     const m = e.data; if (!m || !m.bolle || e.source !== simWin()) return;
-    if (m.tipo === "pronta") { sim.pronta = true; sim.ultima = ""; inviaSim(); }
+    if (m.tipo === "pronta") { sim.pronta = true; sim.ultima = ""; inviaSim(); setTimeout(inviaStanza, 900); }
     else if (m.tipo === "misure") daSimulazione(m.tipoB, m.d || {});
     else if (m.tipo === "esci") grandeSim(false);
     else if (m.tipo === "stato") { mostraMateriali(m); mostraLista(m); }
