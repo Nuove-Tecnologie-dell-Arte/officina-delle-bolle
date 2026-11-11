@@ -278,7 +278,7 @@ table.lista input { width: 78px; text-align: right; padding: 5px 6px; }
 .fogli { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .foglio { background: #fff; border-radius: 4px; box-shadow: var(--shadow); aspect-ratio: 210 / 297; padding: 4%; }
 .foglio svg { width: 100%; height: 100%; display: block; }
-.dime { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+.dime { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); gap: 16px; }   /* [Unita] larghe abbastanza per leggere le misure */
 .dima { min-width: 0; padding: 16px 18px; display: grid; gap: 10px; align-content: start; }
 .dima-t { display: flex; align-items: center; gap: 10px; }
 .dima-t i { width: 16px; height: 16px; border-radius: 4px; background: var(--c); flex: none; }
@@ -288,8 +288,28 @@ table.lista input { width: 78px; text-align: right; padding: 5px 6px; }
 .dima td, .dima th { padding: 3px 6px; border-bottom: 1px solid var(--rule); text-align: left; }
 .dima td.num { white-space: normal; }
 .dima th { font-weight: 600; color: var(--muted); font-size: .78rem; }
-.come-dima { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; }
-@media (max-width: 1250px) { .come-dima { grid-template-columns: minmax(0, 1fr); } }
+.come-dima { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: start; }   /* [Unita] una colonna: le dime larghe, le misure si leggono */
+/* [Unita] la barra sopra le dime, le schede che si aprono, il riquadro del pezzo toccato nello Schema */
+.dimeCol { display: grid; gap: 12px; min-width: 0; }
+.dimeBarra { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.notaDime:empty { display: none; } .notaDime button { margin-left: 8px; }
+details.dima > summary { list-style: none; cursor: pointer; }
+details.dima > summary::-webkit-details-marker { display: none; }
+details.dima > summary::after { content: "▸"; margin-left: auto; font-size: 1.1rem; color: var(--muted); transition: transform .15s; }
+details.dima[open] > summary::after { transform: rotate(90deg); }
+.dima-t .sagoma { width: 44px; height: 44px; flex: none; }
+.sagoma polygon { fill: var(--c, #888); fill-opacity: .35; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; }
+.dima-t .spunte { font-size: .85rem; color: var(--green); font-weight: 700; }
+.pzCard { position: absolute; z-index: 6; left: 10px; top: 10px; width: min(260px, calc(100% - 20px)); background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--r-m); box-shadow: 0 10px 30px rgba(0, 0, 0, .18); padding: 10px 12px 12px; display: grid; gap: 8px; }
+.pzCard[hidden] { display: none; }
+.pzTesta { display: flex; align-items: center; gap: 8px; } .pzTesta b { flex: 1; min-width: 0; }
+.pzTesta i { width: 14px; height: 14px; border-radius: 3px; background: var(--c); flex: none; }
+.pzX { all: unset; cursor: pointer; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); font-size: 1.2rem; }
+.pzCorpo { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 10px; align-items: center; }
+.pzCorpo svg { width: 90px; height: 90px; display: block; }
+.pzLati { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font: 500 .82rem var(--mono); }
+.pzLati li { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; } .pzLati span { color: var(--muted); }
+.pzPiede { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 #stampa { display: none; }
 @media print {
   @page { size: A4; margin: 10mm; }
@@ -470,7 +490,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         </ol>
         <div class="btnrow"><button type="button" class="btn" id="bStampaDime">Stampa le schede delle dime</button></div>
       </div>
-      <div class="dime" id="dime"></div>
+      <div class="dimeCol"><!-- [Unita] -->
+        <div class="dimeBarra"><div class="seg" id="unitaDime" role="group" aria-label="Misure della bolla vera o del modellino"><button type="button" data-u="bolla" aria-pressed="true">Bolla</button><button type="button" data-u="modellino" aria-pressed="false">Modellino</button></div>
+          <button type="button" class="btn" id="bApriDime">Apri tutte</button><button type="button" class="btn" id="bAzzeraDime">Azzera le spunte</button></div>
+        <p class="hint notaDime" id="notaDime" role="status"></p>
+        <div class="dime" id="dime"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -678,6 +703,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   PR.mat = Object.assign({}, MAT_LAB, PR.mat && typeof PR.mat === "object" ? PR.mat : {});
   for (const k of ["porte", "coll"]) if (!["cerniera", "velcro"].includes(PR.mat[k])) PR.mat[k] = "cerniera";   // zip impermeabile e stagna solo nell'Abbofficina
   if (!["adesivo", "saldato", "velcro", "cerniera"].includes(PR.mat.giunti)) PR.mat.giunti = "adesivo";
+  PR.unita = PR.unita === "modellino" ? "modellino" : "bolla";   // [Unita] le misure delle dime: della bolla vera o del modellino
   const salva = () => { try { localStorage.setItem(CHIAVE, JSON.stringify(PR, function (k, v) { return k === "area" && this !== PR ? undefined : v; })); } catch (e) { /* solo per questa visita */ } };
   const nomeBolla = (i) => "Bolla " + (i + 1);
   let rotolo = 2; try { const r = parseFloat(localStorage.getItem("bolle|rotolo")); if (r >= 0.5 && r <= 20) rotolo = r; } catch (e) { /* */ }
@@ -803,9 +829,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const tratteggio = (davanti) => { ctx.save(); ctx.strokeStyle = box.ok ? css("--muted", cv) : css("--cut", cv); ctx.lineWidth = 1.6 * dpr; ctx.setLineDash([6 * dpr, 5 * dpr]);
       spigoliBox().forEach(([a, b]) => { const ta = T(a), tb = T(b); if (davanti !== null && ((ta[1] + tb[1]) / 2 < 0) !== davanti) return; const p = S2(ta), q = S2(tb); ctx.globalAlpha = davanti ? 0.9 : 0.4; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }); ctx.restore(); };
     if (box) tratteggio(false);
+    const facce = []; cv._facce = facce;   // [Unita] le facce sullo schermo, da dietro a davanti: servono al tocco nello Schema
     m.F.map((f, fi) => { const p = f.map(i => tv[i]); return { fi, p, n: V3.norm(newell(p)), d: p.reduce((a, q) => a + q[1], 0) / p.length }; })
       .sort((a, b) => b.d - a.d)
       .forEach(({ fi, p, n }) => {
+        facce.push({ fi, s: p.map(S2) });
         let lit = 0.62 + 0.45 * Math.abs(V3.dot(n, L)); if (n[1] >= 0) lit *= 0.65;
         let base = rgb(tinta(m.an.faceInfo[fi].type, cv)), a = 0.94;
         if (!vivo(fi)) { base = grey; a = 0.16; }
@@ -841,6 +869,47 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
   }
   const viste = {};
+  /* [Unita] un tocco su un pannello dello Schema: un riquadro con le misure del pezzo; il secondo tocco (o «Vai alla dima») porta alla dima */
+  let pzT = null;
+  function faccia(cv, e) {
+    const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height, F = cv._facce || [];
+    const dentro = (pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    for (let i = F.length - 1; i >= 0; i--) if (dentro(F[i].s)) return F[i].fi;
+    return null;
+  }
+  function svgPezzo(C, colore) {
+    const n = C.length, cx = C.reduce((a, p) => a + p[0], 0) / n, cy = C.reduce((a, p) => a + p[1], 0) / n;
+    const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const span = Math.max(x1 - x0, y1 - y0, 1e-6), pad = span * 0.26, f = span / 100;
+    let o = `<svg viewBox="${x0 - pad} ${-y1 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}" aria-hidden="true"><polygon points="${C.map(p => `${p[0]},${-p[1]}`).join(" ")}" fill="${colore}" fill-opacity=".45" stroke="currentColor" stroke-width="${1.8 * f}" stroke-linejoin="round"/>`;
+    if (n <= 12) C.forEach((p, i) => { const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1, k = 12 * f; o += `<text x="${p[0] + dx / d * k}" y="${-(p[1] + dy / d * k)}" font-size="${(n <= 6 ? 16 : 11) * f}" font-family="IBM Plex Mono, monospace" font-weight="700" fill="currentColor" text-anchor="middle" dominant-baseline="middle">${lettera(i)}</text>`; });
+    return o + "</svg>";
+  }
+  function latiPezzo(C) {   // i lati uguali insieme: «AB, BC, CA  2,20 m»
+    const n = C.length, gruppi = [];
+    for (let i = 0; i < n; i++) { const L = len2(sub2(C[(i + 1) % n], C[i])), nome = lettera(i) + lettera((i + 1) % n); const g = gruppi.find(x => Math.abs(x.L - L) < 5e-4); if (g) g.nomi.push(nome); else gruppi.push({ L, nomi: [nome] }); }
+    return gruppi.map(g => `<li><span>${g.nomi.length === n && n > 2 ? "Tutti i lati" : g.nomi.length > 4 ? `${g.nomi.length} lati` : g.nomi.join(", ")}</span><b>${misDima(g.L)}</b></li>`).join("");
+  }
+  function chiudiPezzo() { const c = $("pzCard"); if (c) c.hidden = true; pzT = null; }
+  function vaiAllaDima(t) { chiudiPezzo(); dimeAperte.add(t); const i = TAPPE.findIndex(x => x.id === "dima"); vai(i); setTimeout(() => { const d = document.querySelector(`#dime details[data-t="${t}"]`); if (d) { d.open = true; d.scrollIntoView({ block: "start", behavior: "smooth" }); } }, 80); }
+  function toccoSchema(e) {
+    const cv = $("cvSchema"), fi = cur ? faccia(cv, e) : null; if (fi == null) { chiudiPezzo(); return; }
+    const t = cur.an.faceInfo[fi].type; if (pzT === t) { vaiAllaDima(t); return; }
+    let c = $("pzCard"); if (!c) { c = document.createElement("div"); c.id = "pzCard"; c.className = "pzCard"; c.setAttribute("role", "group"); c.setAttribute("aria-label", "Misure del pezzo"); $("simScena").appendChild(c); }
+    const T = cur.an.types[t], colore = T8[t % 8]; pzT = t;
+    c.style.setProperty("--c", colore);
+    c.innerHTML = `<div class="pzTesta"><i></i><b>${nomeDima(t)} <span class="hint">× ${T.faces.length}</span></b><button type="button" class="pzX" aria-label="Chiudi">×</button></div>
+      <div class="pzCorpo">${svgPezzo(T.C, colore)}<ul class="pzLati">${latiPezzo(T.C)}</ul></div>
+      <div class="pzPiede"><button type="button" class="btn primary pzVai">Vai alla dima ›</button><span class="hint">o toccalo di nuovo</span></div>`;
+    c.querySelector(".pzX").addEventListener("click", chiudiPezzo);
+    c.querySelector(".pzVai").addEventListener("click", () => vaiAllaDima(t));
+    const box = $("simScena").getBoundingClientRect(); c.hidden = false; c.style.left = (e.clientX - box.left > box.width / 2 ? 10 : Math.max(10, box.width - c.offsetWidth - 10)) + "px";
+  }
+  { let da = null; const cv = $("cvSchema");
+    cv.addEventListener("pointerdown", e => { da = [e.clientX, e.clientY]; });
+    cv.addEventListener("pointerup", e => { if (da && Math.hypot(e.clientX - da[0], e.clientY - da[1]) < 6) toccoSchema(e); else chiudiPezzo(); da = null; });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && $("pzCard") && !$("pzCard").hidden) chiudiPezzo(); });
+    document.addEventListener("pointerdown", e => { const c = $("pzCard"); if (c && !c.hidden && !c.contains(e.target) && e.target !== cv) chiudiPezzo(); }); }
   function vista(id, crea) {
     const cv = $(id); if (!viste[id]) {
       viste[id] = { yaw: 0.6, pitch: 0.36, crea };
@@ -1672,6 +1741,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* la dima con le misure semplificate, anche per gli angoli non a 90°: la base A–B dritta, e ogni altro angolo
      trovato con due misure da A: quanto si va lungo la base (il «piede», sotto la linea; negativo = a sinistra di A)
      e quanto si sale dritto a 90° (l'altezza, in verde). Come si fa con metro e squadra sul telo. */
+  const misDima = (x) => PR.unita === "modellino" && cur && cur.stampa ? fmt(x * 100 / cur.stampa.scala, 1) + " cm" : cm(x);   // [Unita] Bolla | Modellino
+  function sagomaSvg(C) {   // [Unita] il pezzo, piccolo, nella scheda chiusa (dalla prova semplice)
+    const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys), w = Math.max(...xs) - x0 || 1, h = Math.max(...ys) - y0 || 1, k = 56 / Math.max(w, h);
+    const pts = C.map(p => ((p[0] - x0) * k + 4 + (56 - w * k) / 2).toFixed(1) + "," + (60 - ((p[1] - y0) * k + 4 + (56 - h * k) / 2)).toFixed(1)).join(" ");
+    return `<svg class="sagoma" viewBox="0 0 64 64" aria-hidden="true"><polygon points="${pts}"/></svg>`;
+  }
   function dimaSVG(C, colore, stampa) {
     const col = stampa ? { fondo: "#ffffff", griglia: "#e3e8e5", ink: "#111", muted: "#555", verde: "#2f8a68", rosso: "#c22f57" }
       : { fondo: "var(--paper)", griglia: "var(--line-strong)", ink: "var(--ink)", muted: "var(--muted)", verde: "var(--green)", rosso: "var(--cut)" };
@@ -1693,38 +1768,60 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       s += `<line x1="${f(p[0])}" y1="${f(p[1])}" x2="${f(piede[0])}" y2="${f(piede[1])}" stroke="${col.verde}" stroke-width="1.8" stroke-dasharray="6 5"/>`;
       s += `<polyline points="${f(piede[0] + q)},${f(piede[1])} ${f(piede[0] + q)},${f(piede[1] - q * su)} ${f(piede[0])},${f(piede[1] - q * su)}" fill="none" stroke="${col.verde}" stroke-width="1.6"/>`;
       s += `<circle cx="${f(piede[0])}" cy="${f(piede[1])}" r="3.5" fill="${col.verde}"/>`;
-      if (Math.abs(c[1]) > 1e-4) s += `<text x="${f(p[0] + 6)}" y="${f((p[1] + piede[1]) / 2)}" font-size="14" font-weight="700" dominant-baseline="middle" fill="${col.verde}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="4">${cm(Math.abs(c[1]))}</text>`;
-      s += `<text x="${f(piede[0])}" y="${f(A[1] + 42 + (j % 2) * 15)}" font-size="12.5" text-anchor="middle" fill="${col.muted}" font-family="IBM Plex Mono, monospace">${fmt(c[0] * 100, 1)} cm</text>`;
+      if (Math.abs(c[1]) > 1e-4) s += `<text x="${f(p[0] + 6)}" y="${f((p[1] + piede[1]) / 2)}" font-size="17" font-weight="700" dominant-baseline="middle" fill="${col.verde}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${misDima(Math.abs(c[1]))}</text>`;
+      s += `<text x="${f(piede[0])}" y="${f(A[1] + 40 + (j % 2) * 19)}" font-size="16" font-weight="700" text-anchor="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${misDima(c[0])}</text>`;
     });
     // gli angoli: A e B in rosso sulla base, gli altri chiari, con la loro lettera fuori dal pezzo
     const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
     pts.forEach((p, i) => {
       const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1, base = i < 2;
       s += `<circle cx="${f(p[0])}" cy="${f(p[1])}" r="6" fill="${base ? col.rosso : col.fondo}" stroke="${base ? col.rosso : col.ink}" stroke-width="2"/>`;
-      s += `<text x="${f(p[0] + dx / d * 18 + (base ? (i ? 10 : -10) : 0))}" y="${f(p[1] + (base ? 20 : dy / d * 18))}" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace">${lettera(i)}</text>`;
+      s += `<text x="${f(p[0] + dx / d * 18 + (base ? (i ? 10 : -10) : 0))}" y="${f(p[1] + (base ? 20 : dy / d * 18))}" font-size="19" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${lettera(i)}</text>`;
     });
     // la misura della base A–B, sotto
     const yb = H - 14;
-    s += `<line x1="${f(A[0])}" y1="${yb}" x2="${f(B[0])}" y2="${yb}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(A[0])}" y1="${yb - 7}" x2="${f(A[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(B[0])}" y1="${yb - 7}" x2="${f(B[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/>`;
-    s += `<text x="${f((A[0] + B[0]) / 2)}" y="${yb}" font-size="14" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="6">AB ${cm(len2(sub2(C[1], C[0])))}</text>`;
+    const etAB = `AB ${misDima(len2(sub2(C[1], C[0])))}`, mz = (A[0] + B[0]) / 2, mezzo = Math.min(Math.abs(B[0] - A[0]) / 2 - 4, etAB.length * 5.6 + 10);   // [Unita] la riga si ferma prima della scritta
+    s += `<line x1="${f(A[0])}" y1="${yb}" x2="${f(mz - mezzo)}" y2="${yb}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(mz + mezzo)}" y1="${yb}" x2="${f(B[0])}" y2="${yb}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(A[0])}" y1="${yb - 7}" x2="${f(A[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(B[0])}" y1="${yb - 7}" x2="${f(B[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/>`;
+    s += `<text x="${f((A[0] + B[0]) / 2)}" y="${yb}" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="6">AB ${misDima(len2(sub2(C[1], C[0])))}</text>`;
     return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="La dima con la base A–B e, per ogni altro angolo, il piede lungo la base e l'altezza">${s}</svg>`;
   }
+  const dimeAperte = new Set();   // [Unita] le schede aperte restano aperte quando si ridisegnano
+  function spunteDima(i, n) { const f = fatte(); return [f.dime.includes(i) ? "✓ tracciata" : "", f.tagli.includes(i) ? `✓ ${n} tagliate` : ""].filter(Boolean).join(" · "); }
   function schedaDima(t, i, perStampa) {
     const C = t.C, n = C.length, colore = T8[i % 8];
-    const lati = C.map((p, j) => `<tr><td>${lettera(j)}–${lettera((j + 1) % n)}</td><td class="num">${cm(len2(sub2(C[(j + 1) % n], p)))}</td></tr>`).join("");
+    const lati = C.map((p, j) => `<tr><td>${lettera(j)}–${lettera((j + 1) % n)}</td><td class="num">${misDima(len2(sub2(C[(j + 1) % n], p)))}</td></tr>`).join("");
     const pav = t.floors > 0 ? " · è il pavimento" : "", spec = t.mirrorCount ? ` (${t.mirrorCount} girate al rovescio)` : "";
     const f = fatte();
-    return `<div class="dima lastra" style="--c:${colore}"><div class="dima-t"><i></i><h3>${nomeDima(i)}</h3><span class="hint">ne servono <b>${t.faces.length}</b>${spec}${pav}</span></div>
-      ${dimaSVG(C, colore, perStampa)}
-      <p class="hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.</p>
-      <table><tr><th>Controllo: lato</th><th>Lunghezza</th></tr>${lati}</table>
-      ${perStampa ? "" : `<label class="check"><input type="checkbox" data-dima="${i}"${f.dime.includes(i) ? " checked" : ""}> <span>Dima tracciata</span></label><label class="check"><input type="checkbox" data-taglio="${i}"${f.tagli.includes(i) ? " checked" : ""}> <span>Tutte le ${t.faces.length} copie tagliate</span></label>`}</div>`;
+    const corpo = `${dimaSVG(C, colore, perStampa)}
+      <p class="hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.${PR.unita === "modellino" && cur.stampa ? ` Misure del modellino in scala 1:${fmt(cur.stampa.scala, 0)}.` : ""}</p>
+      <table><tr><th>Controllo: lato</th><th>Lunghezza</th></tr>${lati}</table>`;
+    if (perStampa) return `<div class="dima lastra" style="--c:${colore}"><div class="dima-t"><i></i><h3>${nomeDima(i)}</h3><span class="hint">ne servono <b>${t.faces.length}</b>${spec}${pav}</span></div>${corpo}</div>`;
+    return `<details class="dima lastra" data-t="${i}" style="--c:${colore}"${dimeAperte.has(i) ? " open" : ""}><summary class="dima-t">${sagomaSvg(C)}<h3>${nomeDima(i)}</h3><span class="hint">× <b>${t.faces.length}</b>${spec}${pav}</span><span class="spunte">${spunteDima(i, t.faces.length)}</span></summary>
+      ${corpo}
+      <label class="check"><input type="checkbox" data-dima="${i}"${f.dime.includes(i) ? " checked" : ""}> <span>Dima tracciata</span></label><label class="check"><input type="checkbox" data-taglio="${i}"${f.tagli.includes(i) ? " checked" : ""}> <span>Tutte le ${t.faces.length} copie tagliate</span></label></details>`;
   }
-  function rendiDime() { if (!cur) return; $("dime").innerHTML = cur.an.types.map((t, i) => schedaDima(t, i, false)).join(""); }
+  function rendiDime() {
+    if (!cur) return; $("dime").innerHTML = cur.an.types.map((t, i) => schedaDima(t, i, false)).join("");
+    document.querySelectorAll("#unitaDime [data-u]").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.u === PR.unita)); if (b.dataset.u === "modellino") b.textContent = cur.stampa ? `Modellino 1:${fmt(cur.stampa.scala, 0)}` : "Modellino"; });
+    $("bApriDime").textContent = cur.an.types.length && dimeAperte.size >= cur.an.types.length ? "Chiudi tutte" : "Apri tutte";
+  }
+  $("dime").addEventListener("toggle", e => { const d = e.target; if (!d.matches || !d.matches("details.dima")) return; if (d.open) dimeAperte.add(+d.dataset.t); else dimeAperte.delete(+d.dataset.t); $("bApriDime").textContent = cur && dimeAperte.size >= cur.an.types.length ? "Chiudi tutte" : "Apri tutte"; }, true);
+  $("unitaDime").addEventListener("click", e => { const b = e.target.closest("[data-u]"); if (!b || b.dataset.u === PR.unita) return; PR.unita = b.dataset.u; salva(); rendiDime(); });
+  $("bApriDime").addEventListener("click", () => { if (!cur) return; const tutte = dimeAperte.size >= cur.an.types.length; dimeAperte.clear(); if (!tutte) cur.an.types.forEach((t, i) => dimeAperte.add(i)); rendiDime(); });
+  let tNotaDime = 0;
+  $("bAzzeraDime").addEventListener("click", () => {
+    const f = fatte(), n = f.dime.length + f.tagli.length; clearTimeout(tNotaDime);
+    if (!n) { $("notaDime").textContent = "Non ci sono spunte da togliere."; tNotaDime = setTimeout(() => { $("notaDime").textContent = ""; }, 4000); return; }
+    const prima = { dime: f.dime.slice(), tagli: f.tagli.slice() }; f.dime.length = 0; f.tagli.length = 0; salva(); rendiDime();
+    $("notaDime").innerHTML = `Tolte ${n === 1 ? "una spunta" : n + " spunte"}. <button type="button" class="btn">↶ Annulla</button>`;
+    $("notaDime").querySelector("button").addEventListener("click", () => { const g = fatte(); g.dime.splice(0, g.dime.length, ...prima.dime); g.tagli.splice(0, g.tagli.length, ...prima.tagli); salva(); rendiDime(); $("notaDime").textContent = "Spunte rimesse."; tNotaDime = setTimeout(() => { $("notaDime").textContent = ""; }, 3000); });
+    tNotaDime = setTimeout(() => { $("notaDime").textContent = ""; }, 8000);
+  });
   $("dime").addEventListener("change", e => {
     const el = e.target, f = fatte(), lista = el.dataset.dima != null ? f.dime : el.dataset.taglio != null ? f.tagli : null; if (!lista) return;
     const i = +(el.dataset.dima != null ? el.dataset.dima : el.dataset.taglio), at = lista.indexOf(i);
     if (el.checked && at < 0) lista.push(i); if (!el.checked && at >= 0) lista.splice(at, 1); salva();
+    const sp = el.closest("details.dima") && el.closest("details.dima").querySelector(".spunte"); if (sp && cur) sp.textContent = spunteDima(i, cur.an.types[i].faces.length);   // [Unita]
   });
   $("bStampaDime").addEventListener("click", () => { if (!cur) return; stampa(`<div style="font-family:IBM Plex Sans,sans-serif;color:#111;display:grid;grid-template-columns:1fr 1fr;gap:8mm;--card:#fff;--paper:#fff;--rule:#ccc;--muted:#555;--ink:#111">${cur.an.types.map((t, i) => schedaDima(t, i, true)).join("")}</div>`); });
   RENDI.dima = () => { rendiModellino(); rendiDime(); };

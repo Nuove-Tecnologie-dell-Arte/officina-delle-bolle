@@ -82,3 +82,21 @@ Il progetto è in `docs/superpowers/specs/2026-11-11-prova-unita-design.md`, il 
   - **i prezzi scritti là:** chiudendo ↗ la vetrina li rilegge (`vetrina-ricarica-prezzi`) e la lista del sito si aggiorna; riaprendo, è l'Abbofficina a rileggere quelli scritti nel sito (`ricarica-prezzi`).
 - **Si torna** con «↙ Torna al sito» (in alto al centro, sul telefono in basso a destra), con Esc nella pagina o con Esc dentro l'Abbofficina (`esci`). Il fuoco torna su ↗.
 - La vetrina non salva composizioni. Quella della pagina («Officina · …») la salva solo l'Abbofficina completa, una volta.
+
+## Blocco 5 · Dime più complete
+
+- **Le dime P1, P2… e il loro metodo restano.** Sopra le dime c'è una barra:
+  - **Bolla | Modellino 1:20** (`#unitaDime`, `PR.unita`, si salva con il progetto): in Bolla le misure della bolla vera in cm, in Modellino quelle del modellino in scala (`misDima`). Valgono nel disegno, nella tabella dei lati, nella stampa e nel riquadro dello Schema;
+  - **Apri tutte / Chiudi tutte**;
+  - **Azzera le spunte**: dice quante ne ha tolte, e «↶ Annulla» le rimette.
+- **Le dime si leggono meglio:**
+  - sono in una colonna sola, larghe, con «Come tracciare una dima» sopra;
+  - le scritte del disegno sono più grandi (altezze e AB 17, piedi 16, lettere 19, sullo schermo da 14 a 27 px), in grassetto e con il bordo chiaro dietro;
+  - i piedi sono scuri, non più grigi;
+  - la riga della misura AB si ferma prima della scritta (prima si leggeva «AB-220,0-cm»).
+- **Ogni dima è una scheda che si apre e si chiude** (`details.dima`, chiusa all'inizio). Chiusa mostra la sagoma del pezzo (`sagomaSvg`), P e il numero, «× N» e le spunte fatte («✓ tracciata · ✓ 15 tagliate»). Le schede aperte restano aperte quando la pagina le ridisegna.
+- **Toccare un pannello nello Schema** (come nella semplice):
+  - **il primo tocco** apre un riquadro con il nome della dima, quante ne servono, il disegno con le lettere degli angoli e i lati (quelli uguali insieme: «Tutti i lati 220,0 cm»);
+  - **il secondo tocco** sullo stesso pezzo, o «Vai alla dima ›», porta alla tappa Dima con quella scheda aperta;
+  - il riquadro si chiude con ×, con Esc, toccando fuori o girando lo Schema;
+  - lo Schema ricorda dove ha disegnato ogni faccia (`cv._facce`), così si sa quale si è toccata.
