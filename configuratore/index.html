@@ -5904,7 +5904,7 @@ if (VETRINA) {
     for (const B of L) {
       const d = { mesh: B.mesh, k: 1 }; if (typeof B.off === 'string' && PORTE_OFF[B.off]) d.off = B.off;
       let q = null;
-      try { forma('officina', d); q = { tipo: 'officina', d, f: gonfConsigliati({ tipo: 'officina', d }) || { ...TIPI.officina.f }, ingresso: true, forma: B.forma }; }
+      try { forma('officina', d); q = { tipo: 'officina', d, f: gonfConsigliati({ tipo: 'officina', d }) || { ...TIPI.officina.f }, ingresso: !B.chiusa, forma: B.forma, ...(B.chiusa ? { porte: [] } : {}) }; }   // [Officina] una bolla intera (non si attraversa): niente ingresso né porte
       catch (e) { q = ultimeQ.get(B.id) || null; }   // non appoggia a terra: resta quella di prima
       if (!q) continue;
       q = { ...q, x: B.pos ? B.pos.x : 0, z: B.pos ? B.pos.z : 0, ang: B.pos ? B.pos.ang || 0 : 0, nome: String(B.nome || 'Bolla').slice(0, 60) };

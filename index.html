@@ -140,6 +140,7 @@ body.trascina iframe { pointer-events: none; }
 .schede3 button[aria-selected="true"] { background: var(--rosso, var(--green)); color: #fff; }
 .campiXYZ { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
 .campiXYZ input { font: 600 1.15rem var(--mono); }
+.appoggio { margin-top: 10px; }
 .misRiga { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; } .misRiga .hint { flex: 1 1 260px; margin: 0; }
 #rqMisure .field.attivo label { color: var(--rosso, var(--green)); font-weight: 700; }
 .schemaNota b { color: var(--ink); }
@@ -813,17 +814,20 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
      Allungare in una direzione tiene piatti tutti i pannelli, quindi la bolla resta costruibile; con le proporzioni bloccate
      la forma resta quella del motore (per esempio i triangoli tutti uguali della cupola). */
   const cacheBase = new Map();
-  function base(id, p) {
-    const k = id + "|" + JSON.stringify(p);
+  // [Unita] l'appoggio e il taglio di una bolla (b.opt), sopra quelli di base della forma
+  const optDi = (b, id) => { const d = def(id || (b && b.shape)); if (!d) return null; const o = optBase(d); if (b && b.shape === d.id && b.opt) { if (typeof b.opt.cut === "boolean") o.cut = b.opt.cut; if (b.opt.orient) o.orient = b.opt.orient; if (Number.isInteger(b.opt.level)) o.level = b.opt.level; } return o; };
+  function base(id, p, opt) {
+    const d = def(id); opt = opt || optBase(d);
+    const k = id + "|" + JSON.stringify(p) + "|" + JSON.stringify([opt.cut, opt.orient, opt.level]);
     if (cacheBase.has(k)) return cacheBase.get(k);
-    const d = def(id), m = buildShape(d, p, optBase(d));
+    const oc = Object.assign({}, opt), m = buildShape(d, p, oc); m.levelUsed = oc.level; m.orientUsed = oc.orient;   // il taglio e l'appoggio scelti dal motore
     const xs = m.V.map(v => v[0]), ys = m.V.map(v => v[1]);
     const r = { m, w: Math.max(...xs) - Math.min(...xs), d: Math.max(...ys) - Math.min(...ys), h: Math.max(...m.V.map(v => v[2])) };
     if (cacheBase.size > 40) cacheBase.clear();
     cacheBase.set(k, r); return r;
   }
-  function costruisci(id, p, dim) {
-    const b = base(id, p), sx = dim.x / b.w, sy = dim.y / b.d, sz = dim.z / b.h;
+  function costruisci(id, p, dim, opt) {
+    const b = base(id, p, opt === undefined ? optDi(S, id) : opt), sx = dim.x / b.w, sy = dim.y / b.d, sz = dim.z / b.h;
     if (!(sx > 0 && sy > 0 && sz > 0) || !isFinite(sx * sy * sz)) throw new Error("Con queste misure la forma non si può costruire.");
     const m0 = b.m;
     const m = Object.assign({}, m0, { V: m0.V.map(v => [v[0] * sx, v[1] * sy, v[2] * sz]), F: m0.F.map(f => f.slice()), floor: m0.floor.slice(), floorArea: (m0.floorArea || 0) * sx * sy, volume: (m0.volume || 0) * sx * sy * sz });
@@ -846,7 +850,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const haArea = () => ["x", "y", "z"].some(a => S.area[a] > 0);
   // [Unita] una forma appena scelta parte con le misure di base del motore, e se non entra nell'area si rimpicciolisce finché ci sta
   function dimIniziali(id, p) {
-    const b = base(id, p);
+    const b = base(id, p, optDi(S, id));
     let dim = { x: r2(b.w), y: r2(b.d), z: r2(b.h) };
     if (!entra(dim)) {
       const ax = areaMax("x"), ay = areaMax("y"), az = areaMax("z");
@@ -886,7 +890,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (cur) {
       if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = sceltaScala(cur); }
       cur.g = giudica(cur, S.base);
-      const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim);
+      const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim) + (S.opt ? "|" + JSON.stringify(S.opt) : "");
       if (k !== curKey) giuntaQui = null;
       curKey = k;
       if (!S.fatte[curKey]) S.fatte = { [curKey]: { dime: [], tagli: [], giunte: [] } };   // un progetto nuovo riparte con le spunte vuote
@@ -1053,9 +1057,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const conForma = (b) => !!(b.shape && b.base && b.dim);
   // le aree di lavoro nel simulatore (quelle con almeno una misura a terra); con lo scenario con le pareti nessuna: c'è la stanza
   const opzAree = () => stanzaInfo ? [] : PR.aree.map((a, i) => ({ id: a.id, nome: nomeArea(i), x: a.x, y: a.y, z: a.z, pos: a.pos || null })).filter(a => a.x > 0 || a.y > 0);
-  const chiaveForma = (b) => b.shape + "|" + JSON.stringify(b.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v));
+  const chiaveForma = (b) => b.shape + "|" + JSON.stringify(b.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(b.opt || null);
   function meshBolla(b) {   // una bolla che non è quella scelta: solo vertici e facce alle sue misure, quanto basta al simulatore
-    try { const B = base(b.shape, b.base), sx = b.dim.x / B.w, sy = b.dim.y / B.d, sz = b.dim.z / B.h; if (!(sx > 0 && sy > 0 && sz > 0)) return null;
+    try { const B = base(b.shape, b.base, optDi(b)), sx = b.dim.x / B.w, sy = b.dim.y / B.d, sz = b.dim.z / B.h; if (!(sx > 0 && sy > 0 && sz > 0)) return null;
       return { V: B.m.V.map(v => [v[0] * sx, v[1] * sy, v[2] * sz]), F: B.m.F, W: b.dim.x, D: b.dim.y }; } catch (e) { return null; }
   }
   function inviaVetrina() {
@@ -1064,7 +1068,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const mm = (x) => Math.round(x * 1000) / 1000;
     const bolle = PR.bolle.map((b, i) => {
       if (!conForma(b)) return null; const m = b === S ? cur : meshBolla(b); if (!m) return null;
-      return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
+      return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), chiusa: !!(b.opt && b.opt.cut === false), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
     }).filter(Boolean);
     const msg = { tipo: "bolle-officina", bolle, att: S.id, aree: opzAree() };
     const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.aree.map(a => [a.id, a.nome, a.x, a.y, a.z])]);   // il posto delle aree lo tiene la vetrina
@@ -1344,6 +1348,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function scegliForma(id) {
     if (id !== S.shape) {
       S.shape = id;
+      S.opt = null;   // [Unita] l'appoggio di base della forma
       if (id !== "foto") { S.base = parametriBase(def(id)); S.dim = dimIniziali(id, S.base); }
       esito = null; S.okModello = false; salva();
     }
@@ -1562,6 +1567,27 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     document.querySelectorAll("#rqMisure [data-scp]").forEach(p => { p.hidden = p.dataset.scp !== t; });
     verdettoBreve();
   }
+  function appoggioHtml() {   // [Unita] come nella semplice: come appoggia a terra, e il taglio della parte bassa (senza: la forma intera)
+    if (!S.shape || S.shape === "foto" || !cur) return "";
+    const d = def(S.shape), o = optDi(S); let h = "";
+    if (d.kind === "convex") {
+      if (cur.orients && cur.orients.length > 1) h += `<div class="field"><label for="orient">Come appoggia a terra</label><select id="orient">${cur.orients.map(x => `<option value="${esc(x.id)}"${x.id === (o.orient || d.defOrient || cur.orients[0].id) ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</select></div>`;
+      const lv = (cur.levels || []).filter(L => L.z > 0);
+      if (lv.length) {
+        h += `<label class="check"><input type="checkbox" id="cut"${o.cut ? " checked" : ""}> <span>Taglia la parte bassa per avere un pavimento piatto (togli la spunta per la forma intera, per una bolla da non attraversare)</span></label>`;
+        if (o.cut) h += `<div class="field"><label for="level">Altezza del taglio</label><select id="level">${cur.levels.map((L, i) => `<option value="${i}"${i === o.level || (o.level == null && i === cur.levelUsed) ? " selected" : ""}>${esc(L.label)}</option>`).join("")}</select></div>`;
+      } else h += `<p class="hint">Appoggiata sulla base: il pavimento c'è già.</p>`;
+    } else if (d.kind === "extrude" || d.floorToggle) h += `<label class="check"><input type="checkbox" id="cut"${o.cut ? " checked" : ""}> <span>Con pavimento (togli la spunta per una bolla aperta sotto)</span></label>`;
+    else h += `<label class="check"><input type="checkbox" id="cut"${o.cut ? " checked" : ""}> <span>Fondo piatto: un lato del tubo appoggiato a terra</span></label>`;
+    return h ? `<div class="appoggio"><h3 style="margin-bottom:8px">Appoggio e pavimento</h3><div class="opzioni">${h}</div></div>` : "";
+  }
+  function cambiaAppoggio(nuovo) {   // la forma cambia appoggio o taglio: la grandezza resta (stessa scala), cambiano le proporzioni del nuovo appoggio
+    ricorda("appoggio");
+    const prima = base(S.shape, S.base, optDi(S)), k = S.dim && prima.w > 0 ? S.dim.x / prima.w : 1;
+    S.opt = Object.assign({}, S.opt || {}, nuovo);
+    const dopo = base(S.shape, S.base, optDi(S)); S.dim = { x: r2(dopo.w * k), y: r2(dopo.d * k), z: r2(dopo.h * k) };
+    esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
+  }
   function costruisciMisure() {
     const box = $("pMisure"), altre = $("pAltre");
     if (!S.shape || !S.dim) { box.innerHTML = `<div class="vuoto"><div><h3>Prima scegli una forma</h3><p class="hint">Qui sopra, in «Scegli la forma».</p></div></div>`; altre.innerHTML = ""; mostraScheda(schedaMis); return; }
@@ -1580,7 +1606,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       ${opz.length || tip.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(campoOpz).join("")}${tip.map(campoTip).join("")}</div></div>` : ""}`;
     altre.innerHTML = `${tec.length ? `<p class="hint">Dettagli tecnici della forma: lati, spicchi, segmenti.</p><div class="opzioni" id="paramsTec">${tec.map(campoOpz).join("")}</div>` : `<p class="hint">Per questa forma non ci sono altre opzioni.</p>`}
       ${S.shape === "custom" ? `<div class="btnrow"><button type="button" class="btn" id="bRidisegna">✎ Ridisegna la pianta</button></div>` : ""}
-      ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}`;
+      ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}
+      ${appoggioHtml()}`;
     aggiornaCampi(); mostraScheda(schedaMis);
   }
   /* [Unita] Annulla sulle misure: un passo alla volta, per la bolla scelta (anche Ctrl+Z fuori dai campi) */
@@ -1590,13 +1617,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function ricorda(chiave) {
     const ora = Date.now(); if (chiave === ultimaChiave && ora - ultimoT < 1200) { ultimoT = ora; return; }
     ultimaChiave = chiave; ultimoT = ora;
-    storia.push({ id: S.id, shape: S.shape, dim: Object.assign({}, S.dim), base: JSON.parse(JSON.stringify(S.base)) }); if (storia.length > 60) storia.shift();
+    storia.push({ id: S.id, shape: S.shape, dim: Object.assign({}, S.dim), base: JSON.parse(JSON.stringify(S.base)), opt: S.opt ? Object.assign({}, S.opt) : null }); if (storia.length > 60) storia.shift();
     const b = $("bAnnullaMis"); if (b) b.disabled = false;
   }
   function annullaMis() {
     let i = storia.length - 1; while (i >= 0 && !qui(storia[i])) i--; if (i < 0) return;
     const x = storia.splice(i, 1)[0]; ultimaChiave = "";
-    S.dim = x.dim; S.base = x.base; esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
+    S.dim = x.dim; S.base = x.base; S.opt = x.opt || null; esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
   }
   document.addEventListener("keydown", e => {
     if ((e.key !== "z" && e.key !== "Z") || !(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
@@ -1696,6 +1723,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     box.addEventListener("change", e => {
       const el = e.target;
       if (el.dataset.a) aggiornaCampi();   // uscendo dalla casella torna il valore buono
+      if (el.id === "cut") { cambiaAppoggio({ cut: el.checked }); return; }   // [Unita] appoggio e taglio
+      if (el.id === "orient") { cambiaAppoggio({ orient: el.value, level: null }); return; }
+      if (el.id === "level") { cambiaAppoggio({ level: +el.value }); return; }
       if (el.dataset.k && el.tagName === "SELECT") { ricorda(el.dataset.k + "|sel"); S.base = Object.assign({}, S.base, { [el.dataset.k]: el.value }); esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); }
     });
     box.addEventListener("click", e => {
@@ -2256,7 +2286,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const vistiB = new Set();
     P.bolle = (P.bolle || []).filter(b => b && typeof b === "object").map((b, i) => { let id = intero(b.id); if (!id || vistiB.has(id)) id = 1000 + i; vistiB.add(id);
       const dimOk = b.dim && ["x", "y", "z"].every(k => Number.isFinite(+b.dim[k]) && +b.dim[k] > 0);
-      return sistemaBolla(Object.assign({}, b, { id, dim: dimOk ? { x: +b.dim.x, y: +b.dim.y, z: +b.dim.z } : null, pos: posto(b.pos), areaId: intero(b.areaId), t: Math.max(0, Math.min(TAPPE.length - 1, b.t | 0)), max: Math.max(0, Math.min(TAPPE.length - 1, b.max | 0)), fatte: b.fatte && typeof b.fatte === "object" ? b.fatte : {} })); });
+      const opt = b.opt && typeof b.opt === "object" ? { cut: typeof b.opt.cut === "boolean" ? b.opt.cut : undefined, orient: typeof b.opt.orient === "string" ? b.opt.orient.slice(0, 40) : undefined, level: Number.isInteger(b.opt.level) ? b.opt.level : undefined } : null;
+      return sistemaBolla(Object.assign({}, b, { opt, id, dim: dimOk ? { x: +b.dim.x, y: +b.dim.y, z: +b.dim.z } : null, pos: posto(b.pos), areaId: intero(b.areaId), t: Math.max(0, Math.min(TAPPE.length - 1, b.t | 0)), max: Math.max(0, Math.min(TAPPE.length - 1, b.max | 0)), fatte: b.fatte && typeof b.fatte === "object" ? b.fatte : {} })); });
     if (!P.bolle.length) P.bolle = [sistemaBolla(Object.assign(bollaVuota(1), { t: 0, max: 0 }))];
     P.prossimo = Math.max(P.prossimo || 0, ...P.bolle.map(b => b.id + 1));
     P.att = Math.max(0, Math.min(P.bolle.length - 1, P.att | 0));

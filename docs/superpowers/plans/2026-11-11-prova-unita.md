@@ -382,3 +382,20 @@ Si lavora come prima: per ogni blocco una prova `T\uN.js` che fallisce, la modif
 - La tabella dei prezzi è come quella della semplice.
 - Si aprono da soli quando ci si arriva dalla ricerca.
 - Prova `u12.js`.
+
+---
+
+## Terza parte (12 novembre): forma intera, scala, galleria, modellino, cantiere, simulatore
+
+Le scelte dell'utente:
+- la scala del modellino si scrive (all'inizio 1:20), e c'è anche «Trova la scala dal modellino»;
+- il simulatore resta la vetrina, con più comandi.
+
+| Blocco | Prova | Che cosa |
+|---|---|---|
+| Task 12 · E | `u14` | Forma intera: «Come appoggia a terra», «Taglia la parte bassa» e «Altezza del taglio» in Altre opzioni (`S.opt` per ogni bolla). |
+| Task 13 · F | `u15` | Scala del modellino in Altre opzioni (1:20 all'inizio) e «Trova la scala dal modellino». |
+| Task 14 · G | `u16` | Immagini della galleria piene, come nella semplice, in toni di rosso. |
+| Task 15 · H | `u17` | Il cartamodello a schermo intero, un foglio alla volta. |
+| Task 16 · I | `u18` | Cantiere: le scritte non si sovrappongono alla forma. |
+| Task 17 · J | `u19` | Il simulatore più ricco: Costruisci/Prova, stato, materiali, Griglia, Oggetti 3D. |

@@ -448,3 +448,4 @@ Tutto segnato `[Officina]`.
   - Messaggi nuovi: `ricarica-prezzi` (l'Abbofficina completa rilegge i prezzi salvati) e, in vetrina, `vetrina-ricarica-prezzi`.
   - Niente finestra delle scelte all'avvio, né in vetrina né incorporata.
 - **Correzione**: `ricarica-prezzi` e `vetrina-ricarica-prezzi` rileggono da `bolle-budget` anche `voci` e `bom`, non solo i prezzi (prima il salvataggio successivo li cancellava).
+- **Terza parte, blocco E**: in vetrina una bolla con `chiusa: true` (la forma intera, senza taglio, che non si attraversa) entra senza ingresso e senza porte (`ingresso: false`, `porte: []`).

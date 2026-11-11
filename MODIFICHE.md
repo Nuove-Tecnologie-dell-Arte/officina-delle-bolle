@@ -201,3 +201,18 @@ Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
 - **Ctrl+Z non fa niente quando c'è una finestra aperta** (la pianta, le parole, l'immagine). Prima annullava le misure dietro la finestra.
 - **Sul telefono lo Schema lascia scorrere la pagina** in verticale (`touch-action: pan-y`, al massimo 38% dello schermo). Si gira trascinando di lato.
 - **I testi non dicono più «lo Schema a destra»:** la nota della Costruzione e la voce «Schema» delle Parole.
+
+# Terza parte
+
+## Blocco E · La forma intera
+
+- **In «Altre opzioni» c'è «Appoggio e pavimento»**, con i comandi della semplice:
+  - «Come appoggia a terra»: su una faccia, su un vertice, su uno spigolo;
+  - «Taglia la parte bassa per avere un pavimento piatto»;
+  - «Altezza del taglio».
+
+  Senza la spunta la forma si vede **intera**, per esempio l'icosaedro con tutte e 20 le facce, per le bolle da non attraversare. Nelle forme in pianta c'è «Con pavimento», nei tubi «Fondo piatto».
+- **Ogni bolla ricorda il suo appoggio** (`S.opt`, `optDi(b)`). Si salva nel progetto e nel file, e torna con «Annulla». Una forma scelta di nuovo riparte dall'appoggio di base.
+- **Cambiando appoggio o taglio la grandezza resta la stessa** (stessa scala): cambiano solo le proporzioni del nuovo appoggio.
+- **Seguono la scelta:** Schema, simulatore (la bolla si rigonfia), dime, modellino e montaggio. Le spunte ripartono, perché i pezzi cambiano.
+- **Nel simulatore una bolla intera è chiusa:** niente ingresso e niente porte (`chiusa` nel messaggio alla vetrina).
