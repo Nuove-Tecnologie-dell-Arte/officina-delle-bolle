@@ -1956,6 +1956,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (e.source !== fr.contentWindow || !e.data) return;
     if (e.data.tipo === "vetrina-pronta") inviaMateriali();
     if (e.data.tipo === "vetrina-stato") mostraLista(e.data);
+    if (e.data.tipo === "vetrina-tutta") apriTutta(true);   // [Unita] dallo stato o dai materiali del simulatore
   });
 
   /* [Unita] ↗: l'Abbofficina completa (come nella prova semplice, ?incorporata) a tutto schermo, sulla bolla scelta.

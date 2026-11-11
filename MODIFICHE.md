@@ -253,3 +253,12 @@ Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
   Il disegno ha più spazio sotto la base per queste righe.
 - **Nelle giunzioni**, se un pezzo è troppo piccolo per il suo nome (per esempio una P2 sottile accanto alla P1), il nome va fuori dal pezzo, con una linea che lo indica, e «pezzo nuovo» va accanto al nome.
 - **La prova** (`u18`) guarda tutte le dime e le prime giunzioni dell'icosaedro e della sfera geodetica e controlla che nessuna scritta tocchi un lato o un'altra scritta, e che la misura AB ci sia.
+
+## Blocco J · Il simulatore più ricco
+
+- **Il riquadro del simulatore resta la vetrina** (più bolle, aree di lavoro, scenari), ma ora ha i comandi del riquadro della semplice:
+  - **Costruisci | Prova:** in Prova le persone entrano e c'è il riquadro della pressione;
+  - **lo stato** («Tutto in ordine» o il problema) e **«Materiali · … m² di telo»**: toccandoli si apre ↗, l'Abbofficina completa (`vetrina-tutta`);
+  - **le etichette dei gonfiatori** (G1 · Bolla 1…), che si toccano per cambiarli;
+  - **in basso, Griglia e Oggetti 3D.**
+- **Restano spenti** Annulla/Ripeti (le forme si cambiano nella pagina, o con ↗) e Stanza (lo scenario si sceglie sotto il simulatore).

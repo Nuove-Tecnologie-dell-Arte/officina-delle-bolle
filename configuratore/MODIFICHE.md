@@ -449,3 +449,4 @@ Tutto segnato `[Officina]`.
   - Niente finestra delle scelte all'avvio, né in vetrina né incorporata.
 - **Correzione**: `ricarica-prezzi` e `vetrina-ricarica-prezzi` rileggono da `bolle-budget` anche `voci` e `bom`, non solo i prezzi (prima il salvataggio successivo li cancellava).
 - **Terza parte, blocco E**: in vetrina una bolla con `chiusa: true` (la forma intera, senza taglio, che non si attraversa) entra senza ingresso e senza porte (`ingresso: false`, `porte: []`).
+- **Terza parte, blocco J**: in vetrina si vedono `.sinistra` (Costruisci | Prova, stato, materiali), `#pannelloP`, `#barraScena` (Griglia, Oggetti 3D), `#pannelloO` e le etichette `.etiG` dei gonfiatori. Restano nascosti `.storia` (Annulla/Ripeti), `#bStanza` e `#bNotte`. In vetrina `#chipBudget` e `#chipStato` mandano al sito `{ tipo: 'vetrina-tutta' }`, che apre l'Abbofficina completa.

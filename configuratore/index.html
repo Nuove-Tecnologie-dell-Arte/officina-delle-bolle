@@ -622,12 +622,14 @@
   details.aspetto > summary::-webkit-details-marker { display: none; }
   details.aspetto > summary h2::before { content: '▸ '; } details.aspetto[open] > summary h2::before { content: '▾ '; }
   /* [Officina] VETRINA (?vetrina): dentro il sito dell'Officina si vede solo la scena, senza pannelli né comandi */
-  html.vetrina body > header, html.vetrina aside, html.vetrina #manico, html.vetrina .linguetta, html.vetrina #scena .sinistra,
-  html.vetrina #pannelloP, html.vetrina #suggScena, html.vetrina #pannelloS, html.vetrina #povInfo, html.vetrina #pannelloO, html.vetrina #pannelloSt,
-  html.vetrina #barraScena, html.vetrina #guida, html.vetrina #cerca, html.vetrina dialog, html.vetrina .lampo, html.vetrina .menuProve, html.vetrina .menuComp { display: none !important; }
+  html.vetrina body > header, html.vetrina aside, html.vetrina #manico, html.vetrina .linguetta,
+  html.vetrina #suggScena, html.vetrina #pannelloS, html.vetrina #povInfo, html.vetrina #pannelloSt,
+  html.vetrina .sinistra .storia, html.vetrina #bStanza, html.vetrina #bNotte, html.vetrina #guida, html.vetrina #cerca, html.vetrina dialog, html.vetrina .lampo, html.vetrina .menuProve, html.vetrina .menuComp { display: none !important; }
   html.vetrina main, html.vetrina #vCostruisci { position: fixed; inset: 0; display: block; }
   html.vetrina #scena { position: absolute; inset: 0; height: auto; }
-  html.vetrina #sovra > :not(.eti):not(.etiArea):not(.ruota), html.vetrina .eti .lnk { display: none !important; }
+  html.vetrina #sovra > :not(.eti):not(.etiArea):not(.ruota):not(.etiG), html.vetrina .eti .lnk { display: none !important; }
+  /* [Officina] prova unita, blocco J: in vetrina come nel riquadro della prova semplice: Costruisci | Prova, stato, materiali, pressione, Griglia, Oggetti 3D, gonfiatori.
+     Restano spenti Annulla/Ripeti (le forme si cambiano nel sito) e Stanza (lo scenario si sceglie sotto il simulatore). */
   .ruota { position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; gap: 4px; }
   .ruota button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,.92); color: #16221e; font: 700 16px/1 system-ui, sans-serif; cursor: pointer; display: grid; place-items: center; padding: 0; }
   .ruota button:hover { background: #fff; border-color: var(--acc); }
@@ -5943,6 +5945,7 @@ if (VETRINA) {
   // spostata trascinandola: il nuovo posto torna al sito; toccata (o toccato il suo nome): il sito apre quella bolla
   VETRINA_AZ.mossa = () => { selezionato = bollaAttiva(); mettiAree(M_ultimo); posizioni(); };   // le aree restano dove sono: cambia solo il colore
   VETRINA_AZ.scelta = p => manda({ tipo: 'vetrina-scegli', id: p.idOff });
+  $('chipBudget').onclick = $('chipStato').onclick = () => manda({ tipo: 'vetrina-tutta' });   // [Officina] stato e materiali: si apre l'Abbofficina completa (↗ nel sito)
   $('sovra').addEventListener('click', e => { const el = e.target.closest && e.target.closest('.eti'); if (!el || !el._p) return; e.stopImmediatePropagation(); e.preventDefault(); VETRINA_AZ.scelta(el._p); }, true);
   // gli scenari: la stanza di sfondo (una pronta, una foto 360° o un modello GLB), come nell'Abbofficina
   function scenario(M) {
