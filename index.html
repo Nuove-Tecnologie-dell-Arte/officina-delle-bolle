@@ -319,8 +319,19 @@ details.controlli summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 /* [Unita] le scelte del lab e la lista con i prezzi */
 .scelteMat { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 12px 18px; margin-bottom: 26px; }
 .scelteMat .field { display: grid; gap: 4px; } .scelteMat [hidden] { display: none; }
-.listaPrezzi { margin-top: 30px; display: grid; gap: 8px; }
-.listaPrezzi h3 { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; }
+/* [Unita] i riquadri che si aprono e si chiudono (come nella semplice) */
+.riquadro { display: grid; gap: 14px; padding: 14px 0; border-bottom: 2px dashed rgba(90, 75, 30, .3); }
+.rq-testa { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; cursor: pointer; }
+.rq-testa h3 { margin: 0; }
+.rq-apri { all: unset; cursor: pointer; font: 400 clamp(1.6rem, 3vw, 2.1rem)/1.05 var(--display, inherit); letter-spacing: .03em; color: var(--rosso, var(--ink)); display: inline-flex; align-items: center; gap: 10px; }
+.rq-apri::before { content: "▸"; font-size: .8em; transition: transform .15s; }
+.riquadro:not(.chiuso) .rq-apri::before { transform: rotate(90deg); }
+.rq-apri:focus-visible { outline: 2px dashed var(--rosso, var(--green)); outline-offset: 3px; }
+.rq-sintesi { color: #4f4c47; font-size: .95rem; }
+.riquadro:not(.chiuso) .rq-sintesi { display: none; }
+.riquadro.chiuso .rq-corpo { display: none; }
+.rq-corpo { display: grid; gap: 14px; min-width: 0; }
+.listaTot { margin-left: auto; font: 400 1.4rem/1 var(--display, inherit); letter-spacing: .03em; }
 .tablewrap { overflow-x: auto; max-width: 100%; }
 table.lista { width: 100%; border-collapse: collapse; font-size: .9rem; }
 table.lista th { text-align: left; font-weight: 600; color: var(--muted); font-size: .8rem; padding: 6px 6px; border-bottom: 1px solid var(--rule); }
@@ -510,13 +521,21 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   </div>
 
   <div class="blocco" id="bloccoMateriali">
-    <header class="titolone"><h2>Materiali</h2><p>Un resoconto completo di tutti i materiali necessari per il tuo progetto.</p></header>
-    <div class="scelteMat" id="scelteMat" role="group" aria-label="Con che cosa la costruite"></div><!-- [Unita] -->
-    <div class="materiali" id="materiali"></div>
-    <div class="listaPrezzi" id="rqLista"><!-- [Unita] la lista della simulazione, con gli stessi prezzi -->
-      <h3>Lista materiali e prezzi <b class="num listaTot" id="listaTot"></b></h3>
-      <p class="hint" id="listaNota">La lista con i prezzi arriva dal simulatore.</p>
-      <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"></tbody></table></div>
+    <header class="titolone piccolo"><h2>Materiali</h2><p>Con che cosa la costruisci e quanto costa. Tocca un titolo per aprirlo.</p></header>
+    <!-- [Unita] come nella semplice: due riquadri che si aprono e si chiudono, con il riassunto quando sono chiusi -->
+    <div class="riquadro apribile chiuso" id="rqMat">
+      <div class="rq-testa"><h3><button type="button" class="rq-apri" aria-expanded="false" aria-controls="rqMatCorpo">Materiali bolla vera</button></h3><span class="rq-sintesi" id="matSintesi"></span></div>
+      <div class="rq-corpo" id="rqMatCorpo">
+        <div class="scelteMat" id="scelteMat" role="group" aria-label="Con che cosa la costruite"></div>
+        <div class="materiali" id="materiali"></div>
+      </div>
+    </div>
+    <div class="riquadro apribile chiuso" id="rqLista">
+      <div class="rq-testa"><h3><button type="button" class="rq-apri" aria-expanded="false" aria-controls="rqListaCorpo">Lista materiali e prezzi</button></h3><b class="num listaTot" id="listaTot"></b></div>
+      <div class="rq-corpo" id="rqListaCorpo">
+        <p class="hint" id="listaNota">La lista con i prezzi arriva dal simulatore.</p>
+        <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"></tbody></table></div>
+      </div>
     </div>
   </div>
 
@@ -1817,6 +1836,19 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       : `<input type="number" id="${id}" data-k="${k}" min="${o.min}" max="${o.max}" step="${o.step}" inputmode="numeric">`}</div>`).join("");
     for (const [id, k] of SCELTE_MAT) { const el = $(id); if (document.activeElement !== el) el.value = String(PR.mat[k]); }
     for (const k of ["adW", "adLati"]) box.querySelector(`.field[data-k="${k}"]`).hidden = PR.mat.giunti !== "adesivo";
+    sintesiMat();
+  }
+  function apriRiquadro(r, si) {   // [Unita] come nella semplice: si ricorda in questo browser
+    r.classList.toggle("chiuso", !si); r.querySelector(".rq-apri").setAttribute("aria-expanded", String(si));
+    try { localStorage.setItem("bolle|aperto|" + r.id, si ? "1" : "0"); } catch (e) { /* solo per questa visita */ }
+  }
+  document.querySelectorAll(".riquadro.apribile").forEach(r => {
+    let si = false; try { si = localStorage.getItem("bolle|aperto|" + r.id) === "1"; } catch (e) { /* chiuso */ } apriRiquadro(r, si);
+    r.querySelector(".rq-testa").addEventListener("click", e => { if (e.target.closest("input, select, a") || (e.target.closest("button") && !e.target.closest(".rq-apri"))) return; apriRiquadro(r, r.classList.contains("chiuso")); });
+  });
+  function sintesiMat() {   // il riassunto, quando il riquadro è chiuso
+    const M = PR.mat, nome = (l, k) => ((SCELTE_MAT.find(x => x[1] === l)[3].find(([v]) => v === String(k)) || [])[1] || k).toLowerCase();
+    $("matSintesi").textContent = `${NOMI_TELO[M.mat] || M.mat} ${fmt(M.gsm, 0)} g/m² · pezzi uniti con ${M.giunti === "adesivo" ? `nastro da ${fmt(M.adW, 0)} mm${M.adLati > 1 ? " dentro e fuori" : ""}` : nome("giunti", M.giunti)} · porte con ${nome("porte", M.porte)}`;
   }
   function inviaMateriali() { if (vetrinaPronta && fr.contentWindow) fr.contentWindow.postMessage({ tipo: "vetrina-materiali", D: Object.assign({}, PR.mat) }, "*"); }
   $("scelteMat").addEventListener("change", e => {
@@ -2267,6 +2299,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function evidenzia(el) {
     if (!el) return;
     const pan = el.closest && el.closest("#rqMisure [data-scp]"); if (pan && pan.hidden) mostraScheda(pan.dataset.scp);   // [Unita] apre la scheda giusta
+    const rq = el.closest && el.closest(".riquadro.apribile"); if (rq && rq.classList.contains("chiuso")) apriRiquadro(rq, true);   // [Unita] e il riquadro chiuso
     el.scrollIntoView({ block: "center", behavior: ridotto ? "auto" : "smooth" });
     el.classList.add("trovato"); clearTimeout(el._trovato); el._trovato = setTimeout(() => el.classList.remove("trovato"), 1800);
     if (/^(INPUT|SELECT|BUTTON|TEXTAREA|SUMMARY)$/.test(el.tagName)) el.focus({ preventScroll: true });

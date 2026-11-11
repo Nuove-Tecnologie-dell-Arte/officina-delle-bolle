@@ -183,3 +183,12 @@ Dopo la prova sono cambiate cinque cose:
 - **L'animazione va con un timer** (ogni 40 ms), non con `requestAnimationFrame`: così si muove anche dove i fotogrammi del browser sono fermi, per esempio in un pannello nascosto.
 - **Sotto lo Schema una riga spiega la misura**, con la tabella `MISURE` della semplice (per esempio «Raggio interno. Dal centro alle rientranze fra una punta e l'altra.»). Uscendo dal campo torna tutto normale.
 - **«↶ Annulla»** accanto alle caselle, e Ctrl+Z fuori dai campi nella Progettazione, tornano indietro di un cambiamento alla volta, per la bolla scelta. I tasti battuti di fila sulla stessa casella contano come un cambiamento solo.
+
+## Blocco D · Materiali e lista come nella semplice
+
+- **Sul foglio giallo dei Materiali ci sono due riquadri che si aprono e si chiudono** (`.riquadro.apribile`, come nella semplice):
+  - **«Materiali bolla vera»** (`#rqMat`): dentro le scelte del lab e il resoconto. Da chiuso mostra il riassunto (`#matSintesi`), per esempio «PVC 20 g/m² · pezzi uniti con nastro da 48 mm dentro e fuori · porte con zip», che segue le scelte.
+  - **«Lista materiali e prezzi»** (`#rqLista`): dentro la tabella dei prezzi. Da chiuso mostra il «Totale materiali».
+- **Partono chiusi**, si aprono e si chiudono toccando il titolo, e il browser ricorda la scelta (`bolle|aperto|rqMat`, `bolle|aperto|rqLista`).
+- **Dalla ricerca** («rotolo», «Lista materiali e prezzi»…) il riquadro chiuso si apre da solo.
+- Il titolo «Materiali» è più piccolo, come gli altri della Progettazione.
