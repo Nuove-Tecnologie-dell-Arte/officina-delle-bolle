@@ -241,3 +241,15 @@ Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
   - «Ingrandisci» / «Adatta allo schermo», per vedere i numeri dei bordi da vicino e scorrere il foglio;
   - «✕ Esci», anche con Esc.
 - **Il foglio intero sta nello schermo**, sul computer e sul telefono. Il fuoco resta dentro e, uscendo, torna sul pulsante. Mentre è aperto, Ctrl+K e / non aprono la ricerca.
+
+## Blocco I · Cantiere senza scritte sovrapposte
+
+- **Nel disegno delle dime** (nel cantiere, nelle schede e nella stampa) ogni scritta cerca un posto libero (`posto`): non sopra i lati del pezzo e non sopra un'altra scritta.
+  - **Le lettere degli angoli** stanno appena fuori dal pezzo, un po' più in là se serve.
+  - **Le altezze** stanno accanto alla loro linea tratteggiata, a destra o a sinistra e più in alto o più in basso. Se nel pezzo non c'è posto, vanno sopra l'angolo, oppure fuori dal pezzo con una sottile linea tratteggiata fino alla loro altezza.
+  - **I piedi** stanno sotto la base, su più righe e un po' spostati di lato se si toccano.
+  - **La misura AB** resta in basso.
+
+  Il disegno ha più spazio sotto la base per queste righe.
+- **Nelle giunzioni**, se un pezzo è troppo piccolo per il suo nome (per esempio una P2 sottile accanto alla P1), il nome va fuori dal pezzo, con una linea che lo indica, e «pezzo nuovo» va accanto al nome.
+- **La prova** (`u18`) guarda tutte le dime e le prime giunzioni dell'icosaedro e della sfera geodetica e controlla che nessuna scritta tocchi un lato o un'altra scritta, e che la misura AB ci sia.

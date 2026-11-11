@@ -2127,7 +2127,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const col = stampa ? { fondo: "#ffffff", griglia: "#e3e8e5", ink: "#111", muted: "#555", verde: "#2f8a68", rosso: "#c22f57" }
       : { fondo: "var(--paper)", griglia: "var(--line-strong)", ink: "var(--ink)", muted: "var(--muted)", verde: "var(--green)", rosso: "var(--cut)" };
     const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(0, ...xs), x1 = Math.max(...xs), y0 = Math.min(0, ...ys), y1 = Math.max(...ys);
-    const W = 460, H = 340, padX = 46, padT = 34, padB = 96, k = Math.min((W - 2 * padX) / ((x1 - x0) || 1), (H - padT - padB) / ((y1 - y0) || 1));
+    const W = 460, H = 404, padX = 50, padT = 46, padB = 144, k = Math.min((W - 2 * padX) / ((x1 - x0) || 1), (H - padT - padB) / ((y1 - y0) || 1));
     const ox = padX + ((W - 2 * padX) - (x1 - x0) * k) / 2 - x0 * k, oy = H - padB + y0 * k - (((H - padT - padB) - (y1 - y0) * k) / 2) * 0;
     const P = (p) => [ox + p[0] * k, oy - p[1] * k];
     const pts = C.map(P), A = pts[0], B = pts[1], f = (v) => v.toFixed(1);
@@ -2139,26 +2139,58 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     s += `<line x1="${f(xl)}" y1="${f(A[1])}" x2="${f(xr)}" y2="${f(A[1])}" stroke="${col.muted}" stroke-width="1.6" stroke-dasharray="7 6"/>`;
     s += `<polygon points="${pts.map(p => p.map(f).join(",")).join(" ")}" fill="${colore}" fill-opacity=".2" stroke="${col.ink}" stroke-width="2.6" stroke-linejoin="round"/>`;
     // per ogni altro angolo: la perpendicolare tratteggiata, il quadratino dell'angolo retto, l'altezza e il piede
+    // [Unita] le scritte trovano un posto libero: non sopra i lati né sopra le altre scritte
+    const lati = pts.map((p, i) => [p, pts[(i + 1) % pts.length]]), occupati = [], lettere = [];
+    const scatola = (c, w, h) => { const x0 = c.a === "start" ? c.x : c.a === "end" ? c.x - w : c.x - w / 2; return { x0, x1: x0 + w, y0: c.y - h / 2, y1: c.y + h / 2 }; };
+    const incr = (a, b, c, e) => { const den = (b[0] - a[0]) * (e[1] - c[1]) - (b[1] - a[1]) * (e[0] - c[0]); if (Math.abs(den) < 1e-9) return false; const u = ((c[0] - a[0]) * (e[1] - c[1]) - (c[1] - a[1]) * (e[0] - c[0])) / den, v = ((c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0])) / den; return u >= 0 && u <= 1 && v >= 0 && v <= 1; };
+    const tocca = (q) => occupati.some(o => q.x0 < o.x1 && q.x1 > o.x0 && q.y0 < o.y1 && q.y1 > o.y0) || q.x0 < 2 || q.x1 > W - 2 || q.y0 < 2 || q.y1 > H - 2
+      || lati.some(([a, b]) => { const dentro = (p) => p[0] > q.x0 && p[0] < q.x1 && p[1] > q.y0 && p[1] < q.y1; return dentro(a) || dentro(b) || [[[q.x0, q.y0], [q.x1, q.y0]], [[q.x1, q.y0], [q.x1, q.y1]], [[q.x1, q.y1], [q.x0, q.y1]], [[q.x0, q.y1], [q.x0, q.y0]]].some(([c, e]) => incr(a, b, c, e)); });
+    const posto = (cands, w, h) => { for (const c of cands) { const q = scatola(c, w, h); if (!tocca(q)) { occupati.push(q); return c; } } const c = cands[0]; occupati.push(scatola(c, w, h)); return c; };
+    const largo = (t, fs) => t.length * fs * 0.62 + 8;   // con il bordo chiaro attorno alle lettere
     C.slice(2).forEach((c, j) => {
       const p = pts[j + 2], piede = [p[0], A[1]], su = c[1] >= 0 ? 1 : -1, q = 9;
       s += `<line x1="${f(p[0])}" y1="${f(p[1])}" x2="${f(piede[0])}" y2="${f(piede[1])}" stroke="${col.verde}" stroke-width="1.8" stroke-dasharray="6 5"/>`;
       s += `<polyline points="${f(piede[0] + q)},${f(piede[1])} ${f(piede[0] + q)},${f(piede[1] - q * su)} ${f(piede[0])},${f(piede[1] - q * su)}" fill="none" stroke="${col.verde}" stroke-width="1.6"/>`;
       s += `<circle cx="${f(piede[0])}" cy="${f(piede[1])}" r="3.5" fill="${col.verde}"/>`;
-      if (Math.abs(c[1]) > 1e-4) s += `<text x="${f(p[0] + 6)}" y="${f((p[1] + piede[1]) / 2)}" font-size="17" font-weight="700" dominant-baseline="middle" fill="${col.verde}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${misDima(Math.abs(c[1]))}</text>`;
-      s += `<text x="${f(piede[0])}" y="${f(A[1] + 40 + (j % 2) * 19)}" font-size="16" font-weight="700" text-anchor="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${misDima(c[0])}</text>`;
     });
     // gli angoli: A e B in rosso sulla base, gli altri chiari, con la loro lettera fuori dal pezzo
     const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
     pts.forEach((p, i) => {
       const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1, base = i < 2;
       s += `<circle cx="${f(p[0])}" cy="${f(p[1])}" r="6" fill="${base ? col.rosso : col.fondo}" stroke="${base ? col.rosso : col.ink}" stroke-width="2"/>`;
-      s += `<text x="${f(p[0] + dx / d * 18 + (base ? (i ? 10 : -10) : 0))}" y="${f(p[1] + (base ? 20 : dy / d * 18))}" font-size="19" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${lettera(i)}</text>`;
+      lettere.push({ i, p, dx: dx / d, dy: dy / d, base });
     });
     // la misura della base A–B, sotto
     const yb = H - 14;
     const etAB = `AB ${misDima(len2(sub2(C[1], C[0])))}`, mz = (A[0] + B[0]) / 2, mezzo = Math.min(Math.abs(B[0] - A[0]) / 2 - 4, etAB.length * 5.6 + 10);   // [Unita] la riga si ferma prima della scritta
     s += `<line x1="${f(A[0])}" y1="${yb}" x2="${f(mz - mezzo)}" y2="${yb}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(mz + mezzo)}" y1="${yb}" x2="${f(B[0])}" y2="${yb}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(A[0])}" y1="${yb - 7}" x2="${f(A[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/><line x1="${f(B[0])}" y1="${yb - 7}" x2="${f(B[0])}" y2="${yb + 7}" stroke="${col.ink}" stroke-width="1.5"/>`;
-    s += `<text x="${f((A[0] + B[0]) / 2)}" y="${yb}" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="6">AB ${misDima(len2(sub2(C[1], C[0])))}</text>`;
+    // AB, in basso: il suo posto è fisso
+    const etAB0 = `AB ${misDima(len2(sub2(C[1], C[0])))}`; occupati.push(scatola({ x: (A[0] + B[0]) / 2, y: H - 14, a: "middle" }, largo(etAB0, 17), 22));
+    // le lettere degli angoli, appena fuori dal pezzo
+    lettere.forEach(({ i, p, dx, dy, base }) => {
+      const cands = [18, 26, 36, 48].map(r => base ? { x: p[0] + (i ? 10 : -10) * r / 18, y: p[1] + 20 * r / 18, a: "middle" } : { x: p[0] + dx * r, y: p[1] + dy * r, a: "middle" });
+      const c = posto(cands, 22, 26);
+      s += `<text x="${f(c.x)}" y="${f(c.y)}" font-size="19" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${lettera(i)}</text>`;
+    });
+    // le altezze, accanto alla loro linea tratteggiata
+    C.slice(2).forEach((c, j) => {
+      if (Math.abs(c[1]) <= 1e-4) return;
+      const p = pts[j + 2], py = A[1], t = misDima(Math.abs(c[1])), w = largo(t, 17), ys = [0.5, 0.3, 0.7, 0.15, 0.85].map(u => p[1] + (py - p[1]) * u);
+      const sg = Math.sign(py - p[1] || 1), xmax = Math.max(...pts.map(q => q[0])), xmin = Math.min(...pts.map(q => q[0]));
+      const cands = ys.flatMap(y => [{ x: p[0] + 8, y, a: "start" }, { x: p[0] - 8, y, a: "end" }])
+        .concat([30, 50].flatMap(r => [{ x: p[0], y: p[1] - r * sg, a: "middle" }, { x: p[0] + 16, y: p[1] - r * sg, a: "start" }, { x: p[0] - 16, y: p[1] - r * sg, a: "end" }]))
+        .concat(ys.slice(0, 3).flatMap(y => [{ x: xmax + 12, y, a: "start", filo: true }, { x: xmin - 12, y, a: "end", filo: true }]));   // fuori dal pezzo, con una linea fino alla sua misura
+      const q = posto(cands, w, 20);
+      if (q.filo) s += `<line x1="${f(p[0])}" y1="${f(q.y)}" x2="${f(q.x + (q.a === "start" ? -3 : 3))}" y2="${f(q.y)}" stroke="${col.verde}" stroke-width="1.2" stroke-dasharray="2 3"/>`;
+      s += `<text x="${f(q.x)}" y="${f(q.y)}" font-size="17" font-weight="700" text-anchor="${q.a}" dominant-baseline="middle" fill="${col.verde}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${t}</text>`;
+    });
+    // i piedi, sotto la base, su più righe se servono
+    C.slice(2).forEach((c, j) => {
+      const p = pts[j + 2], t = misDima(c[0]), w = largo(t, 16), cands = [40, 60, 80, 100, 120].flatMap(dy => [0, 0.55, -0.55, 1.1, -1.1].map(u => ({ x: p[0] + u * w, y: A[1] + dy, a: "middle" })));
+      const q = posto(cands, w, 19);
+      s += `<text x="${f(q.x)}" y="${f(q.y)}" font-size="16" font-weight="700" text-anchor="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5" dominant-baseline="middle">${t}</text>`;
+    });
+    s += `<text x="${f((A[0] + B[0]) / 2)}" y="${yb}" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="6">AB ${misDima(len2(sub2(C[1], C[0])))}</text>`;   // [Unita] la misura AB, in basso
     return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="La dima con la base A–B e, per ogni altro angolo, il piede lungo la base e l'altezza">${s}</svg>`;
   }
   const dimeAperte = new Set();   // [Unita] le schede aperte restano aperte quando si ridisegnano
@@ -2216,7 +2248,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     };
     const A = piano(sopra, 1), B = piano(sotto, -1), tutti = A.concat(B);
     const xs = tutti.map(p => p[0]), ys = tutti.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys);
-    const W = 420, H = 330, pad = 34, k = Math.min((W - 2 * pad) / ((Math.max(...xs) - x0) || 1), (H - 2 * pad) / ((Math.max(...ys) - y0) || 1));
+    const W = 420, H = 380, pad = 34, padY = 74, k = Math.min((W - 2 * pad) / ((Math.max(...xs) - x0) || 1), (H - 2 * padY) / ((Math.max(...ys) - y0) || 1));   // [Unita] spazio sopra e sotto per i nomi messi fuori
     const ox = (W - (Math.max(...xs) - x0) * k) / 2, oy = (H - (Math.max(...ys) - y0) * k) / 2;
     const T = (p) => [ox + (p[0] - x0) * k, oy + (p[1] - y0) * k];
     let svg = "";
@@ -2228,9 +2260,17 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       for (let gx = 1; gx < 24; gx++) for (let gy = 1; gy < 24; gy++) { const x = Math.min(...qx) + (Math.max(...qx) - Math.min(...qx)) * gx / 24, y = Math.min(...qy) + (Math.max(...qy) - Math.min(...qy)) * gy / 24;
         if (!dentroP(Q, x, y)) continue; const d = distLati(Q, x, y); if (d > bd * 1.15) { bd = d; cx = x; cy = y; } }
       svg += `<polygon points="${Q.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" style="fill:${col};fill-opacity:.2;stroke:${col};stroke-width:2.5;stroke-linejoin:round"/>`;
-      svg += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" font-size="24" font-weight="800" text-anchor="middle" dominant-baseline="middle" style="fill:var(--ink)" font-family="Bricolage Grotesque, sans-serif">${nomeDima(inf.type)}</text>`;
-      const yy = w ? Math.max(...Q.map(p => p[1])) + 18 : Math.min(...Q.map(p => p[1])) - 14;
-      svg += `<text x="${cx.toFixed(1)}" y="${yy.toFixed(1)}" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle" style="fill:var(--muted)" font-family="IBM Plex Sans, sans-serif">${stato[w]}</text>`;
+      const nome = nomeDima(inf.type), entra = bd >= 17 && Math.max(...qx) - Math.min(...qx) > nome.length * 17 + 8;   // [Unita] il nome sta dentro solo se c'è posto
+      const bordo = w ? Math.max(...qy) : Math.min(...qy), su = w ? 1 : -1;
+      if (entra) {
+        svg += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" font-size="24" font-weight="800" text-anchor="middle" dominant-baseline="middle" style="fill:var(--ink)" font-family="Bricolage Grotesque, sans-serif">${nome}</text>`;
+        svg += `<text x="${cx.toFixed(1)}" y="${(bordo + su * 18).toFixed(1)}" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle" style="fill:var(--muted)" font-family="IBM Plex Sans, sans-serif">${stato[w]}</text>`;
+      } else {   // pezzo piccolo: il nome fuori, con una linea che lo indica
+        const ly = bordo + su * 34;
+        svg += `<line x1="${cx.toFixed(1)}" y1="${cy.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${(ly - su * 14).toFixed(1)}" style="stroke:${col};stroke-width:1.6"/>`;
+        svg += `<text x="${cx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="22" font-weight="800" text-anchor="middle" dominant-baseline="middle" style="fill:var(--ink)" font-family="Bricolage Grotesque, sans-serif">${nome}</text>`;
+        svg += `<text x="${cx.toFixed(1)}" y="${(ly + su * 22).toFixed(1)}" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle" style="fill:var(--muted)" font-family="IBM Plex Sans, sans-serif">${stato[w]}</text>`;
+      }
     });
     const a = T([0, 0]), b = T([V3.len(V3.sub(V[v2], o)), 0]);
     svg += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" style="stroke:var(--cut);stroke-width:5;stroke-linecap:round"/>`;
