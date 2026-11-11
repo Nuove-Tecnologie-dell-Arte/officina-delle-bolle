@@ -834,6 +834,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const cacheBase = new Map();
   // [Unita] l'appoggio e il taglio di una bolla (b.opt), sopra quelli di base della forma
   const optDi = (b, id) => { const d = def(id || (b && b.shape)); if (!d) return null; const o = optBase(d); if (b && b.shape === d.id && b.opt) { if (typeof b.opt.cut === "boolean") o.cut = b.opt.cut; if (b.opt.orient) o.orient = b.opt.orient; if (Number.isInteger(b.opt.level)) o.level = b.opt.level; } return o; };
+  const intera = (b) => { const d = b && b.shape && def(b.shape); return !!(d && d.kind === "convex" && optBase(d).cut === true && b.opt && b.opt.cut === false); };   // [Unita] bolla chiusa, da guardare
   function base(id, p, opt) {
     const d = def(id); opt = opt || optBase(d);
     const k = id + "|" + JSON.stringify(p) + "|" + JSON.stringify([opt.cut, opt.orient, opt.level]);
@@ -879,6 +880,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
   function giudica(m, p) {   // il giudizio del motore, più l'area di lavoro
     const g = giudizioForma(m, p, { scala: m.stampa ? m.stampa.scala : scalaDi(S), id: m.id });   // [Unita] la scala scelta
+    if (m.id === S.shape && intera(S)) {   // [Unita] bolla intera: non si attraversa, quindi pavimento e porta non contano
+      g.voci = g.voci.filter(v => v.k !== "pavimento" && v.k !== "porta");
+      g.voci.unshift({ c: "info", k: "intera", t: "Bolla intera, da guardare: non si entra, quindi pavimento e porta non contano." });
+      g.c = g.voci.some(v => v.c === "ko") ? "ko" : g.voci.some(v => v.c === "mid") ? "mid" : "ok";
+    }
     if (haArea()) {
       const AR = S.area, e = entra({ x: m.W, y: m.D, z: m.H });
       const tA = AR.stanza ? `alto ${fmt(AR.z, 2)} m` : ["x", "y", "z"].map(a => AR[a] > 0 ? fmt(AR[a], 2) : "∞").join(" × ") + " m";
@@ -899,6 +905,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
   /* ---------- la bolla scelta ---------- */
   let cur = null, curErr = null, curKey = "", giuntaQui = null;
+  function chiaveAppoggio() {   // [Unita] l'appoggio entra nella chiave delle spunte solo se è diverso da quello di base della forma
+    if (!S.opt || !cur || S.shape === "foto") return "";
+    const d = def(S.shape), o = optDi(S), ob = optBase(d), b0 = base(S.shape, S.base, ob).m;
+    const diverso = o.cut !== ob.cut || cur.orientUsed !== b0.orientUsed || (o.cut && cur.levelUsed !== b0.levelUsed);
+    return diverso ? `|${o.cut}|${cur.orientUsed || ""}|${o.cut ? cur.levelUsed : ""}` : "";
+  }
   function aggiornaBolla(leggero) {
     cur = null; curErr = null;
     if (S.shape && S.base && S.dim) {
@@ -908,10 +920,14 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (cur) {
       if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = impagina(cur, scalaDi(S)); if (!cur.stampa) { const r = sceltaScala(cur); cur.scalaBuona = r ? r.scala : null; } }   // [Unita] la scala scelta, 1:20 all'inizio
       cur.g = giudica(cur, S.base);
-      const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim) + (S.opt ? "|" + JSON.stringify(S.opt) : "");
+      const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim) + chiaveAppoggio();   // [Unita] stesso appoggio = stesse spunte
       if (k !== curKey) giuntaQui = null;
       curKey = k;
-      if (!S.fatte[curKey]) S.fatte = { [curKey]: { dime: [], tagli: [], giunte: [] } };   // un progetto nuovo riparte con le spunte vuote
+      if (!S.fatte[curKey]) {   // un progetto nuovo riparte con le spunte vuote; [Unita] quelle di prima restano, se tornano le stesse misure
+        for (const k of Object.keys(S.fatte)) { const f = S.fatte[k]; if (!f || !(f.dime.length + f.tagli.length + f.giunte.length)) delete S.fatte[k]; }
+        const piene = Object.keys(S.fatte); while (piene.length > 6) delete S.fatte[piene.shift()];
+        S.fatte[curKey] = { dime: [], tagli: [], giunte: [] };
+      }
     }
     simulatore();
   }
@@ -1090,7 +1106,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const mm = (x) => Math.round(x * 1000) / 1000;
     const bolle = PR.bolle.map((b, i) => {
       if (!conForma(b)) return null; const m = b === S ? cur : meshBolla(b); if (!m) return null;
-      return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), chiusa: !!(b.opt && b.opt.cut === false), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
+      return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), chiusa: intera(b), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
     }).filter(Boolean);
     const msg = { tipo: "bolle-officina", bolle, att: S.id, aree: opzAree() };
     const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.aree.map(a => [a.id, a.nome, a.x, a.y, a.z])]);   // il posto delle aree lo tiene la vetrina
@@ -1484,7 +1500,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     scala: () => 20,
     errore: (t) => { $("fErr").textContent = t; $("fErr").hidden = !t; },
     dopo: () => { $("bRitocca").hidden = false; },
-    onUsa: (vals) => { S.shape = "foto"; S.base = vals; S.dim = dimIniziali("foto", vals, true); delete anteprime.foto; esito = null; S.okModello = false; salva(); costruisciForme(); rendiForme(); aggiornaBolla(true); rendiRisultato(); rendiMateriali(); fondo(); },
+    onUsa: (vals) => { if (S.shape !== "foto") S.opt = null; S.shape = "foto"; S.base = vals; S.dim = dimIniziali("foto", vals, true); delete anteprime.foto; esito = null; S.okModello = false; salva(); costruisciForme(); rendiForme(); aggiornaBolla(true); rendiRisultato(); rendiMateriali(); fondo(); },
   };
   $("bImmagine").addEventListener("click", () => ImmagineBolla.scegli(opzFoto));
   $("bRitocca").addEventListener("click", () => ImmagineBolla.riapri(opzFoto));
@@ -1601,16 +1617,25 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       } else h += `<p class="hint">Appoggiata sulla base: il pavimento c'è già.</p>`;
     } else if (d.kind === "extrude" || d.floorToggle) h += `<label class="check"><input type="checkbox" id="cut"${o.cut ? " checked" : ""}> <span>Con pavimento (togli la spunta per una bolla aperta sotto)</span></label>`;
     else h += `<label class="check"><input type="checkbox" id="cut"${o.cut ? " checked" : ""}> <span>Fondo piatto: un lato del tubo appoggiato a terra</span></label>`;
-    return h ? `<div class="appoggio"><h3 style="margin-bottom:8px">Appoggio e pavimento</h3><div class="opzioni">${h}</div></div>` : "";
+    return h ? `<div class="appoggio"><h3 style="margin-bottom:8px">Appoggio e pavimento</h3><div class="opzioni">${h}</div>${notaAppoggio ? `<p class="hint" role="status">${esc(notaAppoggio)}</p>` : ""}${intera(S) ? `<p class="hint">Bolla intera: non si attraversa. Nel simulatore è chiusa, senza porta.</p>` : ""}</div>` : "";
   }
   function cambiaScala(v) {   // [Unita] la stessa scala per modellino, dime in Modellino, stampa e cantiere
     S.scala = v; salva(); aggiornaBolla(); costruisciMisure(); rendiRisultato(); fondo();
   }
+  let notaAppoggio = "";
   function cambiaAppoggio(nuovo) {   // la forma cambia appoggio o taglio: la grandezza resta (stessa scala), cambiano le proporzioni del nuovo appoggio
     ricorda("appoggio");
-    const prima = base(S.shape, S.base, optDi(S)), k = S.dim && prima.w > 0 ? S.dim.x / prima.w : 1;
+    const prima = base(S.shape, S.base, optDi(S));
+    const orientPrima = S.opt && S.opt.orientPrima;
     S.opt = Object.assign({}, S.opt || {}, nuovo);
-    const dopo = base(S.shape, S.base, optDi(S)); S.dim = { x: r2(dopo.w * k), y: r2(dopo.d * k), z: r2(dopo.h * k) };
+    if (nuovo.cut === true && orientPrima) { S.opt.orient = orientPrima; S.opt.level = null; }   // [Unita] rimettendo il taglio torna l'appoggio di prima
+    if (nuovo.cut !== undefined || nuovo.orient !== undefined) delete S.opt.orientPrima;
+    let dopo = base(S.shape, S.base, optDi(S)); notaAppoggio = "";
+    if (optDi(S).cut === false && !(dopo.m.floorArea > 0.01) && dopo.m.orients) {   // [Unita] intera su un vertice o uno spigolo: non sta in piedi, si mette su una faccia
+      for (const o of dopo.m.orients) { const t = base(S.shape, S.base, Object.assign(optDi(S), { orient: o.id, level: null })); if (t.m.floorArea > 0.01) { S.opt.orientPrima = prima.m.orientUsed || optDi(S).orient; S.opt.orient = o.id; S.opt.level = null; dopo = t; notaAppoggio = `Intera, la bolla non sta in piedi su una punta: l'ho appoggiata «${o.label.toLowerCase()}».`; break; } }
+    }
+    // [Unita] la grandezza resta, misura per misura: le proporzioni scritte a mano non si perdono
+    S.dim = { x: r2(S.dim.x * dopo.w / prima.w), y: r2(S.dim.y * dopo.d / prima.d), z: r2(S.dim.z * dopo.h / prima.h) };
     esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
   }
   function costruisciMisure() {
@@ -1965,7 +1990,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const aTutta = (m) => { if (tutta && tuttaPronta) try { tutta.contentWindow.postMessage(Object.assign({ bolle: 1 }, m), "*"); } catch (e) { /* non ancora pronta */ } };
   function paccoBolla() {
     if (!cur) return null; const mm = (x) => Math.round(x * 1000) / 1000;
-    return { v: 1, nome: nomeBolla(PR.att), tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: S.shape } };
+    return { v: 1, nome: nomeBolla(PR.att), chiusa: intera(S), tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: S.shape } };
   }
   function inviaTutta() { const p = paccoBolla(); if (!p) return; tuttaId = S.id; dimInviata = Object.assign({}, S.dim); aTutta({ tipo: "forma", pacco: p }); }
   function apriTutta(si) {
@@ -2084,6 +2109,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("fogli").innerHTML = r.pagine.map((pg, i) => `<div class="foglio">${foglioSVG(cur, r, pg, i + 1, r.pagine.length, testo)}</div>`).join("");
     $("okModello").checked = !!S.okModello;
   }
+  function pulsantiFogli() { const no = !(cur && cur.stampa); $("bStampaModello").disabled = no; $("bModGrande").disabled = no; }   // [Unita] senza fogli A4 non c'è niente da stampare
   $("okModello").addEventListener("change", e => { S.okModello = e.target.checked; salva(); fondo(); });
   /* [Unita] il cartamodello a schermo intero: un foglio alla volta, ‹ ›, Ingrandisci, Esc */
   const mg = { i: 0, da: null };
@@ -2092,7 +2118,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const n = r.pagine.length; mg.i = Math.max(0, Math.min(n - 1, mg.i));
     $("modGrandeTit").textContent = `Foglio ${mg.i + 1} di ${n} · scala 1:${r.scala}`;
     $("modGrandeCorpo").innerHTML = `<div class="foglio">${foglioSVG(cur, r, r.pagine[mg.i], mg.i + 1, n, `${nomeForma(S.shape)} · scala 1:${r.scala}`)}</div>`;
-    $("modPrima").disabled = mg.i === 0; $("modDopo").disabled = mg.i === n - 1;
+    const fa = document.activeElement; $("modPrima").disabled = mg.i === 0; $("modDopo").disabled = mg.i === n - 1;
+    if (fa && fa.disabled) $("modGrande").focus({ preventScroll: true });   // [Unita] il pulsante appena spento non si porta via il fuoco
   }
   function apriModGrande() {
     if (!cur || !cur.stampa) return; mg.da = document.activeElement; mg.i = 0;
@@ -2118,7 +2145,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* la dima con le misure semplificate, anche per gli angoli non a 90°: la base A–B dritta, e ogni altro angolo
      trovato con due misure da A: quanto si va lungo la base (il «piede», sotto la linea; negativo = a sinistra di A)
      e quanto si sale dritto a 90° (l'altezza, in verde). Come si fa con metro e squadra sul telo. */
-  const misDima = (x) => PR.unita === "modellino" && cur && cur.stampa ? fmt(x * 100 / cur.stampa.scala, 1) + " cm" : cm(x);   // [Unita] Bolla | Modellino
+  const misDima = (x) => PR.unita === "modellino" ? fmt(x * 100 / scalaDi(S), 1) + " cm" : cm(x);   // [Unita] Bolla | Modellino
   function sagomaSvg(C) {   // [Unita] il pezzo, piccolo, nella scheda chiusa (dalla prova semplice)
     const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys), w = Math.max(...xs) - x0 || 1, h = Math.max(...ys) - y0 || 1, k = 56 / Math.max(w, h);
     const pts = C.map(p => ((p[0] - x0) * k + 4 + (56 - w * k) / 2).toFixed(1) + "," + (60 - ((p[1] - y0) * k + 4 + (56 - h * k) / 2)).toFixed(1)).join(" ");
@@ -2202,7 +2229,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const pav = t.floors > 0 ? " · è il pavimento" : "", spec = t.mirrorCount ? ` (${t.mirrorCount} girate al rovescio)` : "";
     const f = fatte();
     const corpo = `${dimaSVG(C, colore, perStampa)}
-      <p class="hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.${PR.unita === "modellino" && cur.stampa ? ` Misure del modellino in scala 1:${fmt(cur.stampa.scala, 0)}.` : ""}</p>
+      <p class="hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.${PR.unita === "modellino" ? ` Misure del modellino in scala 1:${scalaDi(S)}.` : ""}</p>
       <table><tr><th>Controllo: lato</th><th>Lunghezza</th></tr>${lati}</table>`;
     if (perStampa) return `<div class="dima lastra" style="--c:${colore}"><div class="dima-t"><i></i><h3>${nomeDima(i)}</h3><span class="hint">ne servono <b>${t.faces.length}</b>${spec}${pav}</span></div>${corpo}</div>`;
     return `<details class="dima lastra" data-t="${i}" style="--c:${colore}"${dimeAperte.has(i) ? " open" : ""}><summary class="dima-t">${sagomaSvg(C)}<h3>${nomeDima(i)}</h3><span class="hint">× <b>${t.faces.length}</b>${spec}${pav}</span><span class="spunte">${spunteDima(i, t.faces.length)}</span></summary>
@@ -2211,7 +2238,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
   function rendiDime() {
     if (!cur) return; $("dime").innerHTML = cur.an.types.map((t, i) => schedaDima(t, i, false)).join("");
-    document.querySelectorAll("#unitaDime [data-u]").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.u === PR.unita)); if (b.dataset.u === "modellino") b.textContent = cur.stampa ? `Modellino 1:${fmt(cur.stampa.scala, 0)}` : "Modellino"; });
+    document.querySelectorAll("#unitaDime [data-u]").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.u === PR.unita)); if (b.dataset.u === "modellino") b.textContent = `Modellino 1:${scalaDi(S)}`; });
     $("bApriDime").textContent = cur.an.types.length && dimeAperte.size >= cur.an.types.length ? "Chiudi tutte" : "Apri tutte";
   }
   $("dime").addEventListener("toggle", e => { const d = e.target; if (!d.matches || !d.matches("details.dima")) return; if (d.open) dimeAperte.add(+d.dataset.t); else dimeAperte.delete(+d.dataset.t); $("bApriDime").textContent = cur && dimeAperte.size >= cur.an.types.length ? "Chiudi tutte" : "Apri tutte"; }, true);
@@ -2233,7 +2260,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const sp = el.closest("details.dima") && el.closest("details.dima").querySelector(".spunte"); if (sp && cur) sp.textContent = spunteDima(i, cur.an.types[i].faces.length);   // [Unita]
   });
   $("bStampaDime").addEventListener("click", () => { if (!cur) return; stampa(`<div style="font-family:IBM Plex Sans,sans-serif;color:#111;display:grid;grid-template-columns:1fr 1fr;gap:8mm;--card:#fff;--paper:#fff;--rule:#ccc;--muted:#555;--ink:#111">${cur.an.types.map((t, i) => schedaDima(t, i, true)).join("")}</div>`); });
-  RENDI.dima = () => { rendiModellino(); rendiDime(); };
+  RENDI.dima = () => { rendiModellino(); rendiDime(); pulsantiFogli(); };
 
   /* ===================== 3 · COSTRUZIONE ===================== */
   /* i due pezzi stesi a terra, accostati lungo il lato da unire (in rosso), con il nome della dima: niente lettere agli angoli */
@@ -2324,7 +2351,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const f = fatte(), an = cur.an;
     if (cant.tipo === "dime") {
       const n = an.types.length, i = cant.i = Math.max(0, Math.min(n - 1, cant.i)), t = an.types[i], C = t.C, fatta = f.dime.includes(i);
-      $("siteKind").textContent = `Modalità cantiere · dime · ${PR.unita === "modellino" && cur.stampa ? "modellino 1:" + fmt(cur.stampa.scala, 0) : "bolla vera"}`;
+      $("siteKind").textContent = `Modalità cantiere · dime · ${PR.unita === "modellino" ? "modellino 1:" + scalaDi(S) : "bolla vera"}`;
       $("siteTit").textContent = `${nomeDima(i)} · ne servono ${t.faces.length}`;
       $("siteCorpo").innerHTML = `${dimaSVG(C, T8[i % 8], false)}<p class="site-testo hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.</p>
         <table><tr><th>Lato</th><th>Lunghezza</th></tr>${C.map((p, j) => `<tr><td>${lettera(j)}–${lettera((j + 1) % C.length)}</td><td class="num">${misDima(len2(sub2(C[(j + 1) % C.length], p)))}</td></tr>`).join("")}</table>`;
@@ -2397,7 +2424,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const vistiB = new Set();
     P.bolle = (P.bolle || []).filter(b => b && typeof b === "object").map((b, i) => { let id = intero(b.id); if (!id || vistiB.has(id)) id = 1000 + i; vistiB.add(id);
       const dimOk = b.dim && ["x", "y", "z"].every(k => Number.isFinite(+b.dim[k]) && +b.dim[k] > 0);
-      const opt = b.opt && typeof b.opt === "object" ? { cut: typeof b.opt.cut === "boolean" ? b.opt.cut : undefined, orient: typeof b.opt.orient === "string" ? b.opt.orient.slice(0, 40) : undefined, level: Number.isInteger(b.opt.level) ? b.opt.level : undefined } : null;
+      const opt = b.opt && typeof b.opt === "object" ? { cut: typeof b.opt.cut === "boolean" ? b.opt.cut : undefined, orient: typeof b.opt.orient === "string" ? b.opt.orient.slice(0, 40) : undefined, level: Number.isInteger(b.opt.level) && b.opt.level >= 0 ? b.opt.level : undefined } : null;
       return sistemaBolla(Object.assign({}, b, { scala: Number.isFinite(+b.scala) && +b.scala >= 1 && +b.scala <= 1000 ? Math.round(+b.scala) : undefined, opt, id, dim: dimOk ? { x: +b.dim.x, y: +b.dim.y, z: +b.dim.z } : null, pos: posto(b.pos), areaId: intero(b.areaId), t: Math.max(0, Math.min(TAPPE.length - 1, b.t | 0)), max: Math.max(0, Math.min(TAPPE.length - 1, b.max | 0)), fatte: b.fatte && typeof b.fatte === "object" ? b.fatte : {} })); });
     if (!P.bolle.length) P.bolle = [sistemaBolla(Object.assign(bollaVuota(1), { t: 0, max: 0 }))];
     P.prossimo = Math.max(P.prossimo || 0, ...P.bolle.map(b => b.id + 1));

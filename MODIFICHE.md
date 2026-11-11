@@ -262,3 +262,17 @@ Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
   - **le etichette dei gonfiatori** (G1 · Bolla 1…), che si toccano per cambiarli;
   - **in basso, Griglia e Oggetti 3D.**
 - **Restano spenti** Annulla/Ripeti (le forme si cambiano nella pagina, o con ↗) e Stanza (lo scenario si sceglie sotto il simulatore).
+
+## Correzioni dopo la revisione della terza parte
+
+Ogni correzione ha la sua prova (`u20.js` per la pagina, `u21.js` per l'Abbofficina), che prima falliva e ora passa:
+- **Una bolla intera non resta più bloccata nella Progettazione.** Il verdetto la bocciava per «pavimento di 0 m²» e porta. Ora per una bolla intera (`intera`: il taglio tolto a una forma che di base è tagliata) pavimento e porta non contano, e si legge «Bolla intera, da guardare: non si entra».
+- **Togliendo il taglio a una forma appoggiata su un vertice o su uno spigolo**, la bolla si appoggia da sola su una faccia: su una punta non sta in piedi, e nemmeno il simulatore la può mettere a terra. La pagina lo dice. Rimettendo il taglio torna l'appoggio di prima (`orientPrima`).
+- **«Chiusa» nel simulatore vale solo per le bolle intere.** Non vale per le forme in pianta aperte sotto, né per il cubo, il pallone e il dodecaedro, che di base sono già interi e hanno la porta. Anche con ↗ la bolla intera arriva chiusa.
+- **La forma da un'immagine non prende l'appoggio della forma di prima.**
+- **Cambiando appoggio o pavimento la grandezza resta misura per misura:** le proporzioni scritte a mano non si perdono più.
+- **Le spunte non si perdono** se l'appoggio torna com'era, o riaprendo il file. La chiave delle spunte cambia solo se l'appoggio è davvero diverso da quello di base, e le spunte delle forme di prima restano (fino a 6 serie).
+- **Le dime in «Modellino» usano la scala scelta** anche quando i fogli A4 non si possono fare. Allora «Stampa il cartamodello» e «Schermo intero» sono spenti.
+- **Il cartamodello a schermo intero non perde il fuoco** quando il pulsante dell'ultimo foglio si spegne: Esc e le frecce funzionano ancora.
+- **I gonfiatori cambiati nel simulatore restano**, finché la forma della bolla non cambia.
+- **Lo stato e i materiali del simulatore** dicono che aprono l'Abbofficina completa.

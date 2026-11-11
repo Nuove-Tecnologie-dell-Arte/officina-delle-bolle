@@ -5668,6 +5668,8 @@ function formaDallaPagina(M) {
   if (!c) { c = nuovaComp('Officina · ' + P.nome, { ...fotografa(), pezzi: [{ tipo: P.tipo, d: { ...standard(P.tipo), ...P.d }, f: gonfConsigliati({ tipo: P.tipo, d: P.d }) || { ...TIPI[P.tipo].f }, nome: P.nome, ingresso: true, legato: true }], manuali: [], staccati: [], stanza: null }); c.pagina = true; salvaComp(); disegnaComp(); }
   else if (comp.attiva !== c.id) { apriComp(c.id); disegnaComp(); }
   let p = legata(); if (!p) { p = pezzi[0]; if (!p) return; p.legato = true; }
+  { const vuole = !!M.chiusa, e = !p.porte.length && !p.ingresso;   // [Officina] prova unita: una bolla intera arriva chiusa (niente porte né ingresso)
+    if (vuole !== e) { if (vuole) { p.porte = []; p.ingresso = false; } else { p.porte = p.F.conn.slice(); p.ingresso = true; } strutturaCambiata(); } }
   const d = { ...standard(P.tipo), ...P.d }, nuovoTipo = p.tipo !== P.tipo;
   if (firmaPezzo({ tipo: P.tipo, d }) === firmaPezzo(p) && p.nome === P.nome) { firmaLegata = firmaPezzo(p); return; }
   const legami = legamiAttuali(), r = p.V0 ? p.Va / p.V0 : 0;
@@ -5903,10 +5905,12 @@ if (VETRINA) {
     chiaveG = chiave;
     if (!L.length) { carica({ ...fotografa(), pezzi: [], manuali: [], staccati: [] }, { storia: true }); ultime.clear(); ultimeQ.clear(); mettiAree(M); return; }
     const dati = [], ids = [], conPosto = [];
+    const fPrima = new Map(pezzi.filter(p => p.idOff != null).map(p => [p.idOff, { f: { ...p.f }, forma: (ultimeQ.get(p.idOff) || {}).forma }]));
     for (const B of L) {
       const d = { mesh: B.mesh, k: 1 }; if (typeof B.off === 'string' && PORTE_OFF[B.off]) d.off = B.off;
       let q = null;
-      try { forma('officina', d); q = { tipo: 'officina', d, f: gonfConsigliati({ tipo: 'officina', d }) || { ...TIPI.officina.f }, ingresso: !B.chiusa, forma: B.forma, ...(B.chiusa ? { porte: [] } : {}) }; }   // [Officina] una bolla intera (non si attraversa): niente ingresso né porte
+      const fp = fPrima.get(B.id);   // [Officina] i gonfiatori cambiati qui restano, finché la forma è la stessa
+      try { forma('officina', d); q = { tipo: 'officina', d, f: (fp && fp.forma === B.forma && fp.f) || gonfConsigliati({ tipo: 'officina', d }) || { ...TIPI.officina.f }, ingresso: !B.chiusa, forma: B.forma, ...(B.chiusa ? { porte: [] } : {}) }; }   // [Officina] una bolla intera (non si attraversa): niente ingresso né porte
       catch (e) { q = ultimeQ.get(B.id) || null; }   // non appoggia a terra: resta quella di prima
       if (!q) continue;
       q = { ...q, x: B.pos ? B.pos.x : 0, z: B.pos ? B.pos.z : 0, ang: B.pos ? B.pos.ang || 0 : 0, nome: String(B.nome || 'Bolla').slice(0, 60) };
@@ -5945,7 +5949,7 @@ if (VETRINA) {
   // spostata trascinandola: il nuovo posto torna al sito; toccata (o toccato il suo nome): il sito apre quella bolla
   VETRINA_AZ.mossa = () => { selezionato = bollaAttiva(); mettiAree(M_ultimo); posizioni(); };   // le aree restano dove sono: cambia solo il colore
   VETRINA_AZ.scelta = p => manda({ tipo: 'vetrina-scegli', id: p.idOff });
-  $('chipBudget').onclick = $('chipStato').onclick = () => manda({ tipo: 'vetrina-tutta' });   // [Officina] stato e materiali: si apre l'Abbofficina completa (↗ nel sito)
+  $('chipBudget').onclick = $('chipStato').onclick = () => manda({ tipo: 'vetrina-tutta' }); $('chipBudget').title = $('chipStato').title = "Apri l'Abbofficina completa (aria, materiali, dati)";   // [Officina] stato e materiali: si apre l'Abbofficina completa (↗ nel sito)
   $('sovra').addEventListener('click', e => { const el = e.target.closest && e.target.closest('.eti'); if (!el || !el._p) return; e.stopImmediatePropagation(); e.preventDefault(); VETRINA_AZ.scelta(el._p); }, true);
   // gli scenari: la stanza di sfondo (una pronta, una foto 360° o un modello GLB), come nell'Abbofficina
   function scenario(M) {
