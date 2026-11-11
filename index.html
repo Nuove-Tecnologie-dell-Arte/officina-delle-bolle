@@ -132,6 +132,22 @@ body.trascina iframe { pointer-events: none; }
   .sim-nota { min-width: 0 !important; }   /* [Unita] sul telefono la nota va a capo invece di allargare la pagina */
 }
 .riduci { display: none; }
+/* [Unita] modalità cantiere: a schermo intero, una dima o una giunzione alla volta */
+.cantiere { position: fixed; inset: 0; z-index: 250; background: var(--paper, #f3f1ec); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; padding: 14px clamp(12px, 3vw, 28px) 16px; }
+.cantiere[hidden] { display: none; }
+.site-testa { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.site-testa h2 { font-size: clamp(1.6rem, 5vw, 2.6rem); line-height: 1.05; }
+.site-corpo { overflow: auto; min-height: 0; display: grid; gap: 12px; align-content: start; justify-items: center; }
+.site-corpo svg { width: min(100%, 760px); height: auto; max-height: 62vh; display: block; }
+.site-corpo .site-testo { max-width: 760px; width: 100%; font-size: 1.05rem; }
+.site-corpo table { border-collapse: collapse; width: min(100%, 760px); font-size: 1rem; }
+.site-corpo td, .site-corpo th { padding: 4px 8px; border-bottom: 1px solid var(--rule); text-align: left; }
+.site-piede { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+.site-piede .btn.big { min-width: 64px; min-height: 52px; font-size: 1.2rem; }
+#siteFatto { min-width: 180px; }
+#sitePrima, #siteDopo { background: #fff; border: 1px solid var(--rule); font-size: 1.6rem; } #sitePrima:disabled, #siteDopo:disabled { opacity: .35; }
+.cantiereRiga { margin-bottom: 12px; align-items: center; }
+body.inCantiere { overflow: hidden; }
 /* [Unita] ↗: l'Abbofficina completa a tutto schermo */
 .simGrande { min-height: 32px; padding: 4px 11px; font-size: 1rem; line-height: 1; align-self: center; }
 .simTuttaBox { position: fixed; inset: 0; z-index: 300; background: #e7e5e1; }
@@ -471,7 +487,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
           <li><div><b>Chiudi con lo scotch</b><span class="hint">I bordi con lo stesso numero rosso vanno uniti tra loro. Vai in ordine di numero: dal pavimento verso l'alto.</span></div></li>
           <li><div><b>Controlla</b><span class="hint">Si chiude senza forzare e senza buchi? Allora le misure sono giuste.</span></div></li>
         </ol>
-        <div class="btnrow"><button type="button" class="btn primary big" id="bStampaModello">Stampa il modellino</button></div>
+        <div class="btnrow"><button type="button" class="btn primary big" id="bStampaModello">Stampa il cartamodello</button></div>
         <label class="check"><input type="checkbox" id="okModello"> <span>Il mio modellino si chiude bene</span></label>
       </div>
       <div style="display:grid;gap:10px;align-content:start"><span class="hint" id="fogliTit"></span><div class="fogli" id="fogli"></div></div>
@@ -492,7 +508,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       </div>
       <div class="dimeCol"><!-- [Unita] -->
         <div class="dimeBarra"><div class="seg" id="unitaDime" role="group" aria-label="Misure della bolla vera o del modellino"><button type="button" data-u="bolla" aria-pressed="true">Bolla</button><button type="button" data-u="modellino" aria-pressed="false">Modellino</button></div>
-          <button type="button" class="btn" id="bApriDime">Apri tutte</button><button type="button" class="btn" id="bAzzeraDime">Azzera le spunte</button></div>
+          <button type="button" class="btn primary" id="cantiereDime" title="A schermo intero, una dima alla volta: per il telefono mentre si traccia a terra">Modalità cantiere</button><button type="button" class="btn" id="bApriDime">Apri tutte</button><button type="button" class="btn" id="bAzzeraDime">Azzera le spunte</button></div>
         <p class="hint notaDime" id="notaDime" role="status"></p>
         <div class="dime" id="dime"></div>
       </div>
@@ -504,6 +520,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <section class="tappa" data-t="costruzione" hidden>
   <div class="blocco">
     <header class="titolone"><span class="occhiello">Tappa 3 · Costruzione</span><h2>Il montaggio</h2><p>Una giunzione alla volta: prima il pavimento, poi dal basso verso l'alto.</p></header>
+    <div class="btnrow cantiereRiga"><button type="button" class="btn primary" id="cantiereGiunte">Modalità cantiere</button><span class="hint">A schermo intero, una giunzione alla volta: per il telefono mentre si monta. F segna «Fatta».</span></div><!-- [Unita] -->
     <div class="card giunta nastrato" id="giunta"></div>
     <p class="hint" style="text-align:center">Nello <b>Schema</b>, a destra, vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
     <div class="box-info"><b>La porta</b><span id="porta"></span></div>
@@ -597,6 +614,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 </dialog>
 
 <div id="stampa"></div>
+<div class="cantiere" id="site" role="dialog" aria-modal="true" aria-labelledby="siteTit" hidden><!-- [Unita] modalità cantiere -->
+  <div class="site-testa"><div><span class="occhiello" id="siteKind"></span><h2 id="siteTit"></h2></div><button type="button" class="btn" id="siteEsci" aria-label="Esci dalla modalità cantiere">✕ Esci</button></div>
+  <div class="site-corpo" id="siteCorpo"></div>
+  <div class="site-piede"><button type="button" class="btn big" id="sitePrima" aria-label="Indietro">‹</button><button type="button" class="btn primary big" id="siteFatto"></button><button type="button" class="btn big" id="siteDopo" aria-label="Avanti">›</button><span class="hint" id="siteProg"></span></div>
+</div>
 <div class="simTuttaBox" id="simTuttaBox" role="dialog" aria-modal="true" aria-label="L'Abbofficina completa" hidden><button type="button" class="btn" id="simChiudi" title="Torna al sito (Esc)">↙ Torna al sito</button></div><!-- [Unita] -->
 
 <script src="motore.js"></script>
@@ -1890,10 +1912,74 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       <p class="hint">${plural(f.giunte.length, "giunzione fatta", "giunzioni fatte")} su ${N}</p>`;
     $("infoGiunta").addEventListener("toggle", e => { infoAperta = e.target.open; });
     const P = porteForma(cur.V, cur.F, S.shape), hp = P ? Math.max(0, P.h - 0.15) : 0;
-    $("porta").textContent = `Alla fine taglia la porta: un taglio verticale in un pannello basso, dove la bolla è più alta (qui fino a ${metri(Math.min(hp, 2))}). Fissa la cerniera ai due bordi del taglio, con nastro o saldatura, e rinforzali con il nastro. La porta è anche l'uscita: deve aprirsi facilmente.`;
+    $("porta").textContent = `Alla fine taglia la porta: un taglio verticale in un pannello basso, dove la bolla è più alta (qui fino a ${metri(Math.min(hp, 2))}). Fissa ${PR.mat.porte === "velcro" ? "il velcro" : "la zip"} ai due bordi del taglio, con nastro o saldatura, e rinforzali con il nastro. La porta è anche l'uscita: deve aprirsi facilmente.`;
     disegnaSchema();   // lo Schema a destra: la bolla che cresce, giunzione dopo giunzione
     fondo();
   }
+  /* [Unita] modalità cantiere (dalla prova semplice): a schermo intero, una dima o una giunzione alla volta, per il telefono mentre si lavora a terra.
+     Le spunte sono quelle della pagina (fatte()); F segna «Fatto», le frecce vanno avanti e indietro, Esc esce. */
+  const cant = { tipo: null, i: 0, da: null };
+  function datiGiunta(k) {   // per la giunzione k: i due pezzi, quale è già nella bolla
+    const an = cur.an, s = an.seams[k], montati = new Set(); an.seams.slice(0, k).forEach(x => { montati.add(x.p.fi); montati.add(x.q.fi); });
+    const mp = montati.has(s.p.fi), mq = montati.has(s.q.fi), [sopra, sotto] = mq && !mp ? [s.q.fi, s.p.fi] : [s.p.fi, s.q.fi];
+    return { s, sopra, sotto, stato: mp && mq ? ["già nella bolla", "già nella bolla"] : mp || mq ? ["già nella bolla", "pezzo nuovo"] : ["pezzo nuovo", "pezzo nuovo"] };
+  }
+  function rendiCantiere() {
+    if (!cur) { chiudiCantiere(); return; }
+    const f = fatte(), an = cur.an;
+    if (cant.tipo === "dime") {
+      const n = an.types.length, i = cant.i = Math.max(0, Math.min(n - 1, cant.i)), t = an.types[i], C = t.C, fatta = f.dime.includes(i);
+      $("siteKind").textContent = `Modalità cantiere · dime · ${PR.unita === "modellino" && cur.stampa ? "modellino 1:" + fmt(cur.stampa.scala, 0) : "bolla vera"}`;
+      $("siteTit").textContent = `${nomeDima(i)} · ne servono ${t.faces.length}`;
+      $("siteCorpo").innerHTML = `${dimaSVG(C, T8[i % 8], false)}<p class="site-testo hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.</p>
+        <table><tr><th>Lato</th><th>Lunghezza</th></tr>${C.map((p, j) => `<tr><td>${lettera(j)}–${lettera((j + 1) % C.length)}</td><td class="num">${misDima(len2(sub2(C[(j + 1) % C.length], p)))}</td></tr>`).join("")}</table>`;
+      $("siteFatto").textContent = fatta ? "Tracciata ✓" : "Fatta: tracciata";
+      $("siteProg").textContent = `Dima ${i + 1} di ${n} · ${plural(f.dime.length, "tracciata", "tracciate")}`;
+      $("sitePrima").disabled = i === 0; $("siteDopo").disabled = i === n - 1;
+    } else {
+      const N = an.seams.length, k = cant.i = Math.max(0, Math.min(N - 1, cant.i)), g = datiGiunta(k), fatta = f.giunte.includes(g.s.no);
+      $("siteKind").textContent = "Modalità cantiere · giunzioni";
+      $("siteTit").textContent = `Giunzione ${g.s.no} di ${N}`;
+      $("siteCorpo").innerHTML = `${coppiaSVG(g.s, g.sopra, g.sotto, g.stato)}<p class="site-testo">Il lato rosso contro il lato rosso: sono lunghi uguali, <b class="num">${metri(g.s.len)}</b>. Poi nastro dentro e fuori.</p>`;
+      $("siteFatto").textContent = fatta ? "Fatta ✓" : "Fatta! Avanti";
+      $("siteProg").textContent = `${plural(f.giunte.length, "giunzione fatta", "giunzioni fatte")} su ${N}`;
+      $("sitePrima").disabled = k === 0; $("siteDopo").disabled = k === N - 1;
+    }
+  }
+  function apriCantiere(tipo, da) {
+    if (!cur) return; cant.tipo = tipo; cant.da = da || null;
+    if (tipo === "giunte") cant.i = giuntaQui || 0;
+    else { const f = fatte(); cant.i = 0; while (cant.i < cur.an.types.length - 1 && f.dime.includes(cant.i)) cant.i++; }
+    $("site").hidden = false; document.body.classList.add("inCantiere"); rendiCantiere(); $("siteFatto").focus();
+  }
+  function chiudiCantiere() {
+    if ($("site").hidden) return; $("site").hidden = true; document.body.classList.remove("inCantiere");
+    if (cant.tipo === "giunte" && cur) giuntaQui = cant.i;
+    const r = RENDI[TAPPE[S.t] && TAPPE[S.t].id]; if (r) r();   // le spunte si vedono subito anche nella pagina
+    if (cant.da) cant.da.focus();
+  }
+  function fattoCantiere() {
+    const f = fatte();
+    if (cant.tipo === "dime") { if (!f.dime.includes(cant.i)) f.dime.push(cant.i); salva(); if (cant.i < cur.an.types.length - 1) cant.i++; }
+    else { const no = cur.an.seams[cant.i].no; if (!f.giunte.includes(no)) f.giunte.push(no); salva(); if (cant.i < cur.an.seams.length - 1) cant.i++; }
+    rendiCantiere(); disegnaSchema();
+  }
+  $("cantiereDime").addEventListener("click", e => apriCantiere("dime", e.currentTarget));
+  $("cantiereGiunte").addEventListener("click", e => apriCantiere("giunte", e.currentTarget));
+  $("siteEsci").addEventListener("click", chiudiCantiere);
+  $("siteFatto").addEventListener("click", fattoCantiere);
+  $("sitePrima").addEventListener("click", () => { cant.i--; rendiCantiere(); });
+  $("siteDopo").addEventListener("click", () => { cant.i++; rendiCantiere(); });
+  $("site").addEventListener("keydown", e => {
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); chiudiCantiere(); return; }
+    if (e.key === "f" || e.key === "F") { e.preventDefault(); fattoCantiere(); return; }
+    if (e.key === "ArrowRight" && !$("siteDopo").disabled) { e.preventDefault(); cant.i++; rendiCantiere(); return; }
+    if (e.key === "ArrowLeft" && !$("sitePrima").disabled) { e.preventDefault(); cant.i--; rendiCantiere(); return; }
+    if (e.key === "Tab") {   // il fuoco resta dentro la modalità cantiere
+      const el = [...$("site").querySelectorAll("button:not([disabled])")]; if (!el.length) return; const i = el.indexOf(document.activeElement);
+      e.preventDefault(); el[(i + (e.shiftKey ? el.length - 1 : 1) + el.length) % el.length].focus();
+    }
+  });
   $("giunta").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b || !cur) return; const an = cur.an, f = fatte();
     if (b.id === "gPrima") giuntaQui = Math.max(0, giuntaQui - 1);

@@ -100,3 +100,13 @@ Il progetto è in `docs/superpowers/specs/2026-11-11-prova-unita-design.md`, il 
   - **il secondo tocco** sullo stesso pezzo, o «Vai alla dima ›», porta alla tappa Dima con quella scheda aperta;
   - il riquadro si chiude con ×, con Esc, toccando fuori o girando lo Schema;
   - lo Schema ricorda dove ha disegnato ogni faccia (`cv._facce`), così si sa quale si è toccata.
+
+## Blocco 6 · Cantiere e stampa del cartamodello
+
+- **La modalità cantiere** (`#site`, come nella semplice) si apre da «Modalità cantiere» nella tappa Dima (le dime) e nella Costruzione (le giunzioni). È a schermo intero, per il telefono mentre si lavora a terra.
+  - **Le dime:** una alla volta, con il disegno grande, le misure (Bolla o Modellino, come nella pagina) e i lati.
+  - **Le giunzioni:** una alla volta, con i due pezzi accostati lungo il lato rosso e la sua lunghezza.
+  - «Fatta» (o il tasto F) mette la spunta e passa alla successiva. ‹ › e le frecce vanno avanti e indietro; Esc o «✕ Esci» chiudono e il fuoco torna sul pulsante. Il fuoco resta dentro mentre è aperta.
+  - Le spunte sono le stesse della pagina, e lo Schema mostra subito le giunzioni fatte. Uscendo dal cantiere delle giunzioni, la pagina resta sulla giunzione a cui si era arrivati.
+- **«Stampa il cartamodello»:** è il pulsante che prima si chiamava «Stampa il modellino». Stampava già solo i fogli dello sviluppo, quindi è cambiato solo il nome. Le schede delle dime si stampano con il loro pulsante.
+- La frase sulla porta, alla fine del montaggio, dice «la zip» o «il velcro», secondo i materiali scelti (prima diceva «la cerniera»).
