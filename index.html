@@ -139,6 +139,9 @@ body.trascina iframe { pointer-events: none; }
 .schede3 button[aria-selected="true"] { background: var(--rosso, var(--green)); color: #fff; }
 .campiXYZ { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
 .campiXYZ input { font: 600 1.15rem var(--mono); }
+.misRiga { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; } .misRiga .hint { flex: 1 1 260px; margin: 0; }
+#rqMisure .field.attivo label { color: var(--rosso, var(--green)); font-weight: 700; }
+.schemaNota b { color: var(--ink); }
 .verdettoBreve { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; padding: 8px 12px; border-radius: 4px; background: rgba(255, 255, 255, .55); font-size: 1rem; }
 .verdettoBreve:empty { display: none; }
 .verdettoBreve i { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 800 .8rem var(--body); font-style: normal; color: #fff; background: var(--muted); flex: none; }
@@ -915,6 +918,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         facce.push({ fi, s: p.map(S2) });
         let lit = 0.62 + 0.45 * Math.abs(V3.dot(n, L)); if (n[1] >= 0) lit *= 0.65;
         let base = rgb(tinta(m.an.faceInfo[fi].type, cv)), a = 0.94;
+        if (o.accento) { if (o.accento[fi]) base = rgb("#e3101e"); else { base = grey; a = 0.32; } }   // [Unita] la parte che cambia
         if (!vivo(fi)) { base = grey; a = 0.16; }
         else if (hl && !hl.has(fi)) a = 0.8;   // già montato: colorato, un po' meno del pezzo di adesso
         const c = base.map(v => Math.min(255, Math.round(v * lit)));
@@ -939,7 +943,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       ctx.fillRect(px - w * 0.42, terra - h * 0.5 + w * 0.6, w * 0.34, h * 0.5 - w * 0.6); ctx.fillRect(px + w * 0.08, terra - h * 0.5 + w * 0.6, w * 0.34, h * 0.5 - w * 0.6);
       ctx.restore();
     }
-    cv._assi = null;
+    cv._assi = null; cv._accento = o.accento || null;
     if (o.assi) {   // [Unita] le frecce X (larghezza), Y (profondità), Z (altezza), con le misure
       const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), dd = Math.max(x1 - x0, y1 - y0, Ht) * 0.12;
       const P = (p) => S2(T(p));
@@ -1122,10 +1126,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("simNota").textContent = (fuori.length ? `${fuori.join(", ")} ${fuori.length > 1 ? "sono" : "è"} fuori ${stanzaInfo ? "dallo spazio dello scenario" : "dalle aree di lavoro"}: ${fuori.length > 1 ? "trascinale dentro, poi ci restano" : "trascinala dentro, poi ci resta"} · ` : "")
       + (tante ? "Trascina una bolla per spostarla · ⟲ ⟳ per girarla · toccala per modificarla · trascina il resto per girare la vista" : "Trascina la bolla per spostarla · ⟲ ⟳ per girarla · trascina il resto per girare la vista");
     posaSchema();
-    $("schemaNota").textContent = inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla · tocca un pannello per le sue misure"
+    if (!campo.key) $("schemaNota").textContent = inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla · tocca un pannello per le sue misure"
       : `I pezzi colorati per dima · X larghezza, Y profondità, Z altezza · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""} · trascina per girarla · tocca un pannello per le sue misure`;
     if (!schemaVisibile()) return;
-    vista("cvSchema", () => cur && (inCostruzione() ? { m: cur, o: opzMontaggio() } : { m: cur, o: { persona: true, assi: true, area: opzArea() } }));
+    vista("cvSchema", () => { if (!cur) return null; if (inCostruzione()) return { m: cur, o: opzMontaggio() };
+      const o = { persona: true, assi: true, area: opzArea() }; if (campo.key && (campo.disp || campo.alt)) { const g = faseCampo(); return { m: g.m, o: Object.assign(o, { accento: g.accento }) }; } return { m: cur, o }; });
   }
 
   function simulatore() {
@@ -1472,6 +1477,61 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     pera: { xyz: ["D", "H"], perc: { dn: ["D", "Diametro della parte alta (% della pancia)"], lp: ["H", "Lunghezza del picciolo (% dell'altezza)"] }, tecnici: ["n"] },
   };
   const percDi = (id, key) => (((SEMPLICI[id] || {}).perc) || {})[key] || null;
+  /* [Unita] che cosa vuol dire ogni misura (dalla prova semplice): si legge sotto lo Schema quando la si tocca */
+  const A_LATI = "Quanti lati ha la base: più lati, più è tonda, ma ci sono più pezzi.";
+  const A_TUBO = "Quante facce ha il tubo: più facce, più è tondo, ma ci sono più pezzi.";
+  const A_TETTO = "Da terra al tetto piatto.";
+  const A_PARETI = "Le pareti dritte, da terra fin dove parte il tetto.";
+  const A_ROOF = "Piatto, oppure con un triangolo per ogni lato che sale fino a una punta.";
+  const A_RH = "Quanto sale la punta del tetto sopra le pareti.";
+  const MISURE = {
+    d20: { aiuto: { s: "Lo spigolo di ogni triangolo: sono tutti uguali, quindi cambia tutto l'icosaedro." } },
+    d6: { aiuto: { s: "Lo spigolo del cubo: cambiano insieme larghezza, profondità e altezza." } },
+    geo: { aiuto: { D: "Da un lato all'altro della sfera intera, prima del taglio in basso.", f: "Più triangoli la fanno più tonda, ma ci sono più pezzi da tracciare." } },
+    sferaU: { aiuto: { D: "Da un lato all'altro della sfera intera, prima del taglio in basso.", n: "120 triangoli la fanno più tonda; con 48 ci sono meno pezzi." } },
+    sferaP: { aiuto: { D: "Da un lato all'altro della sfera intera, prima del taglio in basso.", n: "Ogni triangolo della sfera da 120 diviso in 4 o in 9: i pezzi sono più piccoli e tutti uguali, ma la forma resta la stessa e le giunzioni aumentano." } },
+    calcio: { aiuto: { D: "Da un lato all'altro del pallone." } },
+    d12: { aiuto: { s: "Lo spigolo di ogni pentagono: sono tutti uguali, quindi cambia tutta la forma." } },
+    prism: { aiuto: { n: A_LATI, s: "La lunghezza di ogni lato del pavimento.", h: A_TETTO } },
+    pyr: { aiuto: { n: A_LATI, s: "La lunghezza di ogni lato del pavimento.", h: "Da terra alla punta." } },
+    frus: { aiuto: { n: A_LATI, s: "Ogni lato del pavimento.", t: "Ogni lato del tetto: più è piccolo, più la forma si stringe in alto.", h: A_TETTO } },
+    box: { aiuto: { a: "Un lato del pavimento.", b: "L'altro lato del pavimento.", h: A_TETTO } },
+    L: { aiuto: { a: "Il lato esterno più lungo della L.", b: "L'altro lato esterno della L.", w: "Quanto sono larghi i due bracci: è lo spazio in cui si cammina.", h: A_TETTO } },
+    C: { aiuto: { b: "Il lato dritto che unisce i due bracci, misurato all'esterno.", a: "Quanto sporgono i due bracci, misurati all'esterno.", w: "Quanto sono larghi schiena e bracci: è lo spazio in cui si cammina.", h: A_TETTO } },
+    arrow: { aiuto: { L: "Dal fondo dell'asta alla punta della freccia.", w: "Quanto è larga l'asta.", W: "Quanto è larga la punta nel punto più largo.", Lh: "Quanto è lunga la sola punta: è compresa nella lunghezza totale.", h: A_TETTO } },
+    custom: { aiuto: { h: A_PARETI, roof: A_ROOF, rh: A_RH }, quando: { rh: p => p.roof === "punta" } },
+    star: { gruppi: [["La stella vista dall'alto", ["n", "R", "r"]], ["Pareti e tetto", ["h", "roof", "rh"]]],
+      aiuto: { n: "Quante punte ha la stella.", R: "Dal centro a ogni punta.", r: "Dal centro alle rientranze fra una punta e l'altra.", h: A_PARETI, roof: A_ROOF, rh: A_RH }, quando: { rh: p => p.roof === "punta" } },
+    snake: { gruppi: [["Il tubo", ["d", "m"]], ["Il percorso", ["s", "c", "k", "a"]]],
+      aiuto: { d: "Quanto è largo il tubo in cui si cammina.", m: A_TUBO, s: "Ogni tratto dritto del tubo: più è lungo, più il serpente si allunga.", c: "Quante volte il serpente cambia direzione.", k: "Quanti tratti ci sono in ogni curva: più tratti, curva più morbida.", a: "Di quanti gradi gira ogni curva." } },
+    torus: { gruppi: [["L'anello", ["D", "N"]], ["Il tubo", ["d", "m"]]],
+      aiuto: { D: "Da un lato all'altro della ciambella, all'esterno.", N: "Quanti pezzi di tubo fanno il giro: più spicchi, anello più tondo.", d: "Quanto è largo il tubo in cui si cammina.", m: A_TUBO } },
+    tunnel: { aiuto: { L: "Da un fondo all'altro della galleria.", w: "Da una parete all'altra.", hs: "Le pareti verticali, prima che parta l'arco.", k: "Quanti spicchi fanno l'arco: più spicchi, arco più tondo." } },
+    boat: { gruppi: [["Lo scafo", ["L", "W", "Lp", "h", "f"]], ["La piramide sul ponte", ["sail", "a", "hp"]]],
+      aiuto: { L: "Dalla poppa dritta alla punta della prua.", W: "Quanto è largo il ponte, cioè la parte alta dello scafo.", Lp: "La sola parte a punta: è compresa nella lunghezza.", h: "Dal fondo al ponte.", f: "Il fondo è più stretto del ponte: con 100 i fianchi sono dritti.", sail: "Se sul ponte c'è una piramide; senza, il ponte è un pezzo solo.", a: "Ogni lato della base della piramide.", hp: "Dal ponte alla punta della piramide." },
+      quando: { a: p => p.sail === "si", hp: p => p.sail === "si" } },
+    banana: { gruppi: [["Il corpo", ["L", "d", "a", "N", "m"]], ["Le due estremità", ["tl", "sl", "ps"]], ["Come sta a terra", ["pose"]]],
+      aiuto: { L: "Il corpo misurato lungo la curva, senza punta e picciolo.", d: "Quanto è grosso il corpo.", a: "Di quanti gradi gira il corpo da un capo all'altro: più gradi, più è curva.", N: "In quanti spicchi è diviso il corpo lungo la curva.", m: "Quante facce ha il corpo: con 5 somiglia a una banana vera.", tl: "La punta corta che chiude un capo.", sl: "Il picciolo lungo e stretto dall'altro capo.", ps: "Quanto è grosso il picciolo rispetto al corpo.", pose: "Sdraiata con la curva a terra, oppure con le punte in alto." } },
+    scolo: { gruppi: [["Il corpo", ["body", "N", "s", "d", "h", "m", "a"]], ["Le zampe", ["e", "lz"]], ["Le antenne", ["ant", "la"]], ["Le pinze", ["pin", "lp"]]],
+      aiuto: { body: "Ondulato come un serpente, oppure dritto: con il corpo dritto i segmenti sono tutti uguali.", N: "Quanti segmenti fanno il corpo, dalla testa alla coda.", s: "Quanto è lungo ogni segmento.", d: "Da un fianco all'altro del corpo.", h: "Da terra al dorso.", m: A_TUBO, a: "Di quanti gradi gira il corpo a ogni ondulazione.", e: "Con 1 c'è una coppia di zampe a ogni segmento, con 2 a un segmento sì e uno no.", lz: "Quanto sporgono le zampe dai fianchi.", ant: "Se davanti ci sono le due antenne.", la: "Quanto sono lunghe le antenne.", pin: "Se sulla coda ci sono le due pinze.", lp: "Quanto sono lunghe le pinze." },
+      quando: { a: p => p.body === "onda", la: p => p.ant === "si", lp: p => p.pin === "si" } },
+    balena: { gruppi: [["Il corpo", ["L", "W", "H", "N", "m", "b"]], ["Coda e pinne", ["tl", "fin"]]],
+      aiuto: { L: "Dalla bocca all'attacco della coda.", W: "Da un fianco all'altro, nel punto più largo.", H: "Da terra al dorso, nel punto più alto.", N: "In quanti segmenti è diviso il corpo.", m: A_TUBO, b: "Quanto è grande la bocca rispetto al corpo: è da lì che si entra.", tl: "Quanto è lunga la coda orizzontale.", fin: "Se ci sono la pinna sul dorso e le due sui fianchi." } },
+    fungo: { gruppi: [["Tutta la forma", ["n"]], ["Il gambo", ["dg", "hg"]], ["Il cappello", ["dc", "hc"]]],
+      aiuto: { n: "Quanti lati hanno gambo e cappello: più lati, più sono tondi.", dg: "Quanto è largo il gambo, che fa da stanza.", hg: "Da terra a dove parte il cappello.", dc: "Da un bordo all'altro del cappello.", hc: "Quanto sale il cappello sopra il gambo." } },
+    razzo: { gruppi: [["Il corpo", ["n", "d", "H", "hp"]], ["Le alette", ["al", "la"]], ["L'oblò", ["ob"]]],
+      aiuto: { n: "Quanti lati ha il corpo: più lati, più è tondo. Deve essere un multiplo di 4.", d: "Quanto è largo il corpo.", H: "Il corpo, senza la punta.", hp: "La punta arrotondata, sopra il corpo.", al: "Se ci sono le quattro alette che scendono a terra.", la: "Quanto sporgono le alette dal corpo.", ob: "Se sul corpo c'è l'oblò che sporge." },
+      quando: { la: p => p.al === "si" } },
+    tarta: { gruppi: [["Il guscio", ["Lg", "D", "H"]], ["Testa, zampe e coda", ["lt", "lz", "lc"]]],
+      aiuto: { Lg: "Il guscio da davanti a dietro.", D: "Il guscio da un fianco all'altro.", H: "Da terra alla cima del guscio.", lt: "Quanto sporgono collo e testa davanti al guscio.", lz: "Quanto sporgono le quattro zampe.", lc: "Quanto sporge la coda dietro al guscio." } },
+    ananas: { gruppi: [["Il corpo", ["n", "D", "H"]], ["Il ciuffo", ["nf", "lf"]]],
+      aiuto: { n: "Quanti lati ha il corpo: più lati, più è tondo.", D: "Quanto è largo il corpo nel punto più largo.", H: "Il corpo, senza il ciuffo di foglie.", nf: "Quante foglie ha il ciuffo: una al centro e le altre intorno.", lf: "Quanto sono lunghe le foglie." } },
+    pera: { gruppi: [["Il corpo", ["n", "D", "H", "dn", "pos"]], ["Il picciolo", ["lp"]]],
+      aiuto: { n: "Quanti lati ha ogni fascia: più lati, più è tonda.", D: "La pancia in basso, nel punto più largo.", H: "Da terra alla cima, senza il picciolo.", dn: "La pancia piccola in alto, nel punto più largo.", pos: "Inclinata è più naturale; dritta ha molti meno tipi di pezzo.", lp: "Quanto esce il picciolo dalla cima." } },
+    foto: { gruppi: [["Come leggere l'immagine", ["modo", "det"]], ["Misure", ["H", "L", "h", "roof", "rh", "n", "s", "cut"]]],
+      aiuto: { modo: "Di lato si gira attorno all'asse o si alza come un'insegna; dall'alto è il pavimento.", det: "Più dettaglio segue meglio il contorno, ma ci sono più pezzi.", H: "Da terra alla cima.", L: "La pianta nel suo lato più largo.", h: A_PARETI, roof: "La forma del tetto sopra le pareti.", rh: "Quanto sale il tetto sopra le pareti.", n: "Quanti lati ha ogni fascia: più lati, più è tonda.", s: "Quanto è spessa la sagoma.", cut: "Quanta parte in basso si toglie per fare un pavimento piatto." } },
+  };
+  const metaDi = (id) => MISURE[id] || {};
   const fondoScala = (a) => S.area[a] > 0 ? S.area[a] : Math.max(a === "z" ? 8 : 12, Math.ceil((S.dim ? S.dim[a] : 4) * 1.6));
   const regolare = (id) => !!(SEMPLICI[id] && SEMPLICI[id].uno);   // [Unita] figure regolari: una misura trascina le altre, i pezzi restano uguali
   let schedaMis = "misure"; try { schedaMis = localStorage.getItem("bolle|scheda") || "misure"; } catch (e) { /* */ }
@@ -1490,18 +1550,92 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const tec = vis.filter(q => !lunghezza(q) && (tecK.has(q.key) || dettaglio(q))), opz = vis.filter(q => !lunghezza(q) && !tec.includes(q)), tip = vis.filter(q => lunghezza(q) && percDi(S.shape, q.key));   // [Unita]
     const campoOpz = (q) => {
       const v = S.base[q.key];
-      if (q.type === "pick") return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><select id="o_${q.key}" data-k="${q.key}">${q.options.map(([a, b]) => `<option value="${a}"${a === v ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></div>`;
-      return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><input type="number" id="o_${q.key}" data-k="${q.key}" min="${q.min}"${q.max ? ` max="${q.max}"` : ""} step="${q.type === "int" ? 1 : q.step || 1}" value="${v}"></div>`;
+      if (q.type === "pick") return `<div class="field" data-campo="${q.key}"><label for="o_${q.key}">${esc(etichetta(q))}</label><select id="o_${q.key}" data-k="${q.key}">${q.options.map(([a, b]) => `<option value="${a}"${a === v ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></div>`;
+      return `<div class="field" data-campo="${q.key}"><label for="o_${q.key}">${esc(etichetta(q))}</label><input type="number" id="o_${q.key}" data-k="${q.key}" min="${q.min}"${q.max ? ` max="${q.max}"` : ""} step="${q.type === "int" ? 1 : q.step || 1}" value="${v}"></div>`;
     };
     const campoTip = (q) => { const [rif, nome] = percDi(S.shape, q.key), r = S.base[rif];   // [Unita] in % della misura di riferimento
-      return `<div class="field"><label for="o_${q.key}">${esc(nome)}</label><input type="number" id="o_${q.key}" data-pk="${q.key}" min="1" step="1" inputmode="numeric" value="${r > 0 ? Math.round(S.base[q.key] / r * 100) : ""}"></div>`; };
-    box.innerHTML = `<div class="campiXYZ">${ASSI.map(([a, L, nome]) => `<div class="field"><label for="m_${a}">${nome[0].toUpperCase() + nome.slice(1)} (m)</label><input type="number" id="m_${a}" data-a="${a}" min="${MIN}" max="300" step="0.01" inputmode="decimal"></div>`).join("")}</div>
-      <p class="hint">${S.lock ? "Scrivine una: le altre due seguono, così i pezzi restano tutti uguali." : "Ogni misura è libera: la forma si allunga o si schiaccia, e i pannelli restano piatti."}</p>
+      return `<div class="field" data-campo="${q.key}"><label for="o_${q.key}">${esc(nome)}</label><input type="number" id="o_${q.key}" data-pk="${q.key}" min="1" step="1" inputmode="numeric" value="${r > 0 ? Math.round(S.base[q.key] / r * 100) : ""}"></div>`; };
+    box.innerHTML = `<div class="campiXYZ">${ASSI.map(([a, L, nome]) => `<div class="field" data-campo="${a}"><label for="m_${a}">${nome[0].toUpperCase() + nome.slice(1)} (m)</label><input type="number" id="m_${a}" data-a="${a}" min="${MIN}" max="300" step="0.01" inputmode="decimal"></div>`).join("")}</div>
+      <div class="misRiga"><p class="hint">${S.lock ? "Scrivine una: le altre due seguono, così i pezzi restano tutti uguali." : "Ogni misura è libera: la forma si allunga o si schiaccia, e i pannelli restano piatti."} Tocca una misura: nello Schema si colora la parte che cambia.</p><button type="button" class="btn" id="bAnnullaMis" title="Torna indietro di un cambiamento (Ctrl+Z)"${storiaQui().length ? "" : " disabled"}>↶ Annulla</button></div>
       ${opz.length || tip.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(campoOpz).join("")}${tip.map(campoTip).join("")}</div></div>` : ""}`;
     altre.innerHTML = `${tec.length ? `<p class="hint">Dettagli tecnici della forma: lati, spicchi, segmenti.</p><div class="opzioni" id="paramsTec">${tec.map(campoOpz).join("")}</div>` : `<p class="hint">Per questa forma non ci sono altre opzioni.</p>`}
       ${S.shape === "custom" ? `<div class="btnrow"><button type="button" class="btn" id="bRidisegna">✎ Ridisegna la pianta</button></div>` : ""}
       ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}`;
     aggiornaCampi(); mostraScheda(schedaMis);
+  }
+  /* [Unita] Annulla sulle misure: un passo alla volta, per la bolla scelta (anche Ctrl+Z fuori dai campi) */
+  const storia = []; let ultimaChiave = "", ultimoT = 0;
+  const storiaQui = () => storia.filter(x => x.id === S.id);
+  function ricorda(chiave) {
+    const ora = Date.now(); if (chiave === ultimaChiave && ora - ultimoT < 1200) { ultimoT = ora; return; }
+    ultimaChiave = chiave; ultimoT = ora;
+    storia.push({ id: S.id, dim: Object.assign({}, S.dim), base: JSON.parse(JSON.stringify(S.base)) }); if (storia.length > 60) storia.shift();
+    const b = $("bAnnullaMis"); if (b) b.disabled = false;
+  }
+  function annullaMis() {
+    let i = storia.length - 1; while (i >= 0 && storia[i].id !== S.id) i--; if (i < 0) return;
+    const x = storia.splice(i, 1)[0]; ultimaChiave = "";
+    S.dim = x.dim; S.base = x.base; esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
+  }
+  document.addEventListener("keydown", e => {
+    if ((e.key !== "z" && e.key !== "Z") || !(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+    if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (!$("site").hidden || tuttaAperta() || !$("cerca").hidden || TAPPE[S.t].id !== "progettazione" || !storiaQui().length) return;
+    e.preventDefault(); annullaMis();
+  });
+
+  /* [Unita] toccare una misura (dalla prova semplice): la forma si ricalcola con quel valore un po' cambiato e si guarda quali vertici si spostano;
+     nello Schema la parte che cambia si colora e si muove piano, il resto resta grigio e fermo. Se cambiano i pezzi, le due forme si alternano. */
+  const campo = { key: null, disp: null, alt: null, accento: null, t0: 0, raf: 0 };
+  function spiegaCampo(key) {
+    const SP = { x: "<b>Larghezza</b> (X, la freccia rossa): da un lato all'altro della bolla.", y: "<b>Profondità</b> (Y, la freccia verde): da davanti a dietro.", z: "<b>Altezza</b> (Z, la freccia blu): da terra alla cima." };
+    if (SP[key]) return SP[key] + (S.lock ? " In questa forma cambiano insieme tutte e tre: i pezzi restano uguali." : "");
+    const q = S.shape && def(S.shape).params.find(p => p.key === key); if (!q) return "";
+    const pc = percDi(S.shape, key), nome = pc ? pc[1].replace(/\s*\(.*\)\s*$/, "") : etichetta(q).replace(/\s*\((m|gradi)\)\s*$/, "");
+    const aiuto = (metaDi(S.shape).aiuto || {})[key];
+    return `<b>${esc(nome)}.</b> ${esc(aiuto || "")}`;
+  }
+  function preparaCampo(key) {
+    campo.key = key; campo.disp = campo.alt = campo.accento = null; campo.t0 = performance.now();
+    document.querySelectorAll("#rqMisure .field[data-campo]").forEach(f => f.classList.toggle("attivo", f.dataset.campo === key));
+    $("schemaNota").innerHTML = spiegaCampo(key);
+    let r1 = null;
+    if (cur && S.dim) {
+      if (key === "x" || key === "y" || key === "z") { const d2 = S.lock ? scalaDim(S.dim, 1.12) : Object.assign({}, S.dim, { [key]: r2(S.dim[key] * 1.12) }); try { r1 = costruisci(S.shape, S.base, d2); } catch (e) { r1 = null; } }
+      else {
+        const q = def(S.shape).params.find(p => p.key === key), v0 = S.base[key];
+        if (q && (q.type === "num" || q.type === "int")) for (const v of q.type === "int" ? [v0 + 1, v0 + 2, v0 + 4, v0 - 1, v0 - 2] : [v0 * 1.12, v0 * 0.88]) {
+          if (!(v >= q.min) || (q.max && v > q.max)) continue; try { r1 = costruisci(S.shape, Object.assign({}, S.base, { [key]: v }), S.dim); break; } catch (e) { r1 = null; } }
+      }
+    }
+    if (r1 && r1.V.length === cur.V.length && r1.F.length === cur.F.length) {
+      let dV = cur.V.map((v, i) => [0, 1, 2].map(c => r1.V[i][c] - v[c]));
+      const med = (c) => { const a = dV.map(q => q[c]).sort((u, w) => u - w); return a[a.length >> 1]; }, m0 = [med(0), med(1), 0];
+      dV = dV.map(q => [q[0] - m0[0], q[1] - m0[1], q[2]]);   // se la forma si sposta tutta, quello non è un cambiamento
+      const len = dV.map(q => Math.hypot(q[0], q[1], q[2])), mx = Math.max(...len);
+      const cx = cur.V.reduce((a, v) => a + v[0], 0) / cur.V.length, cy = cur.V.reduce((a, v) => a + v[1], 0) / cur.V.length, rad = Math.max(...cur.V.map(v => Math.hypot(v[0] - cx, v[1] - cy, v[2]))) || 1;
+      if (mx > 1e-6) { const f = Math.min(3, Math.max(0.4, 0.1 * rad / mx)); campo.disp = dV.map(q => q.map(c => c * f)); campo.accento = cur.F.map(fa => fa.some(i => len[i] > 0.15 * mx)); }
+    } else if (r1) campo.alt = r1;
+    cancelAnimationFrame(campo.raf);
+    const passo = () => { if (!campo.key) return; ridisegna("cvSchema"); campo.raf = requestAnimationFrame(passo); };
+    passo();
+  }
+  function faseCampo() {
+    const t = (performance.now() - campo.t0) / 1800;
+    if (campo.disp) { const u = ridotto ? 1 : 0.5 - 0.5 * Math.cos(2 * Math.PI * t); return { m: Object.assign({}, cur, { V: cur.V.map((v, i) => { const q = campo.disp[i]; return [v[0] + q[0] * u, v[1] + q[1] * u, v[2] + q[2] * u]; }) }), accento: campo.accento }; }
+    const nuova = ridotto || t % 1 >= 0.5; return nuova ? { m: campo.alt, accento: campo.alt.F.map(() => true) } : { m: cur, accento: cur.F.map(() => true) };
+  }
+  function fineCampo() {
+    if (!campo.key) return; campo.key = null; campo.disp = campo.alt = campo.accento = null; cancelAnimationFrame(campo.raf);
+    document.querySelectorAll("#rqMisure .field.attivo").forEach(f => f.classList.remove("attivo")); disegnaSchema();
+  }
+  {
+    const P = $("rqMisure"), chiaveDi = (e) => { const f = e.target.closest && e.target.closest(".field[data-campo]"); return f ? f.dataset.campo : null; };
+    const inFuoco = () => { const a = document.activeElement, f = a && a.closest && P.contains(a) ? a.closest(".field[data-campo]") : null; return f ? f.dataset.campo : null; };
+    P.addEventListener("focusin", e => { const k = chiaveDi(e); if (k && k !== campo.key) preparaCampo(k); });
+    P.addEventListener("focusout", () => setTimeout(() => { const k = inFuoco(); if (!k) fineCampo(); else if (k !== campo.key) preparaCampo(k); }, 0));
+    P.addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const k = chiaveDi(e); if (k && k !== campo.key) preparaCampo(k); });
+    P.addEventListener("pointerleave", e => { if (e.pointerType !== "mouse") return; const k = inFuoco(); if (!k) fineCampo(); else if (k !== campo.key) preparaCampo(k); });
   }
   function aggiornaCampi() {
     if (!S.dim) return;
@@ -1512,6 +1646,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function cambiato() { S.okModello = false; salva(); clearTimeout(tM); aggiornaCampi(); tM = setTimeout(() => { aggiornaBolla(true); aggiornaCampi(); rendiRisultato(); rendiMateriali(); fondo(); testata(); }, 40); }
   function cambiaAsse(a, v) {
     if (!S.dim || !(v >= MIN)) return;
+    ricorda(a);
     v = Math.round(v * 100) / 100;
     if (S.lock) { const k = v / S.dim[a]; S.dim = { x: r2(S.dim.x * k), y: r2(S.dim.y * k), z: r2(S.dim.z * k) }; S.dim[a] = v; }
     else S.dim = Object.assign({}, S.dim, { [a]: v });
@@ -1527,23 +1662,24 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       if (el.dataset.pk) {   // una misura tipica, in %
         const q = def(S.shape).params.find(x => x.key === el.dataset.pk), pc = q && percDi(S.shape, q.key); if (!pc) return;
         const v = parseFloat(el.value) / 100 * S.base[pc[0]]; if (!(v >= q.min) || (q.max && v > q.max)) return;
-        S.base = Object.assign({}, S.base, { [q.key]: r2(v) }); esito = null; cambiato(); return;
+        ricorda(q.key); S.base = Object.assign({}, S.base, { [q.key]: r2(v) }); esito = null; cambiato(); return;
       }
       if (el.dataset.k && el.tagName === "INPUT") {
         const q = def(S.shape).params.find(x => x.key === el.dataset.k); let v = parseFloat(el.value);
         if (!q || !(v >= q.min) || (q.max && v > q.max)) return; if (q.type === "int") v = Math.round(v);
-        S.base = Object.assign({}, S.base, { [q.key]: v }); esito = null; cambiato();
+        ricorda(q.key); S.base = Object.assign({}, S.base, { [q.key]: v }); esito = null; cambiato();
       }
     });
     box.addEventListener("change", e => {
       const el = e.target;
       if (el.dataset.a) aggiornaCampi();   // uscendo dalla casella torna il valore buono
-      if (el.dataset.k && el.tagName === "SELECT") { S.base = Object.assign({}, S.base, { [el.dataset.k]: el.value }); esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); }
+      if (el.dataset.k && el.tagName === "SELECT") { ricorda(el.dataset.k + "|sel"); S.base = Object.assign({}, S.base, { [el.dataset.k]: el.value }); esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); }
     });
     box.addEventListener("click", e => {
       if (e.target.closest("#bRidisegna")) apriPianta();
       if (e.target.closest("#bRitocca2")) ImmagineBolla.riapri(opzFoto);
       const v = e.target.closest("[data-sc-vai]"); if (v) mostraScheda(v.dataset.scVai);
+      if (e.target.closest("#bAnnullaMis")) annullaMis();
     });
   })();
 
