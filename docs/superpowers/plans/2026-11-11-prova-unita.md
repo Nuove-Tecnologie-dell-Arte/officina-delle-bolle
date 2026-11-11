@@ -340,3 +340,45 @@
   - `MODIFICHE.md`.
   - `README.md` riscritto per la prova unita: tappe, finestra a destra con ↗, materiali e prezzi, dime, cantiere, file, ricerca.
   - Commit `Prova unita, blocco 7: salva e apri il progetto su file, ricerca`.
+
+---
+
+## Seconda parte (11 novembre, dopo la prova): più compatta, come la semplice
+
+Le scelte dell'utente:
+- struttura ibrida: restano le tappe, ma la Progettazione è compatta;
+- lo Schema va nella pagina;
+- dalla semplice si prendono la galleria compatta e «toccare una misura»;
+- niente cursori: tre caselle e le frecce X, Y, Z nello Schema;
+- Materiali e lista come nella semplice.
+
+Si lavora come prima: per ogni blocco una prova `T\uN.js` che fallisce, la modifica, la prova che passa, il controllo nel browser, `MODIFICHE.md` e un commit.
+
+### Task 8: Blocco A · Progettazione compatta
+- «Prendi le misure» in poco spazio: titolo piccolo, le caselle X, Y, Z in una riga, la nota in una riga.
+- Le linguette Forme | Misure spariscono: la galleria sta sopra e le misure sotto, sempre in vista. Scelta una forma, la pagina scende alle misure se non si vedono.
+- La galleria compatta: 4 forme per cominciare (Icosaedro, Cubo, Sfera geodetica, Icosaedro troncato), poi «Altre forme (N)» che si apre (aperta da sola se la forma scelta è lì dentro), poi «Parti da un'immagine».
+- Prova `u9.js`: niente linguette, galleria e misure in vista, le 4 forme fuori da «Altre forme», l'immagine dopo la galleria, «Prendi le misure» più basso di 300 px, telefono.
+
+### Task 9: Blocco B · Riquadro «Misure bolla» con lo Schema
+- Lo Schema (`#cvSchema`) esce dalla finestra di destra: nella Progettazione sta in cima al riquadro «Misure bolla», nella Costruzione accanto alla giunzione. A destra resta solo il simulatore, senza linguette.
+- Nello Schema, le frecce X, Y, Z con le misure.
+- Le schede Misure | Numeri | Altre opzioni:
+  - Misure: le caselle Larghezza, Profondità, Altezza al posto dei cursori (figure regolari: una misura trascina le altre; le altre forme: ogni misura libera) e le misure tipiche in %;
+  - Numeri: il verdetto con Risolvi, i numeri, i controlli;
+  - Altre opzioni: le misure tecniche, la pianta, l'immagine.
+- Sotto le schede, sempre in vista, il verdetto in breve.
+- «Mantieni le proporzioni» non c'è più: per Risolvi la regola è quella della forma.
+- Prova `u10.js`.
+
+### Task 10: Blocco C · Toccare una misura
+- Toccando una casella delle misure, nello Schema le facce che cambiano si colorano e la forma si muove piano tra la misura e la misura un po' cambiata; sotto c'è una riga che spiega la misura.
+- «Annulla» sulle misure, anche con Ctrl+Z fuori dai campi.
+- Prova `u11.js`.
+
+### Task 11: Blocco D · Materiali e lista come nella semplice
+- «Materiali bolla vera» e «Lista materiali e prezzi» diventano due riquadri che si aprono e si chiudono. Sono chiusi all'inizio e il browser ricorda se li avete aperti (`bolle|aperto|…`).
+- Chiusi, mostrano una riga di riassunto: per i materiali telo, giunti e porte; per la lista il totale.
+- La tabella dei prezzi è come quella della semplice.
+- Si aprono da soli quando ci si arriva dalla ricerca.
+- Prova `u12.js`.

@@ -211,6 +211,24 @@ main { max-width: 1080px; margin: 0 auto; width: 100%; padding-top: 30px; paddin
 .asse-campo b { font: 800 2.6rem/1 var(--display); color: var(--green); }
 .asse-campo span { grid-column: 1 / -1; text-align: center; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .nota-area { text-align: center; color: var(--muted); font-size: .92rem; max-width: 64ch; justify-self: center; }
+/* [Unita] Progettazione compatta: titoli piccoli, l'area in una riga, la galleria e le misure una sotto l'altra */
+.titolone.piccolo h2 { font-size: clamp(2rem, 4vw, 2.9rem); }
+.titolone.piccolo p { font-size: 1rem; }
+#bloccoArea { gap: 10px; }
+#bloccoArea .area-card { padding: 0; gap: 6px; }
+#bloccoArea .xyz { gap: 6px 22px; max-width: 640px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#bloccoArea .asse-campo input { height: 46px; font-size: 1.45rem; padding-top: 2px; }
+#bloccoArea .asse-campo b { font-size: 2.4rem; }
+#bloccoArea .asse-campo span { font-size: .8rem; }
+.area-piede { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 16px; }
+.area-piede .nota-area { margin: 0; }
+#bloccoProgetta { gap: 18px; }
+#pForme, #rqMisure { width: 100%; max-width: 720px; justify-self: center; display: grid; gap: 14px; }
+h3.sotto { font: 400 1.6rem/1 var(--display, inherit); letter-spacing: .03em; }
+.tessere.prima { padding-bottom: 26px; }   /* sotto la forma scelta c'è il suo nome */
+.altreForme > summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
+.altreForme > .famiglie { max-height: 352px; overflow-y: auto; margin-top: 8px; }
+#forme.forme-scorri { max-height: none; overflow: visible; }
 /* più aree di lavoro: una scheda per area, con le sue X, Y, Z e le bolle che ha dentro */
 .aree { display: grid; gap: 14px; justify-items: center; }
 .area-card { width: 100%; max-width: 880px; padding: 14px 20px 18px; display: grid; gap: 12px; border: 2px solid transparent; }
@@ -447,30 +465,27 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <!-- 1 · Progettazione: prendi le misure, progetta, materiali -->
 <section class="tappa" data-t="progettazione" hidden>
   <div class="blocco" id="bloccoArea">
-    <header class="titolone"><span class="occhiello">Tappa 1 · Progettazione</span><h2>Prendi le misure</h2><p>Recati nel luogo da te scelto per il montaggio e prendi le misure per l'<button class="gl" data-g="area">area di lavoro</button></p></header>
+    <header class="titolone piccolo"><span class="occhiello">Tappa 1 · Progettazione</span><h2>Prendi le misure</h2><p>Le misure del posto dove monterai la bolla: l'<button class="gl" data-g="area">area di lavoro</button>, in metri.</p></header>
     <div class="box-info" id="areaScenario" hidden></div>
     <div class="aree" id="aree"></div>
-    <div class="btnrow" style="justify-content:center"><button type="button" class="btn" id="bNuovaArea">+ Aggiungi un'area di lavoro</button></div>
-    <p class="nota-area" id="notaArea">In metri. La Z è lo spazio libero in alto: il soffitto, una trave, i rami. Se non hai ancora scelto il posto lascia vuoto: la bolla non avrà limiti, e potrai metterle dopo. Puoi avere più aree (per esempio due cortili): nel simulatore ogni bolla resta dentro la sua.</p>
+    <div class="area-piede"><p class="nota-area" id="notaArea">La Z è lo spazio libero in alto. Vuote: nessun limite.</p><button type="button" class="btn" id="bNuovaArea">+ Un'altra area</button></div><!-- [Unita] in una riga -->
   </div>
 
   <div class="blocco" id="bloccoProgetta">
-    <header class="titolone"><h2>Progetta</h2><p>Prendi la forma e le misure: il simulatore le mostrerà in tempo reale</p></header>
-    <div class="cartella">
-      <div class="linguette" role="tablist" aria-label="Forme e misure">
-        <button type="button" role="tab" id="tabForme" aria-controls="pForme" aria-selected="true">Forme</button>
-        <button type="button" role="tab" id="tabMisure" aria-controls="pMisure" aria-selected="false">Misure</button>
-      </div>
-      <div class="pannello lastra nastrato tratteggio" id="pForme" role="tabpanel" aria-labelledby="tabForme">
+    <header class="titolone piccolo"><h2>Progetta</h2><p>Scegli la forma, poi le misure: il simulatore le mostra in tempo reale.</p></header>
+    <div class="pannello lastra nastrato tratteggio" id="pForme"><!-- [Unita] la galleria compatta, poi l'immagine -->
+      <h3 class="sotto">Scegli la forma</h3>
+      <div class="forme-scorri" id="forme"></div>
         <div class="dafoto" id="daFoto">
           <div class="ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="9" width="38" height="30" rx="5"/><path d="M5 33l10-10 8 8 6-6 14 14"/><circle cx="33" cy="18" r="3.5"/></svg></div>
           <div><b>Hai già un'idea? Parti da un'immagine</b><p class="hint">Una foto, un disegno o uno schizzo: il sito trova il contorno e ne fa una bolla. Puoi anche trascinarla qui o incollarla (Ctrl+V).</p></div>
           <div class="btnrow"><button type="button" class="btn primary" id="bImmagine">Carica un'immagine</button><button type="button" class="btn" id="bRitocca" hidden>Ritocca l'ultima</button></div>
           <p class="warn" id="fErr" hidden style="grid-column:1/-1"></p>
         </div>
-        <div class="forme-scorri" id="forme"></div>
-      </div>
-      <div class="pannello lastra nastrato tratteggio" id="pMisure" role="tabpanel" aria-labelledby="tabMisure" hidden></div>
+    </div>
+    <div class="pannello lastra nastrato tratteggio" id="rqMisure"><!-- [Unita] le misure, sempre in vista sotto la galleria -->
+      <h3 class="sotto">Misure della bolla</h3>
+      <div id="pMisure"></div>
     </div>
     <div class="risultato">
       <div class="dati" id="dati"></div>
@@ -1239,27 +1254,27 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const el = $("aree").lastElementChild && $("aree").lastElementChild.querySelector("input"); if (el) { el.focus(); el.scrollIntoView({ block: "center", behavior: ridotto ? "auto" : "smooth" }); }
   });
 
-  function linguetta(t) {
-    S.tab = t; salva();
-    $("tabForme").setAttribute("aria-selected", String(t === "forme")); $("tabMisure").setAttribute("aria-selected", String(t === "misure"));
-    $("pForme").hidden = t !== "forme"; $("pMisure").hidden = t !== "misure";
-    if (t === "forme") rendiForme(); else rendiMisure();
+  function linguetta(t) {   // [Unita] niente più linguette: galleria e misure si vedono insieme; t dice solo dove si era
+    S.tab = t; salva(); rendiForme(); rendiMisure();
   }
-  $("tabForme").addEventListener("click", () => linguetta("forme"));
-  $("tabMisure").addEventListener("click", () => linguetta("misure"));
-  document.querySelector(".linguette").addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const t = S.tab === "forme" ? "misure" : "forme"; linguetta(t); $(t === "forme" ? "tabForme" : "tabMisure").focus(); } });
 
   /* --- le forme --- */
   const anteprime = {};
   const livello = (m) => { const n = m.an.types.length; return n <= 4 ? ["f", "Facile"] : n <= 15 ? ["m", "Media"] : ["i", "Impegnativa"]; };
+  const FORME_PRIMA = ["d20", "d6", "geo", "calcio"];   // [Unita] le 4 forme per cominciare
+  const altraForma = () => !!S.shape && S.shape !== "foto" && !FORME_PRIMA.includes(S.shape);
   function costruisciForme() {
     const tessera = (id, nome) => `<button type="button" class="tessera" data-id="${id}" aria-pressed="false" title="${esc(nome)}"><canvas data-mini="${id}" aria-hidden="true"></canvas><b>${esc(nome)}</b><small data-liv="${id}"></small></button>`;
-    const fam = (S.shape === "foto" ? [["foto", "La tua immagine", [["foto", "La tua immagine"]]]] : []).concat(FAMIGLIE);
-    $("forme").innerHTML = fam.map(([k, t, l]) => `<section class="famiglia" aria-label="${esc(t)}"><h3>${esc(t)}</h3><div class="tessere">${l.map(([id, n]) => tessera(id, n)).join("")}</div></section>`).join("");
+    // [Unita] come nella semplice: 4 forme per cominciare, le altre in «Altre forme» (aperta se la forma scelta è lì)
+    const prima = (S.shape === "foto" ? [["foto", "La tua immagine"]] : []).concat(FORME_PRIMA.map(id => FORME.find(f => f[0] === id)).filter(Boolean));
+    const fam = FAMIGLIE.map(([k, t, l]) => [k, t, l.filter(f => !FORME_PRIMA.includes(f[0]))]).filter(f => f[2].length), n = fam.reduce((a, f) => a + f[2].length, 0);
+    $("forme").innerHTML = `<div class="tessere prima">${prima.map(([id, nome]) => tessera(id, nome)).join("")}</div>
+      <details class="altreForme" id="altreForme"${altraForma() ? " open" : ""}><summary>Altre forme (${n})</summary><div class="famiglie">${fam.map(([k, t, l]) => `<section class="famiglia" aria-label="${esc(t)}"><h3>${esc(t)}</h3><div class="tessere">${l.map(([id, nome]) => tessera(id, nome)).join("")}</div></section>`).join("")}</div></details>`;
   }
   function rendiForme() {
     if (!$("forme").children.length || (S.shape === "foto") !== !!$("forme").querySelector('[data-id="foto"]')) costruisciForme();
     document.querySelectorAll(".tessera").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === S.shape)));
+    if (altraForma() && $("altreForme")) $("altreForme").open = true;
     const ids = [...document.querySelectorAll(".tessera")].map(b => b.dataset.id); let i = 0;
     const passo = () => {
       if (i >= ids.length) return; const id = ids[i++];
@@ -1282,8 +1297,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       esito = null; S.okModello = false; salva();
     }
     document.querySelectorAll(".tessera").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.id === S.shape)));
-    aggiornaBolla(true); rendiRisultato(); rendiMateriali(); fondo(); testata();
+    aggiornaBolla(true); rendiMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
     if (id === "custom") apriPianta();
+    else { const r = $("rqMisure").getBoundingClientRect(); if (r.top > innerHeight - 140) $("rqMisure").scrollIntoView({ block: "start", behavior: ridotto ? "auto" : "smooth" }); }   // [Unita]
   }
   $("forme").addEventListener("click", e => { const b = e.target.closest(".tessera"); if (b) scegliForma(b.dataset.id); });
 

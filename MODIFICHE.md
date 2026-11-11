@@ -138,3 +138,21 @@ Un revisore separato ha letto tutto il branch. Le correzioni hanno ciascuna la s
 - **Chiudendo ↗ non si perdono le voci aggiunte a mano.** La vetrina (e l'Abbofficina completa, riaprendo) rilegge anche le voci aggiunte a mano e le impostazioni della distinta (`vociLibere`, `BOM`), non solo i prezzi. Prima il prezzo scritto subito dopo nel sito le cancellava dal salvataggio.
 - **Il cantiere e la ricerca tengono i tasti anche dopo un clic sul disegno o sul riquadro.** F, le frecce ed Esc continuano a funzionare (`tabindex="-1"` e il fuoco che resta dentro).
 - **Un file aperto non porta dentro HTML.** Gli id di aree e bolle devono essere numeri, e misure, posti, grammatura e nastro sono controllati (`normalizzaPR`). Prima un file preparato apposta poteva mettere del codice nella pagina.
+
+# Seconda parte: più compatta, come la semplice
+
+Dopo la prova sono cambiate cinque cose:
+- le tappe restano, ma la Progettazione è compatta;
+- lo Schema va nella pagina, accanto al simulatore;
+- niente cursori: tre caselle e le frecce X, Y, Z;
+- la galleria compatta e «toccare una misura» della semplice;
+- Materiali e lista come nella semplice.
+
+## Blocco A · Progettazione compatta
+
+- **«Prendi le misure» è più piccolo:** il titolo è più piccolo, le caselle X, Y, Z sono più basse e in una riga, e la nota e «+ Un'altra area» stanno in una riga. Prima era alto 486 px, ora meno di 300.
+- **Niente più linguette Forme | Misure:** prima «Scegli la forma» (`#pForme`), poi sotto, sempre in vista, «Misure della bolla» (`#rqMisure`, con dentro `#pMisure`). Scelta una forma, se le misure non si vedono la pagina scende fino a lì. `linguetta(t)` resta per la ricerca, ma disegna tutte e due.
+- **La galleria compatta, come nella semplice:**
+  - 4 forme per cominciare (Icosaedro, Cubo, Sfera geodetica, Icosaedro troncato, `FORME_PRIMA`);
+  - poi «Altre forme (24)», che si apre (`#altreForme`, aperta da sola se la forma scelta è lì, anche riaprendo la pagina);
+  - poi «Parti da un'immagine».
