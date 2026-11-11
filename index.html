@@ -640,14 +640,14 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
 <div id="stampa"></div>
 <div id="cerca" class="cercaVelo" hidden><!-- [Unita] la ricerca: ogni opzione del sito, scrivendo (come nella prova semplice) -->
-  <div class="cercaPop" role="dialog" aria-modal="true" aria-label="Cerca un'opzione">
+  <div class="cercaPop" tabindex="-1" role="dialog" aria-modal="true" aria-label="Cerca un'opzione">
     <div class="cercaRiga"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>
       <input id="cercaIn" type="text" placeholder="Cerca: icosaedro, rotolo, P3, giunzione 12…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="cercaLista" aria-autocomplete="list"><kbd>Esc</kbd></div>
     <ul id="cercaLista" class="cercaLista" role="listbox" aria-label="Risultati"></ul>
     <p class="cercaPiede">↑ ↓ per scegliere · Invio per aprire · Esc per chiudere</p>
   </div>
 </div>
-<div class="cantiere" id="site" role="dialog" aria-modal="true" aria-labelledby="siteTit" hidden><!-- [Unita] modalità cantiere -->
+<div class="cantiere" id="site" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="siteTit" hidden><!-- [Unita] modalità cantiere -->
   <div class="site-testa"><div><span class="occhiello" id="siteKind"></span><h2 id="siteTit"></h2></div><button type="button" class="btn" id="siteEsci" aria-label="Esci dalla modalità cantiere">✕ Esci</button></div>
   <div class="site-corpo" id="siteCorpo"></div>
   <div class="site-piede"><button type="button" class="btn big" id="sitePrima" aria-label="Indietro">‹</button><button type="button" class="btn primary big" id="siteFatto"></button><button type="button" class="btn big" id="siteDopo" aria-label="Avanti">›</button><span class="hint" id="siteProg"></span></div>
@@ -982,7 +982,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
      Riceve la bolla (vertici e facce in metri) con un messaggio; se non si carica (senza internet), resta il disegno di riserva. */
   const fr = $("vetrina");
   let vetrinaPronta = false, tSim = 0, ultimoInvio = "";
-  let tutta = null, tuttaPronta = false, tuttaId = null, tTutta = 0;   // [Unita] ↗, l'Abbofficina completa
+  let tutta = null, tuttaPronta = false, tuttaId = null, tTutta = 0, dimInviata = null, tuttaQuieta = 0;   // [Unita] ↗, l'Abbofficina completa
   const opzArea = () => { if (!cur || !haArea()) return null; const e = entra({ x: cur.W, y: cur.D, z: cur.H }); return { x: S.area.x, y: S.area.y, z: S.area.z, ok: !!e, giro: e === 2 }; };
   const conForma = (b) => !!(b.shape && b.base && b.dim);
   // le aree di lavoro nel simulatore (quelle con almeno una misura a terra); con lo scenario con le pareti nessuna: c'è la stanza
@@ -1093,7 +1093,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("simStato").innerHTML = !S.shape ? "" : !cur ? `<span class="pill ko"><i>✕</i>${esc(curErr || "Non si costruisce")}</span>`
       : `<span class="pill">${metri(cur.H)}</span><span class="pill ${g.c}"><i>${icona[g.c] || "i"}</i>${g.c === "ok" ? "Si può fare" : g.c === "mid" ? "Con attenzione" : "Non si può fare"}</span>`;
     clearTimeout(tSim); tSim = setTimeout(inviaVetrina, 120);
-    if (tutta && tuttaPronta && tuttaAperta()) { clearTimeout(tTutta); tTutta = setTimeout(inviaTutta, 300); }   // [Unita]
+    if (tutta && tuttaPronta && tuttaAperta()) { clearTimeout(tTutta); tTutta = setTimeout(inviaTutta, Math.max(300, tuttaQuieta - Date.now())); }   // [Unita] mentre là si sta ingrandendo, si aspetta
     disegnaSchema();
   }
 
@@ -1648,17 +1648,23 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     PR.mat[k] = v; salva(); rendiScelteMat(); rendiMateriali(); inviaMateriali();
   });
   const euro = (x) => x.toLocaleString("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: x < 100 ? 2 : 0, maximumFractionDigits: x < 100 ? 2 : 0 });
+  let ultimaLista = null;
   function mostraLista(m) {   // la distinta del simulatore, senza l'energia elettrica (resta là)
-    const tb = $("listaRighe"); if (tb.contains(document.activeElement)) return;   // si sta scrivendo un prezzo: si aggiorna dopo
-    const righe = (m.righe || []).filter(r => r.id !== "energia"), q = (r) => r.u === "pz" ? fmt(r.q, 0) : fmt(r.q, r.q < 20 ? 1 : 0);
+    ultimaLista = m;
+    const tb = $("listaRighe"), righe = (m.righe || []).filter(r => r.id !== "energia"), q = (r) => r.u === "pz" ? fmt(r.q, 0) : fmt(r.q, r.q < 20 ? 1 : 0);
     const totale = righe.reduce((t, r) => t + (r.tot || 0), 0), mancano = righe.filter(r => r.tot == null).length;
-    tb.innerHTML = righe.map(r => (r.sez ? `<tr class="sez"><td colspan="4">${esc(r.sez)}</td></tr>` : "")
+    const scrive = tb.contains(document.activeElement), ins = [...tb.querySelectorAll("input[data-id]")];
+    if (scrive && ins.length === righe.length && righe.every((r, i) => ins[i].dataset.id === r.id)) {   // [Unita] si sta scrivendo un prezzo: si aggiornano solo i totali, i campi restano
+      righe.forEach((r, i) => { const td = ins[i].closest("tr").lastElementChild; td.textContent = r.tot == null ? "—" : euro(r.tot); });
+    } else if (!scrive) tb.innerHTML = righe.map(r => (r.sez ? `<tr class="sez"><td colspan="4">${esc(r.sez)}</td></tr>` : "")
       + `<tr><td>${esc(r.nome)}${r.dove ? `<small>${esc(r.dove)}</small>` : ""}</td><td class="dx num">${q(r)} ${esc(r.u)}</td>`
       + `<td class="dx"><input type="number" min="0" step="0.01" inputmode="decimal" data-id="${esc(r.id)}" value="${r.prezzo ?? ""}" placeholder="€" aria-label="Prezzo per ${esc(r.u)}: ${esc(r.nome)}"><small>€/${esc(r.u)}</small></td>`
       + `<td class="dx num">${r.tot == null ? "—" : euro(r.tot)}</td></tr>`).join("");
+    else return;   // le righe sono cambiate mentre si scrive: si ridisegna uscendo dalla tabella
     $("listaTot").textContent = totale > 0 ? "Totale materiali " + euro(totale) : "";
     $("listaNota").textContent = !righe.length ? "La lista con i prezzi arriva dal simulatore." : mancano ? `Mancano ${mancano === 1 ? "un prezzo" : mancano + " prezzi"}: scrivili nella colonna Prezzo. Sono gli stessi del simulatore, per tutte le bolle.` : "Tutte le voci hanno un prezzo. Sono gli stessi del simulatore, per tutte le bolle.";
   }
+  $("listaRighe").addEventListener("focusout", e => { if (ultimaLista && !$("listaRighe").contains(e.relatedTarget)) setTimeout(() => { if (!$("listaRighe").contains(document.activeElement)) mostraLista(ultimaLista); }, 0); });
   $("listaRighe").addEventListener("change", e => { const i = e.target.closest("input[data-id]"); if (i && vetrinaPronta) fr.contentWindow.postMessage({ tipo: "vetrina-prezzo", id: i.dataset.id, v: i.value === "" ? "" : +i.value }, "*"); });
   addEventListener("message", e => {
     if (e.source !== fr.contentWindow || !e.data) return;
@@ -1674,7 +1680,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (!cur) return null; const mm = (x) => Math.round(x * 1000) / 1000;
     return { v: 1, nome: nomeBolla(PR.att), tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: S.shape } };
   }
-  function inviaTutta() { const p = paccoBolla(); if (!p) return; tuttaId = S.id; aTutta({ tipo: "forma", pacco: p }); }
+  function inviaTutta() { const p = paccoBolla(); if (!p) return; tuttaId = S.id; dimInviata = Object.assign({}, S.dim); aTutta({ tipo: "forma", pacco: p }); }
   function apriTutta(si) {
     const box = $("simTuttaBox");
     if (si) {
@@ -1692,8 +1698,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
   function daTutta(m) {   // la bolla legata è cambiata nell'Abbofficina: per la forma dell'Officina arriva l'ingrandimento k
     if (m.tipoB !== "officina" || !m.d) return; const k = +(m.d.k || 1); if (!(k > 0) || Math.abs(k - 1) < 1e-3) return;
-    const b = PR.bolle.find(x => x.id === tuttaId); if (!b || !b.dim) return;
-    b.dim = scalaDim(b.dim, k);
+    const b = PR.bolle.find(x => x.id === tuttaId); if (!b || !b.dim || !dimInviata) return;
+    b.dim = scalaDim(dimInviata, k); tuttaQuieta = Date.now() + 1500;   // k è rispetto alla bolla mandata: due ingrandimenti di fila non si sommano
     if (b === S) { esito = null; cambiato(); } else { salva(); simulatore(); }
   }
   function materialiDaTutta(D) {   // le scelte cambiate nell'Abbofficina tornano nel sito (zip impermeabile e stagna restano là)
@@ -1997,6 +2003,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     else { const no = cur.an.seams[cant.i].no; if (!f.giunte.includes(no)) f.giunte.push(no); salva(); if (cant.i < cur.an.seams.length - 1) cant.i++; }
     rendiCantiere(); disegnaSchema();
   }
+  $("site").addEventListener("pointerdown", e => { if (!e.target.closest("button, a, input, select, textarea")) setTimeout(() => $("site").focus({ preventScroll: true }), 0); });   // [Unita] i tasti restano al cantiere
   $("cantiereDime").addEventListener("click", e => apriCantiere("dime", e.currentTarget));
   $("cantiereGiunte").addEventListener("click", e => apriCantiere("giunte", e.currentTarget));
   $("siteEsci").addEventListener("click", chiudiCantiere);
@@ -2026,16 +2033,23 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* [Unita] salva e riapri il progetto su file: tutte le bolle, le aree, i materiali, le spunte e lo scenario */
   function normalizzaPR(P) {   // gli stessi controlli di quando si apre la pagina
     if (!Array.isArray(P.aree) || !P.aree.length) P.aree = [{ id: 1 }];
-    P.aree = P.aree.filter(a => a && typeof a === "object").map((a, i) => ({ id: a.id || i + 1, x: num(a.x), y: num(a.y), z: num(a.z), pos: a.pos || null }));
+    const intero = (v) => Number.isInteger(+v) && +v > 0 && +v < 1e6 ? +v : null, posto = (p) => p && Number.isFinite(+p.x) && Number.isFinite(+p.z) ? { x: +p.x, z: +p.z, ang: Number.isFinite(+p.ang) ? +p.ang : 0, giro: !!p.giro } : null;
+    const visti = new Set();
+    P.aree = P.aree.filter(a => a && typeof a === "object").map((a, i) => { let id = intero(a.id); if (!id || visti.has(id)) id = 1000 + i; visti.add(id); return { id, x: num(a.x), y: num(a.y), z: num(a.z), pos: posto(a.pos) }; });   // [Unita] gli id finiscono nella pagina: solo numeri
     if (!P.aree.length) P.aree = [{ id: 1, x: null, y: null, z: null, pos: null }];
-    P.prossimaArea = Math.max(P.prossimaArea || 0, ...P.aree.map(a => a.id + 1));
-    P.bolle = (P.bolle || []).filter(b => b && typeof b === "object").map((b, i) => sistemaBolla(Object.assign({ id: i + 1 }, b)));
+    P.prossimaArea = Math.max(intero(P.prossimaArea) || 0, ...P.aree.map(a => a.id + 1));
+    const vistiB = new Set();
+    P.bolle = (P.bolle || []).filter(b => b && typeof b === "object").map((b, i) => { let id = intero(b.id); if (!id || vistiB.has(id)) id = 1000 + i; vistiB.add(id);
+      const dimOk = b.dim && ["x", "y", "z"].every(k => Number.isFinite(+b.dim[k]) && +b.dim[k] > 0);
+      return sistemaBolla(Object.assign({}, b, { id, dim: dimOk ? { x: +b.dim.x, y: +b.dim.y, z: +b.dim.z } : null, pos: posto(b.pos), areaId: intero(b.areaId), t: Math.max(0, Math.min(TAPPE.length - 1, b.t | 0)), max: Math.max(0, Math.min(TAPPE.length - 1, b.max | 0)), fatte: b.fatte && typeof b.fatte === "object" ? b.fatte : {} })); });
     if (!P.bolle.length) P.bolle = [sistemaBolla(Object.assign(bollaVuota(1), { t: 0, max: 0 }))];
     P.prossimo = Math.max(P.prossimo || 0, ...P.bolle.map(b => b.id + 1));
     P.att = Math.max(0, Math.min(P.bolle.length - 1, P.att | 0));
     P.mat = Object.assign({}, MAT_LAB, P.mat && typeof P.mat === "object" ? P.mat : {});
     for (const k of ["porte", "coll"]) if (!["cerniera", "velcro"].includes(P.mat[k])) P.mat[k] = "cerniera";
     if (!["adesivo", "saldato", "velcro", "cerniera"].includes(P.mat.giunti)) P.mat.giunti = "adesivo";
+    const tra = (v, a, b, d) => Number.isFinite(+v) && +v >= a && +v <= b ? Math.round(+v) : d;
+    P.mat.mat = ["PVC", "PE", "TPU"].includes(P.mat.mat) ? P.mat.mat : "PVC"; P.mat.gsm = tra(P.mat.gsm, 5, 800, 20); P.mat.adW = tra(P.mat.adW, 12, 100, 48); P.mat.adLati = +P.mat.adLati === 1 ? 1 : 2;
     P.unita = P.unita === "modellino" ? "modellino" : "bolla";
     return P;
   }
@@ -2154,7 +2168,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (e.key === "Tab") { e.preventDefault(); $("cercaIn").focus(); }
     else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); chiudiCerca(); }
   });
-  $("cerca").addEventListener("mousedown", e => { if (e.target === $("cerca")) chiudiCerca(); });
+  $("cerca").addEventListener("mousedown", e => { if (e.target === $("cerca")) { chiudiCerca(); return; } if (!e.target.closest("input, li[data-i]")) { e.preventDefault(); $("cercaIn").focus(); } });   // il fuoco resta nella casella
   document.addEventListener("keydown", e => {
     if (e.defaultPrevented || !$("site").hidden || tuttaAperta()) return;   // nel cantiere e nell'Abbofficina completa i tasti servono a loro
     const scrive = e.target.closest && e.target.closest("input, textarea, select, [contenteditable='true']");

@@ -128,3 +128,13 @@ Il progetto è in `docs/superpowers/specs/2026-11-11-prova-unita-design.md`, il 
     - ogni dima (P1, P2…) e ogni giunzione («Giunzione 12»).
   - **Che cosa fa:** porta alla tappa giusta, apre la linguetta o la scheda, scorre fino all'opzione e la evidenzia per un momento. «Azzera le spunte» ed «Elimina questa bolla» si mostrano soltanto, non si premono.
 - **Il README** descrive la prova unita.
+
+## Correzioni dopo la revisione finale
+
+Un revisore separato ha letto tutto il branch. Le correzioni hanno ciascuna la sua prova (`u8.js`), che prima falliva e ora passa:
+
+- **↗, ingrandire due volte di fila non somma più.** L'ingrandimento che arriva dall'Abbofficina vale rispetto alla bolla mandata (`dimInviata`), non a quella già ingrandita: 1,1 e poi 1,2 danno 1,2, non 1,32. Mentre là si sta ingrandendo, il sito aspetta 1,5 s prima di rimandare la bolla, così il cursore non torna indietro sotto le dita.
+- **I totali dei prezzi si aggiornano mentre si scrive.** Scrivendo un prezzo e passando al campo dopo (Tab), si aggiornano i totali delle righe e «Totale materiali», senza ridisegnare i campi. Se cambiano le righe, la tabella si ridisegna uscendo.
+- **Chiudendo ↗ non si perdono le voci aggiunte a mano.** La vetrina (e l'Abbofficina completa, riaprendo) rilegge anche le voci aggiunte a mano e le impostazioni della distinta (`vociLibere`, `BOM`), non solo i prezzi. Prima il prezzo scritto subito dopo nel sito le cancellava dal salvataggio.
+- **Il cantiere e la ricerca tengono i tasti anche dopo un clic sul disegno o sul riquadro.** F, le frecce ed Esc continuano a funzionare (`tabindex="-1"` e il fuoco che resta dentro).
+- **Un file aperto non porta dentro HTML.** Gli id di aree e bolle devono essere numeri, e misure, posti, grammatura e nastro sono controllati (`normalizzaPR`). Prima un file preparato apposta poteva mettere del codice nella pagina.
