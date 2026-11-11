@@ -128,6 +128,19 @@ body.trascina iframe { pointer-events: none; }
   .sim-nota { min-width: 0 !important; }   /* [Unita] sul telefono la nota va a capo invece di allargare la pagina */
 }
 .riduci { display: none; }
+/* [Unita] il cartamodello a schermo intero */
+.modGrande { position: fixed; inset: 0; z-index: 260; background: #d9d6d0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.modGrande[hidden] { display: none; }
+.mg-testa { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 10px clamp(10px, 3vw, 24px); background: rgba(255, 255, 255, .7); }
+.mg-testa h2 { font-size: clamp(1.2rem, 3vw, 1.7rem); }
+.mg-az { display: flex; flex-wrap: wrap; gap: 6px; }
+.mg-az .btn { min-height: 40px; background: #fff; border: 1px solid var(--rule); }
+.mg-corpo { overflow: auto; display: grid; place-items: center; padding: 14px; }
+.mg-corpo .foglio { width: min(100%, calc((100vh - 110px) * 210 / 297)); height: auto; aspect-ratio: 210 / 297; }   /* tutto il foglio in vista, sul computer e sul telefono */
+.mg-corpo .foglio svg { width: 100%; height: 100%; display: block; }
+.modGrande.zoom .mg-corpo { place-items: start center; }
+.modGrande.zoom .mg-corpo .foglio { height: auto; width: min(1400px, 220vw); max-width: none; }
+body.inModGrande { overflow: hidden; }
 /* [Unita] lo Schema nella pagina, le schede delle misure, il verdetto in breve */
 .sim-titolo { font: 400 1.6rem/1 var(--display, inherit); color: var(--rosso, var(--green)); letter-spacing: .03em; padding: 6px 2px 4px; }
 .schemaBox { position: relative; display: grid; gap: 4px; }
@@ -563,7 +576,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
           <li><div><b>Chiudi con lo scotch</b><span class="hint">I bordi con lo stesso numero rosso vanno uniti tra loro. Vai in ordine di numero: dal pavimento verso l'alto.</span></div></li>
           <li><div><b>Controlla</b><span class="hint">Si chiude senza forzare e senza buchi? Allora le misure sono giuste.</span></div></li>
         </ol>
-        <div class="btnrow"><button type="button" class="btn primary big" id="bStampaModello">Stampa il cartamodello</button></div>
+        <div class="btnrow"><button type="button" class="btn primary big" id="bStampaModello">Stampa il cartamodello</button><button type="button" class="btn big" id="bModGrande" title="I fogli del cartamodello in grande, uno alla volta">⤢ Schermo intero</button></div>
         <label class="check"><input type="checkbox" id="okModello"> <span>Il mio modellino si chiude bene</span></label>
       </div>
       <div style="display:grid;gap:10px;align-content:start"><span class="hint" id="fogliTit"></span><div class="fogli" id="fogli"></div></div>
@@ -687,6 +700,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 </dialog>
 
 <div id="stampa"></div>
+<div class="modGrande" id="modGrande" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="modGrandeTit" hidden><!-- [Unita] il cartamodello a schermo intero -->
+  <div class="mg-testa"><h2 id="modGrandeTit"></h2><div class="mg-az"><button type="button" class="btn" id="modPrima" aria-label="Foglio prima">‹</button><button type="button" class="btn" id="modDopo" aria-label="Foglio dopo">›</button><button type="button" class="btn" id="modZoom" aria-pressed="false">Ingrandisci</button><button type="button" class="btn" id="modEsci">✕ Esci</button></div></div>
+  <div class="mg-corpo" id="modGrandeCorpo"></div>
+</div>
 <div id="cerca" class="cercaVelo" hidden><!-- [Unita] la ricerca: ogni opzione del sito, scrivendo (come nella prova semplice) -->
   <div class="cercaPop" tabindex="-1" role="dialog" aria-modal="true" aria-label="Cerca un'opzione">
     <div class="cercaRiga"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>
@@ -2067,6 +2084,33 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("okModello").checked = !!S.okModello;
   }
   $("okModello").addEventListener("change", e => { S.okModello = e.target.checked; salva(); fondo(); });
+  /* [Unita] il cartamodello a schermo intero: un foglio alla volta, ‹ ›, Ingrandisci, Esc */
+  const mg = { i: 0, da: null };
+  function disegnaModGrande() {
+    const r = cur && cur.stampa; if (!r) { chiudiModGrande(); return; }
+    const n = r.pagine.length; mg.i = Math.max(0, Math.min(n - 1, mg.i));
+    $("modGrandeTit").textContent = `Foglio ${mg.i + 1} di ${n} · scala 1:${r.scala}`;
+    $("modGrandeCorpo").innerHTML = `<div class="foglio">${foglioSVG(cur, r, r.pagine[mg.i], mg.i + 1, n, `${nomeForma(S.shape)} · scala 1:${r.scala}`)}</div>`;
+    $("modPrima").disabled = mg.i === 0; $("modDopo").disabled = mg.i === n - 1;
+  }
+  function apriModGrande() {
+    if (!cur || !cur.stampa) return; mg.da = document.activeElement; mg.i = 0;
+    $("modGrande").classList.remove("zoom"); $("modZoom").setAttribute("aria-pressed", "false"); $("modZoom").textContent = "Ingrandisci";
+    $("modGrande").hidden = false; document.body.classList.add("inModGrande"); disegnaModGrande(); $("modGrande").focus();
+  }
+  function chiudiModGrande() { if ($("modGrande").hidden) return; $("modGrande").hidden = true; document.body.classList.remove("inModGrande"); if (mg.da && mg.da.focus) mg.da.focus(); }
+  $("bModGrande").addEventListener("click", apriModGrande);
+  $("modEsci").addEventListener("click", chiudiModGrande);
+  $("modPrima").addEventListener("click", () => { mg.i--; disegnaModGrande(); });
+  $("modDopo").addEventListener("click", () => { mg.i++; disegnaModGrande(); });
+  $("modZoom").addEventListener("click", () => { const z = !$("modGrande").classList.contains("zoom"); $("modGrande").classList.toggle("zoom", z); $("modZoom").setAttribute("aria-pressed", String(z)); $("modZoom").textContent = z ? "Adatta allo schermo" : "Ingrandisci"; });
+  $("modGrande").addEventListener("keydown", e => {
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); chiudiModGrande(); }
+    else if (e.key === "ArrowRight" && !$("modDopo").disabled) { e.preventDefault(); mg.i++; disegnaModGrande(); }
+    else if (e.key === "ArrowLeft" && !$("modPrima").disabled) { e.preventDefault(); mg.i--; disegnaModGrande(); }
+    else if (e.key === "Tab") { const el = [...$("modGrande").querySelectorAll("button:not([disabled])")]; if (!el.length) return; const i = el.indexOf(document.activeElement); e.preventDefault(); el[(i + (e.shiftKey ? el.length - 1 : 1) + el.length) % el.length].focus(); }
+  });
+  $("modGrande").addEventListener("pointerdown", e => { if (!e.target.closest("button")) setTimeout(() => $("modGrande").focus({ preventScroll: true }), 0); });
   function stampa(html) { $("stampa").innerHTML = html; setTimeout(() => { print(); }, 50); }
   $("bStampaModello").addEventListener("click", () => { const r = cur && cur.stampa; if (!r) return; const testo = `${nomeForma(S.shape)} · scala 1:${r.scala}`; stampa(r.pagine.map((pg, i) => `<div class="pagina">${foglioSVG(cur, r, pg, i + 1, r.pagine.length, testo)}</div>`).join("")); });
 
@@ -2443,7 +2487,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   });
   $("cerca").addEventListener("mousedown", e => { if (e.target === $("cerca")) { chiudiCerca(); return; } if (!e.target.closest("input, li[data-i]")) { e.preventDefault(); $("cercaIn").focus(); } });   // il fuoco resta nella casella
   document.addEventListener("keydown", e => {
-    if (e.defaultPrevented || !$("site").hidden || tuttaAperta()) return;   // nel cantiere e nell'Abbofficina completa i tasti servono a loro
+    if (e.defaultPrevented || !$("site").hidden || tuttaAperta() || !$("modGrande").hidden) return;   // nel cantiere, nell'Abbofficina completa e nel modellino a schermo intero i tasti servono a loro
     const scrive = e.target.closest && e.target.closest("input, textarea, select, [contenteditable='true']");
     if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey) && !e.altKey) { e.preventDefault(); if ($("cerca").hidden) apriCerca(); else chiudiCerca(); }
     else if (e.key === "/" && !scrive && !e.metaKey && !e.ctrlKey && !e.altKey && $("cerca").hidden) { e.preventDefault(); apriCerca(); }

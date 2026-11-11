@@ -231,3 +231,13 @@ Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
 - **Le forme della galleria non sono più a fil di ferro:** sono piene come nella semplice, con le facce in luce e in ombra e i bordi chiari.
 - **Ogni tipo di pezzo ha un tono di rosso diverso** (`ROSSI`, otto toni), così la forma si legge subito e si vede quanti pezzi diversi ha.
 - È l'opzione `rossi` di `disegna`, usata solo per le tessere.
+
+## Blocco H · Il cartamodello a schermo intero
+
+- **«⤢ Schermo intero»**, accanto a «Stampa il cartamodello», apre i fogli del cartamodello in grande (`#modGrande`), uno alla volta.
+- **In alto:**
+  - «Foglio 1 di 6 · scala 1:20»;
+  - ‹ › per i fogli, anche con le frecce della tastiera;
+  - «Ingrandisci» / «Adatta allo schermo», per vedere i numeri dei bordi da vicino e scorrere il foglio;
+  - «✕ Esci», anche con Esc.
+- **Il foglio intero sta nello schermo**, sul computer e sul telefono. Il fuoco resta dentro e, uscendo, torna sul pulsante. Mentre è aperto, Ctrl+K e / non aprono la ricerca.
