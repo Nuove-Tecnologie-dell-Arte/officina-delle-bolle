@@ -216,3 +216,12 @@ Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
 - **Cambiando appoggio o taglio la grandezza resta la stessa** (stessa scala): cambiano solo le proporzioni del nuovo appoggio.
 - **Seguono la scelta:** Schema, simulatore (la bolla si rigonfia), dime, modellino e montaggio. Le spunte ripartono, perché i pezzi cambiano.
 - **Nel simulatore una bolla intera è chiusa:** niente ingresso e niente porte (`chiusa` nel messaggio alla vetrina).
+
+## Blocco F · La scala del modellino
+
+- **Ogni bolla ha la sua scala** (`S.scala`, `scalaDi(b)`), 1:20 all'inizio. Prima la sceglieva la pagina da sola. Si salva con il progetto e nel file.
+- **In «Altre opzioni» → «Il modellino di carta»:**
+  - la casella «Scala del modellino (1 : …)», con la frase che la spiega e quanto viene alto il modellino;
+  - **«Trova la scala dal modellino»**: si sceglie che cosa si è misurato (altezza, larghezza o profondità) e quanti cm misura sul modellino di carta. «Usa questa scala» fa misura vera ÷ misura sul modellino.
+- **La stessa scala vale** per i fogli del cartamodello, la stampa, le dime in Modellino, il cantiere e il controllo del modellino nel verdetto.
+- **Se a quella scala un pezzo non sta su un foglio A4**, la tappa Dima / Modellino lo dice e suggerisce la prima scala che va bene (con `sceltaScala`, la scelta automatica di prima).

@@ -141,6 +141,7 @@ body.trascina iframe { pointer-events: none; }
 .campiXYZ { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
 .campiXYZ input { font: 600 1.15rem var(--mono); }
 .appoggio { margin-top: 10px; }
+.scalaBox { margin-top: 14px; display: grid; gap: 8px; } .trovaScala > summary { cursor: pointer; font-weight: 700; padding: 4px 0; } .trovaScala[open] { display: grid; gap: 8px; }
 .misRiga { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; } .misRiga .hint { flex: 1 1 260px; margin: 0; }
 #rqMisure .field.attivo label { color: var(--rosso, var(--green)); font-weight: 700; }
 .schemaNota b { color: var(--ink); }
@@ -860,7 +861,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     return dim;
   }
   function giudica(m, p) {   // il giudizio del motore, più l'area di lavoro
-    const g = giudizioForma(m, p, { scala: m.stampa ? m.stampa.scala : 20, id: m.id });
+    const g = giudizioForma(m, p, { scala: m.stampa ? m.stampa.scala : scalaDi(S), id: m.id });   // [Unita] la scala scelta
     if (haArea()) {
       const AR = S.area, e = entra({ x: m.W, y: m.D, z: m.H });
       const tA = AR.stanza ? `alto ${fmt(AR.z, 2)} m` : ["x", "y", "z"].map(a => AR[a] > 0 ? fmt(AR[a], 2) : "∞").join(" × ") + " m";
@@ -888,7 +889,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       catch (e) { curErr = e.message || "Con queste misure la forma non si può costruire."; }
     }
     if (cur) {
-      if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = sceltaScala(cur); }
+      if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = impagina(cur, scalaDi(S)); if (!cur.stampa) { const r = sceltaScala(cur); cur.scalaBuona = r ? r.scala : null; } }   // [Unita] la scala scelta, 1:20 all'inizio
       cur.g = giudica(cur, S.base);
       const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim) + (S.opt ? "|" + JSON.stringify(S.opt) : "");
       if (k !== curKey) giuntaQui = null;
@@ -1581,6 +1582,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     else h += `<label class="check"><input type="checkbox" id="cut"${o.cut ? " checked" : ""}> <span>Fondo piatto: un lato del tubo appoggiato a terra</span></label>`;
     return h ? `<div class="appoggio"><h3 style="margin-bottom:8px">Appoggio e pavimento</h3><div class="opzioni">${h}</div></div>` : "";
   }
+  function cambiaScala(v) {   // [Unita] la stessa scala per modellino, dime in Modellino, stampa e cantiere
+    S.scala = v; salva(); aggiornaBolla(); costruisciMisure(); rendiRisultato(); fondo();
+  }
   function cambiaAppoggio(nuovo) {   // la forma cambia appoggio o taglio: la grandezza resta (stessa scala), cambiano le proporzioni del nuovo appoggio
     ricorda("appoggio");
     const prima = base(S.shape, S.base, optDi(S)), k = S.dim && prima.w > 0 ? S.dim.x / prima.w : 1;
@@ -1607,7 +1611,16 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     altre.innerHTML = `${tec.length ? `<p class="hint">Dettagli tecnici della forma: lati, spicchi, segmenti.</p><div class="opzioni" id="paramsTec">${tec.map(campoOpz).join("")}</div>` : `<p class="hint">Per questa forma non ci sono altre opzioni.</p>`}
       ${S.shape === "custom" ? `<div class="btnrow"><button type="button" class="btn" id="bRidisegna">✎ Ridisegna la pianta</button></div>` : ""}
       ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}
-      ${appoggioHtml()}`;
+      ${appoggioHtml()}
+      <div class="scalaBox"><h3 style="margin-bottom:8px">Il modellino di carta</h3>
+        <div class="opzioni"><div class="field"><label for="scalaMod">Scala del modellino (1 : …)</label><input type="number" id="scalaMod" min="1" max="1000" step="1" inputmode="numeric" value="${scalaDi(S)}"></div></div>
+        <p class="hint">1:${scalaDi(S)} vuol dire che 1 cm del modellino è ${scalaDi(S)} cm della bolla vera: il modellino è alto ${cm(S.dim.z / scalaDi(S))}.</p>
+        <details class="trovaScala"><summary>Trova la scala dal modellino</summary>
+          <p class="hint">Hai già un modellino? Misuralo: il sito ricava la scala.</p>
+          <div class="opzioni"><div class="field"><label for="trovaMisura">Che cosa hai misurato</label><select id="trovaMisura">${ASSI.map(([a, , nome]) => `<option value="${a}">${nome[0].toUpperCase() + nome.slice(1)} (vera: ${metri(S.dim[a])})</option>`).join("")}</select></div>
+            <div class="field"><label for="trovaCm">Sul modellino (cm)</label><input type="number" id="trovaCm" min="0.5" max="200" step="0.1" inputmode="decimal"></div></div>
+          <div class="btnrow"><button type="button" class="btn" id="bTrovaScala">Usa questa scala</button><span class="hint" id="trovaEsito"></span></div>
+        </details></div>`;
     aggiornaCampi(); mostraScheda(schedaMis);
   }
   /* [Unita] Annulla sulle misure: un passo alla volta, per la bolla scelta (anche Ctrl+Z fuori dai campi) */
@@ -1723,6 +1736,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     box.addEventListener("change", e => {
       const el = e.target;
       if (el.dataset.a) aggiornaCampi();   // uscendo dalla casella torna il valore buono
+      if (el.id === "scalaMod") { const v = Math.round(parseFloat(el.value)); if (v >= 1 && v <= 1000) cambiaScala(v); else el.value = scalaDi(S); return; }   // [Unita] la scala del modellino
       if (el.id === "cut") { cambiaAppoggio({ cut: el.checked }); return; }   // [Unita] appoggio e taglio
       if (el.id === "orient") { cambiaAppoggio({ orient: el.value, level: null }); return; }
       if (el.id === "level") { cambiaAppoggio({ level: +el.value }); return; }
@@ -1733,6 +1747,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       if (e.target.closest("#bRitocca2")) ImmagineBolla.riapri(opzFoto);
       const v = e.target.closest("[data-sc-vai]"); if (v) mostraScheda(v.dataset.scVai);
       if (e.target.closest("#bAnnullaMis")) annullaMis();
+      if (e.target.closest("#bTrovaScala")) {   // [Unita] dalla misura sul modellino: scala = misura vera / misura sul modellino
+        const a = $("trovaMisura").value, c = parseFloat(String($("trovaCm").value).replace(",", "."));
+        if (!(c > 0) || !S.dim) { $("trovaEsito").textContent = "Scrivi quanti cm misura sul modellino."; return; }
+        const v = Math.round(S.dim[a] * 100 / c); if (!(v >= 1 && v <= 1000)) { $("trovaEsito").textContent = "Con questa misura la scala non torna: ricontrolla."; return; }
+        cambiaScala(v); const t = $("trovaEsito"); if (t) t.textContent = `Scala 1:${v}.`;
+      }
     });
   })();
 
@@ -1993,6 +2013,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     return { scala, pagine, isole, gruppo };
   }
+  const scalaDi = (b) => (b && b.scala >= 1 && b.scala <= 1000 ? Math.round(b.scala) : 20);   // [Unita] la scala del modellino di una bolla
   function sceltaScala(m) {
     const SC = [10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200], lmin = Math.min(...m.an.types.flatMap(t => t.C.map((p, i) => len2(sub2(t.C[(i + 1) % t.C.length], p)))));
     let primo = null;
@@ -2033,7 +2054,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function rendiModellino() {
     if (!cur) return;
     const r = cur.stampa;
-    if (!r) { $("modelloRiass").textContent = "Questa forma ha pezzi troppo grandi per stare su un foglio A4, anche in piccolo: torna alla progettazione e falla più piccola."; $("fogli").innerHTML = ""; return; }
+    if (!r) { $("modelloRiass").textContent = cur.scalaBuona ? `A scala 1:${scalaDi(S)} alcuni pezzi non stanno su un foglio A4: scegli una scala più piccola, per esempio 1:${cur.scalaBuona} (Progettazione → Misure della bolla → Altre opzioni).` : "Questa forma ha pezzi troppo grandi per stare su un foglio A4, anche in piccolo: torna alla progettazione e falla più piccola."; $("fogli").innerHTML = ""; return; }
     const testo = `${nomeForma(S.shape)} · scala 1:${r.scala}`;
     $("modelloRiass").innerHTML = `<b>Scala 1:${r.scala}</b> (<button class="gl" data-g="scala">che cosa vuol dire</button>): il modellino è alto <b class="num">${cm(cur.H / r.scala)}</b>. Servono <b>${plural(r.pagine.length, "foglio A4", "fogli A4")}</b>, meglio se di cartoncino leggero.`;
     $("fogliTit").textContent = `L'anteprima dei fogli (${plural(r.pagine.length, "foglio", "fogli")}): linea nera = taglio, tratteggio verde = piega, numeri rossi = bordi da chiudere con lo scotch.`;
@@ -2287,7 +2308,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     P.bolle = (P.bolle || []).filter(b => b && typeof b === "object").map((b, i) => { let id = intero(b.id); if (!id || vistiB.has(id)) id = 1000 + i; vistiB.add(id);
       const dimOk = b.dim && ["x", "y", "z"].every(k => Number.isFinite(+b.dim[k]) && +b.dim[k] > 0);
       const opt = b.opt && typeof b.opt === "object" ? { cut: typeof b.opt.cut === "boolean" ? b.opt.cut : undefined, orient: typeof b.opt.orient === "string" ? b.opt.orient.slice(0, 40) : undefined, level: Number.isInteger(b.opt.level) ? b.opt.level : undefined } : null;
-      return sistemaBolla(Object.assign({}, b, { opt, id, dim: dimOk ? { x: +b.dim.x, y: +b.dim.y, z: +b.dim.z } : null, pos: posto(b.pos), areaId: intero(b.areaId), t: Math.max(0, Math.min(TAPPE.length - 1, b.t | 0)), max: Math.max(0, Math.min(TAPPE.length - 1, b.max | 0)), fatte: b.fatte && typeof b.fatte === "object" ? b.fatte : {} })); });
+      return sistemaBolla(Object.assign({}, b, { scala: Number.isFinite(+b.scala) && +b.scala >= 1 && +b.scala <= 1000 ? Math.round(+b.scala) : undefined, opt, id, dim: dimOk ? { x: +b.dim.x, y: +b.dim.y, z: +b.dim.z } : null, pos: posto(b.pos), areaId: intero(b.areaId), t: Math.max(0, Math.min(TAPPE.length - 1, b.t | 0)), max: Math.max(0, Math.min(TAPPE.length - 1, b.max | 0)), fatte: b.fatte && typeof b.fatte === "object" ? b.fatte : {} })); });
     if (!P.bolle.length) P.bolle = [sistemaBolla(Object.assign(bollaVuota(1), { t: 0, max: 0 }))];
     P.prossimo = Math.max(P.prossimo || 0, ...P.bolle.map(b => b.id + 1));
     P.att = Math.max(0, Math.min(P.bolle.length - 1, P.att | 0));
