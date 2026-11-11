@@ -156,3 +156,23 @@ Dopo la prova sono cambiate cinque cose:
   - 4 forme per cominciare (Icosaedro, Cubo, Sfera geodetica, Icosaedro troncato, `FORME_PRIMA`);
   - poi «Altre forme (24)», che si apre (`#altreForme`, aperta da sola se la forma scelta è lì, anche riaprendo la pagina);
   - poi «Parti da un'immagine».
+
+## Blocco B · Riquadro «Misure bolla» con lo Schema
+
+- **A destra c'è solo il simulatore**, senza linguette (il titolo «Simulatore» resta). Lo Schema è nella pagina, così si vedono insieme:
+  - nella Progettazione sta in cima a «Misure della bolla» (`#slotProg`);
+  - nella Costruzione sta sotto la giunzione e mostra la bolla che cresce (`#slotCostr`).
+
+  Lo Schema è un riquadro solo, `#schemaBox`, che `posaSchema()` sposta da un posto all'altro. Il tocco su un pannello funziona in tutti e due i posti. Sotto lo Schema c'è la sua nota; quella del simulatore resta sotto il simulatore.
+- **Le frecce X, Y, Z nello Schema**, con le misure (`o.assi` in `disegna`, `cv._assi`):
+  - X (larghezza, rossa) sul lato davanti;
+  - Y (profondità, verde) sul lato più lontano dal centro, così non attraversa la bolla. Il lato si sceglie a ogni rotazione;
+  - Z (altezza, blu) in verticale a sinistra, come una quota.
+- **Tre schede sotto lo Schema**, come nella semplice (`mostraScheda`, ricordata in `bolle|scheda`):
+  - **Misure:** tre caselle Larghezza, Profondità, Altezza al posto dei cursori. Nelle figure regolari (icosaedro, cubo, sfere, dodecaedro, icosaedro troncato) se ne scrive una e le altre due seguono, così i pezzi restano uguali. Nelle altre ogni misura è libera, e la forma si allunga con i pannelli piatti. Sotto ci sono le opzioni e le misure tipiche in %.
+  - **Numeri:** il verdetto con Risolvi, altezza, larghezza e profondità, e i controlli.
+  - **Altre opzioni:** le misure tecniche, «Ridisegna la pianta» e «Ritocca l'immagine».
+- **Sotto le schede, sempre in vista, il verdetto in breve:** «✓ Si può fare · alta 3,03 m», con «Perché? Numeri ›».
+- **«Mantieni le proporzioni» non c'è più:** decide la forma (`regolare`). Nelle figure regolari Risolvi non cambia le proporzioni.
+- **I nomi delle misure sono quelli della semplice:** X larghezza, Y profondità, Z altezza, anche per l'area di lavoro e nei Numeri.
+- **La ricerca:** evidenziando un campo apre la sua scheda. «Mantieni le proporzioni» non si cerca più.

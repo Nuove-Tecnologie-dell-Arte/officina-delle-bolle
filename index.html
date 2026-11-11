@@ -107,10 +107,6 @@ body.trascina iframe { pointer-events: none; }
 .sim-stato { padding-bottom: 6px; }
 .sim-testa h2 { font-size: 1.15rem; letter-spacing: .02em; }
 /* la finestra con due linguette: Simulatore (l'Abbofficina) e Schema (il disegno 3D dei pezzi) */
-.sim-linguette { display: flex; gap: 4px; align-items: flex-end; }
-.sim-linguette button { font: 700 .95rem var(--display); color: var(--muted); background: var(--mat); border: 0; border-radius: 10px 10px 0 0; padding: 8px 16px 7px; cursor: pointer; min-height: 38px; }
-.sim-linguette button[aria-selected="true"] { background: var(--card); color: var(--green); box-shadow: 0 -1px 0 var(--rule) inset; }
-.sim-linguette button small { font: 500 .7rem var(--body); color: var(--muted); margin-left: 4px; }
 .sim-stato { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: .86rem; }
 .sim-stato .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--rule); font-weight: 600; white-space: nowrap; }
 .sim-stato .pill i { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .72rem; color: var(--card); background: var(--muted); }
@@ -132,6 +128,23 @@ body.trascina iframe { pointer-events: none; }
   .sim-nota { min-width: 0 !important; }   /* [Unita] sul telefono la nota va a capo invece di allargare la pagina */
 }
 .riduci { display: none; }
+/* [Unita] lo Schema nella pagina, le schede delle misure, il verdetto in breve */
+.sim-titolo { font: 400 1.6rem/1 var(--display, inherit); color: var(--rosso, var(--green)); letter-spacing: .03em; padding: 6px 2px 4px; }
+.schemaBox { position: relative; display: grid; gap: 4px; }
+.schemaBox canvas { width: 100%; aspect-ratio: 4 / 3; max-height: 62vh; display: block; cursor: grab; touch-action: none; background: rgba(255, 255, 255, .38); border-radius: 4px; }
+.schemaNota { font-size: .82rem; }
+#slotCostr .schemaBox { margin-top: 14px; }
+.schede3 { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 2px solid rgba(20, 20, 20, .12); }
+.schede3 button { font: 400 1.2rem/1 var(--display, inherit); letter-spacing: .04em; color: #575550; background: var(--scheda-off, #dcdad6); border: 0; padding: 9px 18px 7px; cursor: pointer; }
+.schede3 button[aria-selected="true"] { background: var(--rosso, var(--green)); color: #fff; }
+.campiXYZ { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
+.campiXYZ input { font: 600 1.15rem var(--mono); }
+.verdettoBreve { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; padding: 8px 12px; border-radius: 4px; background: rgba(255, 255, 255, .55); font-size: 1rem; }
+.verdettoBreve:empty { display: none; }
+.verdettoBreve i { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 800 .8rem var(--body); font-style: normal; color: #fff; background: var(--muted); flex: none; }
+.verdettoBreve.ok i { background: var(--ok, var(--green)); } .verdettoBreve.mid i { background: var(--amber); } .verdettoBreve.ko i { background: var(--cut); }
+.verdettoBreve b { font: 400 1.35rem/1 var(--display, inherit); letter-spacing: .03em; }
+.verdettoBreve button { margin-left: auto; background: none; border: 0; color: var(--rosso, var(--green)); font: 700 .92rem var(--body); cursor: pointer; padding: 4px 2px; }
 /* [Unita] la ricerca e il riquadro dei file */
 .cercaBtn { display: inline-flex; align-items: center; gap: 6px; }
 @media (max-width: 700px) { .cercaBtn span { display: none; } }
@@ -260,15 +273,7 @@ h3.sotto { font: 400 1.6rem/1 var(--display, inherit); letter-spacing: .03em; }
 .dafoto.sopra { border-style: solid; background: color-mix(in srgb, var(--green) 14%, var(--card)); }
 .dafoto .ico { width: 46px; height: 46px; border-radius: 12px; background: var(--green); color: var(--card); display: grid; place-items: center; }
 .dafoto .btnrow { grid-column: 1 / -1; }
-/* le misure: tre cursori verticali X, Y, Z */
-.cursori { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; justify-items: center; }
-.vcursore { display: grid; gap: 10px; justify-items: center; width: 100%; max-width: 130px; }
-.vcursore .asse { font: 800 2.2rem/1 var(--display); color: var(--green); }
-.vslider { position: relative; width: 46px; height: 230px; border-radius: 999px; background: color-mix(in srgb, var(--green) 14%, var(--paper)); border: 1px solid var(--rule); cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; }
-.vslider .riemp { position: absolute; left: -1px; right: -1px; bottom: -1px; border-radius: 999px; background: var(--green); }
-.vslider:focus-visible { outline-offset: 4px; }
-.vcursore input { text-align: center; font: 600 1rem var(--mono); padding: 7px 4px; }
-.vcursore small { font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+/* le misure: Larghezza, Profondità, Altezza */
 .opzioni { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .altreOpz { margin-top: 4px; } .altreOpz > summary { cursor: pointer; font-weight: 700; padding: 6px 0; } .altreOpz > .opzioni { margin-top: 8px; }   /* [Unita] */
 .vuoto { display: grid; place-items: center; text-align: center; color: var(--muted); min-height: 300px; padding: 20px; }
@@ -485,13 +490,19 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     </div>
     <div class="pannello lastra nastrato tratteggio" id="rqMisure"><!-- [Unita] le misure, sempre in vista sotto la galleria -->
       <h3 class="sotto">Misure della bolla</h3>
-      <div id="pMisure"></div>
-    </div>
-    <div class="risultato">
-      <div class="dati" id="dati"></div>
-      <div class="verdetto" id="verdetto" aria-live="polite" hidden></div>
-      <div class="esito" id="esito" hidden></div>
-      <details class="controlli" id="controlli" hidden><summary>Che cosa abbiamo controllato</summary><ul class="voci" id="voci"></ul></details>
+      <div class="slotSchema" id="slotProg"><div class="schemaBox" id="schemaBox"><canvas id="cvSchema" aria-label="Lo schema della bolla in 3D: i pezzi colorati per dima, con le frecce X, Y, Z. Trascina per girarla."></canvas><p class="hint schemaNota" id="schemaNota"></p></div></div>
+      <div class="schede3" role="tablist" aria-label="Misure, numeri e altre opzioni"><button type="button" role="tab" id="scMisure" data-sc="misure" aria-controls="pMisure" aria-selected="true">Misure</button><button type="button" role="tab" id="scNumeri" data-sc="numeri" aria-controls="pNumeri" aria-selected="false">Numeri</button><button type="button" role="tab" id="scAltre" data-sc="altre" aria-controls="pAltre" aria-selected="false">Altre opzioni</button></div>
+      <div id="pMisure" role="tabpanel" data-scp="misure" aria-labelledby="scMisure"></div>
+      <div id="pNumeri" role="tabpanel" data-scp="numeri" aria-labelledby="scNumeri" hidden>
+        <div class="risultato">
+          <div class="dati" id="dati"></div>
+          <div class="verdetto" id="verdetto" aria-live="polite" hidden></div>
+          <div class="esito" id="esito" hidden></div>
+          <details class="controlli" id="controlli" hidden><summary>Che cosa abbiamo controllato</summary><ul class="voci" id="voci"></ul></details>
+        </div>
+      </div>
+      <div id="pAltre" role="tabpanel" data-scp="altre" aria-labelledby="scAltre" hidden></div>
+      <p class="verdettoBreve" id="verdettoBreve" aria-live="polite"></p>
     </div>
   </div>
 
@@ -562,6 +573,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <header class="titolone"><span class="occhiello">Tappa 3 · Costruzione</span><h2>Il montaggio</h2><p>Una giunzione alla volta: prima il pavimento, poi dal basso verso l'alto.</p></header>
     <div class="btnrow cantiereRiga"><button type="button" class="btn primary" id="cantiereGiunte">Modalità cantiere</button><span class="hint">A schermo intero, una giunzione alla volta: per il telefono mentre si monta. F segna «Fatta».</span></div><!-- [Unita] -->
     <div class="card giunta nastrato" id="giunta"></div>
+    <div class="slotSchema" id="slotCostr"></div><!-- [Unita] lo Schema arriva qui nella Costruzione -->
     <p class="hint" style="text-align:center">Nello <b>Schema</b>, a destra, vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
     <div class="box-info"><b>La porta</b><span id="porta"></span></div>
   </div>
@@ -594,19 +606,15 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
 <button type="button" class="divisore" id="divisore" role="separator" aria-orientation="vertical" aria-label="Allarga o stringi il simulatore (trascina, o usa le frecce)" title="Trascina per allargare o stringere il simulatore · doppio clic: metà e metà"><span></span></button>
 
-<aside class="simpane" id="simpane" aria-label="Simulatore e schema">
+<aside class="simpane" id="simpane" aria-label="Simulatore">
   <div class="sim-testa">
-    <div class="sim-linguette" role="tablist" aria-label="Simulatore e schema">
-      <button type="button" role="tab" id="tabSim" aria-controls="simScena" aria-selected="true">Simulatore</button>
-      <button type="button" role="tab" id="tabSchema" aria-controls="simScena" aria-selected="false">Schema</button>
-    </div>
+    <h2 class="sim-titolo" id="tabSim">Simulatore</h2><!-- [Unita] lo Schema è nella pagina -->
     <div class="sim-stato" id="simStato"></div>
     <button type="button" class="btn simGrande" id="simGrande" title="Apri l'Abbofficina completa, a tutto schermo, sulla bolla scelta: aria, materiali, dati" aria-label="Apri l'Abbofficina completa a tutto schermo">↗</button><!-- [Unita] -->
     <button type="button" class="btn riduci" id="bRiduci" aria-expanded="true">Riduci</button>
   </div>
   <div class="sim-scena" id="simScena" role="tabpanel">
     <iframe id="vetrina" title="Il simulatore: la bolla nell'Abbofficina, con i gonfiatori e le persone" src="configuratore/index.html?vetrina=1" loading="eager"></iframe>
-    <canvas id="cvSchema" hidden aria-label="Lo schema della bolla in 3D: i pezzi colorati per dima. Trascina per girarla."></canvas>
     <div class="sim-vuoto" id="simVuoto"><p>Scegli una forma nella tappa Progettazione: qui la vedi gonfiarsi, alla sua grandezza vera.</p></div>
     <div class="sim-vuoto sim-guasto" id="simGuasto" hidden><div><p id="simGuastoTesto"></p><button type="button" class="btn primary" id="bRiprovaSim">Riprova</button></div></div>
   </div>
@@ -885,6 +893,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const zc = (box && box.z ? Math.max(Ht, box.z) : Ht) / 2;
     let rad = Math.max(...V.map(v => Math.hypot(v[0] - mx, v[1] - my, v[2] - zc))) || 1;
     if (box) box.p.forEach(p => { rad = Math.max(rad, Math.hypot(p[0] - mx, p[1] - my, (box.z || Ht) - zc), Math.hypot(p[0] - mx, p[1] - my, zc)); });
+    if (o.assi) rad *= 1.22;   // [Unita] posto per le frecce
     const pers = o.persona ? 1.3 : 0;
     const sc = Math.min(W, H) / (2 * 1.1 * (rad + pers * 0.6)), yaw = o.yaw != null ? o.yaw : 0.6, pitch = o.pitch != null ? o.pitch : 0.38;
     const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), ox = W / 2 - (o.persona ? pers * 0.4 * sc : 0), oy = H / 2;
@@ -930,6 +939,24 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       ctx.fillRect(px - w * 0.42, terra - h * 0.5 + w * 0.6, w * 0.34, h * 0.5 - w * 0.6); ctx.fillRect(px + w * 0.08, terra - h * 0.5 + w * 0.6, w * 0.34, h * 0.5 - w * 0.6);
       ctx.restore();
     }
+    cv._assi = null;
+    if (o.assi) {   // [Unita] le frecce X (larghezza), Y (profondità), Z (altezza), con le misure
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), dd = Math.max(x1 - x0, y1 - y0, Ht) * 0.12;
+      const P = (p) => S2(T(p));
+      const freccia = (A, B, col, testo, schermo) => {
+        const a = schermo ? A : P(A), b = schermo ? B : P(B); ctx.save(); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2.2 * dpr; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+        for (const [p, q] of [[a, b], [b, a]]) { const an = Math.atan2(p[1] - q[1], p[0] - q[0]), L = 10 * dpr; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] - L * Math.cos(an - 0.42), p[1] - L * Math.sin(an - 0.42)); ctx.lineTo(p[0] - L * Math.cos(an + 0.42), p[1] - L * Math.sin(an + 0.42)); ctx.closePath(); ctx.fill(); }
+        const mm = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; ctx.font = `700 ${13 * dpr}px IBM Plex Mono, monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        const w = ctx.measureText(testo).width + 12 * dpr; ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.fillRect(mm[0] - w / 2, mm[1] - 10 * dpr, w, 20 * dpr); ctx.fillStyle = col; ctx.fillText(testo, mm[0], mm[1]); ctx.restore();
+        return testo;
+      };
+      cv._assi = [
+        // X sul lato davanti (più in basso sullo schermo), Y sul lato più lontano dal centro: così non attraversano la bolla
+        { a: "x", testo: (() => { const yx = [y0 - dd, y1 + dd].sort((u, w) => P([(x0 + x1) / 2, w, 0])[1] - P([(x0 + x1) / 2, u, 0])[1])[0]; return freccia([x0, yx, 0], [x1, yx, 0], "#e3101e", `X ${metri(x1 - x0)}`); })() },
+        { a: "y", testo: (() => { const xy = [x0 - dd, x1 + dd].sort((u, w) => Math.abs(P([w, (y0 + y1) / 2, 0])[0] - ox) - Math.abs(P([u, (y0 + y1) / 2, 0])[0] - ox))[0]; return freccia([xy, y0, 0], [xy, y1, 0], "#2f8a68", `Y ${metri(y1 - y0)}`); })() },
+        { a: "z", testo: (() => { const qx = ox + Math.min(...tv.map(q => q[0])) * sc - 30 * dpr; return freccia([qx, terra], [qx, terra - Ht * cp * sc], "#3b6fb6", `Z ${metri(Ht)}`, true); })() },   // in verticale a sinistra: l'altezza vera, come una quota
+      ];
+    }
     if (o.quote) {
       const left = Math.min(...tv.map(q => q[0])), qx = ox + left * sc - 18 * dpr, top = terra - Ht * cp * sc;
       ctx.save(); ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.lineWidth = 1.2 * dpr;
@@ -965,7 +992,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function toccoSchema(e) {
     const cv = $("cvSchema"), fi = cur ? faccia(cv, e) : null; if (fi == null) { chiudiPezzo(); return; }
     const t = cur.an.faceInfo[fi].type; if (pzT === t) { vaiAllaDima(t); return; }
-    let c = $("pzCard"); if (!c) { c = document.createElement("div"); c.id = "pzCard"; c.className = "pzCard"; c.setAttribute("role", "group"); c.setAttribute("aria-label", "Misure del pezzo"); $("simScena").appendChild(c); }
+    let c = $("pzCard"); if (!c) { c = document.createElement("div"); c.id = "pzCard"; c.className = "pzCard"; c.setAttribute("role", "group"); c.setAttribute("aria-label", "Misure del pezzo"); $("schemaBox").appendChild(c); }
     const T = cur.an.types[t], colore = T8[t % 8]; pzT = t;
     c.style.setProperty("--c", colore);
     c.innerHTML = `<div class="pzTesta"><i></i><b>${nomeDima(t)} <span class="hint">× ${T.faces.length}</span></b><button type="button" class="pzX" aria-label="Chiudi">×</button></div>
@@ -973,7 +1000,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       <div class="pzPiede"><button type="button" class="btn primary pzVai">Vai alla dima ›</button><span class="hint">o toccalo di nuovo</span></div>`;
     c.querySelector(".pzX").addEventListener("click", chiudiPezzo);
     c.querySelector(".pzVai").addEventListener("click", () => vaiAllaDima(t));
-    const box = $("simScena").getBoundingClientRect(); c.hidden = false; c.style.left = (e.clientX - box.left > box.width / 2 ? 10 : Math.max(10, box.width - c.offsetWidth - 10)) + "px";
+    const box = $("schemaBox").getBoundingClientRect(); c.hidden = false; c.style.left = (e.clientX - box.left > box.width / 2 ? 10 : Math.max(10, box.width - c.offsetWidth - 10)) + "px";
   }
   { let da = null; const cv = $("cvSchema");
     cv.addEventListener("pointerdown", e => { da = [e.clientX, e.clientY]; });
@@ -1041,24 +1068,17 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
      Se l'Abbofficina non risponde (niente internet per three.js), resta lo Schema. */
   let vetrinaMorta = false, tabScelta = "sim", fuoriAree = [], guastoTesto = "";
   try { if (localStorage.getItem("bolle|simTab") === "schema") tabScelta = "schema"; } catch (e) { /* */ }
-  const schemaVisibile = () => !$("cvSchema").hidden;
-  function mostraTab(t, scelta) {
-    if (scelta) { tabScelta = t; try { localStorage.setItem("bolle|simTab", t); } catch (e) { /* */ } }
-    // se il simulatore non è partito si apre lo Schema; toccando «Simulatore» si legge perché, con «Riprova»
-    const schema = t === "schema" || (vetrinaMorta && !scelta && !guastoTesto);
-    $("tabSim").setAttribute("aria-selected", String(!schema)); $("tabSchema").setAttribute("aria-selected", String(schema));
-    fr.hidden = schema; $("cvSchema").hidden = !schema; $("scenarioBox").hidden = schema;   // lo scenario è del simulatore
-    $("simGuasto").hidden = schema || !guastoTesto;
+  const schemaVisibile = () => !!$("cvSchema").offsetParent;   // [Unita] lo Schema è nella pagina: si vede nella Progettazione e nella Costruzione
+  function mostraTab() {   // [Unita] a destra solo il simulatore (se non parte, il motivo e «Riprova»)
+    fr.hidden = false; $("scenarioBox").hidden = false; $("simGuasto").hidden = !guastoTesto;
     disegnaSchema();
   }
-  $("tabSim").addEventListener("click", () => mostraTab("sim", true));
-  $("tabSchema").addEventListener("click", () => mostraTab("schema", true));
-  $("simpane").querySelector(".sim-linguette").addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const t = schemaVisibile() ? "sim" : "schema"; mostraTab(t, true); $(t === "sim" ? "tabSim" : "tabSchema").focus(); } });
+
   // il simulatore che non parte: si dice perché, al suo posto, con «Riprova» (ricarica solo il simulatore)
   function guasto(testo, prima) {
     if (prima && guastoTesto) return;   // il primo motivo è quello vero (per esempio three.js che non arriva)
     guastoTesto = testo || ""; if (testo) $("simGuastoTesto").textContent = testo;
-    $("simGuasto").hidden = !testo || !$("cvSchema").hidden;
+    $("simGuasto").hidden = !testo;
   }
   $("bRiprovaSim").addEventListener("click", () => { guasto(""); vetrinaPronta = false; vetrinaMorta = false; $("tabSim").textContent = "Simulatore"; mostraTab(tabScelta); attesaVetrina(); fr.src = "configuratore/index.html?vetrina=1&r=" + Date.now(); });
   addEventListener("message", e => {
@@ -1092,16 +1112,22 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     return { hl: [s.p.fi, s.q.fi], lato: s.key.split("_").map(Number), fatti, montati };
   }
   const inCostruzione = () => TAPPE[S.t] && TAPPE[S.t].id === "costruzione";
+  function posaSchema() {   // [Unita] nella Progettazione sopra le misure, nella Costruzione accanto alla giunzione
+    const box = $("schemaBox"), dove = inCostruzione() ? $("slotCostr") : $("slotProg");
+    if (box.parentElement !== dove) { dove.appendChild(box); chiudiPezzo(); }
+  }
   function disegnaSchema() {
     const tante = PR.bolle.filter(conForma).length > 1;
-    const nota = !schemaVisibile() ? (tante ? "Trascina una bolla per spostarla · ⟲ ⟳ per girarla · toccala per modificarla · trascina il resto per girare la vista" : "Trascina la bolla per spostarla · ⟲ ⟳ per girarla · trascina il resto per girare la vista")
-      : (vetrinaMorta ? "Senza internet il simulatore non si carica: ecco lo schema · " : "")
-        + (inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla" : `I pezzi colorati per dima · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""} · trascina per girarla`);
     const fuori = fuoriAree.map(id => PR.bolle.findIndex(b => b.id === id)).filter(i => i >= 0).map(nomeBolla);
-    $("simNota").textContent = (fuori.length && !schemaVisibile() ? `${fuori.join(", ")} ${fuori.length > 1 ? "sono" : "è"} fuori ${stanzaInfo ? "dallo spazio dello scenario" : "dalle aree di lavoro"}: ${fuori.length > 1 ? "trascinale dentro, poi ci restano" : "trascinala dentro, poi ci resta"} · ` : "") + nota;
+    $("simNota").textContent = (fuori.length ? `${fuori.join(", ")} ${fuori.length > 1 ? "sono" : "è"} fuori ${stanzaInfo ? "dallo spazio dello scenario" : "dalle aree di lavoro"}: ${fuori.length > 1 ? "trascinale dentro, poi ci restano" : "trascinala dentro, poi ci resta"} · ` : "")
+      + (tante ? "Trascina una bolla per spostarla · ⟲ ⟳ per girarla · toccala per modificarla · trascina il resto per girare la vista" : "Trascina la bolla per spostarla · ⟲ ⟳ per girarla · trascina il resto per girare la vista");
+    posaSchema();
+    $("schemaNota").textContent = inCostruzione() ? "In colore i pezzi montati · in bianco i lati uniti · in rosso quello da fare · trascina per girarla · tocca un pannello per le sue misure"
+      : `I pezzi colorati per dima · X larghezza, Y profondità, Z altezza · la persona è alta 1,75 m${haArea() ? " · in tratteggio l'area di lavoro" : ""} · trascina per girarla · tocca un pannello per le sue misure`;
     if (!schemaVisibile()) return;
-    vista("cvSchema", () => cur && (inCostruzione() ? { m: cur, o: opzMontaggio() } : { m: cur, o: { persona: true, quote: true, area: opzArea() } }));
+    vista("cvSchema", () => cur && (inCostruzione() ? { m: cur, o: opzMontaggio() } : { m: cur, o: { persona: true, assi: true, area: opzArea() } }));
   }
+
   function simulatore() {
     $("simVuoto").hidden = !!S.shape;
     const g = cur && cur.g, icona = { ok: "✓", mid: "!", ko: "✕" };
@@ -1213,7 +1239,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   RENDI.home = () => {};
 
   /* ===================== 1 · PROGETTAZIONE ===================== */
-  const ASSI_AREA = [["x", "X", "lunghezza", 200], ["y", "Y", "larghezza", 200], ["z", "Z", "altezza", 100]];
+  const ASSI_AREA = [["x", "X", "larghezza", 200], ["y", "Y", "profondità", 200], ["z", "Z", "altezza", 100]];
   function rendiArea() {
     // con uno scenario con le pareti l'area di lavoro è la stanza: le aree tornano scegliendo «Nessuno»
     $("areaScenario").hidden = !scenarioInfo;
@@ -1417,8 +1443,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   document.addEventListener("drop", e => { $("daFoto").classList.remove("sopra"); const f = e.dataTransfer && [...e.dataTransfer.files].find(x => /^image\//.test(x.type)); if (!f || !quiForme()) return; e.preventDefault(); ImmagineBolla.carica(f, opzFoto); });
   document.addEventListener("paste", e => { if (!quiForme()) return; const it = e.clipboardData && [...e.clipboardData.items].find(x => x.kind === "file" && /^image\//.test(x.type)); if (!it) return; e.preventDefault(); ImmagineBolla.carica(it.getAsFile(), opzFoto); });
 
-  /* --- le misure: tre cursori verticali X, Y, Z e le opzioni della forma --- */
-  const ASSI = [["x", "X", "lunghezza"], ["y", "Y", "larghezza"], ["z", "Z", "altezza"]];
+  /* --- le misure: Larghezza, Profondità, Altezza (X, Y, Z) e le opzioni della forma --- */
+  const ASSI = [["x", "X", "larghezza"], ["y", "Y", "profondità"], ["z", "Z", "altezza"]];   // [Unita] come nella semplice
   const MIN = 0.5;
   /* [Unita] le misure tipiche di ogni forma (dalla prova semplice): perc = misure scritte in % di un'altra, così seguono la grandezza;
      tecnici = vanno in «Altre opzioni». Le altre lunghezze della forma non si vedono: X, Y, Z danno la grandezza. */
@@ -1447,9 +1473,19 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   };
   const percDi = (id, key) => (((SEMPLICI[id] || {}).perc) || {})[key] || null;
   const fondoScala = (a) => S.area[a] > 0 ? S.area[a] : Math.max(a === "z" ? 8 : 12, Math.ceil((S.dim ? S.dim[a] : 4) * 1.6));
+  const regolare = (id) => !!(SEMPLICI[id] && SEMPLICI[id].uno);   // [Unita] figure regolari: una misura trascina le altre, i pezzi restano uguali
+  let schedaMis = "misure"; try { schedaMis = localStorage.getItem("bolle|scheda") || "misure"; } catch (e) { /* */ }
+  if (!["misure", "numeri", "altre"].includes(schedaMis)) schedaMis = "misure";
+  function mostraScheda(t) {   // [Unita] Misure | Numeri | Altre opzioni
+    schedaMis = t; try { localStorage.setItem("bolle|scheda", t); } catch (e) { /* */ }
+    document.querySelectorAll("#rqMisure [data-sc]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.sc === t)));
+    document.querySelectorAll("#rqMisure [data-scp]").forEach(p => { p.hidden = p.dataset.scp !== t; });
+    verdettoBreve();
+  }
   function costruisciMisure() {
-    const box = $("pMisure");
-    if (!S.shape || !S.dim) { box.innerHTML = `<div class="vuoto"><div><h3>Prima scegli una forma</h3><p class="hint">Nella linguetta «Forme».</p></div></div>`; return; }
+    const box = $("pMisure"), altre = $("pAltre");
+    if (!S.shape || !S.dim) { box.innerHTML = `<div class="vuoto"><div><h3>Prima scegli una forma</h3><p class="hint">Qui sopra, in «Scegli la forma».</p></div></div>`; altre.innerHTML = ""; mostraScheda(schedaMis); return; }
+    S.lock = regolare(S.shape);
     const d = def(S.shape), vis = visibili(d, S.base), tecK = new Set((SEMPLICI[S.shape] || {}).tecnici || []);
     const tec = vis.filter(q => !lunghezza(q) && (tecK.has(q.key) || dettaglio(q))), opz = vis.filter(q => !lunghezza(q) && !tec.includes(q)), tip = vis.filter(q => lunghezza(q) && percDi(S.shape, q.key));   // [Unita]
     const campoOpz = (q) => {
@@ -1459,28 +1495,21 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     };
     const campoTip = (q) => { const [rif, nome] = percDi(S.shape, q.key), r = S.base[rif];   // [Unita] in % della misura di riferimento
       return `<div class="field"><label for="o_${q.key}">${esc(nome)}</label><input type="number" id="o_${q.key}" data-pk="${q.key}" min="1" step="1" inputmode="numeric" value="${r > 0 ? Math.round(S.base[q.key] / r * 100) : ""}"></div>`; };
-    box.innerHTML = `<div class="cursori">${ASSI.map(([a, L, nome]) => `<div class="vcursore"><span class="asse" aria-hidden="true">${L}</span>
-        <div class="vslider" role="slider" tabindex="0" data-a="${a}" aria-label="${L}: ${nome} della bolla, in metri" aria-valuemin="${MIN}"><div class="riemp"></div></div>
-        <input type="number" data-a="${a}" min="${MIN}" step="0.05" inputmode="decimal" aria-label="${L} in metri"><small>${nome} · m</small></div>`).join("")}</div>
-      <label class="check"><input type="checkbox" id="blocca"${S.lock ? " checked" : ""}> <span><b>Mantieni le proporzioni</b><br><span class="hint">Cambiando una misura cambiano anche le altre, e la forma resta la stessa (per esempio i triangoli tutti uguali dell'icosaedro). Togli la spunta per allungarla o schiacciarla.</span></span></label>
-      ${opz.length || tip.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(campoOpz).join("")}${tip.map(campoTip).join("")}</div></div>` : ""}
-      ${tec.length ? `<details class="altreOpz"><summary>Altre opzioni</summary><p class="hint">Dettagli tecnici della forma: lati, spicchi, segmenti.</p><div class="opzioni" id="paramsTec">${tec.map(campoOpz).join("")}</div></details>` : ""}
+    box.innerHTML = `<div class="campiXYZ">${ASSI.map(([a, L, nome]) => `<div class="field"><label for="m_${a}">${nome[0].toUpperCase() + nome.slice(1)} (m)</label><input type="number" id="m_${a}" data-a="${a}" min="${MIN}" max="300" step="0.01" inputmode="decimal"></div>`).join("")}</div>
+      <p class="hint">${S.lock ? "Scrivine una: le altre due seguono, così i pezzi restano tutti uguali." : "Ogni misura è libera: la forma si allunga o si schiaccia, e i pannelli restano piatti."}</p>
+      ${opz.length || tip.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(campoOpz).join("")}${tip.map(campoTip).join("")}</div></div>` : ""}`;
+    altre.innerHTML = `${tec.length ? `<p class="hint">Dettagli tecnici della forma: lati, spicchi, segmenti.</p><div class="opzioni" id="paramsTec">${tec.map(campoOpz).join("")}</div>` : `<p class="hint">Per questa forma non ci sono altre opzioni.</p>`}
       ${S.shape === "custom" ? `<div class="btnrow"><button type="button" class="btn" id="bRidisegna">✎ Ridisegna la pianta</button></div>` : ""}
       ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}`;
-    aggiornaCursori();
+    aggiornaCampi(); mostraScheda(schedaMis);
   }
-  function aggiornaCursori() {
+  function aggiornaCampi() {
     if (!S.dim) return;
-    document.querySelectorAll("#pMisure .vslider").forEach(el => {
-      const a = el.dataset.a, max = Math.max(fondoScala(a), MIN + 0.5), v = S.dim[a], p = Math.max(0, Math.min(1, (v - MIN) / (max - MIN)));
-      el.setAttribute("aria-valuemax", max); el.setAttribute("aria-valuenow", v); el.setAttribute("aria-valuetext", metri(v));
-      el.querySelector(".riemp").style.height = `calc(46px + (100% - 44px) * ${p})`;
-    });
     document.querySelectorAll("#pMisure input[data-a]").forEach(el => { if (document.activeElement !== el) el.value = +S.dim[el.dataset.a].toFixed(2); });
   }
-  function rendiMisure(soloCursori) { if (soloCursori && $("pMisure").querySelector(".vslider")) { aggiornaCursori(); return; } costruisciMisure(); }
+  function rendiMisure(solo) { if (solo && $("pMisure").querySelector("input[data-a]")) { aggiornaCampi(); return; } costruisciMisure(); }
   let tM = 0;
-  function cambiato() { S.okModello = false; salva(); clearTimeout(tM); aggiornaCursori(); tM = setTimeout(() => { aggiornaBolla(true); aggiornaCursori(); rendiRisultato(); rendiMateriali(); fondo(); testata(); }, 40); }
+  function cambiato() { S.okModello = false; salva(); clearTimeout(tM); aggiornaCampi(); tM = setTimeout(() => { aggiornaBolla(true); aggiornaCampi(); rendiRisultato(); rendiMateriali(); fondo(); testata(); }, 40); }
   function cambiaAsse(a, v) {
     if (!S.dim || !(v >= MIN)) return;
     v = Math.round(v * 100) / 100;
@@ -1489,24 +1518,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     esito = null; cambiato();
   }
   (function () {
-    const box = $("pMisure");
-    let tiene = null;
-    const daY = (el, y) => { const r = el.getBoundingClientRect(), a = el.dataset.a, max = Math.max(fondoScala(a), MIN + 0.5), p = 1 - (y - r.top - 23) / Math.max(1, r.height - 46); return MIN + Math.max(0, Math.min(1, p)) * (max - MIN); };
-    box.addEventListener("pointerdown", e => { const el = e.target.closest(".vslider"); if (!el) return; tiene = el; el.focus(); try { el.setPointerCapture(e.pointerId); } catch (er) { /* */ } cambiaAsse(el.dataset.a, Math.round(daY(el, e.clientY) * 20) / 20); e.preventDefault(); });
-    box.addEventListener("pointermove", e => { if (!tiene) return; cambiaAsse(tiene.dataset.a, Math.round(daY(tiene, e.clientY) * 20) / 20); });
-    const lascia = () => { tiene = null; };
-    box.addEventListener("pointerup", lascia); box.addEventListener("pointercancel", lascia);
-    box.addEventListener("keydown", e => {
-      const el = e.target.closest(".vslider"); if (!el || !S.dim) return; const a = el.dataset.a, v = S.dim[a], max = fondoScala(a);
-      const passi = { ArrowUp: 0.1, ArrowRight: 0.1, ArrowDown: -0.1, ArrowLeft: -0.1, PageUp: 1, PageDown: -1 };
-      if (e.key in passi) { e.preventDefault(); cambiaAsse(a, Math.max(MIN, Math.min(max, v + passi[e.key]))); }
-      if (e.key === "Home") { e.preventDefault(); cambiaAsse(a, MIN); }
-      if (e.key === "End") { e.preventDefault(); cambiaAsse(a, max); }
-    });
+    const box = $("rqMisure");
+    box.querySelector(".schede3").addEventListener("click", e => { const b = e.target.closest("[data-sc]"); if (b) mostraScheda(b.dataset.sc); });
+    box.querySelector(".schede3").addEventListener("keydown", e => { if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return; const L = ["misure", "numeri", "altre"], t = L[(L.indexOf(schedaMis) + (e.key === "ArrowRight" ? 1 : 2)) % 3]; mostraScheda(t); box.querySelector(`[data-sc="${t}"]`).focus(); });
     box.addEventListener("input", e => {
       const el = e.target;
       if (el.dataset.a) { const v = parseFloat(el.value); if (v >= MIN && v <= 300) cambiaAsse(el.dataset.a, v); return; }
-      if (el.dataset.pk) {   // [Unita] una misura tipica, in %
+      if (el.dataset.pk) {   // una misura tipica, in %
         const q = def(S.shape).params.find(x => x.key === el.dataset.pk), pc = q && percDi(S.shape, q.key); if (!pc) return;
         const v = parseFloat(el.value) / 100 * S.base[pc[0]]; if (!(v >= q.min) || (q.max && v > q.max)) return;
         S.base = Object.assign({}, S.base, { [q.key]: r2(v) }); esito = null; cambiato(); return;
@@ -1519,18 +1537,27 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     });
     box.addEventListener("change", e => {
       const el = e.target;
-      if (el.id === "blocca") { S.lock = el.checked; salva(); return; }
+      if (el.dataset.a) aggiornaCampi();   // uscendo dalla casella torna il valore buono
       if (el.dataset.k && el.tagName === "SELECT") { S.base = Object.assign({}, S.base, { [el.dataset.k]: el.value }); esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); }
     });
     box.addEventListener("click", e => {
       if (e.target.closest("#bRidisegna")) apriPianta();
       if (e.target.closest("#bRitocca2")) ImmagineBolla.riapri(opzFoto);
+      const v = e.target.closest("[data-sc-vai]"); if (v) mostraScheda(v.dataset.scVai);
     });
   })();
 
   /* --- il risultato: si può fare? --- */
   let risolvendo = false, esito = null;
-  function rendiRisultato() {
+  function verdettoBreve() {   // [Unita] sotto le schede, sempre in vista
+    const v = $("verdettoBreve"); if (!v) return;
+    if (!S.shape) { v.className = "verdettoBreve"; v.innerHTML = ""; return; }
+    const c = cur ? cur.g.c : "ko", t = !cur ? "Così non si può fare" : c === "ok" ? "Si può fare" : c === "mid" ? "Si può fare, con attenzione" : "Così non si può fare";
+    v.className = "verdettoBreve " + c;
+    v.innerHTML = `<i aria-hidden="true">${c === "ok" ? "✓" : c === "mid" ? "!" : "✕"}</i><b>${t}</b><span>${cur ? "· alta " + metri(cur.H) : esc(curErr || "")}</span>${schedaMis !== "numeri" ? `<button type="button" data-sc-vai="numeri">Perché? Numeri ›</button>` : ""}`;
+  }
+  function rendiRisultato() { rendiRisultato0(); verdettoBreve(); }
+  function rendiRisultato0() {
     const icona = { ok: "✓", mid: "!", ko: "✕", info: "i" };
     if (!S.shape) { $("dati").innerHTML = ""; $("verdetto").hidden = true; $("esito").hidden = true; $("controlli").hidden = true; return; }
     const bRis = (c) => `<button type="button" class="btn ${c === "ko" ? "primary" : ""} big risolvi" id="bRisolvi"${risolvendo ? " disabled" : ""}>${risolvendo ? "Cerco le misure giuste…" : "✦ Risolvi"}</button>`;
@@ -1543,7 +1570,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const g = cur.g;
     $("verdetto").className = "verdetto " + g.c;
     $("verdetto").innerHTML = `<i aria-hidden="true">${icona[g.c]}</i><div><h3>${g.c === "ok" ? "Si può fare!" : g.c === "mid" ? "Si può fare, con attenzione" : "Così non si può fare"}</h3><p>${g.c === "ok" ? "La forma è fattibile, tutto funziona bene: è l'ora di costruirla!" : g.c === "mid" ? "Leggi i punti in giallo, oppure lascia che il sito li sistemi." : "Guarda i punti in rosso, oppure tocca «Risolvi»: il sito cambia le misure da solo."}</p></div>${g.c !== "ok" ? bRis(g.c) : ""}`;
-    $("dati").innerHTML = `<div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>Larghezza</span><b>${metri(cur.D)}</b></div><div><span>Lunghezza</span><b>${metri(cur.W)}</b></div>`;
+    $("dati").innerHTML = `<div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>Larghezza</span><b>${metri(cur.W)}</b></div><div><span>Profondità</span><b>${metri(cur.D)}</b></div>`;
     const ordine = { ko: 0, mid: 1, ok: 2, info: 3 };
     const nota = (v) => v.k === "stabile" || v.k === "sporge" ? `<span class="hint">Si può fare: fissala a terra con pesi o picchetti, e tieni acceso il ventilatore.</span>` : "";
     $("voci").innerHTML = g.voci.filter(v => v.k !== "modellino").sort((a, b) => ordine[a.c] - ordine[b.c]).map(v => `<li class="${v.c}"><i aria-hidden="true">${icona[v.c]}</i><div><span>${esc(v.t)}</span>${v.c === "mid" ? nota(v) : ""}</div></li>`).join("");
@@ -1576,7 +1603,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const pena0 = base0 ? base0.pena : Infinity, problemi = new Set(base0 ? base0.g.voci.filter(v => v.c === "ko" || v.c === "mid").map(v => v.k) : []);
     const area = haArea();
     const K = [1, 1.1, 1.2, 1.35, 1.5, 1.7, 2, 2.4, 2.9, 0.9, 0.8, 0.7].concat(area ? [0.6, 0.5, 0.42, 0.35] : []);
-    const Hs = [1, 1.15, 1.3, 1.5, 1.8, 2.2, 2.7].concat(area ? [0.9, 0.8, 0.7, 0.6] : []);
+    const Hs = S.lock ? [1] : [1, 1.15, 1.3, 1.5, 1.8, 2.2, 2.7].concat(area ? [0.9, 0.8, 0.7, 0.6] : []);   // [Unita] nelle figure regolari le proporzioni restano
     const costoK = (k) => 25 * Math.abs(Math.log(k)), costoH = (h) => costoK(h) + (S.lock && h !== 1 ? 60 : 0);
     let best = null, n = 0;
     const prova = async (p, dim, extra) => {
@@ -2103,6 +2130,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const normCerca = (t) => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   function evidenzia(el) {
     if (!el) return;
+    const pan = el.closest && el.closest("#rqMisure [data-scp]"); if (pan && pan.hidden) mostraScheda(pan.dataset.scp);   // [Unita] apre la scheda giusta
     el.scrollIntoView({ block: "center", behavior: ridotto ? "auto" : "smooth" });
     el.classList.add("trovato"); clearTimeout(el._trovato); el._trovato = setTimeout(() => el.classList.remove("trovato"), 1800);
     if (/^(INPUT|SELECT|BUTTON|TEXTAREA|SUMMARY)$/.test(el.tagName)) el.focus({ preventScroll: true });
@@ -2121,7 +2149,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     FORME.forEach(([id, n]) => add(n, "Forma", inTappa("progettazione", () => { linguetta("forme"); scegliForma(id); evidenzia(document.querySelector(`.tessera[data-id="${id}"]`)); }), "scegli forma"));
     if (S.shape && S.dim) {
       ASSI.forEach(([a, L, nome]) => add(`${L} · ${nome}`, "Misure", conLinguetta("misure", `#pMisure input[data-a="${a}"]`), "cursore misura metri"));
-      add("Mantieni le proporzioni", "Misure", conLinguetta("misure", "#blocca"), "blocca");
       visibili(def(S.shape), S.base).forEach(q => { const pc = percDi(S.shape, q.key); if (lunghezza(q) && !pc) return; add(pc ? pc[1] : etichetta(q), "Misure · " + nomeForma(S.shape), conLinguetta("misure", () => { const d = document.querySelector("#pMisure .altreOpz"); const el = $("o_" + q.key); if (d && el && d.contains(el)) d.open = true; return el; }), "opzione forma"); });
       add("Risolvi", "Progetta", conLinguetta("misure", () => $("bRisolvi") || $("verdetto")), "sistema problemi");
     }

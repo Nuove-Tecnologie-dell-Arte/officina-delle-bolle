@@ -120,14 +120,7 @@ html, body { overflow-x: clip; }
 .dafoto.sopra { background: rgba(255, 255, 255, .8); outline: 2px dashed var(--rosso); }
 .dafoto .ico { background: var(--rosso); border-radius: 6px; }
 .dafoto b { font: 400 1.45rem/1.05 var(--display); letter-spacing: .03em; }
-/* le misure: X Y Z grandi e i cursori a pillola, rossi */
-.cursori { gap: 18px; padding-top: 4px; }
-.vcursore .asse { font: 400 3.6rem/1 var(--display); color: var(--nero); }
-.vslider { width: 46px; height: 230px; background: #ecebe8; border: 0; }
-.vslider .riemp { left: 0; right: 0; bottom: 0; background: var(--rosso); }
-.vcursore input { width: 92px; text-align: center; font: 400 1.5rem/1 var(--display); letter-spacing: .03em; background: transparent; border-bottom-color: transparent; padding: 4px; }
-.vcursore input:focus { border-bottom-color: var(--rosso); }
-.vcursore small { font: 400 .95rem var(--display); letter-spacing: .12em; color: #6a665f; }
+/* le misure */
 .vuoto h3 { color: var(--rosso); font-size: 2rem; }
 
 /* si può fare? il verdetto grande e rosso, sotto le misure in una riga */
@@ -187,10 +180,6 @@ details.info > summary i { background: var(--rosso); font: 400 1rem var(--displa
 .faq h3 { font-size: 1.6rem; color: var(--rosso); }
 
 /* il simulatore a destra: linguette come Forme / Misure, la scena in un pannello grigio con il nastro */
-.sim-linguette { gap: 0; }
-.sim-linguette button { font: 400 1.25rem/1 var(--display); letter-spacing: .04em; color: #575550; background: var(--scheda-off); border-radius: 0; padding: 8px 22px 6px; }
-.sim-linguette button[aria-selected="true"] { color: var(--rosso); background: var(--pannello); box-shadow: none; font-size: 1.55rem; }
-.sim-linguette button small { font: 400 .85rem var(--display); }
 .sim-scena { border-radius: 0 3px 3px 3px; background: var(--pannello); box-shadow: none; }
 .simpane::after { content: ""; position: absolute; top: 48px; right: -12px; width: 60px; height: 110px; background: url("angolo-alto.svg") no-repeat center / 100% 100%; pointer-events: none; z-index: 3; }
 .sim-stato .pill { font: 400 1.15rem/1 var(--display); letter-spacing: .03em; background: rgba(236, 235, 232, .78); border: 0; border-radius: 2px; padding: 5px 10px 3px; }
