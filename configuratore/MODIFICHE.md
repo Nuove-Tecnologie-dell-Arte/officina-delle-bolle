@@ -435,3 +435,7 @@ Tutto segnato `[Officina]`.
 - Con una stanza con le pareti (foto 360°) le aree non ci sono: lo spazio di lavoro è la stanza. La vetrina lo dice al sito con `{ tipo: 'vetrina-stanza', stanza: { nome, H, pareti } }`, e quando arriva la stanza le bolle nelle pareti entrano nel primo posto libero (`postoLibero`), se c'è.
 - `{ tipo: 'vetrina-scenario', id }` mette una stanza pronta (`corridoio`) o la toglie (id vuoto); `{ tipo: 'vetrina-scenario', file }` mette una foto 360° o un modello GLB. In vetrina `stanzaDB` non fa niente: le stanze salvate dell'Abbofficina non si toccano.
 - Il rosso di una bolla che entra in un'altra, rimandato al fotogramma dopo, ora si ricontrolla: se intanto la bolla è stata spostata non resta rossa.
+
+## Prova unita (11 novembre)
+
+- **Blocco 1**: `FORME_OFF` con i nomi geometrici della pagina (Icosaedro, Sfera geodetica, Esacisicosaedro, Esacisicosaedro suddiviso, Icosaedro troncato…), come nella prova semplice.

@@ -1,5 +1,5 @@
 /* Officina delle Bolle: il motore delle forme (geometria, pezzi, sviluppi).
-   Lo usano index.html (la pagina completa), guida.html (la guida per cominciare) e configuratore/ (l'Abbofficina,
+   Lo usano index.html (la pagina) e configuratore/ (l'Abbofficina,
    che legge solo il codice tra i due segnaposto ENGINE: non cambiateli). Niente interfaccia qui dentro. */
 // ENGINE START
 const PHI = (1 + Math.sqrt(5)) / 2;
@@ -366,24 +366,24 @@ const FOTO_ESEMPIO = (() => {
   return dx.concat(sx).map(q => [+q[0].toFixed(4), +q[1].toFixed(4)]);
 })();
 const SHAPES = [
-  { id: "d20", group: "Solidi regolari", name: "Cupola (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2.2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
+  { id: "d20", group: "Solidi regolari", name: "Icosaedro (20 triangoli)", kind: "convex", params: [num("s", "Lato (m)", 2.2, 0.1)], points: p => PTS.ico().map(v => V3.mul(v, p.s)), defOrient: "vertice" },
   { id: "d6", group: "Solidi regolari", name: "Cubo (6 quadrati)", kind: "convex", params: [num("s", "Lato (m)", 2, 0.1)], points: p => PTS.cube().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
-  { id: "geo", group: "Solidi regolari", name: "Sfera geodetica (tipo d100)", kind: "convex",
+  { id: "geo", group: "Solidi regolari", name: "Sfera geodetica (80, 180 o 320 triangoli)", kind: "convex",
     params: [num("D", "Diametro (m)", 4, 0.5), pick("f", "Quanto è tonda", [["2", "80 triangoli"], ["3", "180 triangoli"], ["4", "320 triangoli"]], "2")],
     points: p => geodesicPoints(+p.f || 2).map(v => V3.mul(v, p.D / 2)), defOrient: "vertice", defCut: 0.25 },   // tagliata a un quarto: resta circa tre quarti di sfera
-  { id: "sferaU", group: "Solidi regolari", name: "Sfera di triangoli uguali", kind: "convex",
+  { id: "sferaU", group: "Solidi regolari", name: "Esacisicosaedro (120 triangoli uguali; con 48: esacisottaedro)", kind: "convex",
     params: [num("D", "Diametro (m)", 5, 0.5), pick("n", "Triangoli (sfera intera)", [["120", "120 triangoli"], ["48", "48 triangoli"]], "120")],
     points: p => catalanPoints(p.n === "48" ? PTS.oct() : PTS.ico()).map(v => V3.mul(v, p.D / 2)), defOrient: "vertice", defCut: 0.2 },   // tagliata in basso, a un quinto: resta quasi tutta la sfera
   // la stessa sfera da 120, con ogni triangolo diviso in 4 o in 9 triangoli più piccoli, tutti uguali (non diventa più tonda: i pezzi piccoli stanno nel piano di quello grande)
-  { id: "sferaP", group: "Solidi regolari", name: "Sfera di triangoli piccoli", kind: "convex",
+  { id: "sferaP", group: "Solidi regolari", name: "Esacisicosaedro suddiviso (480 o 1080 triangoli)", kind: "convex",
     params: [num("D", "Diametro (m)", 5, 0.5), pick("n", "Triangoli (sfera intera)", [["480", "480 triangoli (ognuno diviso in 4)"], ["1080", "1080 triangoli (ognuno diviso in 9)"]], "480")],
     points: p => catalanPoints(PTS.ico()).map(v => V3.mul(v, p.D / 2)), subdiv: p => (p.n === "1080" ? 3 : 2), defOrient: "vertice", defCut: 0.2 },
-  { id: "calcio", group: "Solidi regolari", name: "Pallone (pentagoni ed esagoni)", kind: "convex", params: [num("D", "Diametro (m)", 6, 0.5)],
+  { id: "calcio", group: "Solidi regolari", name: "Icosaedro troncato (12 pentagoni e 20 esagoni)", kind: "convex", params: [num("D", "Diametro (m)", 6, 0.5)],
     points: p => PTS.tico().map(v => V3.mul(V3.norm(v), p.D / 2)), defOrient: "faccia" },   // la palla da calcio: appoggiata su un esagono, senza taglio
   { id: "d12", group: "Solidi regolari", name: "Dodecaedro (12 pentagoni)", kind: "convex", params: [num("s", "Lato (m)", 1.2, 0.1)], points: p => PTS.dod().map(v => V3.mul(v, p.s)), defOrient: "faccia" },
   { id: "prism", group: "Prismi e piramidi", name: "Prisma (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 6, 3, 24), num("s", "Lato della base (m)", 1.5, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.s), p.h, ngRot(p.n))] },
   { id: "pyr", group: "Prismi e piramidi", name: "Piramide (base con n lati)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato della base (m)", 3, 0.1), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), [0, 0, p.h]] },
-  { id: "frus", group: "Prismi e piramidi", name: "Piramide senza punta (tronco)", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
+  { id: "frus", group: "Prismi e piramidi", name: "Tronco di piramide", kind: "convex", natural: true, params: [int("n", "Lati della base", 4, 3, 24), num("s", "Lato in basso (m)", 3, 0.1), num("t", "Lato in alto (m)", 1.2, 0.05), num("h", "Altezza (m)", 3.3, 0.1)], points: p => [...ngon(p.n, circumR(p.n, p.s), 0, ngRot(p.n)), ...ngon(p.n, circumR(p.n, p.t), p.h, ngRot(p.n))] },
   { id: "box", group: "Prismi e piramidi", name: "Parallelepipedo", kind: "convex", natural: true, params: [num("a", "Lunghezza (m)", 3, 0.1), num("b", "Larghezza (m)", 2, 0.1), num("h", "Altezza (m)", 2, 0.1)], points: p => signs([p.a / 2, p.b / 2, 1]).map(v => [v[0], v[1], v[2] > 0 ? p.h : 0]) },
   { id: "L", group: "Forme in pianta", name: "A forma di L", kind: "extrude", params: [num("a", "Lato lungo (m)", 5, 0.5), num("b", "Lato corto (m)", 4, 0.5), num("w", "Larghezza dei bracci (m)", 2, 0.3), num("h", "Altezza (m)", 2.2, 0.3)],
     outline: p => [[0, 0], [p.a, 0], [p.a, p.w], [p.w, p.w], [p.w, p.b], [0, p.b]] },
@@ -406,7 +406,7 @@ const SHAPES = [
       for (let c = 0; c < p.c; c++) { const sg = c % 2 ? -1 : 1; for (let j = 0; j < p.k; j++) { const q = path[path.length - 1]; path.push([q[0] + p.s * Math.cos(hd), q[1] + p.s * Math.sin(hd)]); hd += sg * dl; } }
       return sweep(path, false, tubeSection(p.m, p.d, flat));
     } },
-  { id: "torus", group: "Tubi e gallerie", name: "Ciambella", kind: "sweep", params: [num("D", "Diametro esterno (m)", 6, 1), num("d", "Diametro del tubo (m)", 2.4, 0.3), int("N", "Spicchi intorno", 12, 3, 32), int("m", "Lati del tubo", 6, 3, 16)],
+  { id: "torus", group: "Tubi e gallerie", name: "Toro (ciambella)", kind: "sweep", params: [num("D", "Diametro esterno (m)", 6, 1), num("d", "Diametro del tubo (m)", 2.4, 0.3), int("N", "Spicchi intorno", 12, 3, 32), int("m", "Lati del tubo", 6, 3, 16)],
     build: (p, flat) => {
       const sec = tubeSection(p.m, p.d, flat);
       const xmax = Math.max(...sec.map(q => q[0]));
@@ -997,6 +997,16 @@ function buildShape(def, p, opt) {
     V = V.map(v => V3.mul(v, k));
     floorArea *= k * k; volume *= k * k * k;
   }
+  // [Officina] X, Y, Z scelte nella pagina: la forma si allunga o si schiaccia fino a quelle misure (le facce restano piane)
+  let sc = null;
+  if (opt.size && opt.size.x > 0 && opt.size.y > 0 && opt.size.z > 0) {
+    const ext = (i) => { const c = V.map(v => v[i]); return Math.max(...c) - Math.min(...c); }, ex = ext(0), ey = ext(1), ez = ext(2);
+    if (ex > 1e-9 && ey > 1e-9 && ez > 1e-9) {
+      sc = [opt.size.x / ex, opt.size.y / ey, opt.size.z / ez];
+      V = V.map(v => [v[0] * sc[0], v[1] * sc[1], v[2] * sc[2]]);
+      floorArea *= sc[0] * sc[1]; volume *= sc[0] * sc[1] * sc[2];
+    }
+  }
   let open = false;
   if ((def.kind === "extrude" || def.floorToggle) && !opt.cut) {
     const keep = F.map(f => !isFloor(f));
@@ -1007,7 +1017,7 @@ function buildShape(def, p, opt) {
     if (F.length !== n0) cluster = null;
   }
   const floor = F.map(isFloor);
-  return { V, F, floor, floorArea, volume, k, levels, orients, open, cutUsed, cluster };
+  return { V, F, floor, floorArea, volume, k, sc, levels, orients, open, cutUsed, cluster };
 }
 
 /* ---------- pezzi ---------- */
@@ -1220,7 +1230,7 @@ function analyze(V, F, floor) {
 }
 // ENGINE END
 
-/* ---------- fuori dai segnaposto: servono alle pagine (index.html, guida.html), non all'Abbofficina ---------- */
+/* ---------- fuori dai segnaposto: servono alla pagina (index.html), non all'Abbofficina ---------- */
 
 /* porte realistiche: per una porta da 1,80 m la bolla deve essere alta almeno 1,95 m dove c'è la porta (come chiede il configuratore).
    Nelle piramidi la porta sta su una faccia inclinata: conta il 55% dell'altezza (72% con la cima piatta), come nel configuratore. */
@@ -1294,7 +1304,6 @@ function porteForma(V, F, id) {
 const gFmt = (x, d) => Number(x.toFixed(d)).toLocaleString("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d });
 const gMetri = (x) => (Math.abs(x) < 1 ? gFmt(x * 100, 0) + " cm" : gFmt(x, 2) + " m");
 const gPlur = (n, uno, tanti) => `${n} ${n === 1 ? uno : tanti}`;
-const M2_PERSONA = 1.5;   // lo spazio vitale: ogni persona dentro la bolla ha almeno 1,5 m² di pavimento
 /* si può fare? Porta, pavimento, quantità di lavoro, pezzi difficili, stabilità, modellino; le stesse soglie dell'Abbofficina dove ci sono.
    m: una forma costruita (buildShape + an = analyze); p: i suoi parametri; o: { scala del modellino, id della forma (per le porte) }.
    Ogni voce ha c (ok, mid, ko, info), t (il testo) e k (di che cosa parla: porta, pavimento, tipi, lato, punta, stabile, sporge, lunga, alta, modellino, telo). */
@@ -1312,7 +1321,7 @@ function giudizioForma(m, p, o) {
   }
   const A = m.floorArea || 0;
   if (A < 1.5) add("ko", `Pavimento di ${gFmt(A, 1)} m²: troppo piccolo per entrarci.`, "pavimento");
-  else add(A < 4 ? "mid" : "ok", `Pavimento di ${gFmt(A, 1)} m²: ci stanno circa ${Math.max(1, Math.floor(A / M2_PERSONA + 1e-9))} persone, con almeno ${gFmt(M2_PERSONA, 1)} m² di spazio a testa.`, "pavimento");
+  else add(A < 4 ? "mid" : "ok", `Pavimento di ${gFmt(A, 1)} m²${A < 4 ? ": piccolo, ci si sta stretti" : ""}.`, "pavimento");
   const nt = an.types.length, nf = m.F.length, meno = !foto ? "i lati o gli spicchi (meno pezzi diversi)" : p.modo === "tonda" ? "il dettaglio o i lati attorno" : "il dettaglio del contorno";
   if (nt <= 25) add("ok", `${gPlur(nf, "pezzo", "pezzi")} di ${gPlur(nt, "tipo", "tipi")}: un lavoro alla portata.`, "tipi");
   else add("mid", `${gPlur(nf, "pezzo", "pezzi")} di ${nt} tipi diversi: ogni tipo è una sagoma da tracciare a parte. Per meno lavoro abbassate ${meno}.`, "tipi");

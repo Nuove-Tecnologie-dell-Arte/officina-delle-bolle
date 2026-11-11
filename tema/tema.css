@@ -48,6 +48,8 @@ input[type="number"], select { font: 500 1rem var(--body); background: rgba(255,
 .nastrato::before, .nastrato::after { content: ""; position: absolute; pointer-events: none; z-index: 2; background: no-repeat center / 100% 100%; }
 .nastrato::before { width: 72px; height: 132px; top: -14px; right: -26px; background-image: url("angolo-alto.svg"); }
 .nastrato::after { width: 72px; height: 132px; bottom: -16px; left: -26px; background-image: url("angolo-basso.svg"); }
+/* [Unita] i nastri sugli angoli escono un po' dai pannelli: sul bordo dello schermo si tagliano, invece di allargare la pagina */
+html, body { overflow-x: clip; }
 /* la riga tratteggiata in fondo ai pannelli */
 .tratteggio { background-image: repeating-linear-gradient(90deg, #777 0 15px, transparent 15px 23px); background-repeat: no-repeat; background-size: calc(100% - 52px) 3px; background-position: 26px calc(100% - 20px); }
 
@@ -126,8 +128,6 @@ input[type="number"], select { font: 500 1rem var(--body); background: rgba(255,
 .vcursore input { width: 92px; text-align: center; font: 400 1.5rem/1 var(--display); letter-spacing: .03em; background: transparent; border-bottom-color: transparent; padding: 4px; }
 .vcursore input:focus { border-bottom-color: var(--rosso); }
 .vcursore small { font: 400 .95rem var(--display); letter-spacing: .12em; color: #6a665f; }
-.riga-persone { border-top: 0; font: 400 1.25rem var(--display); letter-spacing: .03em; }
-.riga-persone input { font: 400 1.4rem var(--display); }
 .vuoto h3 { color: var(--rosso); font-size: 2rem; }
 
 /* si può fare? il verdetto grande e rosso, sotto le misure in una riga */
@@ -139,9 +139,7 @@ input[type="number"], select { font: 500 1rem var(--body); background: rgba(255,
 .verdetto .risolvi { margin: 4px auto 0; }
 .dati { grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 10px 26px; }
 .dati div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 0 .35em; background: none; box-shadow: none; padding: 0; }
-.dati span, .dati b, .dati .persone-n b { font: 400 clamp(1.5rem, 2.6vw, 2.2rem)/1.05 var(--display); letter-spacing: .03em; color: var(--nero); }
-.dati .persone-n { background: none; }
-.dati .persone-n b { color: var(--rosso); }
+.dati span, .dati b { font: 400 clamp(1.5rem, 2.6vw, 2.2rem)/1.05 var(--display); letter-spacing: .03em; color: var(--nero); }
 @media (max-width: 760px) { .dati { grid-template-columns: repeat(2, auto); justify-content: space-around; } }
 .esito { border-left: 0; background: rgba(236, 235, 232, .72); border-radius: 3px; }
 .esito b { font: 400 1.5rem var(--display); letter-spacing: .03em; color: var(--rosso); }
@@ -215,7 +213,7 @@ dialog.parole { background: #efeeeb; border-radius: 3px; }
 .parole dt { font: 400 1.5rem var(--display); letter-spacing: .03em; color: var(--nero); }
 .parole dt.qui, .parole dt.qui + dd { color: var(--rosso); }
 
-/* come nella prova: prima «Si può fare!», poi altezza, larghezza, lunghezza (e le persone) */
+/* come nella prova: prima «Si può fare!», poi altezza, larghezza, lunghezza */
 .risultato > .verdetto { order: 1; } .risultato > .dati { order: 2; } .risultato > .esito { order: 3; } .risultato > .controlli { order: 4; }
 .dati { display: flex; flex-wrap: wrap; justify-content: space-between; }   /* in una riga finché ci stanno, poi vanno a capo */
 .dati div { flex-wrap: nowrap; white-space: nowrap; }

@@ -102,7 +102,7 @@ select option { background: var(--card); color: var(--ink); }
 .divisore:hover::before, .divisore:focus-visible::before, body.trascina .divisore::before { background: var(--green); }
 body.trascina, body.trascina * { cursor: col-resize !important; user-select: none; }
 body.trascina iframe { pointer-events: none; }
-.simpane { position: sticky; top: var(--testa); height: calc(100vh - var(--testa)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 0; padding: 12px 14px 14px 4px; min-width: 0; }
+.simpane { position: sticky; top: var(--testa); height: calc(100vh - var(--testa)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr); gap: 0; padding: 12px 14px 14px 4px; min-width: 0; }   /* [Unita] la colonna non si allarga oltre lo schermo */
 .sim-testa { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
 .sim-stato { padding-bottom: 6px; }
 .sim-testa h2 { font-size: 1.15rem; letter-spacing: .02em; }
@@ -129,10 +129,11 @@ body.trascina iframe { pointer-events: none; }
   .divisore { display: none; }
   .simpane { order: -1; top: var(--testa); z-index: 20; height: 40vh; padding: 8px 12px; background: var(--paper); border-bottom: 1px solid var(--rule); }
   .simpane.ridotto { height: auto; grid-template-rows: auto; } .simpane.ridotto .sim-scena, .simpane.ridotto .sim-piede { display: none; }
+  .sim-nota { min-width: 0 !important; }   /* [Unita] sul telefono la nota va a capo invece di allargare la pagina */
 }
 .riduci { display: none; }
 @media (max-width: 900px) { .riduci { display: inline-flex; min-height: 32px; padding: 4px 10px; font-size: .8rem; } .sim-testa { flex-wrap: nowrap; } .sim-testa h2 { font-size: 1rem; } .sim-stato { gap: 4px; font-size: .78rem; } .sim-stato .pill { padding: 3px 8px; } }
-@media (max-width: 480px) { .sim-stato .pill:nth-child(2) { display: none; } }
+@media (max-width: 480px) { .sim-stato .pill:not(.ok):not(.mid):not(.ko) { display: none; } .sim-stato { min-width: 0; } .sim-testa { flex-wrap: wrap; row-gap: 4px; } }   /* [Unita] sul telefono resta il verdetto, non l'altezza */
 
 /* le pagine */
 main { max-width: 1080px; margin: 0 auto; width: 100%; padding-top: 30px; padding-bottom: 130px; min-width: 0; }
@@ -209,17 +210,13 @@ main { max-width: 1080px; margin: 0 auto; width: 100%; padding-top: 30px; paddin
 .vcursore input { text-align: center; font: 600 1rem var(--mono); padding: 7px 4px; }
 .vcursore small { font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .opzioni { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
-.riga-persone { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-top: 14px; border-top: 1px solid var(--rule); }
-.riga-persone input { width: 84px; font: 600 1rem var(--mono); text-align: right; }
 .vuoto { display: grid; place-items: center; text-align: center; color: var(--muted); min-height: 300px; padding: 20px; }
-/* il risultato: si può fare? quante persone? */
+/* il risultato: si può fare? */
 .risultato { display: grid; gap: 14px; }
 .dati { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .dati div { background: var(--card); box-shadow: var(--shadow); border-radius: var(--r-m); padding: 10px 12px; display: grid; }
 .dati span { font-size: .76rem; color: var(--muted); }
 .dati b { font: 600 1.12rem var(--mono); }
-.dati .persone-n { background: color-mix(in srgb, var(--green) 14%, var(--card)); }
-.dati .persone-n b { font: 800 1.8rem var(--display); color: var(--green); }
 @media (max-width: 560px) { .dati { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .verdetto { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: var(--r-l); }
 .verdetto i { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font: 800 1.5rem var(--display); font-style: normal; color: var(--card); flex: none; }
@@ -565,7 +562,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   const rgb = (c) => { c = c.trim(); if (c[0] === "#") { const h = c.length === 4 ? c.slice(1).split("").map(x => x + x).join("") : c.slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); } const m = c.match(/\d+/g); return m ? m.slice(0, 3).map(Number) : [120, 120, 120]; };
   const tinta = (t, el) => css(`--t${(t % 8) + 1}`, el);
   const nomeDima = (t) => "P" + (t + 1);   // ogni dima si chiama P e il suo numero: P1, P2, P3…
-  const M2P = typeof M2_PERSONA === "number" ? M2_PERSONA : 1.5;   // lo spazio vitale a persona (motore.js)
 
   /* ---------- le parole ---------- */
   const PAROLE = {
@@ -576,7 +572,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     dima: ["Dima", "Il pezzo campione, tracciato con cura una volta sola. Ci si appoggia sopra il telo per tagliare tutte le copie uguali. Ognuna ha un nome: P1, P2, P3…"],
     giunzione: ["Giunzione", "Il lato lungo cui due pezzi si uniscono, con nastro o saldatura. Il sito le numera nell'ordine in cui farle."],
     telo: ["Telo", "La plastica trasparente di cui è fatta la bolla. Si compra a rotoli: la larghezza del rotolo decide quanti metri servono."],
-    pavimento: ["Pavimento", "La parte che appoggia a terra. Conta per sapere quante persone ci stanno: ognuna deve avere almeno 1,5 m² di spazio vitale."],
+    pavimento: ["Pavimento", "La parte che appoggia a terra."],
     modellino: ["Modellino", "La bolla in piccolo, di carta, fatta con gli stessi pezzi rimpiccioliti. Serve a controllare che tutto si chiuda prima di tagliare la plastica."],
     scala: ["Scala", "Quante volte il modellino è più piccolo della bolla vera. Scala 1:20 vuol dire che 1 cm del modellino è 20 cm della bolla."],
     gonfiatore: ["Gonfiatore (ventilatore)", "Il ventilatore che soffia aria nella bolla. Deve restare acceso finché c'è qualcuno dentro."],
@@ -597,10 +593,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
   /* ---------- le forme del motore, per famiglia, con un nome semplice ---------- */
   const FAMIGLIE = [
-    ["sfere", "Cupole e sfere", [["d20", "Cupola"], ["geo", "Sfera geodetica"], ["sferaU", "Sfera di triangoli"], ["sferaP", "Sfera di triangoli piccoli"], ["calcio", "Pallone"], ["d12", "Dodecaedro"]]],
-    ["scatole", "Scatole e piramidi", [["box", "Casetta"], ["d6", "Cubo"], ["prism", "Prisma"], ["pyr", "Piramide"], ["frus", "Piramide senza punta"]]],
+    ["sfere", "Cupole e sfere", [["d20", "Icosaedro"], ["geo", "Sfera geodetica"], ["sferaU", "Esacisicosaedro"], ["sferaP", "Esacisicosaedro suddiviso"], ["calcio", "Icosaedro troncato"], ["d12", "Dodecaedro"]]],
+    ["scatole", "Scatole e piramidi", [["box", "Parallelepipedo"], ["d6", "Cubo"], ["prism", "Prisma"], ["pyr", "Piramide"], ["frus", "Tronco di piramide"]]],
     ["pianta", "Disegnate dall'alto", [["L", "A forma di L"], ["C", "A forma di C"], ["arrow", "Freccia"], ["star", "Stella"], ["custom", "Disegnala tu"]]],
-    ["tubi", "Tubi e gallerie", [["tunnel", "Tunnel"], ["snake", "Serpente"], ["torus", "Ciambella"]]],
+    ["tubi", "Tubi e gallerie", [["tunnel", "Tunnel"], ["snake", "Serpente"], ["torus", "Toro"]]],
     ["animali", "Animali e oggetti", [["balena", "Balena"], ["fungo", "Fungo"], ["tarta", "Tartaruga"], ["razzo", "Razzo"], ["boat", "Barca"], ["banana", "Banana"], ["scolo", "Scolopendra"], ["ananas", "Ananas"], ["pera", "Pera"]]],
   ].map(([k, t, l]) => [k, t, l.filter(f => SHAPES.some(s => s.id === f[0]))]);
   const FORME = FAMIGLIE.flatMap(f => f[2]);
@@ -686,12 +682,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     return 0;
   }
   const haArea = () => ["x", "y", "z"].some(a => S.area[a] > 0);
-  // una forma appena scelta parte grande per 12 persone, e se non entra nell'area si rimpicciolisce finché ci sta
-  function dimIniziali(id, p, vere) {
+  // [Unita] una forma appena scelta parte con le misure di base del motore, e se non entra nell'area si rimpicciolisce finché ci sta
+  function dimIniziali(id, p) {
     const b = base(id, p);
-    const k = vere ? 1 : (b.m.floorArea > 1e-6 ? Math.sqrt(12 * M2P / b.m.floorArea) : 1);
-    // le forme disegnate in pianta si allargano solo in pianta: le pareti restano alte uguali
-    let dim = { x: r2(b.w * k), y: r2(b.d * k), z: r2(b.h * (def(id).kind === "extrude" ? 1 : k)) };
+    let dim = { x: r2(b.w), y: r2(b.d), z: r2(b.h) };
     if (!entra(dim)) {
       const ax = areaMax("x"), ay = areaMax("y"), az = areaMax("z");
       const dritta = Math.min(ax / dim.x, ay / dim.y), girata = Math.min(ay / dim.x, ax / dim.y);
@@ -699,7 +693,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     return dim;
   }
-  const persone = (m) => Math.max(0, Math.floor((m.floorArea || 0) / M2P + 1e-9));   // almeno 1,5 m² di spazio vitale a testa
   function giudica(m, p) {   // il giudizio del motore, più l'area di lavoro
     const g = giudizioForma(m, p, { scala: m.stampa ? m.stampa.scala : 20, id: m.id });
     if (haArea()) {
@@ -716,6 +709,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     return g;
   }
+
+  /* [Unita] per le prove automatiche: lo stato si legge da fuori */
+  Object.defineProperty(window, "unita", { value: Object.freeze({ get S() { return S; }, get PR() { return PR; }, get cur() { return cur; }, base, costruisci, optBase, dimIniziali, nomeForma, get FAQ() { return typeof FAQ === "undefined" ? [] : FAQ; } }) });
 
   /* ---------- la bolla scelta ---------- */
   let cur = null, curErr = null, curKey = "", giuntaQui = null;
@@ -935,7 +931,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("simVuoto").hidden = !!S.shape;
     const g = cur && cur.g, icona = { ok: "✓", mid: "!", ko: "✕" };
     $("simStato").innerHTML = !S.shape ? "" : !cur ? `<span class="pill ko"><i>✕</i>${esc(curErr || "Non si costruisce")}</span>`
-      : `<span class="pill"><b class="num">${persone(cur)}</b>&nbsp;${persone(cur) === 1 ? "persona" : "persone"}</span><span class="pill">${metri(cur.H)}</span><span class="pill ${g.c}"><i>${icona[g.c] || "i"}</i>${g.c === "ok" ? "Si può fare" : g.c === "mid" ? "Con attenzione" : "Non si può fare"}</span>`;
+      : `<span class="pill">${metri(cur.H)}</span><span class="pill ${g.c}"><i>${icona[g.c] || "i"}</i>${g.c === "ok" ? "Si può fare" : g.c === "mid" ? "Con attenzione" : "Non si può fare"}</span>`;
     clearTimeout(tSim); tSim = setTimeout(inviaVetrina, 120);
     disegnaSchema();
   }
@@ -1026,7 +1022,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     let ok = true, nota = "";
     if (id === "progettazione") {
       ok = pronta();
-      nota = !S.shape ? "Scegli una forma per andare avanti" : !cur ? curErr || "" : cur.g.c === "ko" ? "Prima risolvi i punti in rosso (anche con «Risolvi»)" : `${nomeForma(S.shape)} · ci stanno circa ${plural(persone(cur), "persona", "persone")}`;
+      nota = !S.shape ? "Scegli una forma per andare avanti" : !cur ? curErr || "" : cur.g.c === "ko" ? "Prima risolvi i punti in rosso (anche con «Risolvi»)" : `${nomeForma(S.shape)} · alta ${metri(cur.H)}`;
     }
     if (id === "dima") nota = S.okModello ? "Modellino fatto: ora si costruisce" : "Quando il modellino si chiude bene, vai avanti";
     if (id === "costruzione" && cur) { const n = fatte().giunte.length; nota = `${n} di ${cur.an.seams.length} giunzioni fatte`; }
@@ -1244,7 +1240,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   document.addEventListener("drop", e => { $("daFoto").classList.remove("sopra"); const f = e.dataTransfer && [...e.dataTransfer.files].find(x => /^image\//.test(x.type)); if (!f || !quiForme()) return; e.preventDefault(); ImmagineBolla.carica(f, opzFoto); });
   document.addEventListener("paste", e => { if (!quiForme()) return; const it = e.clipboardData && [...e.clipboardData.items].find(x => x.kind === "file" && /^image\//.test(x.type)); if (!it) return; e.preventDefault(); ImmagineBolla.carica(it.getAsFile(), opzFoto); });
 
-  /* --- le misure: tre cursori verticali X, Y, Z, le opzioni della forma, le persone --- */
+  /* --- le misure: tre cursori verticali X, Y, Z e le opzioni della forma --- */
   const ASSI = [["x", "X", "lunghezza"], ["y", "Y", "larghezza"], ["z", "Z", "altezza"]];
   const MIN = 0.5;
   const fondoScala = (a) => S.area[a] > 0 ? S.area[a] : Math.max(a === "z" ? 8 : 12, Math.ceil((S.dim ? S.dim[a] : 4) * 1.6));
@@ -1255,15 +1251,14 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     box.innerHTML = `<div class="cursori">${ASSI.map(([a, L, nome]) => `<div class="vcursore"><span class="asse" aria-hidden="true">${L}</span>
         <div class="vslider" role="slider" tabindex="0" data-a="${a}" aria-label="${L}: ${nome} della bolla, in metri" aria-valuemin="${MIN}"><div class="riemp"></div></div>
         <input type="number" data-a="${a}" min="${MIN}" step="0.05" inputmode="decimal" aria-label="${L} in metri"><small>${nome} · m</small></div>`).join("")}</div>
-      <label class="check"><input type="checkbox" id="blocca"${S.lock ? " checked" : ""}> <span><b>Mantieni le proporzioni</b><br><span class="hint">Cambiando una misura cambiano anche le altre, e la forma resta la stessa (per esempio i triangoli tutti uguali della cupola). Togli la spunta per allungarla o schiacciarla.</span></span></label>
+      <label class="check"><input type="checkbox" id="blocca"${S.lock ? " checked" : ""}> <span><b>Mantieni le proporzioni</b><br><span class="hint">Cambiando una misura cambiano anche le altre, e la forma resta la stessa (per esempio i triangoli tutti uguali dell'icosaedro). Togli la spunta per allungarla o schiacciarla.</span></span></label>
       ${opz.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(q => {
         const v = S.base[q.key];
         if (q.type === "pick") return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><select id="o_${q.key}" data-k="${q.key}">${q.options.map(([a, b]) => `<option value="${a}"${a === v ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></div>`;
         return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><input type="number" id="o_${q.key}" data-k="${q.key}" min="${q.min}"${q.max ? ` max="${q.max}"` : ""} step="${q.type === "int" ? 1 : q.step || 1}" value="${v}"></div>`;
       }).join("")}</div></div>` : ""}
       ${S.shape === "custom" ? `<div class="btnrow"><button type="button" class="btn" id="bRidisegna">✎ Ridisegna la pianta</button></div>` : ""}
-      ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}
-      <div class="riga-persone"><label for="nAdatta">Falla per</label><input type="number" id="nAdatta" min="2" max="80" step="1" value="12"><span>persone</span><button type="button" class="btn" id="bAdatta">Adatta</button></div>`;
+      ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}`;
     aggiornaCursori();
   }
   function aggiornaCursori() {
@@ -1274,7 +1269,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       el.querySelector(".riemp").style.height = `calc(46px + (100% - 44px) * ${p})`;
     });
     document.querySelectorAll("#pMisure input[data-a]").forEach(el => { if (document.activeElement !== el) el.value = +S.dim[el.dataset.a].toFixed(2); });
-    if (cur && $("nAdatta") && document.activeElement !== $("nAdatta")) $("nAdatta").value = Math.max(2, persone(cur));
   }
   function rendiMisure(soloCursori) { if (soloCursori && $("pMisure").querySelector(".vslider")) { aggiornaCursori(); return; } costruisciMisure(); }
   let tM = 0;
@@ -1318,14 +1312,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     box.addEventListener("click", e => {
       if (e.target.closest("#bRidisegna")) apriPianta();
       if (e.target.closest("#bRitocca2")) ImmagineBolla.riapri(opzFoto);
-      if (e.target.closest("#bAdatta")) {
-        const n = Math.round(+$("nAdatta").value); if (!(n >= 2 && n <= 80) || !cur || !(cur.floorArea > 0)) return;
-        S.dim = scalaDim(S.dim, Math.sqrt(n * M2P / cur.floorArea)); esito = null; cambiato();
-      }
     });
   })();
 
-  /* --- il risultato: si può fare? quante persone? --- */
+  /* --- il risultato: si può fare? --- */
   let risolvendo = false, esito = null;
   function rendiRisultato() {
     const icona = { ok: "✓", mid: "!", ko: "✕", info: "i" };
@@ -1337,10 +1327,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       $("verdetto").innerHTML = `<i aria-hidden="true">✕</i><div><h3>Così non si può fare</h3><p>${esc(curErr || "Con queste misure la forma non si costruisce.")}</p></div>`;
       $("dati").innerHTML = ""; $("voci").innerHTML = ""; $("controlli").hidden = true; return;
     }
-    const g = cur.g, n = persone(cur);
+    const g = cur.g;
     $("verdetto").className = "verdetto " + g.c;
     $("verdetto").innerHTML = `<i aria-hidden="true">${icona[g.c]}</i><div><h3>${g.c === "ok" ? "Si può fare!" : g.c === "mid" ? "Si può fare, con attenzione" : "Così non si può fare"}</h3><p>${g.c === "ok" ? "La forma è fattibile, tutto funziona bene: è l'ora di costruirla!" : g.c === "mid" ? "Leggi i punti in giallo, oppure lascia che il sito li sistemi." : "Guarda i punti in rosso, oppure tocca «Risolvi»: il sito cambia le misure da solo."}</p></div>${g.c !== "ok" ? bRis(g.c) : ""}`;
-    $("dati").innerHTML = `<div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>Larghezza</span><b>${metri(cur.D)}</b></div><div><span>Lunghezza</span><b>${metri(cur.W)}</b></div><div class="persone-n" title="almeno ${fmt(M2P, 1)} m² a testa"><span>Persone</span><b>${n}</b></div>`;
+    $("dati").innerHTML = `<div><span>Altezza</span><b>${metri(cur.H)}</b></div><div><span>Larghezza</span><b>${metri(cur.D)}</b></div><div><span>Lunghezza</span><b>${metri(cur.W)}</b></div>`;
     const ordine = { ko: 0, mid: 1, ok: 2, info: 3 };
     const nota = (v) => v.k === "stabile" || v.k === "sporge" ? `<span class="hint">Si può fare: fissala a terra con pesi o picchetti, e tieni acceso il ventilatore.</span>` : "";
     $("voci").innerHTML = g.voci.filter(v => v.k !== "modellino").sort((a, b) => ordine[a.c] - ordine[b.c]).map(v => `<li class="${v.c}"><i aria-hidden="true">${icona[v.c]}</i><div><span>${esc(v.t)}</span>${v.c === "mid" ? nota(v) : ""}</div></li>`).join("");
@@ -1398,9 +1388,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     const cambi = ASSI.filter(([a]) => Math.abs(best.dim[a] - dim0[a]) > 0.005).map(([a, L, nome]) => `<li>${L} (${nome}): ${metri(dim0[a])} → <b>${metri(best.dim[a])}</b></li>`)
       .concat(visibili(d, best.p).filter(q => JSON.stringify(best.p[q.key]) !== JSON.stringify(p0[q.key])).map(q => `<li>${esc(etichetta(q))}: ${esc(String(p0[q.key]))} → <b>${esc(String(best.p[q.key]))}</b></li>`));
-    const c = best.m.g.c, prima = base0 ? persone(base0) : 0, dopo = persone(best.m);
+    const c = best.m.g.c;
     const sbloccata = S.lock && Math.abs(best.dim.z / dim0.z - best.dim.x / dim0.x) > 0.02;
-    esito = { prima: { dim: dim0, base: p0, lock: S.lock }, att: c === "ko", html: `<b>${c === "ok" ? "Risolto: ora si può fare!" : c === "mid" ? "Risolto: ora si può fare, con qualche attenzione." : "Migliorata, ma non ancora fattibile."}</b><span>Ho cambiato:</span><ul>${cambi.join("")}</ul>${sbloccata ? `<span>Per riuscirci ho cambiato le proporzioni: «Mantieni le proporzioni» ora è spento.</span>` : ""}<span>Ci stanno ${prima === dopo ? `sempre circa ${dopo}` : `circa ${dopo} (prima ${prima})`} persone.</span><button type="button" class="btn" data-a="annulla">↶ Annulla, rimetti le misure di prima</button>` };
+    esito = { prima: { dim: dim0, base: p0, lock: S.lock }, att: c === "ko", html: `<b>${c === "ok" ? "Risolto: ora si può fare!" : c === "mid" ? "Risolto: ora si può fare, con qualche attenzione." : "Migliorata, ma non ancora fattibile."}</b><span>Ho cambiato:</span><ul>${cambi.join("")}</ul>${sbloccata ? `<span>Per riuscirci ho cambiato le proporzioni: «Mantieni le proporzioni» ora è spento.</span>` : ""}<button type="button" class="btn" data-a="annulla">↶ Annulla, rimetti le misure di prima</button>` };
     if (sbloccata) S.lock = false;
     S.dim = best.dim; S.base = best.p; S.okModello = false; salva(); aggiornaBolla(true); rendiMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
   }
@@ -1657,7 +1647,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       ["La porta non si chiude bene o perde aria", ["Rinforza i due lati del taglio con il nastro: la cerniera tiene meglio.", "Un po' d'aria esce sempre dalla porta: è normale, il ventilatore la rimpiazza. Tienila chiusa quando non entra nessuno."]],
     ]],
     ["Dentro la bolla", [
-      ["Quante persone possono entrare?", [`Ognuna deve avere almeno ${fmt(M2P, 1)} m² di spazio vitale: il numero giusto per la tua bolla lo trovi in alto nel simulatore («persone»).`, "Se ci si muove o si gioca, meglio qualcuno in meno."]],
       ["È sicuro stare dentro?", ["Il ventilatore resta acceso finché c'è qualcuno dentro, e nessuno gioca con l'interruttore.", "La porta si apre facilmente e davanti non c'è niente: è anche l'uscita.", "Una persona resta fuori a controllare mentre la bolla è gonfia.", "Dentro niente oggetti appuntiti né taglienti; meglio togliersi le scarpe."]],
       ["Dentro fa caldo, o il telo si appanna", ["Al sole la bolla si scalda in fretta: montala all'ombra se puoi.", "Apri la porta ogni tanto per cambiare l'aria; il ventilatore porta dentro aria fresca.", "Un po' di condensa sul telo è normale e non fa danni."]],
       ["Cosa succede se va via la corrente?", ["Il ventilatore si ferma e la bolla si affloscia piano piano: c'è tutto il tempo per uscire con calma dalla porta.", "Il telo è leggero e non fa male; per questo la porta deve restare sempre libera."]],
