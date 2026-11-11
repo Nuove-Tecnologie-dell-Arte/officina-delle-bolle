@@ -44,3 +44,12 @@ Il progetto è in `docs/superpowers/specs/2026-11-11-prova-unita-design.md`, il 
   - Anche i nastri sugli angoli dei pannelli (`.nastrato::before`) uscivano dallo schermo: ora si tagliano sul bordo (`overflow-x: clip` su `html` e `body`, in `tema.css`).
   - Sul telefono, sopra il simulatore resta il verdetto e si nasconde l'altezza. Prima si nascondeva la seconda etichetta, che senza le persone sarebbe stata il verdetto.
 - **Per le prove automatiche** la pagina espone `window.unita`, in sola lettura: `S`, `PR`, `cur`, `base`, `costruisci`, `optBase`, `dimIniziali`, `nomeForma`, `FAQ`.
+
+## Blocco 2 · Misure: cursori con il motore e misure tipiche
+
+- **I cursori:** restano X, Y, Z dell'estetica con «Mantieni le proporzioni». La forma che danno è la stessa del motore con `opt.size` (blocco 1), e la vetrina la riceve con le stesse misure.
+- **Sotto i cursori, in «La forma»:**
+  - le opzioni di prima: lati della base, punte, appoggio…;
+  - **le misure tipiche della forma**, come nella semplice (`SEMPLICI`, `percDi(id, key)`): si scrivono in % di un'altra misura, così seguono la grandezza. Per esempio «Raggio interno (% delle punte)» della stella, o «Lunghezza del picciolo (% del corpo)» della banana. Il valore vero è la misura di riferimento × la % (`data-pk` sul campo).
+- **In «Altre opzioni»** (`details.altreOpz`, con `#paramsTec`, chiuso all'inizio) vanno le misure tecniche: quelle segnate `tecnici` in `SEMPLICI` e i lati, spicchi, segmenti e facce del tubo (`dettaglio`).
+- Le altre lunghezze della forma restano nascoste come prima, perché la grandezza la danno X, Y, Z.

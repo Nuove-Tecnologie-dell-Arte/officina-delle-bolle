@@ -210,6 +210,7 @@ main { max-width: 1080px; margin: 0 auto; width: 100%; padding-top: 30px; paddin
 .vcursore input { text-align: center; font: 600 1rem var(--mono); padding: 7px 4px; }
 .vcursore small { font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .opzioni { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.altreOpz { margin-top: 4px; } .altreOpz > summary { cursor: pointer; font-weight: 700; padding: 6px 0; } .altreOpz > .opzioni { margin-top: 8px; }   /* [Unita] */
 .vuoto { display: grid; place-items: center; text-align: center; color: var(--muted); min-height: 300px; padding: 20px; }
 /* il risultato: si può fare? */
 .risultato { display: grid; gap: 14px; }
@@ -1243,20 +1244,51 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* --- le misure: tre cursori verticali X, Y, Z e le opzioni della forma --- */
   const ASSI = [["x", "X", "lunghezza"], ["y", "Y", "larghezza"], ["z", "Z", "altezza"]];
   const MIN = 0.5;
+  /* [Unita] le misure tipiche di ogni forma (dalla prova semplice): perc = misure scritte in % di un'altra, così seguono la grandezza;
+     tecnici = vanno in «Altre opzioni». Le altre lunghezze della forma non si vedono: X, Y, Z danno la grandezza. */
+  const SEMPLICI = {
+    d20: { uno: "s" }, d6: { uno: "s" }, d12: { uno: "s" }, calcio: { uno: "D" },
+    geo: { uno: "D", tecnici: ["f"] }, sferaU: { uno: "D", tecnici: ["n"] }, sferaP: { uno: "D", tecnici: ["n"] },
+    box: { diretti: { X: "a", Y: "b", Z: "h" } },
+    prism: { xyz: ["s", "h"] }, pyr: { xyz: ["s", "h"] },
+    frus: { xyz: ["s", "h"], perc: { t: ["s", "Lato in alto (% del lato in basso)"] } },
+    L: { xyz: ["a", "b", "h"], perc: { w: ["b", "Larghezza dei bracci (% del lato corto)"] } },
+    C: { xyz: ["a", "b", "h"], perc: { w: ["b", "Larghezza di schiena e bracci (% della schiena)"] } },
+    arrow: { xyz: ["L", "W", "h"], perc: { w: ["W", "Larghezza dell'asta (% della punta)"], Lh: ["L", "Lunghezza della punta (% del totale)"] } },
+    star: { xyz: ["R", "h"], perc: { r: ["R", "Raggio interno (% delle punte)"], rh: ["h", "Altezza della punta del tetto (% delle pareti)"] } },
+    snake: { xyz: ["d", "s"], tecnici: ["m", "k"] },
+    torus: { xyz: ["D", "d"], tecnici: ["N", "m"] },
+    tunnel: { xyz: ["L", "w"], perc: { hs: ["w", "Altezza delle pareti dritte (% della larghezza)"] }, tecnici: ["k"] },
+    boat: { xyz: ["L", "W", "h"], perc: { Lp: ["L", "Lunghezza della prua (% della lunghezza)"], a: ["W", "Lato della piramide (% della larghezza)"], hp: ["h", "Altezza della piramide (% dello scafo)"] } },
+    banana: { xyz: ["L", "d"], perc: { tl: ["L", "Lunghezza della punta (% del corpo)"], sl: ["L", "Lunghezza del picciolo (% del corpo)"] }, tecnici: ["N", "m"] },
+    scolo: { xyz: ["s", "d", "h"], perc: { lz: ["d", "Lunghezza delle zampe (% della larghezza del corpo)"], la: ["d", "Lunghezza delle antenne (% della larghezza del corpo)"], lp: ["d", "Lunghezza delle pinze (% della larghezza del corpo)"] }, tecnici: ["m"] },
+    balena: { xyz: ["L", "W", "H"], perc: { tl: ["L", "Lunghezza della coda (% del corpo)"] }, tecnici: ["N", "m"] },
+    fungo: { xyz: ["dc", "hg"], perc: { dg: ["dc", "Diametro del gambo (% del cappello)"], hc: ["hg", "Altezza del cappello (% del gambo)"] }, tecnici: ["n"] },
+    razzo: { xyz: ["d", "H"], perc: { hp: ["H", "Altezza della punta (% del corpo)"], la: ["d", "Lunghezza delle alette (% del diametro)"] }, tecnici: ["n"] },
+    tarta: { xyz: ["Lg", "D", "H"], perc: { lt: ["Lg", "Lunghezza di collo e testa (% del guscio)"], lz: ["Lg", "Lunghezza delle zampe (% del guscio)"], lc: ["Lg", "Lunghezza della coda (% del guscio)"] } },
+    ananas: { xyz: ["D", "H"], perc: { lf: ["H", "Lunghezza delle foglie (% del corpo)"] }, tecnici: ["n"] },
+    pera: { xyz: ["D", "H"], perc: { dn: ["D", "Diametro della parte alta (% della pancia)"], lp: ["H", "Lunghezza del picciolo (% dell'altezza)"] }, tecnici: ["n"] },
+  };
+  const percDi = (id, key) => (((SEMPLICI[id] || {}).perc) || {})[key] || null;
   const fondoScala = (a) => S.area[a] > 0 ? S.area[a] : Math.max(a === "z" ? 8 : 12, Math.ceil((S.dim ? S.dim[a] : 4) * 1.6));
   function costruisciMisure() {
     const box = $("pMisure");
     if (!S.shape || !S.dim) { box.innerHTML = `<div class="vuoto"><div><h3>Prima scegli una forma</h3><p class="hint">Nella linguetta «Forme».</p></div></div>`; return; }
-    const d = def(S.shape), opz = visibili(d, S.base).filter(q => !lunghezza(q));
+    const d = def(S.shape), vis = visibili(d, S.base), tecK = new Set((SEMPLICI[S.shape] || {}).tecnici || []);
+    const tec = vis.filter(q => !lunghezza(q) && (tecK.has(q.key) || dettaglio(q))), opz = vis.filter(q => !lunghezza(q) && !tec.includes(q)), tip = vis.filter(q => lunghezza(q) && percDi(S.shape, q.key));   // [Unita]
+    const campoOpz = (q) => {
+      const v = S.base[q.key];
+      if (q.type === "pick") return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><select id="o_${q.key}" data-k="${q.key}">${q.options.map(([a, b]) => `<option value="${a}"${a === v ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></div>`;
+      return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><input type="number" id="o_${q.key}" data-k="${q.key}" min="${q.min}"${q.max ? ` max="${q.max}"` : ""} step="${q.type === "int" ? 1 : q.step || 1}" value="${v}"></div>`;
+    };
+    const campoTip = (q) => { const [rif, nome] = percDi(S.shape, q.key), r = S.base[rif];   // [Unita] in % della misura di riferimento
+      return `<div class="field"><label for="o_${q.key}">${esc(nome)}</label><input type="number" id="o_${q.key}" data-pk="${q.key}" min="1" step="1" inputmode="numeric" value="${r > 0 ? Math.round(S.base[q.key] / r * 100) : ""}"></div>`; };
     box.innerHTML = `<div class="cursori">${ASSI.map(([a, L, nome]) => `<div class="vcursore"><span class="asse" aria-hidden="true">${L}</span>
         <div class="vslider" role="slider" tabindex="0" data-a="${a}" aria-label="${L}: ${nome} della bolla, in metri" aria-valuemin="${MIN}"><div class="riemp"></div></div>
         <input type="number" data-a="${a}" min="${MIN}" step="0.05" inputmode="decimal" aria-label="${L} in metri"><small>${nome} · m</small></div>`).join("")}</div>
       <label class="check"><input type="checkbox" id="blocca"${S.lock ? " checked" : ""}> <span><b>Mantieni le proporzioni</b><br><span class="hint">Cambiando una misura cambiano anche le altre, e la forma resta la stessa (per esempio i triangoli tutti uguali dell'icosaedro). Togli la spunta per allungarla o schiacciarla.</span></span></label>
-      ${opz.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(q => {
-        const v = S.base[q.key];
-        if (q.type === "pick") return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><select id="o_${q.key}" data-k="${q.key}">${q.options.map(([a, b]) => `<option value="${a}"${a === v ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></div>`;
-        return `<div class="field"><label for="o_${q.key}">${esc(etichetta(q))}</label><input type="number" id="o_${q.key}" data-k="${q.key}" min="${q.min}"${q.max ? ` max="${q.max}"` : ""} step="${q.type === "int" ? 1 : q.step || 1}" value="${v}"></div>`;
-      }).join("")}</div></div>` : ""}
+      ${opz.length || tip.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(campoOpz).join("")}${tip.map(campoTip).join("")}</div></div>` : ""}
+      ${tec.length ? `<details class="altreOpz"><summary>Altre opzioni</summary><p class="hint">Dettagli tecnici della forma: lati, spicchi, segmenti.</p><div class="opzioni" id="paramsTec">${tec.map(campoOpz).join("")}</div></details>` : ""}
       ${S.shape === "custom" ? `<div class="btnrow"><button type="button" class="btn" id="bRidisegna">✎ Ridisegna la pianta</button></div>` : ""}
       ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}`;
     aggiornaCursori();
@@ -1298,6 +1330,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     box.addEventListener("input", e => {
       const el = e.target;
       if (el.dataset.a) { const v = parseFloat(el.value); if (v >= MIN && v <= 300) cambiaAsse(el.dataset.a, v); return; }
+      if (el.dataset.pk) {   // [Unita] una misura tipica, in %
+        const q = def(S.shape).params.find(x => x.key === el.dataset.pk), pc = q && percDi(S.shape, q.key); if (!pc) return;
+        const v = parseFloat(el.value) / 100 * S.base[pc[0]]; if (!(v >= q.min) || (q.max && v > q.max)) return;
+        S.base = Object.assign({}, S.base, { [q.key]: r2(v) }); esito = null; cambiato(); return;
+      }
       if (el.dataset.k && el.tagName === "INPUT") {
         const q = def(S.shape).params.find(x => x.key === el.dataset.k); let v = parseFloat(el.value);
         if (!q || !(v >= q.min) || (q.max && v > q.max)) return; if (q.type === "int") v = Math.round(v);
