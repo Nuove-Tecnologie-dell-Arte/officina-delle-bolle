@@ -440,3 +440,10 @@ Tutto segnato `[Officina]`.
 
 - **Blocco 1**: `FORME_OFF` con i nomi geometrici della pagina (Icosaedro, Sfera geodetica, Esacisicosaedro, Esacisicosaedro suddiviso, Icosaedro troncato…), come nella prova semplice.
 - **Blocco 3**: in vetrina, `mandaStato()` manda al sito `{ tipo: 'vetrina-stato', D, righe }`, cioè la distinta di tutte le bolle con i prezzi (`prezzoDi`) e i materiali scelti. Si manda dopo ogni `bolle-officina` e dopo ogni cambio. Il sito manda `{ tipo: 'vetrina-materiali', D }` (telo, grammatura, giunti, nastro, porte, collegamenti) e `{ tipo: 'vetrina-prezzo', id, v }`, che si salva con `salvaBudget` come i prezzi scritti nell'Abbofficina.
+- **Blocco 4**: il modo `?incorporata` della prova semplice, portato sopra la vetrina dell'estetica.
+  - Si portano il CSS di `body.piccola` e `body.incorporata`, `preparaPacco`, `legata`, `formaDallaPagina`, `cambiataQui` (chiamata da `strutturaCambiata`), il salvataggio di `legato`, i messaggi `forma`, `materiali`, `prezzo` e `grande`, e l'Esc che manda `esci`.
+  - Per non confondersi con `manda` della vetrina, il blocco usa `mandaP`.
+  - `stanzaDallaPagina` non c'è: la prova unita usa le aree e gli scenari della vetrina.
+  - Con `&grande=1` si apre già a tutto schermo, senza il modo piccolo.
+  - Messaggi nuovi: `ricarica-prezzi` (l'Abbofficina completa rilegge i prezzi salvati) e, in vetrina, `vetrina-ricarica-prezzi`.
+  - Niente finestra delle scelte all'avvio, né in vetrina né incorporata.

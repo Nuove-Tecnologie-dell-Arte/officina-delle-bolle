@@ -132,6 +132,14 @@ body.trascina iframe { pointer-events: none; }
   .sim-nota { min-width: 0 !important; }   /* [Unita] sul telefono la nota va a capo invece di allargare la pagina */
 }
 .riduci { display: none; }
+/* [Unita] ↗: l'Abbofficina completa a tutto schermo */
+.simGrande { min-height: 32px; padding: 4px 11px; font-size: 1rem; line-height: 1; align-self: center; }
+.simTuttaBox { position: fixed; inset: 0; z-index: 300; background: #e7e5e1; }
+.simTuttaBox[hidden] { display: none; }
+.simTuttaBox iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+#simChiudi { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 2; min-height: 36px; padding: 6px 14px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }   /* nella testata dell'Abbofficina, al centro, dove è vuota */
+@media (max-width: 700px) { #simChiudi { top: auto; bottom: 74px; left: auto; right: 10px; transform: none; } }
+body.simGrande { overflow: hidden; }
 @media (max-width: 900px) { .riduci { display: inline-flex; min-height: 32px; padding: 4px 10px; font-size: .8rem; } .sim-testa { flex-wrap: nowrap; } .sim-testa h2 { font-size: 1rem; } .sim-stato { gap: 4px; font-size: .78rem; } .sim-stato .pill { padding: 3px 8px; } }
 @media (max-width: 480px) { .sim-stato .pill:not(.ok):not(.mid):not(.ko) { display: none; } .sim-stato { min-width: 0; } .sim-testa { flex-wrap: wrap; row-gap: 4px; } }   /* [Unita] sul telefono resta il verdetto, non l'altezza */
 
@@ -511,6 +519,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       <button type="button" role="tab" id="tabSchema" aria-controls="simScena" aria-selected="false">Schema</button>
     </div>
     <div class="sim-stato" id="simStato"></div>
+    <button type="button" class="btn simGrande" id="simGrande" title="Apri l'Abbofficina completa, a tutto schermo, sulla bolla scelta: aria, materiali, dati" aria-label="Apri l'Abbofficina completa a tutto schermo">↗</button><!-- [Unita] -->
     <button type="button" class="btn riduci" id="bRiduci" aria-expanded="true">Riduci</button>
   </div>
   <div class="sim-scena" id="simScena" role="tabpanel">
@@ -563,6 +572,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 </dialog>
 
 <div id="stampa"></div>
+<div class="simTuttaBox" id="simTuttaBox" role="dialog" aria-modal="true" aria-label="L'Abbofficina completa" hidden><button type="button" class="btn" id="simChiudi" title="Torna al sito (Esc)">↙ Torna al sito</button></div><!-- [Unita] -->
 
 <script src="motore.js"></script>
 <script src="immagine.js"></script>
@@ -848,6 +858,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
      Riceve la bolla (vertici e facce in metri) con un messaggio; se non si carica (senza internet), resta il disegno di riserva. */
   const fr = $("vetrina");
   let vetrinaPronta = false, tSim = 0, ultimoInvio = "";
+  let tutta = null, tuttaPronta = false, tuttaId = null, tTutta = 0;   // [Unita] ↗, l'Abbofficina completa
   const opzArea = () => { if (!cur || !haArea()) return null; const e = entra({ x: cur.W, y: cur.D, z: cur.H }); return { x: S.area.x, y: S.area.y, z: S.area.z, ok: !!e, giro: e === 2 }; };
   const conForma = (b) => !!(b.shape && b.base && b.dim);
   // le aree di lavoro nel simulatore (quelle con almeno una misura a terra); con lo scenario con le pareti nessuna: c'è la stanza
@@ -958,6 +969,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("simStato").innerHTML = !S.shape ? "" : !cur ? `<span class="pill ko"><i>✕</i>${esc(curErr || "Non si costruisce")}</span>`
       : `<span class="pill">${metri(cur.H)}</span><span class="pill ${g.c}"><i>${icona[g.c] || "i"}</i>${g.c === "ok" ? "Si può fare" : g.c === "mid" ? "Con attenzione" : "Non si può fare"}</span>`;
     clearTimeout(tSim); tSim = setTimeout(inviaVetrina, 120);
+    if (tutta && tuttaPronta && tuttaAperta()) { clearTimeout(tTutta); tTutta = setTimeout(inviaTutta, 300); }   // [Unita]
     disegnaSchema();
   }
 
@@ -1528,6 +1540,52 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (e.source !== fr.contentWindow || !e.data) return;
     if (e.data.tipo === "vetrina-pronta") inviaMateriali();
     if (e.data.tipo === "vetrina-stato") mostraLista(e.data);
+  });
+
+  /* [Unita] ↗: l'Abbofficina completa (come nella prova semplice, ?incorporata) a tutto schermo, sulla bolla scelta.
+     La vetrina resta com'è; le misure cambiate là tornano alla bolla che si è mandata (tuttaId). */
+  function tuttaAperta() { return !$("simTuttaBox").hidden; }
+  const aTutta = (m) => { if (tutta && tuttaPronta) try { tutta.contentWindow.postMessage(Object.assign({ bolle: 1 }, m), "*"); } catch (e) { /* non ancora pronta */ } };
+  function paccoBolla() {
+    if (!cur) return null; const mm = (x) => Math.round(x * 1000) / 1000;
+    return { v: 1, nome: nomeBolla(PR.att), tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: S.shape } };
+  }
+  function inviaTutta() { const p = paccoBolla(); if (!p) return; tuttaId = S.id; aTutta({ tipo: "forma", pacco: p }); }
+  function apriTutta(si) {
+    const box = $("simTuttaBox");
+    if (si) {
+      if (!cur) return;
+      if (!tutta) { tutta = document.createElement("iframe"); tutta.id = "simTutta"; tutta.title = "L'Abbofficina completa, sulla bolla scelta"; tutta.src = "configuratore/index.html?incorporata=1&grande=1"; box.appendChild(tutta); }
+      box.hidden = false; document.body.classList.add("simGrande");
+      if (tuttaPronta) { aTutta({ tipo: "ricarica-prezzi" }); aTutta({ tipo: "materiali", D: PR.mat }); inviaTutta(); aTutta({ tipo: "grande", si: true }); }
+      tutta.focus();
+    } else {
+      if (box.hidden) return;
+      box.hidden = true; document.body.classList.remove("simGrande"); aTutta({ tipo: "grande", si: false });
+      if (vetrinaPronta) fr.contentWindow.postMessage({ tipo: "vetrina-ricarica-prezzi" }, "*");   // i prezzi scritti là valgono anche nella lista
+      $("simGrande").focus();
+    }
+  }
+  function daTutta(m) {   // la bolla legata è cambiata nell'Abbofficina: per la forma dell'Officina arriva l'ingrandimento k
+    if (m.tipoB !== "officina" || !m.d) return; const k = +(m.d.k || 1); if (!(k > 0) || Math.abs(k - 1) < 1e-3) return;
+    const b = PR.bolle.find(x => x.id === tuttaId); if (!b || !b.dim) return;
+    b.dim = scalaDim(b.dim, k);
+    if (b === S) { esito = null; cambiato(); } else { salva(); simulatore(); }
+  }
+  function materialiDaTutta(D) {   // le scelte cambiate nell'Abbofficina tornano nel sito (zip impermeabile e stagna restano là)
+    if (!D) return; let cambia = false;
+    for (const k of Object.keys(MAT_LAB)) { let v = D[k]; if (v == null) continue; if ((k === "porte" || k === "coll") && !["cerniera", "velcro"].includes(v)) continue; if (k === "adLati") v = v > 1 ? 2 : 1; if (PR.mat[k] !== v) { PR.mat[k] = v; cambia = true; } }
+    if (cambia) { salva(); rendiScelteMat(); rendiMateriali(); inviaMateriali(); }
+  }
+  $("simGrande").addEventListener("click", () => apriTutta(true));
+  $("simChiudi").addEventListener("click", () => apriTutta(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && tuttaAperta()) { e.preventDefault(); apriTutta(false); } });
+  addEventListener("message", e => {
+    if (!tutta || e.source !== tutta.contentWindow || !e.data || !e.data.bolle) return; const m = e.data;
+    if (m.tipo === "pronta") { tuttaPronta = true; aTutta({ tipo: "materiali", D: PR.mat }); inviaTutta(); aTutta({ tipo: "grande", si: tuttaAperta() }); }
+    else if (m.tipo === "misure") daTutta(m);
+    else if (m.tipo === "stato") materialiDaTutta(m.D);
+    else if (m.tipo === "esci") apriTutta(false);
   });
 
   RENDI.progettazione = () => { rendiArea(); linguetta(S.shape ? S.tab : "forme"); rendiRisultato(); rendiScelteMat(); rendiMateriali(); };

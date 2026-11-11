@@ -69,3 +69,16 @@ Il progetto è in `docs/superpowers/specs/2026-11-11-prova-unita-design.md`, il 
   - un prezzo scritto qui va al simulatore (`vetrina-prezzo`), che lo salva come i suoi;
   - senza simulatore (niente internet) la lista dice che arriva dal simulatore, e tutto il resto della pagina funziona;
   - sul telefono la tabella scorre dentro il suo riquadro.
+
+## Blocco 4 · Simulatore: vetrina + ↗ con l'Abbofficina completa
+
+- **Il pulsante ↗** (`#simGrande`), accanto a Simulatore e Schema, apre a tutto schermo l'Abbofficina completa (`configuratore/index.html?incorporata=1&grande=1`, iframe `#simTutta` dentro `#simTuttaBox`) sulla bolla scelta, con tutte le sue schede: Costruisci e Prova, Aria, Materiali, Dati.
+  - L'iframe si crea alla prima apertura, e chiudendolo resta caricato.
+  - Nel riquadro a destra resta la vetrina dell'estetica, con le bolle che si spostano, le aree e lo scenario.
+- **La bolla:** arriva come «forma dell'Officina» (`{ tipo: 'forma', pacco }`, con la mesh alle misure vere). Nell'Abbofficina va nella composizione «Officina · Bolla N», sulla bolla legata. Se la bolla cambia nel sito mentre ↗ è aperto, o se si sceglie un'altra scheda, si manda di nuovo.
+- **Quello che si cambia nell'Abbofficina torna nel sito:**
+  - **l'ingrandimento della bolla** (`misure`, con `k`) cambia X, Y, Z della bolla che si era mandata, anche se intanto in alto se ne è scelta un'altra;
+  - **i materiali** (`stato`) tornano nel foglio dei Materiali, tranne la zip impermeabile e quella stagna;
+  - **i prezzi scritti là:** chiudendo ↗ la vetrina li rilegge (`vetrina-ricarica-prezzi`) e la lista del sito si aggiorna; riaprendo, è l'Abbofficina a rileggere quelli scritti nel sito (`ricarica-prezzi`).
+- **Si torna** con «↙ Torna al sito» (in alto al centro, sul telefono in basso a destra), con Esc nella pagina o con Esc dentro l'Abbofficina (`esci`). Il fuoco torna su ↗.
+- La vetrina non salva composizioni. Quella della pagina («Officina · …») la salva solo l'Abbofficina completa, una volta.
