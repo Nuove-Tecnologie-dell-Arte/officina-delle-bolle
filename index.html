@@ -1616,8 +1616,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       const cx = cur.V.reduce((a, v) => a + v[0], 0) / cur.V.length, cy = cur.V.reduce((a, v) => a + v[1], 0) / cur.V.length, rad = Math.max(...cur.V.map(v => Math.hypot(v[0] - cx, v[1] - cy, v[2]))) || 1;
       if (mx > 1e-6) { const f = Math.min(3, Math.max(0.4, 0.1 * rad / mx)); campo.disp = dV.map(q => q.map(c => c * f)); campo.accento = cur.F.map(fa => fa.some(i => len[i] > 0.15 * mx)); }
     } else if (r1) campo.alt = r1;
-    cancelAnimationFrame(campo.raf);
-    const passo = () => { if (!campo.key) return; ridisegna("cvSchema"); campo.raf = requestAnimationFrame(passo); };
+    clearTimeout(campo.raf);
+    const passo = () => { if (!campo.key) return; ridisegna("cvSchema"); campo.raf = setTimeout(passo, 40); };   // un timer e non requestAnimationFrame: va anche dove i fotogrammi sono fermi
     passo();
   }
   function faseCampo() {
@@ -1626,7 +1626,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const nuova = ridotto || t % 1 >= 0.5; return nuova ? { m: campo.alt, accento: campo.alt.F.map(() => true) } : { m: cur, accento: cur.F.map(() => true) };
   }
   function fineCampo() {
-    if (!campo.key) return; campo.key = null; campo.disp = campo.alt = campo.accento = null; cancelAnimationFrame(campo.raf);
+    if (!campo.key) return; campo.key = null; campo.disp = campo.alt = campo.accento = null; clearTimeout(campo.raf);
     document.querySelectorAll("#rqMisure .field.attivo").forEach(f => f.classList.remove("attivo")); disegnaSchema();
   }
   {

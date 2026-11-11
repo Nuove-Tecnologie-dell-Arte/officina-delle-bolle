@@ -180,5 +180,6 @@ Dopo la prova sono cambiate cinque cose:
 ## Blocco C · Toccare una misura e Annulla
 
 - **Toccare una misura** (come nella semplice): toccando una casella, o passandoci sopra con il mouse, nello Schema la parte che cambia si colora di rosso e si muove piano; il resto resta grigio. La pagina ricalcola la forma con quel valore un po' cambiato e guarda quali vertici si spostano, quindi funziona per tutte le forme. Se cambiano i pezzi (più lati), le due forme si alternano.
+- **L'animazione va con un timer** (ogni 40 ms), non con `requestAnimationFrame`: così si muove anche dove i fotogrammi del browser sono fermi, per esempio in un pannello nascosto.
 - **Sotto lo Schema una riga spiega la misura**, con la tabella `MISURE` della semplice (per esempio «Raggio interno. Dal centro alle rientranze fra una punta e l'altra.»). Uscendo dal campo torna tutto normale.
 - **«↶ Annulla»** accanto alle caselle, e Ctrl+Z fuori dai campi nella Progettazione, tornano indietro di un cambiamento alla volta, per la bolla scelta. I tasti battuti di fila sulla stessa casella contano come un cambiamento solo.
