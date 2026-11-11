@@ -134,6 +134,7 @@ body.trascina iframe { pointer-events: none; }
 .schemaBox canvas { width: 100%; aspect-ratio: 4 / 3; max-height: 62vh; display: block; cursor: grab; touch-action: none; background: rgba(255, 255, 255, .38); border-radius: 4px; }
 .schemaNota { font-size: .82rem; }
 #slotCostr .schemaBox { margin-top: 14px; }
+@media (max-width: 700px) { .schemaBox canvas { touch-action: pan-y; max-height: 38vh; } }   /* [Unita] sul telefono si scorre la pagina anche sopra lo Schema */
 .schede3 { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 2px solid rgba(20, 20, 20, .12); }
 .schede3 button { font: 400 1.2rem/1 var(--display, inherit); letter-spacing: .04em; color: #575550; background: var(--scheda-off, #dcdad6); border: 0; padding: 9px 18px 7px; cursor: pointer; }
 .schede3 button[aria-selected="true"] { background: var(--rosso, var(--green)); color: #fff; }
@@ -596,7 +597,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <div class="btnrow cantiereRiga"><button type="button" class="btn primary" id="cantiereGiunte">Modalità cantiere</button><span class="hint">A schermo intero, una giunzione alla volta: per il telefono mentre si monta. F segna «Fatta».</span></div><!-- [Unita] -->
     <div class="card giunta nastrato" id="giunta"></div>
     <div class="slotSchema" id="slotCostr"></div><!-- [Unita] lo Schema arriva qui nella Costruzione -->
-    <p class="hint" style="text-align:center">Nello <b>Schema</b>, a destra, vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
+    <p class="hint" style="text-align:center">Nello <b>Schema</b>, qui sotto, vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
     <div class="box-info"><b>La porta</b><span id="porta"></span></div>
   </div>
 </section>
@@ -732,9 +733,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     scala: ["Scala", "Quante volte il modellino è più piccolo della bolla vera. Scala 1:20 vuol dire che 1 cm del modellino è 20 cm della bolla."],
     gonfiatore: ["Gonfiatore (ventilatore)", "Il ventilatore che soffia aria nella bolla. Deve restare acceso finché c'è qualcuno dentro."],
     pianta: ["Pianta", "La bolla vista dall'alto, come in una mappa: il contorno della pianta è la forma del pavimento."],
-    simulatore: ["Simulatore", "La finestra a destra: è l'Abbofficina, che mostra le tue bolle mentre le progetti, con i gonfiatori e le persone. Trascina una bolla per spostarla, toccala per modificarla. Sotto scegli lo scenario: la stanza intorno alle bolle. Trascina la tendina al centro per allargarla."],
+    simulatore: ["Simulatore", "La finestra a destra (sul telefono in alto): è l'Abbofficina, che mostra le tue bolle mentre le progetti, con i gonfiatori e le persone. Trascina una bolla per spostarla, toccala per modificarla. Sotto scegli lo scenario: la stanza intorno alle bolle. Trascina la tendina al centro per allargarla."],
     schede: ["Schede delle bolle", "In alto, sotto le tappe: una scheda per ogni bolla (Bolla 1, Bolla 2…). Quella in verde è quella che stai modificando; con «+ Nuova bolla» ne aggiungi un'altra. Nel simulatore si vedono tutte, nello Schema solo quella scelta."],
-    schema: ["Schema", "L'altra linguetta della finestra a destra: la bolla disegnata pezzo per pezzo, colorata per dima. Mentre la costruisci mostra i pezzi già montati, i lati già uniti in bianco e quello da fare in rosso."],
+    schema: ["Schema", "La bolla disegnata pezzo per pezzo, colorata per dima, con le frecce X, Y, Z: sta sopra le misure e, nella Costruzione, sotto la giunzione. Mentre la costruisci mostra i pezzi già montati, i lati già uniti in bianco e quello da fare in rosso."],
   };
   function apriParole(k) {
     $("paroleLista").innerHTML = Object.entries(PAROLE).map(([id, [t, d]]) => `<dt id="pa-${id}"${id === k ? ' class="qui"' : ""}>${t}</dt><dd>${d}</dd>`).join("");
@@ -1584,22 +1585,23 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
   /* [Unita] Annulla sulle misure: un passo alla volta, per la bolla scelta (anche Ctrl+Z fuori dai campi) */
   const storia = []; let ultimaChiave = "", ultimoT = 0;
-  const storiaQui = () => storia.filter(x => x.id === S.id);
+  const qui = (x) => x.id === S.id && x.shape === S.shape;   // stessa bolla, stessa forma
+  const storiaQui = () => storia.filter(qui);
   function ricorda(chiave) {
     const ora = Date.now(); if (chiave === ultimaChiave && ora - ultimoT < 1200) { ultimoT = ora; return; }
     ultimaChiave = chiave; ultimoT = ora;
-    storia.push({ id: S.id, dim: Object.assign({}, S.dim), base: JSON.parse(JSON.stringify(S.base)) }); if (storia.length > 60) storia.shift();
+    storia.push({ id: S.id, shape: S.shape, dim: Object.assign({}, S.dim), base: JSON.parse(JSON.stringify(S.base)) }); if (storia.length > 60) storia.shift();
     const b = $("bAnnullaMis"); if (b) b.disabled = false;
   }
   function annullaMis() {
-    let i = storia.length - 1; while (i >= 0 && storia[i].id !== S.id) i--; if (i < 0) return;
+    let i = storia.length - 1; while (i >= 0 && !qui(storia[i])) i--; if (i < 0) return;
     const x = storia.splice(i, 1)[0]; ultimaChiave = "";
     S.dim = x.dim; S.base = x.base; esito = null; S.okModello = false; salva(); aggiornaBolla(true); costruisciMisure(); rendiRisultato(); rendiMateriali(); fondo(); testata();
   }
   document.addEventListener("keydown", e => {
     if ((e.key !== "z" && e.key !== "Z") || !(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
     if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable='true']")) return;
-    if (!$("site").hidden || tuttaAperta() || !$("cerca").hidden || TAPPE[S.t].id !== "progettazione" || !storiaQui().length) return;
+    if (!$("site").hidden || tuttaAperta() || !$("cerca").hidden || document.querySelector("dialog[open]") || TAPPE[S.t].id !== "progettazione" || !storiaQui().length) return;
     e.preventDefault(); annullaMis();
   });
 
@@ -1635,11 +1637,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       const cx = cur.V.reduce((a, v) => a + v[0], 0) / cur.V.length, cy = cur.V.reduce((a, v) => a + v[1], 0) / cur.V.length, rad = Math.max(...cur.V.map(v => Math.hypot(v[0] - cx, v[1] - cy, v[2]))) || 1;
       if (mx > 1e-6) { const f = Math.min(3, Math.max(0.4, 0.1 * rad / mx)); campo.disp = dV.map(q => q.map(c => c * f)); campo.accento = cur.F.map(fa => fa.some(i => len[i] > 0.15 * mx)); }
     } else if (r1) campo.alt = r1;
+    campo.cur = cur;
     clearTimeout(campo.raf);
     const passo = () => { if (!campo.key) return; ridisegna("cvSchema"); campo.raf = setTimeout(passo, 40); };   // un timer e non requestAnimationFrame: va anche dove i fotogrammi sono fermi
     passo();
   }
   function faseCampo() {
+    if (campo.cur !== cur) { const k = campo.key; setTimeout(() => { if (campo.key === k) preparaCampo(k); }, 0); return { m: cur, accento: null }; }   // la forma è cambiata: si ricalcola
     const t = (performance.now() - campo.t0) / 1800;
     if (campo.disp) { const u = ridotto ? 1 : 0.5 - 0.5 * Math.cos(2 * Math.PI * t); return { m: Object.assign({}, cur, { V: cur.V.map((v, i) => { const q = campo.disp[i]; return [v[0] + q[0] * u, v[1] + q[1] * u, v[2] + q[2] * u]; }) }), accento: campo.accento }; }
     const nuova = ridotto || t % 1 >= 0.5; return nuova ? { m: campo.alt, accento: campo.alt.F.map(() => true) } : { m: cur, accento: cur.F.map(() => true) };
@@ -2163,7 +2167,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("infoGiunta").addEventListener("toggle", e => { infoAperta = e.target.open; });
     const P = porteForma(cur.V, cur.F, S.shape), hp = P ? Math.max(0, P.h - 0.15) : 0;
     $("porta").textContent = `Alla fine taglia la porta: un taglio verticale in un pannello basso, dove la bolla è più alta (qui fino a ${metri(Math.min(hp, 2))}). Fissa ${PR.mat.porte === "velcro" ? "il velcro" : "la zip"} ai due bordi del taglio, con nastro o saldatura, e rinforzali con il nastro. La porta è anche l'uscita: deve aprirsi facilmente.`;
-    disegnaSchema();   // lo Schema a destra: la bolla che cresce, giunzione dopo giunzione
+    disegnaSchema();   // lo Schema sotto la giunzione: la bolla che cresce, giunzione dopo giunzione
     fondo();
   }
   /* [Unita] modalità cantiere (dalla prova semplice): a schermo intero, una dima o una giunzione alla volta, per il telefono mentre si lavora a terra.
@@ -2270,7 +2274,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (j && j.v === "unita-1" && j.PR && Array.isArray(j.PR.bolle)) {   // un progetto della prova unita: sostituisce quello di adesso
       PR = normalizzaPR(JSON.parse(JSON.stringify(j.PR))); S = PR.bolle[PR.att];
       if (j.scenario === "" || j.scenario === "corridoio") { scenario = j.scenario; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
-      dimeAperte.clear(); ultimoInvio = ""; rendiBolle(); rendiScelteMat(); inviaMateriali(); apriBolla(PR.att); return true;
+      dimeAperte.clear(); ultimoInvio = ""; storia.length = 0; rendiBolle(); rendiScelteMat(); inviaMateriali(); apriBolla(PR.att); return true;
     }
     if (j && typeof j.shape === "string" && def(j.shape) && j.shape !== "foto" && j.params && typeof j.params === "object") {   // una forma salvata con la prova semplice: una bolla nuova
       const d = def(j.shape), p = Object.assign(parametriBase(d), j.params), z = j.opt && j.opt.size;

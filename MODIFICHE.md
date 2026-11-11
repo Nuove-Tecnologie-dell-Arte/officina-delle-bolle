@@ -192,3 +192,12 @@ Dopo la prova sono cambiate cinque cose:
 - **Partono chiusi**, si aprono e si chiudono toccando il titolo, e il browser ricorda la scelta (`bolle|aperto|rqMat`, `bolle|aperto|rqLista`).
 - **Dalla ricerca** («rotolo», «Lista materiali e prezzi»…) il riquadro chiuso si apre da solo.
 - Il titolo «Materiali» è più piccolo, come gli altri della Progettazione.
+
+## Correzioni dopo la revisione della seconda parte
+
+Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
+- **«Annulla» vale solo per la stessa bolla con la stessa forma.** Cambiando forma, o aprendo un progetto da file, non rimette più le misure di un'altra forma.
+- **Se, mentre una misura è toccata, cambia la forma** (per esempio più spicchi), l'animazione si ricalcola. Prima dava un errore e la pagina restava aggiornata a metà.
+- **Ctrl+Z non fa niente quando c'è una finestra aperta** (la pianta, le parole, l'immagine). Prima annullava le misure dietro la finestra.
+- **Sul telefono lo Schema lascia scorrere la pagina** in verticale (`touch-action: pan-y`, al massimo 38% dello schermo). Si gira trascinando di lato.
+- **I testi non dicono più «lo Schema a destra»:** la nota della Costruzione e la voce «Schema» delle Parole.
