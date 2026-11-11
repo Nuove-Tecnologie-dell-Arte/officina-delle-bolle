@@ -1,39 +1,80 @@
 # Officina delle Bolle
 
-Un sito per progettare e costruire bolle gonfiabili in plastica fatte di pannelli piatti: cupola, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, ciambella, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera), piante disegnate a mano e forme ricavate da un'immagine.
+Un sito per progettare e costruire bolle gonfiabili in plastica fatte di pannelli piatti: icosaedro, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, toro, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera), piante disegnate a mano e forme ricavate da un'immagine.
 
-## Il sito: le tappe e la finestra Simulatore / Schema
+## Il sito (prova unita)
 
-`index.html` è la pagina principale (la vecchia pagina completa non c'è più, e `guida.html` rimanda qui). Colori e caratteri sono quelli dell'Officina (chiaro e scuro). In alto le tappe (Progettazione, Dima / Modellino, Costruzione e, alla fine, Si gonfia); il selettore Officina | Abbofficina non c'è più. Si riprende da dove si era (nel browser, chiave `bolle|progetto`).
+Questa è la **prova unita**: l'interfaccia della prova estetica di Simone e Andrea, con le funzioni più complete della prova semplice. I cambiamenti, blocco per blocco, sono in `MODIFICHE.md`; il progetto e il piano sono in `docs/superpowers/`.
 
-**A destra, sempre, una finestra con due linguette.** **Schema**: la bolla disegnata pezzo per pezzo, colorata per dima, con una persona da 1,75 m, la quota dell'altezza e l'area di lavoro; nella Costruzione si apre da sola e mostra la bolla che cresce: in colore i pezzi già montati, **in bianco i lati già uniti**, in rosso quello da fare, il resto grigio. **Simulatore**: è l'Abbofficina in «vetrina» (`configuratore/index.html?vetrina=1`, dentro un iframe). Riceve la bolla mentre la si progetta e la mostra con le cose belle da vedere: la bolla che si gonfia (da zero quando cambia la forma), i gonfiatori consigliati, i Sonny che camminano dentro, l'area di lavoro tratteggiata (rossa se la bolla non ci sta). Si gira la vista e ci si avvicina con la rotella; tutti i comandi tecnici dell'Abbofficina sono spenti, e in vetrina non si salva niente nelle sue composizioni. Sopra la scena: persone, altezza e «si può fare». three.js arriva da internet (tre CDN, una dopo l'altra, se una non risponde). Il sito aspetta il simulatore fino a 25 secondi, intanto c'è lo Schema; se arriva dopo torna da solo, e se non parte la linguetta Simulatore dice perché e offre «Riprova». La linguetta scelta si ricorda.
+`index.html` è la pagina principale (`guida.html` rimanda qui). Il tema è «cellophane e nastro di carta», solo chiaro. In alto ci sono le tappe: Progettazione, Dima / Modellino, Costruzione e, alla fine, Si gonfia. La pagina si riprende da dove si era (nel browser, chiave `bolle|progetti`).
 
-**Più bolle, una per scheda.** Sotto la testata ci sono le schede delle bolle (Bolla 1, Bolla 2…), come le finestre di un browser: quella in verde è quella che si modifica, «+ Nuova bolla» ne aggiunge un'altra, la × elimina quella scelta (chiede prima). Ogni bolla ha la sua forma, le sue misure, la sua tappa e le sue spunte; l'area di lavoro è una sola, per tutte. Nel **Simulatore** si vedono tutte insieme, separate, ognuna con il suo ingresso: si spostano trascinandole (il posto si ricorda), e un tocco su una bolla, o sul suo nome, apre la sua scheda. **Le aree di lavoro** sono una o più (Area 1, Area 2…, «+ Aggiungi un'area di lavoro» in «Prendi le misure»), ognuna con le sue X, Y, Z. Nel simulatore sono parallelepipedi tratteggiati fermi: la prima attorno alle bolle, le altre accanto; si spostano solo trascinandone il bordo o l'etichetta, e si portano dietro le bolle che hanno dentro. Una bolla che è dentro un'area **ci resta intrappolata**: trascinandola arriva fino al bordo e ci scivola lungo, senza passare in un'altra area (una bolla fuori da tutte si muove libera finché non entra). Ogni bolla si giudica con l'area in cui sta. Un'area è rossa se una bolla ne esce o è più alta; sotto il simulatore si dice quali bolle sono fuori. **Le bolle si girano** con ⟲ ⟳ sotto il nome della bolla scelta (15° alla volta), restando nella loro area e senza toccare le altre se c'è posto. Lo **Schema** mostra solo la bolla scelta. «Fai un'altra bolla», alla fine, apre una scheda nuova. Il progetto si salva nel browser (`bolle|progetti`; quello di una bolla sola di prima si riprende da sé).
+### La finestra a destra: Simulatore e Schema
 
-**Lo scenario**, sotto il simulatore, è la stanza di sfondo dell'Abbofficina: nessuna, il Corridoio dell'Accademia, oppure una vostra foto 360° o un vostro modello 3D (GLB). **Con uno scenario con le pareti** (il Corridoio, una foto 360°) l'area di lavoro diventa lo spazio della stanza: le aree spariscono, le bolle restano dentro le pareti (quelle nelle pareti entrano da sole, se c'è posto) e il giudizio usa l'altezza della stanza; scegliendo «Nessuno» tornano le aree, dove erano. Un modello GLB non ha pareti note: lì valgono le aree. Lo scenario pronto si ricorda; il file vostro vale finché la pagina resta aperta. Il Corridoio funziona anche con il sito aperto come file: la foto c'è anche come testo in `configuratore/stanze/corridoio.js`.
+A destra c'è sempre una finestra con due linguette.
 
-**La tendina** tra le due metà si trascina per allargare o stringere il simulatore (anche con le frecce; doppio clic: metà e metà) e si ricorda. Sul telefono il simulatore sta in alto, fermo, e «Riduci» lo nasconde.
+- **Schema:** la bolla disegnata pezzo per pezzo, colorata per dima, con una persona da 1,75 m, la quota dell'altezza e l'area di lavoro.
+  - Nella Costruzione si apre da sola e mostra la bolla che cresce: in colore i pezzi già montati, **in bianco i lati già uniti**, in rosso quello da fare.
+  - **Un tocco su un pannello** mostra le misure del pezzo (lati, angoli, quante ne servono). Il secondo tocco porta alla sua dima.
+- **Simulatore:** è l'Abbofficina in «vetrina» (`configuratore/index.html?vetrina=1`, in un iframe).
+  - Mostra le bolle che si gonfiano, i gonfiatori consigliati, i Sonny dentro, le aree di lavoro e lo scenario. Sopra ci sono l'altezza e il verdetto.
+  - **↗** apre a tutto schermo l'Abbofficina completa sulla bolla scelta (`?incorporata=1&grande=1`), con Costruisci, Prova, Aria, Materiali e Dati. Ingrandimento, materiali e prezzi cambiati là tornano nel sito. Si torna con «↙ Torna al sito» o con Esc.
+- three.js arriva da internet (tre CDN, una dopo l'altra). Il sito aspetta il simulatore fino a 25 secondi, e intanto c'è lo Schema. Senza internet tutto il resto funziona.
 
-- **Inizio**: solo il titolo, due righe su che cos'è una bolla e «Cominciamo».
-- **1 · Progettazione**, una pagina sola in tre parti:
-  - **Prendi le misure**: X (lunghezza), Y (larghezza) e Z (altezza libera) dell'area di lavoro, in metri. Se ci sono, i cursori arrivano fin lì, il simulatore disegna l'area e il giudizio controlla che la bolla ci entri, anche girata di un quarto. Vuote vuol dire nessun limite.
-  - **Progetta**: la cartella con due linguette. **Forme**: le 28 forme del motore per famiglia, con l'anteprima e Facile / Media / Impegnativa, più «Parti da un'immagine» (`immagine.js`) e «Disegnala tu» (la pianta su una griglia). **Misure**: tre cursori verticali X, Y, Z, «Mantieni le proporzioni» (acceso all'inizio: la forma resta quella del motore; spento si allunga o si schiaccia, e i pannelli restano piatti), le opzioni della forma e «Falla per … persone». Sotto, quante persone ci stanno (ognuna con almeno 1,5 m² di spazio vitale: `M2_PERSONA` in `motore.js`), altezza, ingombro, porta, il verdetto con **Risolvi** e la lista dei controlli.
-  - **Materiali**: telo (con i metri di rotolo), nastro, cerniere, ventilatore, dime e pezzi, tempo, attrezzi, spazio.
-- **2 · Dima / Modellino**: il modellino di carta (scala scelta da sola, fogli A4 al 100% con il segmento di controllo da 5 cm) e le dime. Ogni dima si chiama **P e il suo numero** (P1, P2, P3…), anche sui fogli del modellino. Il disegno di ogni dima dà le **misure semplificate**, anche per gli angoli non a 90°: la base A–B dritta (con la sua lunghezza sotto), e per ogni altro angolo quanto andare lungo la base partendo da A (sotto la linea; negativo = a sinistra di A) e quanto salire dritto a 90° (in verde), con la perpendicolare tratteggiata e il quadratino dell'angolo retto. Sotto, i lati per controllare. Le schede si stampano.
-- **3 · Costruzione**: il montaggio una giunzione alla volta: il disegno dei due pezzi accostati lungo il lato rosso, con il nome della dima e «pezzo nuovo» / «già nella bolla» (niente lettere agli angoli), i pulsanti per andare avanti, e la spiegazione scritta dentro **Info**, che si apre con un clic. La bolla in 3D è nello Schema, a destra, e cresce giunzione dopo giunzione.
-- **4 · Si gonfia**: la tappa finale, con i tre passi per gonfiarla e, sotto, le **FAQ**: i problemi più comuni (non si gonfia, pieghe, nastro che si stacca, strappi, porta, quante persone, sicurezza, caldo, corrente, vento, ventilatore rumoroso, modellino che si chiudeva ma la bolla no, come sgonfiarla e conservarla); cliccando una domanda si apre la soluzione.
+**La tendina** tra le due metà si trascina per allargare o stringere il simulatore (anche con le frecce; doppio clic: metà e metà). Sul telefono il simulatore sta in alto e «Riduci» lo nasconde.
 
-**Come si fanno le misure X, Y, Z**: la forma si costruisce con il motore (con le sue opzioni) e poi si allunga in ogni direzione fino alle misure scelte, che restano precise (si arrotonda solo quello che si legge, così i pezzi uguali restano uguali). Una forma appena scelta parte grande per 12 persone e, se c'è l'area di lavoro, si rimpicciolisce finché ci sta; le forme disegnate in pianta si allargano solo in pianta.
+### Più bolle, aree di lavoro e scenari
 
-**Risolvi** prova da solo tante misure vicine (tutta più grande o più piccola, solo più alta o più bassa, dentro l'area, meno lati o spicchi) e tiene quella con meno problemi e meno cambiamenti; dice che cosa ha cambiato e si può annullare. Con «Mantieni le proporzioni» prova prima a non cambiarle; se deve farlo spegne il blocco e lo scrive.
+- **Le bolle:** le schede sotto la testata (Bolla 1, Bolla 2…, «+ Nuova bolla», × per eliminarla). Ogni bolla ha forma, misure, tappa e spunte sue.
+- **Nel Simulatore:** si vedono tutte insieme, si spostano trascinandole e si girano con ⟲ ⟳ (15° alla volta). Un tocco apre la scheda di quella bolla.
+- **Le aree di lavoro:** sono una o più (in «Prendi le misure»), e una bolla dentro un'area ci resta. Con uno scenario con le pareti (il Corridoio, una foto 360°) lo spazio di lavoro è la stanza.
 
-**Dall'Abbofficina**: il selettore in alto torna qui con `#apri={shape, params}` e la pagina riapre quella forma, con le sue misure vere.
+### Le tappe
 
-**Il tema** («cellophane e nastro di carta») sta in `tema/`: `tema.css` ricopre lo stile della pagina; lo sfondo di plastica stropicciata (`plastica.svg`), i nastri di carta (`nastro.svg`, `nastro-oliva.svg`, `angolo-alto.svg`, `angolo-basso.svg`) e il foglio giallo dei materiali (`carta.svg`) sono disegni generati da `plastica.py` e `nastri.py` (si rigenerano con Python, senza altre librerie). Titoli in Bebas Neue rossi, testi in Barlow; pannelli grigi trasparenti con il nastro sugli angoli e la riga tratteggiata; campi X, Y, Z come strisce di nastro; le forme a fil di ferro su riquadri grigi. Il tema è solo chiaro, e anche il simulatore in vetrina resta chiaro.
+- **Inizio:** il titolo, due righe su che cos'è una bolla e «Cominciamo».
+- **1 · Progettazione**
+  - **Prendi le misure:** X, Y, Z dell'area di lavoro, in metri. Vuote vuol dire nessun limite.
+  - **Progetta**, con due linguette:
+    - **Forme:** le forme del motore per famiglia, con il loro nome geometrico (Icosaedro, Icosaedro troncato, Esacisicosaedro…), più «Parti da un'immagine» e «Disegnala tu».
+    - **Misure:** tre cursori verticali X, Y, Z con «Mantieni le proporzioni» (la forma si allunga fino a quelle misure, con le facce piane, come `opt.size` del motore). Sotto, le **misure tipiche** della forma in % (raggio interno della stella, picciolo della banana…). In «Altre opzioni» le misure tecniche: lati, spicchi, segmenti.
+    - Poi il verdetto con **Risolvi**, l'altezza, l'ingombro e la lista dei controlli.
+    - Una forma appena scelta parte con le misure di base del motore, rimpicciolita se non sta nell'area. Il sito non conta le persone.
+  - **Materiali**, sul foglio giallo:
+    - prima **le scelte del lab**, le stesse per tutte le bolle: telo e grammatura, pezzi uniti con nastro adesivo da 48 mm dentro e fuori (o saldatura, zip, velcro), porte e collegamenti con zip o velcro;
+    - poi il resoconto: telo e metri di rotolo, nastro, zip della porta, ventilatore, dime, tempo, attrezzi;
+    - infine la **lista materiali e prezzi** del simulatore, per tutte le bolle: i prezzi scritti qui valgono anche là, e il totale è «Totale materiali».
+  - **Salva e riapri:** «Salva su file» scarica un `.json` con tutto il progetto (bolle, aree, materiali, spunte, scenario). «Apri da file» lo riapre; si leggono anche i file di una bolla sola salvati con la prova semplice.
+- **2 · Dima / Modellino**
+  - **Il modellino di carta:** scala scelta da sola e fogli A4 al 100%; «Stampa il cartamodello» stampa solo i fogli.
+  - **Le dime**, P1, P2, P3…:
+    - ognuna è una scheda che si apre. Chiusa mostra la sagoma, «× N» e le spunte; aperta mostra il disegno con le misure semplificate (base A–B, piede lungo la base, altezza a 90°) e la tabella dei lati;
+    - **Bolla | Modellino 1:20** cambia le misure tra la bolla vera e il modellino;
+    - poi «Apri tutte», «Azzera le spunte» (con Annulla) e «Stampa le schede delle dime».
+- **3 · Costruzione:** il montaggio una giunzione alla volta, con i due pezzi accostati lungo il lato rosso e la spiegazione in **Info**. La bolla cresce nello Schema.
+- **Modalità cantiere** (nella tappa Dima e nella Costruzione): a schermo intero, per il telefono mentre si lavora a terra.
+  - Mostra una dima o una giunzione alla volta.
+  - «Fatta» o il tasto F mette la spunta, le frecce vanno avanti e indietro, Esc esce.
+  - Le spunte sono quelle della pagina.
+- **4 · Si gonfia:** i tre passi per gonfiarla e le **FAQ**.
 
-**I file**: `index.html` (il sito), `motore.js` (il motore delle forme, usato anche dall'Abbofficina), `immagine.js` (la finestra «bolla da un'immagine»), `guida.html` (rimanda a `index.html`) e `configuratore/` (l'Abbofficina, anche in vetrina).
+**La ricerca:** la lente in alto, Ctrl K / ⌘K o il tasto / aprono una casella. Si scrive cosa si cerca, per esempio «icosaedro», «rotolo», «P3», «giunzione 12» o «cantiere», e si arriva subito lì, nella tappa giusta. I comandi che cancellano si mostrano soltanto, non si premono.
 
-Il sito si apre anche senza server: basta aprire `index.html` nel browser. L'Abbofficina vera, aperta da sola, legge il motore con una richiesta, quindi vuole il sito pubblicato o un server locale; il simulatore in vetrina invece riceve la bolla già fatta e funziona anche così (serve internet per three.js).
+**Risolvi** prova da solo tante misure vicine (tutta più grande o più piccola, solo più alta o più bassa, dentro l'area, meno lati o spicchi) e tiene quella con meno problemi e meno cambiamenti. Dice che cosa ha cambiato e si può annullare.
+
+**Dall'Abbofficina:** il selettore in alto torna qui con `#apri={shape, params}`, e la pagina riapre quella forma con le sue misure vere.
+
+**Il tema** sta in `tema/`.
+- `tema.css` ricopre lo stile della pagina.
+- Lo sfondo di plastica stropicciata, i nastri di carta e il foglio giallo sono disegni generati da `plastica.py` e `nastri.py`.
+- Titoli in Bebas Neue rossi, testi in Barlow.
+
+**I file:**
+- `index.html`: il sito;
+- `motore.js`: il motore delle forme, usato anche dall'Abbofficina;
+- `immagine.js`: la finestra «bolla da un'immagine»;
+- `guida.html`: rimanda a `index.html`;
+- `configuratore/`: l'Abbofficina, da sola, in vetrina e incorporata.
+
+**Senza server:** il sito si apre anche così, basta aprire `index.html` nel browser. L'Abbofficina vera, aperta da sola, legge il motore con una richiesta, quindi vuole il sito pubblicato o un server locale.
 
 ## Bolla da un'immagine
 

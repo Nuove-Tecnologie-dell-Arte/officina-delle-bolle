@@ -132,6 +132,24 @@ body.trascina iframe { pointer-events: none; }
   .sim-nota { min-width: 0 !important; }   /* [Unita] sul telefono la nota va a capo invece di allargare la pagina */
 }
 .riduci { display: none; }
+/* [Unita] la ricerca e il riquadro dei file */
+.cercaBtn { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 700px) { .cercaBtn span { display: none; } }
+.cercaVelo { position: fixed; inset: 0; z-index: 320; background: rgba(20, 18, 16, .38); display: flex; justify-content: center; align-items: flex-start; padding: 9vh 12px 12px; }
+.cercaVelo[hidden] { display: none; }
+.cercaPop { width: min(600px, 100%); max-height: 78vh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: #fff; color: var(--ink); border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 24px 60px rgba(0, 0, 0, .28); overflow: hidden; }
+.cercaRiga { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--rule); color: var(--muted); }
+.cercaRiga input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: 400 1rem var(--body); padding: 4px 0; }
+.cercaRiga kbd { font: 600 .72rem var(--mono); color: var(--muted); border: 1px solid var(--rule); border-radius: 5px; padding: 1px 5px; }
+.cercaLista { list-style: none; margin: 0; padding: 6px; overflow-y: auto; display: grid; gap: 1px; align-content: start; }
+.cercaLista li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 9px 10px; border-radius: 6px; cursor: pointer; }
+.cercaLista li b { font-weight: 600; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .cercaLista li span { font-size: .78rem; color: var(--muted); white-space: nowrap; }
+.cercaLista li[aria-selected="true"] { background: rgba(227, 16, 30, .09); } .cercaLista li[aria-selected="true"] b { color: var(--rosso, var(--green)); }
+.cercaLista .vuoto { cursor: default; color: var(--muted); font-size: .85rem; }
+.cercaPiede { margin: 0; padding: 8px 14px; border-top: 1px solid var(--rule); font-size: .76rem; color: var(--muted); }
+@media (max-width: 520px) { .cercaLista li { grid-template-columns: 1fr; gap: 0; } .cercaPiede { display: none; } }
+.trovato { outline: 3px solid var(--rosso, var(--green)) !important; outline-offset: 3px; }
+.notaFile { text-align: center; } .notaFile:empty { display: none; }
 /* [Unita] modalità cantiere: a schermo intero, una dima o una giunzione alla volta */
 .cantiere { position: fixed; inset: 0; z-index: 250; background: var(--paper, #f3f1ec); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; padding: 14px clamp(12px, 3vw, 28px) 16px; }
 .cantiere[hidden] { display: none; }
@@ -402,6 +420,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <a class="marchio" href="#" id="aCasa" title="Torna all'inizio"><i aria-hidden="true">●</i><b>Costruiamo una bolla</b></a>
     <nav class="tappe" id="tappe" aria-label="Le tre tappe"></nav>
     <div class="testa-az">
+      <button type="button" class="btn cercaBtn" id="bCerca" aria-haspopup="dialog" aria-label="Cerca un'opzione" title="Cerca un'opzione scrivendo (Ctrl K o /)"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg><span>Cerca</span></button><!-- [Unita] -->
       <button type="button" class="btn" id="bParole" title="Le parole della bolla, spiegate"><b aria-hidden="true">?</b><span>Parole</span></button>
     </div>
   </div>
@@ -470,6 +489,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       <p class="hint" id="listaNota">La lista con i prezzi arriva dal simulatore.</p>
       <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"></tbody></table></div>
     </div>
+  </div>
+
+  <div class="blocco" id="bloccoFile"><!-- [Unita] salva e riapri il progetto su file -->
+    <header class="titolone"><h2>Salva e riapri</h2><p>Tutto il progetto in un file: per passarlo a un'altra persona o a un altro computer.</p></header>
+    <div class="btnrow" style="justify-content:center"><button type="button" class="btn primary" id="bSalvaFile">Salva su file</button><button type="button" class="btn" id="bApriFile">Apri da file</button><input type="file" id="fileApri" accept=".json,application/json" hidden></div>
+    <p class="hint notaFile" id="notaFile" role="status"></p>
   </div>
 </section>
 
@@ -614,6 +639,14 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 </dialog>
 
 <div id="stampa"></div>
+<div id="cerca" class="cercaVelo" hidden><!-- [Unita] la ricerca: ogni opzione del sito, scrivendo (come nella prova semplice) -->
+  <div class="cercaPop" role="dialog" aria-modal="true" aria-label="Cerca un'opzione">
+    <div class="cercaRiga"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>
+      <input id="cercaIn" type="text" placeholder="Cerca: icosaedro, rotolo, P3, giunzione 12…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="cercaLista" aria-autocomplete="list"><kbd>Esc</kbd></div>
+    <ul id="cercaLista" class="cercaLista" role="listbox" aria-label="Risultati"></ul>
+    <p class="cercaPiede">↑ ↓ per scegliere · Invio per aprire · Esc per chiudere</p>
+  </div>
+</div>
 <div class="cantiere" id="site" role="dialog" aria-modal="true" aria-labelledby="siteTit" hidden><!-- [Unita] modalità cantiere -->
   <div class="site-testa"><div><span class="occhiello" id="siteKind"></span><h2 id="siteTit"></h2></div><button type="button" class="btn" id="siteEsci" aria-label="Esci dalla modalità cantiere">✕ Esci</button></div>
   <div class="site-corpo" id="siteCorpo"></div>
@@ -794,7 +827,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
 
   /* [Unita] per le prove automatiche: lo stato si legge da fuori */
-  Object.defineProperty(window, "unita", { value: Object.freeze({ get S() { return S; }, get PR() { return PR; }, get cur() { return cur; }, base, costruisci, optBase, dimIniziali, nomeForma, get FAQ() { return typeof FAQ === "undefined" ? [] : FAQ; } }) });
+  Object.defineProperty(window, "unita", { value: Object.freeze({ get S() { return S; }, get PR() { return PR; }, get cur() { return cur; }, base, costruisci, optBase, dimIniziali, nomeForma, apriProgetto: (j) => apriProgetto(j), get FAQ() { return typeof FAQ === "undefined" ? [] : FAQ; } }) });
 
   /* ---------- la bolla scelta ---------- */
   let cur = null, curErr = null, curKey = "", giuntaQui = null;
@@ -1989,6 +2022,145 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     rendiMontaggio();
   });
   RENDI.costruzione = () => { rendiMontaggio(); };
+
+  /* [Unita] salva e riapri il progetto su file: tutte le bolle, le aree, i materiali, le spunte e lo scenario */
+  function normalizzaPR(P) {   // gli stessi controlli di quando si apre la pagina
+    if (!Array.isArray(P.aree) || !P.aree.length) P.aree = [{ id: 1 }];
+    P.aree = P.aree.filter(a => a && typeof a === "object").map((a, i) => ({ id: a.id || i + 1, x: num(a.x), y: num(a.y), z: num(a.z), pos: a.pos || null }));
+    if (!P.aree.length) P.aree = [{ id: 1, x: null, y: null, z: null, pos: null }];
+    P.prossimaArea = Math.max(P.prossimaArea || 0, ...P.aree.map(a => a.id + 1));
+    P.bolle = (P.bolle || []).filter(b => b && typeof b === "object").map((b, i) => sistemaBolla(Object.assign({ id: i + 1 }, b)));
+    if (!P.bolle.length) P.bolle = [sistemaBolla(Object.assign(bollaVuota(1), { t: 0, max: 0 }))];
+    P.prossimo = Math.max(P.prossimo || 0, ...P.bolle.map(b => b.id + 1));
+    P.att = Math.max(0, Math.min(P.bolle.length - 1, P.att | 0));
+    P.mat = Object.assign({}, MAT_LAB, P.mat && typeof P.mat === "object" ? P.mat : {});
+    for (const k of ["porte", "coll"]) if (!["cerniera", "velcro"].includes(P.mat[k])) P.mat[k] = "cerniera";
+    if (!["adesivo", "saldato", "velcro", "cerniera"].includes(P.mat.giunti)) P.mat.giunti = "adesivo";
+    P.unita = P.unita === "modellino" ? "modellino" : "bolla";
+    return P;
+  }
+  function progettoFile() { return { v: "unita-1", app: "officina-delle-bolle", PR: JSON.parse(JSON.stringify(PR, function (k, v) { return k === "area" && this !== PR ? undefined : v; })), scenario: fileScenario ? "" : scenario }; }
+  const notaFile = (t) => { $("notaFile").textContent = t; clearTimeout(notaFile.t); notaFile.t = setTimeout(() => { $("notaFile").textContent = ""; }, 7000); };
+  function apriProgetto(j) {
+    if (j && j.v === "unita-1" && j.PR && Array.isArray(j.PR.bolle)) {   // un progetto della prova unita: sostituisce quello di adesso
+      PR = normalizzaPR(JSON.parse(JSON.stringify(j.PR))); S = PR.bolle[PR.att];
+      if (j.scenario === "" || j.scenario === "corridoio") { scenario = j.scenario; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
+      dimeAperte.clear(); ultimoInvio = ""; rendiBolle(); rendiScelteMat(); inviaMateriali(); apriBolla(PR.att); return true;
+    }
+    if (j && typeof j.shape === "string" && def(j.shape) && j.shape !== "foto" && j.params && typeof j.params === "object") {   // una forma salvata con la prova semplice: una bolla nuova
+      const d = def(j.shape), p = Object.assign(parametriBase(d), j.params), z = j.opt && j.opt.size;
+      let dim; try { const B = base(j.shape, p); dim = z && z.x > 0 && z.y > 0 && z.z > 0 ? { x: +z.x, y: +z.y, z: +z.z } : { x: r2(B.w), y: r2(B.d), z: r2(B.h) }; } catch (e) { return false; }
+      const b = sistemaBolla(Object.assign(bollaVuota(PR.prossimo++), { shape: j.shape, base: p, dim, t: 1, max: 1, tab: "misure" }));
+      PR.bolle.push(b); rendiBolle(); apriBolla(PR.bolle.length - 1); return true;
+    }
+    return false;
+  }
+  $("bSalvaFile").addEventListener("click", () => {
+    const nome = (PR.bolle[0] && PR.bolle[0].shape ? nomeForma(PR.bolle[0].shape) : "progetto").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "progetto";
+    const oggi = new Date(), data = `${oggi.getFullYear()}-${String(oggi.getMonth() + 1).padStart(2, "0")}-${String(oggi.getDate()).padStart(2, "0")}`;
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(progettoFile(), null, 1)], { type: "application/json" }));
+    a.download = `bolla-${nome}-${data}.json`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    notaFile(`Salvato il file ${a.download}: ${plural(PR.bolle.length, "bolla", "bolle")}.`);
+  });
+  $("bApriFile").addEventListener("click", () => $("fileApri").click());
+  $("fileApri").addEventListener("change", async e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+    let j = null; try { j = JSON.parse(await f.text()); } catch (er) { j = null; }
+    if (apriProgetto(j)) notaFile(`Aperto il file ${f.name}.`); else notaFile(`Il file ${f.name} non è un progetto delle bolle: non è cambiato niente.`);
+  });
+
+  /* [Unita] la ricerca (dalla prova semplice): si trova e si apre ogni opzione scrivendo (lente, Ctrl K / ⌘K o /) */
+  const normCerca = (t) => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  function evidenzia(el) {
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: ridotto ? "auto" : "smooth" });
+    el.classList.add("trovato"); clearTimeout(el._trovato); el._trovato = setTimeout(() => el.classList.remove("trovato"), 1800);
+    if (/^(INPUT|SELECT|BUTTON|TEXTAREA|SUMMARY)$/.test(el.tagName)) el.focus({ preventScroll: true });
+  }
+  const iTappa = (id) => TAPPE.findIndex(t => t.id === id);
+  const inTappa = (id, f) => () => { if (TAPPE[S.t].id !== id) vai(iTappa(id), true); setTimeout(() => { if (f) f(); }, 60); };
+  const conLinguetta = (lt, sel) => inTappa("progettazione", () => { if (S.shape) linguetta(lt); setTimeout(() => evidenzia(typeof sel === "function" ? sel() : document.querySelector(sel)), 40); });
+  function vociCerca() {
+    const V = [], add = (t, s, f, k, base) => V.push({ t, s, f, base, k: normCerca(t + " " + s + " " + (k || "")) });
+    [["progettazione", "#bloccoArea", "Prendi le misure", "area di lavoro spazio stanza x y z"], ["progettazione", "#bloccoProgetta", "Progetta", "forme misure verdetto"], ["progettazione", "#bloccoMateriali", "Materiali", "resoconto telo nastro"],
+     ["progettazione", "#rqLista", "Lista materiali e prezzi", "prezzi costi comprare totale"], ["progettazione", "#bloccoFile", "Salva e riapri", "file json"], ["dima", "#fogli", "Il modellino di carta", "cartamodello sviluppo scala fogli"],
+     ["dima", "#dime", "Le dime", "pezzi tracciare sagome"], ["costruzione", "#giunta", "Il montaggio", "giunzioni unire"], ["gonfia", "#faq", "FAQ", "domande problemi"]]
+      .forEach(([tp, sel, t, k]) => add(t, "Tappa · " + TAPPE[iTappa(tp)].nome, inTappa(tp, () => evidenzia(document.querySelector(sel))), k, 1));
+    add("Forme", "Progetta", conLinguetta("forme", "#pForme"), "scegli forma galleria");
+    add("Si gonfia", "Ultima tappa", inTappa("gonfia"), "ventilatore gonfiare");
+    FORME.forEach(([id, n]) => add(n, "Forma", inTappa("progettazione", () => { linguetta("forme"); scegliForma(id); evidenzia(document.querySelector(`.tessera[data-id="${id}"]`)); }), "scegli forma"));
+    if (S.shape && S.dim) {
+      ASSI.forEach(([a, L, nome]) => add(`${L} · ${nome}`, "Misure", conLinguetta("misure", `#pMisure input[data-a="${a}"]`), "cursore misura metri"));
+      add("Mantieni le proporzioni", "Misure", conLinguetta("misure", "#blocca"), "blocca");
+      visibili(def(S.shape), S.base).forEach(q => { const pc = percDi(S.shape, q.key); if (lunghezza(q) && !pc) return; add(pc ? pc[1] : etichetta(q), "Misure · " + nomeForma(S.shape), conLinguetta("misure", () => { const d = document.querySelector("#pMisure .altreOpz"); const el = $("o_" + q.key); if (d && el && d.contains(el)) d.open = true; return el; }), "opzione forma"); });
+      add("Risolvi", "Progetta", conLinguetta("misure", () => $("bRisolvi") || $("verdetto")), "sistema problemi");
+    }
+    SCELTE_MAT.forEach(([id, k, t]) => add(t, "Materiali", inTappa("progettazione", () => evidenzia($(id))), "materiale"));
+    add("Larghezza del rotolo", "Materiali · telo", inTappa("progettazione", () => evidenzia($("rotolo"))), "rotolo telo comprare");
+    add("Salva su file", "Salva e riapri", inTappa("progettazione", () => evidenzia($("bSalvaFile"))), "scarica json progetto");
+    add("Apri da file", "Salva e riapri", inTappa("progettazione", () => evidenzia($("bApriFile"))), "carica json progetto");
+    add("Stampa il cartamodello", "Dima / Modellino", inTappa("dima", () => evidenzia($("bStampaModello"))), "stampa fogli modellino");
+    add("Stampa le schede delle dime", "Dima / Modellino", inTappa("dima", () => evidenzia($("bStampaDime"))), "stampa dime");
+    add("Bolla | Modellino", "Le dime", inTappa("dima", () => evidenzia($("unitaDime").querySelector('[aria-pressed="true"]'))), "misure scala cm");
+    add("Modalità cantiere delle dime", "Dima / Modellino", inTappa("dima", () => evidenzia($("cantiereDime"))), "schermo intero telefono tracciare");
+    add("Modalità cantiere delle giunzioni", "Costruzione", inTappa("costruzione", () => evidenzia($("cantiereGiunte"))), "schermo intero telefono montare");
+    add("Azzera le spunte delle dime", "Le dime · si mostra soltanto", inTappa("dima", () => evidenzia($("bAzzeraDime"))), "cancella togli spunte");
+    if (PR.bolle.length > 1) add("Elimina questa bolla", "Schede · si mostra soltanto", () => evidenzia(document.querySelector("#bolle .bx")), "cancella togli scheda");
+    add("Nuova bolla", "Schede", () => evidenzia($("bNuovaBolla")), "aggiungi altra");
+    add("Abbofficina completa (↗)", "Simulatore", () => evidenzia($("simGrande")), "aria materiali dati simulazione");
+    if (cur && cur.an) {
+      cur.an.types.forEach((t, i) => add(`${nomeDima(i)}`, `Dima · × ${t.faces.length}`, inTappa("dima", () => { dimeAperte.add(i); rendiDime(); const d = document.querySelector(`#dime details[data-t="${i}"]`); if (d) { d.open = true; evidenzia(d.querySelector("summary")); } }), "dima pezzo tipo"));
+      cur.an.seams.forEach((sm, k) => add("Giunzione " + sm.no, "Montaggio", inTappa("costruzione", () => { giuntaQui = k; rendiMontaggio(); evidenzia($("giunta")); }), "cucitura unione"));
+    }
+    return V;
+  }
+  let vociAperte = [], sceltaCerca = 0, risultatiCerca = [], cercaDa = null;
+  function filtraCerca(q) {
+    const parole = normCerca(q).split(/\s+/).filter(Boolean);
+    if (!parole.length) return vociAperte.filter(v => v.base);
+    const r = [];
+    for (const v of vociAperte) {
+      const tn = normCerca(v.t); let pt = 0;
+      for (const w of parole) { if (!v.k.includes(w)) { pt = -1; break; } pt += tn === w ? 6 : tn.startsWith(w) ? 4 : tn.includes(" " + w) ? 3 : tn.includes(w) ? 2 : 1; }
+      if (pt > 0) r.push([pt, v]);
+    }
+    return r.sort((a, b) => b[0] - a[0]).slice(0, 14).map(x => x[1]);
+  }
+  function disegnaCerca() {
+    const L = $("cercaLista"); risultatiCerca = filtraCerca($("cercaIn").value);
+    sceltaCerca = Math.min(sceltaCerca, Math.max(0, risultatiCerca.length - 1));
+    L.innerHTML = risultatiCerca.length ? risultatiCerca.map((v, i) => `<li role="option" id="cv${i}" aria-selected="${i === sceltaCerca}" data-i="${i}"><b>${esc(v.t)}</b><span>${esc(v.s)}</span></li>`).join("")
+      : `<li class="vuoto">Nessuna opzione con queste parole. Provane un'altra: icosaedro, rotolo, P3, giunzione 12…</li>`;
+    $("cercaIn").setAttribute("aria-activedescendant", risultatiCerca.length ? "cv" + sceltaCerca : "");
+    L.querySelectorAll("li[data-i]").forEach(li => { li.onclick = () => eseguiCerca(risultatiCerca[+li.dataset.i]); li.onmousemove = () => { if (sceltaCerca !== +li.dataset.i) { sceltaCerca = +li.dataset.i; segnaScelta(); } }; });
+  }
+  function segnaScelta() {
+    $("cercaLista").querySelectorAll("li[data-i]").forEach(li => li.setAttribute("aria-selected", String(+li.dataset.i === sceltaCerca)));
+    const el = $("cv" + sceltaCerca); if (el) { el.scrollIntoView({ block: "nearest" }); $("cercaIn").setAttribute("aria-activedescendant", el.id); }
+  }
+  function apriCerca() { cercaDa = document.activeElement; vociAperte = vociCerca(); sceltaCerca = 0; $("cercaIn").value = ""; $("cerca").hidden = false; disegnaCerca(); $("cercaIn").focus(); }
+  function chiudiCerca(torna) { $("cerca").hidden = true; if (torna !== false && cercaDa && cercaDa.focus) cercaDa.focus({ preventScroll: true }); cercaDa = null; }
+  function eseguiCerca(v) { if (!v) return; chiudiCerca(false); try { v.f(); } catch (e) { console.error(e); } }
+  $("bCerca").addEventListener("click", e => { e.stopPropagation(); apriCerca(); });
+  $("bCerca").title = "Cerca un'opzione scrivendo (" + (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K") + " o /)";
+  $("cercaIn").addEventListener("input", () => { sceltaCerca = 0; disegnaCerca(); });
+  $("cercaIn").addEventListener("keydown", e => {
+    const n = risultatiCerca.length;
+    if (e.key === "ArrowDown" && n) { e.preventDefault(); sceltaCerca = (sceltaCerca + 1) % n; segnaScelta(); }
+    else if (e.key === "ArrowUp" && n) { e.preventDefault(); sceltaCerca = (sceltaCerca - 1 + n) % n; segnaScelta(); }
+    else if (e.key === "Enter") { e.preventDefault(); eseguiCerca(risultatiCerca[sceltaCerca]); }
+  });
+  $("cerca").addEventListener("keydown", e => {   // il fuoco resta nella ricerca, ed Esc la chiude
+    if (e.key === "Tab") { e.preventDefault(); $("cercaIn").focus(); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); chiudiCerca(); }
+  });
+  $("cerca").addEventListener("mousedown", e => { if (e.target === $("cerca")) chiudiCerca(); });
+  document.addEventListener("keydown", e => {
+    if (e.defaultPrevented || !$("site").hidden || tuttaAperta()) return;   // nel cantiere e nell'Abbofficina completa i tasti servono a loro
+    const scrive = e.target.closest && e.target.closest("input, textarea, select, [contenteditable='true']");
+    if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey) && !e.altKey) { e.preventDefault(); if ($("cerca").hidden) apriCerca(); else chiudiCerca(); }
+    else if (e.key === "/" && !scrive && !e.metaKey && !e.ctrlKey && !e.altKey && $("cerca").hidden) { e.preventDefault(); apriCerca(); }
+  });
 
   /* ===================== 4 · SI GONFIA: la fine e le FAQ ===================== */
   // le domande frequenti, a gruppi: cliccando la domanda si apre la risposta

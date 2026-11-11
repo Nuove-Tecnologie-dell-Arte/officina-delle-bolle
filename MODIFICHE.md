@@ -110,3 +110,21 @@ Il progetto è in `docs/superpowers/specs/2026-11-11-prova-unita-design.md`, il 
   - Le spunte sono le stesse della pagina, e lo Schema mostra subito le giunzioni fatte. Uscendo dal cantiere delle giunzioni, la pagina resta sulla giunzione a cui si era arrivati.
 - **«Stampa il cartamodello»:** è il pulsante che prima si chiamava «Stampa il modellino». Stampava già solo i fogli dello sviluppo, quindi è cambiato solo il nome. Le schede delle dime si stampano con il loro pulsante.
 - La frase sulla porta, alla fine del montaggio, dice «la zip» o «il velcro», secondo i materiali scelti (prima diceva «la cerniera»).
+
+## Blocco 7 · Salva e apri su file, ricerca
+
+- **«Salva e riapri»**, in fondo alla Progettazione, dopo i Materiali:
+  - **«Salva su file»** scarica `bolla-<forma>-<data>.json` con tutto il progetto: `{ v: 'unita-1', PR, scenario }`, cioè le bolle (forma, misure, opzioni, posto, area, tappa e spunte), le aree di lavoro, i materiali del lab, Bolla | Modellino e lo scenario pronto. Il file scelto dal computer per lo scenario non si salva.
+  - **«Apri da file»** lo riapre al posto del progetto di adesso, con gli stessi controlli di quando si apre la pagina (`normalizzaPR`).
+  - **Con un file salvato dalla prova semplice** (una bolla sola: `shape`, `params`, `opt.size`), la pagina aggiunge una bolla nuova con quella forma e quelle misure.
+  - **Un file che non è un progetto** lascia tutto com'era e lo dice.
+- **La ricerca** (come nella semplice) si apre con la lente in alto, con Ctrl K / ⌘K o con il tasto / (non dentro un campo, non nel cantiere, non nell'Abbofficina completa).
+  - **Che cosa trova:**
+    - le parti delle tappe (Prendi le misure, Progetta, Forme, Materiali, Lista dei prezzi, Salva e riapri, Modellino, Dime, Montaggio, Si gonfia, FAQ);
+    - le forme;
+    - X, Y, Z e le misure della forma scelta;
+    - le scelte dei materiali e il rotolo;
+    - Risolvi, le stampe, Bolla | Modellino e il cantiere;
+    - ogni dima (P1, P2…) e ogni giunzione («Giunzione 12»).
+  - **Che cosa fa:** porta alla tappa giusta, apre la linguetta o la scheda, scorre fino all'opzione e la evidenzia per un momento. «Azzera le spunte» ed «Elimina questa bolla» si mostrano soltanto, non si premono.
+- **Il README** descrive la prova unita.
