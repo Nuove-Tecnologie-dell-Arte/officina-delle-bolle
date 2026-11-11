@@ -948,6 +948,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         else if (hl && !hl.has(fi)) a = 0.8;   // già montato: colorato, un po' meno del pezzo di adesso
         const c = base.map(v => Math.min(255, Math.round(v * lit)));
         ctx.beginPath(); p.map(S2).forEach((s, i) => (i ? ctx.lineTo(s[0], s[1]) : ctx.moveTo(s[0], s[1]))); ctx.closePath();
+        if (o.rossi) {   // [Unita] le immagini della galleria: piene come nella semplice, ogni tipo di pezzo in un tono di rosso, i bordi chiari
+          const c0 = rgb(ROSSI[m.an.faceInfo[fi].type % ROSSI.length]).map(v => Math.min(255, Math.round(v * (0.78 + 0.32 * Math.abs(V3.dot(n, L))))));
+          ctx.fillStyle = `rgb(${c0[0]},${c0[1]},${c0[2]})`; ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = Math.max(0.6, W / (m.F.length > 150 ? 420 : 200)); ctx.lineJoin = "round"; ctx.stroke(); return;
+        }
         if (o.filo) { const nF = m.F.length; ctx.strokeStyle = "#1c1b19"; ctx.globalAlpha = nF > 150 ? 0.55 : 0.85; ctx.lineWidth = Math.max(0.6, W / (nF > 150 ? 340 : nF > 50 ? 220 : 140)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1; return; }   // a fil di ferro: solo gli spigoli, anche quelli dietro
         ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`; ctx.fill();
         ctx.strokeStyle = ink; ctx.globalAlpha = !vivo(fi) ? 0.22 : (o.sottile ? 0.5 : 0.85); ctx.lineWidth = Math.max(1, W / (o.sottile ? 260 : 600)); ctx.lineJoin = "round"; ctx.stroke(); ctx.globalAlpha = 1;
@@ -1338,7 +1342,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         const proprie = id === "foto" || (id === "custom" && S.shape === "custom");
         if (!anteprime[id] || proprie) { const d = def(id), p = proprie ? S.base : parametriBase(d), m = buildShape(d, p, optBase(d)); m.an = analyze(m.V, m.F, m.floor); anteprime[id] = m; }
         const m = anteprime[id], b = document.querySelector(`.tessera[data-id="${id}"]`), cv = b && b.querySelector("canvas"), [k, t] = livello(m), el = b && b.querySelector("small");
-        if (cv) disegna(cv, m, { yaw: 0.6, pitch: 0.42, filo: true });   // a fil di ferro, come nel disegno del tema
+        if (cv) disegna(cv, m, { yaw: 0.6, pitch: 0.42, rossi: true });   // [Unita] piene, in toni di rosso (prima a fil di ferro)
         if (el) { el.className = k; el.textContent = t; }
       } catch (e) { /* senza anteprima resta il nome */ }
       setTimeout(passo, 0);
@@ -2024,6 +2028,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     return primo;
   }
+  const ROSSI = ["#e3101e", "#9e0b14", "#ff6b6b", "#c2414a", "#7a0910", "#f2a0a0", "#d4262f", "#5c070d"];   // [Unita] i toni di rosso della galleria
   const T8 = ["#2f6f5a", "#3b6fb6", "#b9631b", "#8a4fb0", "#b8434f", "#24868b", "#7d6f12", "#586370"];
   function foglioSVG(m, r, pg, n, tot, testo) {
     const { placed, edgeFaces } = m.unf, k = 1000 / r.scala, an = m.an, tree = m.unf.tree;

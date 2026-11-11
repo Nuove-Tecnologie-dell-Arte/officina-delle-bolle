@@ -225,3 +225,9 @@ Ogni correzione ha la sua prova (`u13.js`), che prima falliva e ora passa:
   - **«Trova la scala dal modellino»**: si sceglie che cosa si è misurato (altezza, larghezza o profondità) e quanti cm misura sul modellino di carta. «Usa questa scala» fa misura vera ÷ misura sul modellino.
 - **La stessa scala vale** per i fogli del cartamodello, la stampa, le dime in Modellino, il cantiere e il controllo del modellino nel verdetto.
 - **Se a quella scala un pezzo non sta su un foglio A4**, la tappa Dima / Modellino lo dice e suggerisce la prima scala che va bene (con `sceltaScala`, la scelta automatica di prima).
+
+## Blocco G · Immagini della galleria
+
+- **Le forme della galleria non sono più a fil di ferro:** sono piene come nella semplice, con le facce in luce e in ombra e i bordi chiari.
+- **Ogni tipo di pezzo ha un tono di rosso diverso** (`ROSSI`, otto toni), così la forma si legge subito e si vede quanti pezzi diversi ha.
+- È l'opzione `rossi` di `disegna`, usata solo per le tessere.
