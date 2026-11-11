@@ -53,3 +53,19 @@ Il progetto è in `docs/superpowers/specs/2026-11-11-prova-unita-design.md`, il 
   - **le misure tipiche della forma**, come nella semplice (`SEMPLICI`, `percDi(id, key)`): si scrivono in % di un'altra misura, così seguono la grandezza. Per esempio «Raggio interno (% delle punte)» della stella, o «Lunghezza del picciolo (% del corpo)» della banana. Il valore vero è la misura di riferimento × la % (`data-pk` sul campo).
 - **In «Altre opzioni»** (`details.altreOpz`, con `#paramsTec`, chiuso all'inizio) vanno le misure tecniche: quelle segnate `tecnici` in `SEMPLICI` e i lati, spicchi, segmenti e facce del tubo (`dettaglio`).
 - Le altre lunghezze della forma restano nascoste come prima, perché la grandezza la danno X, Y, Z.
+
+## Blocco 3 · Materiali del lab e lista con i prezzi
+
+- **Le scelte del lab sul foglio giallo dei Materiali** (`#scelteMat`), prima del resoconto, come nei «Materiali bolla vera» della semplice:
+  - telo (PVC, Polietilene, TPU) e grammatura;
+  - pezzi uniti con nastro adesivo, saldatura, zip o velcro;
+  - per il nastro, la larghezza (48 mm all'inizio) e se va dentro e fuori o da un lato solo;
+  - porte e collegamenti tra due bolle: **solo Zip e Velcro** (la zip impermeabile e quella stagna restano nell'Abbofficina).
+- **Le scelte sono le stesse per tutte le bolle del progetto** (`PR.mat`): si salvano con il progetto e vanno al simulatore (`vetrina-materiali`). Un progetto vecchio con una zip impermeabile o stagna passa alla zip.
+- **Il resoconto segue le scelte:** «Nastro adesivo da 48 mm» (il doppio se va dentro e fuori), oppure Saldatura, Zip o Velcro per le giunzioni; «Zip per la porta» o «Velcro per la porta»; il telo con il suo materiale e la grammatura. Il rotolo resta dove era, nella voce del telo.
+- **Sotto, la lista materiali e prezzi** (`#rqLista`):
+  - è la distinta del simulatore per tutte le bolle del progetto, con le stesse quantità e gli stessi prezzi, senza l'energia elettrica;
+  - il totale è «Totale materiali»;
+  - un prezzo scritto qui va al simulatore (`vetrina-prezzo`), che lo salva come i suoi;
+  - senza simulatore (niente internet) la lista dice che arriva dal simulatore, e tutto il resto della pagina funziona;
+  - sul telefono la tabella scorre dentro il suo riquadro.

@@ -439,3 +439,4 @@ Tutto segnato `[Officina]`.
 ## Prova unita (11 novembre)
 
 - **Blocco 1**: `FORME_OFF` con i nomi geometrici della pagina (Icosaedro, Sfera geodetica, Esacisicosaedro, Esacisicosaedro suddiviso, Icosaedro troncato…), come nella prova semplice.
+- **Blocco 3**: in vetrina, `mandaStato()` manda al sito `{ tipo: 'vetrina-stato', D, righe }`, cioè la distinta di tutte le bolle con i prezzi (`prezzoDi`) e i materiali scelti. Si manda dopo ogni `bolle-officina` e dopo ogni cambio. Il sito manda `{ tipo: 'vetrina-materiali', D }` (telo, grammatura, giunti, nastro, porte, collegamenti) e `{ tipo: 'vetrina-prezzo', id, v }`, che si salva con `salvaBudget` come i prezzi scritti nell'Abbofficina.

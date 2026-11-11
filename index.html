@@ -248,6 +248,19 @@ details.controlli summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 .mat p, .mat div { font-size: .93rem; }
 .mat ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .mat .field { margin-top: 6px; max-width: 220px; }
+/* [Unita] le scelte del lab e la lista con i prezzi */
+.scelteMat { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 12px 18px; margin-bottom: 26px; }
+.scelteMat .field { display: grid; gap: 4px; } .scelteMat [hidden] { display: none; }
+.listaPrezzi { margin-top: 30px; display: grid; gap: 8px; }
+.listaPrezzi h3 { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; }
+.tablewrap { overflow-x: auto; max-width: 100%; }
+table.lista { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.lista th { text-align: left; font-weight: 600; color: var(--muted); font-size: .8rem; padding: 6px 6px; border-bottom: 1px solid var(--rule); }
+table.lista td { padding: 7px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.lista .dx { text-align: right; white-space: nowrap; }
+table.lista tr.sez td { font-weight: 650; padding-top: 14px; border-bottom: 0; }
+table.lista td small { display: block; color: var(--muted); font-size: .78rem; line-height: 1.35; }
+table.lista input { width: 78px; text-align: right; padding: 5px 6px; }
 
 /* 2 · modellino e dime */
 .passi { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: s; }
@@ -406,7 +419,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
   <div class="blocco" id="bloccoMateriali">
     <header class="titolone"><h2>Materiali</h2><p>Un resoconto completo di tutti i materiali necessari per il tuo progetto.</p></header>
+    <div class="scelteMat" id="scelteMat" role="group" aria-label="Con che cosa la costruite"></div><!-- [Unita] -->
     <div class="materiali" id="materiali"></div>
+    <div class="listaPrezzi" id="rqLista"><!-- [Unita] la lista della simulazione, con gli stessi prezzi -->
+      <h3>Lista materiali e prezzi <b class="num listaTot" id="listaTot"></b></h3>
+      <p class="hint" id="listaNota">La lista con i prezzi arriva dal simulatore.</p>
+      <div class="tablewrap"><table class="lista"><thead><tr><th>Che cosa</th><th class="dx">Quanto</th><th class="dx">Prezzo</th><th class="dx">Totale</th></tr></thead><tbody id="listaRighe"></tbody></table></div>
+    </div>
   </div>
 </section>
 
@@ -644,6 +663,11 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   PR.prossimo = Math.max(PR.prossimo || 0, ...PR.bolle.map(b => b.id + 1));
   PR.att = Math.max(0, Math.min(PR.bolle.length - 1, PR.att | 0));
   let S = PR.bolle[PR.att];
+  // [Unita] i materiali del lab, gli stessi per tutte le bolle del progetto: vanno al simulatore, che rimanda la lista con i prezzi
+  const MAT_LAB = { mat: "PVC", gsm: 20, giunti: "adesivo", adW: 48, adLati: 2, porte: "cerniera", coll: "cerniera" };
+  PR.mat = Object.assign({}, MAT_LAB, PR.mat && typeof PR.mat === "object" ? PR.mat : {});
+  for (const k of ["porte", "coll"]) if (!["cerniera", "velcro"].includes(PR.mat[k])) PR.mat[k] = "cerniera";   // zip impermeabile e stagna solo nell'Abbofficina
+  if (!["adesivo", "saldato", "velcro", "cerniera"].includes(PR.mat.giunti)) PR.mat.giunti = "adesivo";
   const salva = () => { try { localStorage.setItem(CHIAVE, JSON.stringify(PR, function (k, v) { return k === "area" && this !== PR ? undefined : v; })); } catch (e) { /* solo per questa visita */ } };
   const nomeBolla = (i) => "Bolla " + (i + 1);
   let rotolo = 2; try { const r = parseFloat(localStorage.getItem("bolle|rotolo")); if (r >= 0.5 && r <= 20) rotolo = r; } catch (e) { /* */ }
@@ -1433,6 +1457,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
 
   /* --- materiali: il resoconto --- */
+  const NOMI_TELO = { PVC: "PVC", PE: "Polietilene", TPU: "TPU" };
+  function giuntiMat(seam) {   // [Unita] la voce dei giunti: nastro, saldatura, zip o velcro
+    const M = PR.mat;
+    if (M.giunti === "adesivo") return [`${fmt(seam * (M.adLati > 1 ? 2.2 : 1.1), 0)}<small>m</small>`, `Nastro adesivo da ${fmt(M.adW, 0)} mm`, `Le giunzioni sono lunghe in tutto ${fmt(seam, 0)} m: ${M.adLati > 1 ? "il nastro va dentro e fuori, quindi ne serve più del doppio" : "il nastro va da un lato solo, con un po' di scorta"}. In più biadesivo per i margini.`];
+    if (M.giunti === "saldato") return [`${fmt(seam, 0)}<small>m</small>`, "Saldatura", `Le giunzioni si saldano a caldo, lunghe in tutto ${fmt(seam, 0)} m: serve una saldatrice per plastica.`];
+    return [`${fmt(seam * 1.05, 0)}<small>m</small>`, M.giunti === "velcro" ? "Velcro per le giunzioni" : "Zip per le giunzioni", `Lungo tutte le giunzioni, ${fmt(seam, 0)} m in tutto, più un po' di scorta.`];
+  }
   function rendiMateriali() {
     const box = $("materiali");
     if (!cur) { box.innerHTML = `<div class="mat lastra" style="grid-column:1/-1;text-align:center"><p>${S.shape ? esc(curErr || "Sistema le misure per vedere i materiali.") : "Scegli una forma: qui compare tutto quello che serve per costruirla."}</p></div>`; return; }
@@ -1441,9 +1472,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const telo = (area + per * 0.03) * 1.15, mRot = Math.ceil(telo / rotolo * 1.1 * 2) / 2, porte = (porteForma(cur.V, cur.F, S.shape) || { n: 1 }).n || 1;
     const ore = Math.max(1, Math.round((an.types.length * 25 + cur.F.length * 6 + an.seams.length * 4) / 60 * 2) / 2);
     const voci = [
-      [`${fmt(telo, 0)}<small>m²</small>`, "Telo trasparente", `Con i margini per unire i pezzi e un po' di scorta. Con un rotolo largo ${fmt(rotolo, 1)} m sono circa <b class="num">${fmt(mRot, 1)} m</b> di rotolo.<div class="field"><label for="rotolo">Larghezza del tuo rotolo (m)</label><input type="number" id="rotolo" min="0.5" max="20" step="0.1" value="${rotolo}"></div>`],
-      [`${fmt(seam * 2.2, 0)}<small>m</small>`, "Nastro", `Le giunzioni sono lunghe in tutto ${fmt(seam, 0)} m: il nastro va dentro e fuori, quindi ne serve più del doppio. In più biadesivo per i margini.`],
-      [`${porte}<small>${porte === 1 ? "cerniera" : "cerniere"}</small>`, "Cerniera per la porta", "Lunga almeno 1,9 m, con nastro di rinforzo ai due lati del taglio."],
+      [`${fmt(telo, 0)}<small>m²</small>`, "Telo trasparente", `${esc(NOMI_TELO[PR.mat.mat] || PR.mat.mat)} da ${fmt(PR.mat.gsm, 0)} g/m². Con i margini per unire i pezzi e un po' di scorta. Con un rotolo largo ${fmt(rotolo, 1)} m sono circa <b class="num">${fmt(mRot, 1)} m</b> di rotolo.<div class="field"><label for="rotolo">Larghezza del tuo rotolo (m)</label><input type="number" id="rotolo" min="0.5" max="20" step="0.1" value="${rotolo}"></div>`],
+      giuntiMat(seam),   // [Unita] secondo le scelte del lab
+      [`${porte}<small>${porte === 1 ? "porta" : "porte"}</small>`, PR.mat.porte === "velcro" ? "Velcro per la porta" : "Zip per la porta", `Lunga almeno 1,9 m, con nastro di rinforzo ai due lati del taglio.${PR.mat.coll === "velcro" ? " Tra due bolle: velcro." : " Tra due bolle: zip."}`],
       [`${fmt(Math.abs(cur.volume || 0), 0)}<small>m³ d'aria</small>`, "Ventilatore", "Un gonfiatore sempre acceso, con un tubo fissato vicino a terra. Deve restare acceso finché c'è qualcuno dentro."],
       [`${plural(an.types.length, "dima", "dime")}`, "Pezzi da tracciare e tagliare", `${plural(cur.F.length, "pezzo", "pezzi")} in tutto, da ${plural(an.types.length, "dima", "dime")} (P1${an.types.length > 1 ? "…P" + an.types.length : ""}), e ${plural(an.seams.length, "giunzione", "giunzioni")} da fare.`],
       [`${fmt(ore, 1)}<small>ore</small>`, "Tempo e persone", "Meglio in 4–6 persone: due tracciano, due tagliano, gli altri preparano il nastro."],
@@ -1454,7 +1485,52 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   }
   $("materiali").addEventListener("input", e => { if (e.target.id !== "rotolo") return; const v = parseFloat(e.target.value); if (v >= 0.5 && v <= 20) { rotolo = v; try { localStorage.setItem("bolle|rotolo", v); } catch (er) { /* */ } clearTimeout(rendiMateriali.t); rendiMateriali.t = setTimeout(() => { rendiMateriali(); const el = $("rotolo"); if (el) el.focus(); }, 600); } });
 
-  RENDI.progettazione = () => { rendiArea(); linguetta(S.shape ? S.tab : "forme"); rendiRisultato(); rendiMateriali(); };
+  /* [Unita] le scelte del lab (come nella prova semplice): vanno al simulatore, che rimanda la lista con i prezzi */
+  const SCELTE_MAT = [
+    ["mTelo", "mat", "Telo", [["PVC", "PVC"], ["PE", "Polietilene"], ["TPU", "TPU"]]],
+    ["mGsm", "gsm", "Grammatura (g/m²)", { min: 5, max: 800, step: 1 }],
+    ["mGiunti", "giunti", "Pezzi uniti con", [["adesivo", "Nastro adesivo"], ["saldato", "Saldatura"], ["cerniera", "Zip"], ["velcro", "Velcro"]]],
+    ["mAdW", "adW", "Larghezza del nastro (mm)", { min: 12, max: 100, step: 1 }],
+    ["mAdL", "adLati", "Nastro", [["2", "Dentro e fuori"], ["1", "Da un lato solo"]]],
+    ["mPorte", "porte", "Porte", [["cerniera", "Zip"], ["velcro", "Velcro"]]],
+    ["mColl", "coll", "Tra due bolle", [["cerniera", "Zip"], ["velcro", "Velcro"]]],
+  ];
+  function rendiScelteMat() {
+    const box = $("scelteMat");
+    if (!box.children.length) box.innerHTML = SCELTE_MAT.map(([id, k, t, o]) => `<div class="field" data-k="${k}"><label for="${id}">${esc(t)}</label>${Array.isArray(o)
+      ? `<select id="${id}" data-k="${k}">${o.map(([v, n]) => `<option value="${v}">${esc(n)}</option>`).join("")}</select>`
+      : `<input type="number" id="${id}" data-k="${k}" min="${o.min}" max="${o.max}" step="${o.step}" inputmode="numeric">`}</div>`).join("");
+    for (const [id, k] of SCELTE_MAT) { const el = $(id); if (document.activeElement !== el) el.value = String(PR.mat[k]); }
+    for (const k of ["adW", "adLati"]) box.querySelector(`.field[data-k="${k}"]`).hidden = PR.mat.giunti !== "adesivo";
+  }
+  function inviaMateriali() { if (vetrinaPronta && fr.contentWindow) fr.contentWindow.postMessage({ tipo: "vetrina-materiali", D: Object.assign({}, PR.mat) }, "*"); }
+  $("scelteMat").addEventListener("change", e => {
+    const el = e.target, k = el.dataset.k; if (!k) return;
+    let v = el.tagName === "SELECT" ? el.value : parseFloat(el.value);
+    if (k === "adLati") v = +v;
+    if (el.tagName === "INPUT") { if (!(v >= +el.min && v <= +el.max)) { el.value = PR.mat[k]; return; } v = Math.round(v); }
+    PR.mat[k] = v; salva(); rendiScelteMat(); rendiMateriali(); inviaMateriali();
+  });
+  const euro = (x) => x.toLocaleString("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: x < 100 ? 2 : 0, maximumFractionDigits: x < 100 ? 2 : 0 });
+  function mostraLista(m) {   // la distinta del simulatore, senza l'energia elettrica (resta là)
+    const tb = $("listaRighe"); if (tb.contains(document.activeElement)) return;   // si sta scrivendo un prezzo: si aggiorna dopo
+    const righe = (m.righe || []).filter(r => r.id !== "energia"), q = (r) => r.u === "pz" ? fmt(r.q, 0) : fmt(r.q, r.q < 20 ? 1 : 0);
+    const totale = righe.reduce((t, r) => t + (r.tot || 0), 0), mancano = righe.filter(r => r.tot == null).length;
+    tb.innerHTML = righe.map(r => (r.sez ? `<tr class="sez"><td colspan="4">${esc(r.sez)}</td></tr>` : "")
+      + `<tr><td>${esc(r.nome)}${r.dove ? `<small>${esc(r.dove)}</small>` : ""}</td><td class="dx num">${q(r)} ${esc(r.u)}</td>`
+      + `<td class="dx"><input type="number" min="0" step="0.01" inputmode="decimal" data-id="${esc(r.id)}" value="${r.prezzo ?? ""}" placeholder="€" aria-label="Prezzo per ${esc(r.u)}: ${esc(r.nome)}"><small>€/${esc(r.u)}</small></td>`
+      + `<td class="dx num">${r.tot == null ? "—" : euro(r.tot)}</td></tr>`).join("");
+    $("listaTot").textContent = totale > 0 ? "Totale materiali " + euro(totale) : "";
+    $("listaNota").textContent = !righe.length ? "La lista con i prezzi arriva dal simulatore." : mancano ? `Mancano ${mancano === 1 ? "un prezzo" : mancano + " prezzi"}: scrivili nella colonna Prezzo. Sono gli stessi del simulatore, per tutte le bolle.` : "Tutte le voci hanno un prezzo. Sono gli stessi del simulatore, per tutte le bolle.";
+  }
+  $("listaRighe").addEventListener("change", e => { const i = e.target.closest("input[data-id]"); if (i && vetrinaPronta) fr.contentWindow.postMessage({ tipo: "vetrina-prezzo", id: i.dataset.id, v: i.value === "" ? "" : +i.value }, "*"); });
+  addEventListener("message", e => {
+    if (e.source !== fr.contentWindow || !e.data) return;
+    if (e.data.tipo === "vetrina-pronta") inviaMateriali();
+    if (e.data.tipo === "vetrina-stato") mostraLista(e.data);
+  });
+
+  RENDI.progettazione = () => { rendiArea(); linguetta(S.shape ? S.tab : "forme"); rendiRisultato(); rendiScelteMat(); rendiMateriali(); };
 
   /* ===================== 2 · DIMA / MODELLINO ===================== */
   const A4 = { w: 190, h: 277, m: 5 };

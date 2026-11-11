@@ -5651,6 +5651,13 @@ if (VETRINA) {
   const manda = m => { try { parent.postMessage(m, '*'); } catch (e) {} };
   const posizioni = () => manda({ tipo: 'vetrina-posizioni', pos: pezzi.map(p => ({ id: p.idOff, x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: +(p.ang || 0).toFixed(4), area: p.areaOff == null ? null : p.areaOff })) });
   const bollaAttiva = () => pezzi.find(p => p.idOff === attiva) || null;
+  let tStatoV = 0;
+  function mandaStato() {   // [Officina] la distinta con i prezzi (tutte le bolle) e i materiali scelti: il sito li mostra con gli stessi numeri
+    clearTimeout(tStatoV); tStatoV = setTimeout(() => {
+      const B = distinta(), righe = B.righe.map(r => { const pr = prezzoDi(r); return { id: r.id, sez: r.sez || null, nome: r.nome, dove: r.dove, q: r.q, u: r.u, prezzo: pr, tot: pr == null ? null : pr * r.q }; });
+      manda({ tipo: 'vetrina-stato', D: { mat: D.mat, gsm: D.gsm, giunti: D.giunti, adW: D.adW, adLati: D.adLati, porte: D.porte, coll: D.coll }, righe });
+    }, 250);
+  }
 
   // ---------- le aree di lavoro ----------
   // Una o più, ognuna un parallelepipedo tratteggiato fermo: la prima volta attorno alle bolle (le altre accanto), poi si sposta
@@ -5880,7 +5887,12 @@ if (VETRINA) {
     if (S) { genStanza++; Object.assign(ST, base); stanzaPronta(S); } else togliStanza();
   }
   addEventListener('message', e => { const M = e.data; if (!M) return;
-    if (M.tipo === 'bolle-officina') { M_ultimo = M; clearTimeout(tV); tV = setTimeout(() => mostra(M), 200); }
+    if (M.tipo === 'bolle-officina') { M_ultimo = M; clearTimeout(tV); tV = setTimeout(() => { mostra(M); mandaStato(); }, 200); }
+    if (M.tipo === 'vetrina-materiali' && M.D) {   // [Officina] le scelte del lab fatte nel sito (prova unita)
+      const x = M.D; if (x.mat && x.mat !== D.mat && MAT[x.mat]) D.sigma = MAT[x.mat].sigma;
+      for (const k of ['mat', 'gsm', 'giunti', 'adW', 'adLati', 'porte', 'coll']) if (x[k] != null) D[k] = x[k];
+      aggiornaSpessore(); for (const l of link) if (l.porta) l.porta.tipo = D.porte; costruisciDati(); strutturaCambiata(); mandaStato(); }
+    if (M.tipo === 'vetrina-prezzo') { if (M.v === '' || M.v == null) delete prezzi[M.id]; else prezzi[M.id] = +M.v; salvaBudget(); mandaStato(); }   // [Officina] un prezzo scritto nel sito
     if (M.tipo === 'vetrina-scenario') scenario(M); });
   try { parent.postMessage({ tipo: 'vetrina-pronta' }, '*'); } catch (e) {}
 }
