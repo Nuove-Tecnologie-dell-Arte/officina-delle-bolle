@@ -64,7 +64,7 @@ A destra c'è sempre una finestra con due linguette.
 
 **Il tema** sta in `tema/`.
 - `tema.css` ricopre lo stile della pagina.
-- Lo sfondo di plastica stropicciata, i nastri di carta e il foglio giallo sono disegni generati da `plastica.py` e `nastri.py`.
+- Lo sfondo è una foto di cellophane stropicciato (`plastica.jpg`). I nastri di carta sono generati da `nastri_carta.py`, il foglio giallo da `nastri.py`.
 - Titoli in Bebas Neue rossi, testi in Barlow.
 
 **I file:**
