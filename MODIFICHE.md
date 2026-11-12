@@ -276,3 +276,11 @@ Ogni correzione ha la sua prova (`u20.js` per la pagina, `u21.js` per l'Abboffic
 - **Il cartamodello a schermo intero non perde il fuoco** quando il pulsante dell'ultimo foglio si spegne: Esc e le frecce funzionano ancora.
 - **I gonfiatori cambiati nel simulatore restano**, finché la forma della bolla non cambia.
 - **Lo stato e i materiali del simulatore** dicono che aprono l'Abbofficina completa.
+
+## Costruzione: a destra la forma o il simulatore (12 novembre)
+
+- **Nella Costruzione la finestra di destra ha la scelta «Forma | Simulatore»** (`#vistaDx`). Il browser la ricorda (`bolle|vistaCostr`), e all'inizio vale «Forma».
+  - **Forma:** a destra c'è lo Schema della bolla intera che cresce (`#slotDx`, sopra il simulatore), accanto alla giunzione da fare. Il tocco su un pannello funziona anche lì.
+  - **Simulatore:** a destra il simulatore come prima, e lo Schema torna sotto la giunzione.
+- Nelle altre tappe la scelta non c'è: nella Progettazione lo Schema resta sopra le misure.
+- Nella Costruzione il titolo «Simulatore» si nasconde, perché lo dice già la scelta. La frase sotto il montaggio dice dove trovare lo Schema.

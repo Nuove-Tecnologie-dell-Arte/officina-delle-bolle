@@ -147,6 +147,12 @@ body.inModGrande { overflow: hidden; }
 .schemaBox canvas { width: 100%; aspect-ratio: 4 / 3; max-height: 62vh; display: block; cursor: grab; touch-action: none; background: rgba(255, 255, 255, .38); border-radius: 4px; }
 .schemaNota { font-size: .82rem; }
 #slotCostr .schemaBox { margin-top: 14px; }
+/* [Unita] nella Costruzione la finestra di destra può mostrare la forma che cresce */
+.slotDx { position: absolute; inset: 0; z-index: 4; background: var(--paper, #eceae6); display: grid; align-content: center; padding: 10px; overflow: auto; }
+.slotDx[hidden] { display: none; }
+.slotDx .schemaBox canvas { position: static; inset: auto; width: 100%; aspect-ratio: 4 / 3; height: auto; max-height: calc(100vh - 290px); min-height: 240px; }
+.vistaDx { align-self: center; } .vistaDx button { min-height: 32px; padding: 4px 12px; font-size: 1rem; }
+.vistaDx[hidden] { display: none; }
 @media (max-width: 700px) { .schemaBox canvas { touch-action: pan-y; max-height: 38vh; } }   /* [Unita] sul telefono si scorre la pagina anche sopra lo Schema */
 .schede3 { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 2px solid rgba(20, 20, 20, .12); }
 .schede3 button { font: 400 1.2rem/1 var(--display, inherit); letter-spacing: .04em; color: #575550; background: var(--scheda-off, #dcdad6); border: 0; padding: 9px 18px 7px; cursor: pointer; }
@@ -613,7 +619,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <div class="btnrow cantiereRiga"><button type="button" class="btn primary" id="cantiereGiunte">Modalità cantiere</button><span class="hint">A schermo intero, una giunzione alla volta: per il telefono mentre si monta. F segna «Fatta».</span></div><!-- [Unita] -->
     <div class="card giunta nastrato" id="giunta"></div>
     <div class="slotSchema" id="slotCostr"></div><!-- [Unita] lo Schema arriva qui nella Costruzione -->
-    <p class="hint" style="text-align:center">Nello <b>Schema</b>, qui sotto, vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
+    <p class="hint" style="text-align:center">Nello <b>Schema</b> (a destra, con «Forma», o qui sotto con «Simulatore») vedi la bolla che cresce: in colore i pezzi già montati, in bianco i lati già uniti, in rosso quello da fare adesso.</p>
     <div class="box-info"><b>La porta</b><span id="porta"></span></div>
   </div>
 </section>
@@ -648,11 +654,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 <aside class="simpane" id="simpane" aria-label="Simulatore">
   <div class="sim-testa">
     <h2 class="sim-titolo" id="tabSim">Simulatore</h2><!-- [Unita] lo Schema è nella pagina -->
+    <div class="seg vistaDx" id="vistaDx" role="group" aria-label="A destra: il simulatore o la forma" hidden><button type="button" data-v="forma" aria-pressed="true">Forma</button><button type="button" data-v="sim" aria-pressed="false">Simulatore</button></div><!-- [Unita] nella Costruzione -->
     <div class="sim-stato" id="simStato"></div>
     <button type="button" class="btn simGrande" id="simGrande" title="Apri l'Abbofficina completa, a tutto schermo, sulla bolla scelta: aria, materiali, dati" aria-label="Apri l'Abbofficina completa a tutto schermo">↗</button><!-- [Unita] -->
     <button type="button" class="btn riduci" id="bRiduci" aria-expanded="true">Riduci</button>
   </div>
   <div class="sim-scena" id="simScena" role="tabpanel">
+    <div class="slotSchema slotDx" id="slotDx" hidden></div><!-- [Unita] nella Costruzione: la forma intera che cresce -->
     <iframe id="vetrina" title="Il simulatore: la bolla nell'Abbofficina, con i gonfiatori e le persone" src="configuratore/index.html?vetrina=1" loading="eager"></iframe>
     <div class="sim-vuoto" id="simVuoto"><p>Scegli una forma nella tappa Progettazione: qui la vedi gonfiarsi, alla sua grandezza vera.</p></div>
     <div class="sim-vuoto sim-guasto" id="simGuasto" hidden><div><p id="simGuastoTesto"></p><button type="button" class="btn primary" id="bRiprovaSim">Riprova</button></div></div>
@@ -1136,6 +1144,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   let vetrinaMorta = false, tabScelta = "sim", fuoriAree = [], guastoTesto = "";
   try { if (localStorage.getItem("bolle|simTab") === "schema") tabScelta = "schema"; } catch (e) { /* */ }
   const schemaVisibile = () => !!$("cvSchema").offsetParent;   // [Unita] lo Schema è nella pagina: si vede nella Progettazione e nella Costruzione
+  $("vistaDx").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (!b) return; vistaCostr = b.dataset.v; try { localStorage.setItem("bolle|vistaCostr", vistaCostr); } catch (er) { /* */ } disegnaSchema(); });
   function mostraTab() {   // [Unita] a destra solo il simulatore (se non parte, il motivo e «Riprova»)
     fr.hidden = false; $("scenarioBox").hidden = false; $("simGuasto").hidden = !guastoTesto;
     disegnaSchema();
@@ -1179,8 +1188,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     return { hl: [s.p.fi, s.q.fi], lato: s.key.split("_").map(Number), fatti, montati };
   }
   const inCostruzione = () => TAPPE[S.t] && TAPPE[S.t].id === "costruzione";
+  let vistaCostr = "forma"; try { vistaCostr = localStorage.getItem("bolle|vistaCostr") === "sim" ? "sim" : "forma"; } catch (e) { /* */ }
   function posaSchema() {   // [Unita] nella Progettazione sopra le misure, nella Costruzione accanto alla giunzione
-    const box = $("schemaBox"), dove = inCostruzione() ? $("slotCostr") : $("slotProg");
+    const destra = inCostruzione() && vistaCostr === "forma";   // [Unita] nella Costruzione, a destra se si è scelta la forma
+    $("vistaDx").hidden = !inCostruzione(); $("slotDx").hidden = !destra; $("tabSim").hidden = inCostruzione();   // nella Costruzione il titolo lo dice la scelta
+    document.querySelectorAll("#vistaDx [data-v]").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.v === "forma") === (vistaCostr === "forma"))));
+    const box = $("schemaBox"), dove = destra ? $("slotDx") : inCostruzione() ? $("slotCostr") : $("slotProg");
     if (box.parentElement !== dove) { dove.appendChild(box); chiudiPezzo(); }
   }
   function disegnaSchema() {
