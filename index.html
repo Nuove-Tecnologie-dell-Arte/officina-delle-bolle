@@ -193,7 +193,7 @@ body.inModGrande { overflow: hidden; }
 .cantiere[hidden] { display: none; }
 .site-testa { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .site-testa h2 { font-size: clamp(1.6rem, 5vw, 2.6rem); line-height: 1.05; }
-.site-corpo { overflow: auto; min-height: 0; display: grid; gap: 12px; align-content: start; justify-items: center; }
+.site-corpo { overflow: auto; min-height: 0; display: grid; gap: 12px; align-content: start; justify-items: center; grid-auto-rows: max-content; }   /* [Unita] max-content: il disegno non si schiaccia sotto la tabella */
 .site-corpo svg { width: min(100%, 760px); height: auto; max-height: 62vh; display: block; }
 .site-corpo .site-testo { max-width: 760px; width: 100%; font-size: 1.05rem; }
 .site-corpo table { border-collapse: collapse; width: min(100%, 760px); font-size: 1rem; }
@@ -205,12 +205,12 @@ body.inModGrande { overflow: hidden; }
 .cantiereRiga { margin-bottom: 12px; align-items: center; }
 body.inCantiere { overflow: hidden; }
 /* [Unita] ↗: l'Abbofficina completa a tutto schermo */
-.simGrande { min-height: 32px; padding: 4px 11px; font-size: 1rem; line-height: 1; align-self: center; }
-.simTuttaBox { position: fixed; inset: 0; z-index: 300; background: #e7e5e1; }
-.simTuttaBox[hidden] { display: none; }
-.simTuttaBox iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-#simChiudi { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 2; min-height: 36px; padding: 6px 14px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }   /* nella testata dell'Abbofficina, al centro, dove è vuota */
-@media (max-width: 700px) { #simChiudi { top: auto; bottom: 74px; left: auto; right: 10px; transform: none; } }
+#simGrande { min-height: 32px; padding: 4px 11px; font-size: 1rem; line-height: 1; align-self: center; }
+/* [Unita] ↗: lo stesso simulatore a tutto schermo (la vetrina si allarga e mostra Aria, Dati e la scheda della bolla) */
+body.simGrande #simScena { position: fixed; inset: 0; z-index: 300; display: block !important; border-radius: 0; margin: 0; height: auto; max-height: none; }
+body.simGrande #simScena > :not(#vetrina) { display: none !important; }
+body.simGrande .simpane { z-index: 400 !important; }   /* sticky: il pannello fa da livello, quindi va sopra la testata */
+html:has(body.simGrande) { overflow: hidden; }
 body.simGrande { overflow: hidden; }
 @media (max-width: 900px) { .riduci { display: inline-flex; min-height: 32px; padding: 4px 10px; font-size: .8rem; } .sim-testa { flex-wrap: nowrap; } .sim-testa h2 { font-size: 1rem; } .sim-stato { gap: 4px; font-size: .78rem; } .sim-stato .pill { padding: 3px 8px; } }
 @media (max-width: 480px) { .sim-stato .pill:not(.ok):not(.mid):not(.ko) { display: none; } .sim-stato { min-width: 0; } .sim-testa { flex-wrap: wrap; row-gap: 4px; } }   /* [Unita] sul telefono resta il verdetto, non l'altezza */
@@ -381,6 +381,9 @@ table.lista input { width: 78px; text-align: right; padding: 5px 6px; }
 .dima td, .dima th { padding: 3px 6px; border-bottom: 1px solid var(--rule); text-align: left; }
 .dima td.num { white-space: normal; }
 .dima th { font-weight: 600; color: var(--muted); font-size: .78rem; }
+/* [Unita] la tabella dei punti, per le dime con tanti angoli */
+table.punti td:first-child { font-weight: 700; }
+.site-corpo table.punti th, .dima table.punti th { white-space: nowrap; }
 .come-dima { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: start; }   /* [Unita] una colonna: le dime larghe, le misure si leggono */
 /* [Unita] la barra sopra le dime, le schede che si aprono, il riquadro del pezzo toccato nello Schema */
 .dimeCol { display: grid; gap: 12px; min-width: 0; }
@@ -470,7 +473,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 #piantaSvg { width: 100%; aspect-ratio: 1 / 1; display: block; background: var(--paper); border-radius: var(--r-m); touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
 #piantaSvg .vtx { cursor: grab; }
 </style>
-<link rel="stylesheet" href="tema/tema.css?v=3"><!-- il tema: cellophane, nastro di carta, titoli rossi in Bebas Neue; [Unita] ?v= va cambiato quando il tema cambia, così i browser non tengono il vecchio -->
+<link rel="stylesheet" href="tema/tema.css?v=4"><!-- il tema: cellophane, nastro di carta, titoli rossi in Bebas Neue; [Unita] ?v= va cambiato quando il tema cambia, così i browser non tengono il vecchio -->
 </head>
 <body>
 
@@ -656,7 +659,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <h2 class="sim-titolo" id="tabSim">Simulatore</h2><!-- [Unita] lo Schema è nella pagina -->
     <div class="seg vistaDx" id="vistaDx" role="group" aria-label="A destra: il simulatore o la forma" hidden><button type="button" data-v="forma" aria-pressed="true">Forma</button><button type="button" data-v="sim" aria-pressed="false">Simulatore</button></div><!-- [Unita] nella Costruzione -->
     <div class="sim-stato" id="simStato"></div>
-    <button type="button" class="btn simGrande" id="simGrande" title="Apri l'Abbofficina completa, a tutto schermo, sulla bolla scelta: aria, materiali, dati" aria-label="Apri l'Abbofficina completa a tutto schermo">↗</button><!-- [Unita] -->
+    <button type="button" class="btn simGrande" id="simGrande" title="Il simulatore a tutto schermo: aria, dati, gonfiatori e corridoi tra le bolle" aria-label="Apri il simulatore a tutto schermo">↗</button><!-- [Unita] -->
     <button type="button" class="btn riduci" id="bRiduci" aria-expanded="true">Riduci</button>
   </div>
   <div class="sim-scena" id="simScena" role="tabpanel">
@@ -726,7 +729,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   <div class="site-corpo" id="siteCorpo"></div>
   <div class="site-piede"><button type="button" class="btn big" id="sitePrima" aria-label="Indietro">‹</button><button type="button" class="btn primary big" id="siteFatto"></button><button type="button" class="btn big" id="siteDopo" aria-label="Avanti">›</button><span class="hint" id="siteProg"></span></div>
 </div>
-<div class="simTuttaBox" id="simTuttaBox" role="dialog" aria-modal="true" aria-label="L'Abbofficina completa" hidden><button type="button" class="btn" id="simChiudi" title="Torna al sito (Esc)">↙ Torna al sito</button></div><!-- [Unita] -->
 
 <script src="motore.js"></script>
 <script src="immagine.js"></script>
@@ -927,7 +929,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       catch (e) { curErr = e.message || "Con queste misure la forma non si può costruire."; }
     }
     if (cur) {
-      if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = impagina(cur, scalaDi(S)); if (!cur.stampa) { const r = sceltaScala(cur); cur.scalaBuona = r ? r.scala : null; } }   // [Unita] la scala scelta, 1:20 all'inizio
+      if (!leggero) { cur.unf = unfold(cur.V, cur.F, cur.floor, cur.cluster); cur.stampa = impagina(cur, scalaDi(S)); if (!cur.stampa || cur.stampa.divisi.length) { const r = sceltaScala(cur); cur.scalaBuona = r ? r.scala : null; } }   // [Unita] la scala scelta, 1:20 all'inizio
       cur.g = giudica(cur, S.base);
       const k = S.shape + "|" + JSON.stringify(S.base, (k, v) => (k === "sag" ? v.length + ":" + v.slice(0, 3).join() : v)) + "|" + JSON.stringify(S.dim) + chiaveAppoggio();   // [Unita] stesso appoggio = stesse spunte
       if (k !== curKey) giuntaQui = null;
@@ -1099,7 +1101,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
      Riceve la bolla (vertici e facce in metri) con un messaggio; se non si carica (senza internet), resta il disegno di riserva. */
   const fr = $("vetrina");
   let vetrinaPronta = false, tSim = 0, ultimoInvio = "";
-  let tutta = null, tuttaPronta = false, tuttaId = null, tTutta = 0, dimInviata = null, tuttaQuieta = 0;   // [Unita] ↗, l'Abbofficina completa
   const opzArea = () => { if (!cur || !haArea()) return null; const e = entra({ x: cur.W, y: cur.D, z: cur.H }); return { x: S.area.x, y: S.area.y, z: S.area.z, ok: !!e, giro: e === 2 }; };
   const conForma = (b) => !!(b.shape && b.base && b.dim);
   // le aree di lavoro nel simulatore (quelle con almeno una misura a terra); con lo scenario con le pareti nessuna: c'è la stanza
@@ -1117,8 +1118,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       if (!conForma(b)) return null; const m = b === S ? cur : meshBolla(b); if (!m) return null;
       return { id: b.id, nome: nomeBolla(i), off: b.shape, forma: chiaveForma(b), chiusa: intera(b), dim: b.dim, W: m.W, D: m.D, pos: b.pos || null, mesh: { v: m.V.map(v => v.map(mm)), f: m.F.map(f => f.slice()) } };
     }).filter(Boolean);
-    const msg = { tipo: "bolle-officina", bolle, att: S.id, aree: opzAree() };
-    const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.aree.map(a => [a.id, a.nome, a.x, a.y, a.z])]);   // il posto delle aree lo tiene la vetrina
+    const ids = new Set(bolle.map(x => x.id)), unioni = (PR.unioni || []).filter(u => ids.has(u[0]) && ids.has(u[1]));   // [Unita] i corridoi tra bolle che ci sono
+    const msg = { tipo: "bolle-officina", bolle, att: S.id, aree: opzAree(), unioni };
+    const firma = JSON.stringify([bolle.map(x => [x.id, x.nome, x.forma, x.dim]), msg.att, msg.aree.map(a => [a.id, a.nome, a.x, a.y, a.z]), unioni]);   // il posto delle aree lo tiene la vetrina
     if (firma === ultimoInvio) return; ultimoInvio = firma;
     fr.contentWindow.postMessage(msg, "*");
   }
@@ -1160,7 +1162,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   addEventListener("message", e => {
     if (e.source !== fr.contentWindow || !e.data) return; const M = e.data;
     if (M.tipo === "vetrina-errore" && !vetrinaPronta) guasto((M.rete ? "Il simulatore non si carica. " : "Il simulatore si è fermato: ") + M.msg + (M.rete ? " Prova «Riprova», o un'altra rete. Intanto c'è lo Schema." : ""), true);
-    if (M.tipo === "vetrina-pronta") { const tardi = vetrinaMorta; vetrinaPronta = true; vetrinaMorta = false; guasto(""); $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); if (tardi) mostraTab(TAPPE[S.t] && TAPPE[S.t].id === "costruzione" ? "schema" : tabScelta); simulatore(); }   // arrivato in ritardo: torna da solo
+    if (M.tipo === "vetrina-pronta") { const tardi = vetrinaMorta; vetrinaPronta = true; vetrinaMorta = false; guasto(""); $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); if (tuttaAperta()) fr.contentWindow.postMessage({ tipo: "vetrina-grande", si: true }, "*"); if (tardi) mostraTab(TAPPE[S.t] && TAPPE[S.t].id === "costruzione" ? "schema" : tabScelta); simulatore(); }   // arrivato in ritardo: torna da solo
     if (M.tipo === "vetrina-posizioni") {   // le bolle spostate (o girate) nel simulatore, e l'area in cui sono
       const prima = S.area;
       (M.pos || []).forEach(q => { const b = PR.bolle.find(x => x.id === q.id); if (!b) return; b.pos = { x: q.x, z: q.z, ang: q.ang || 0 }; if (q.area != null && PR.aree.some(a => a.id === q.area)) b.areaId = q.area; });
@@ -1215,7 +1217,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("simStato").innerHTML = !S.shape ? "" : !cur ? `<span class="pill ko"><i>✕</i>${esc(curErr || "Non si costruisce")}</span>`
       : `<span class="pill">${metri(cur.H)}</span><span class="pill ${g.c}"><i>${icona[g.c] || "i"}</i>${g.c === "ok" ? "Si può fare" : g.c === "mid" ? "Con attenzione" : "Non si può fare"}</span>`;
     clearTimeout(tSim); tSim = setTimeout(inviaVetrina, 120);
-    if (tutta && tuttaPronta && tuttaAperta()) { clearTimeout(tTutta); tTutta = setTimeout(inviaTutta, Math.max(300, tuttaQuieta - Date.now())); }   // [Unita] mentre là si sta ingrandendo, si aspetta
     disegnaSchema();
   }
 
@@ -1998,66 +1999,42 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (e.data.tipo === "vetrina-tutta") apriTutta(true);   // [Unita] dallo stato o dai materiali del simulatore
   });
 
-  /* [Unita] ↗: l'Abbofficina completa (come nella prova semplice, ?incorporata) a tutto schermo, sulla bolla scelta.
-     La vetrina resta com'è; le misure cambiate là tornano alla bolla che si è mandata (tuttaId). */
-  function tuttaAperta() { return !$("simTuttaBox").hidden; }
-  const aTutta = (m) => { if (tutta && tuttaPronta) try { tutta.contentWindow.postMessage(Object.assign({ bolle: 1 }, m), "*"); } catch (e) { /* non ancora pronta */ } };
-  function paccoBolla() {
-    if (!cur) return null; const mm = (x) => Math.round(x * 1000) / 1000;
-    return { v: 1, nome: nomeBolla(PR.att), chiusa: intera(S), tipo: "officina", d: { mesh: { v: cur.V.map(v => v.map(mm)), f: cur.F.map(f => f.slice()) }, k: 1, off: S.shape } };
-  }
-  function inviaTutta() { const p = paccoBolla(); if (!p) return; tuttaId = S.id; dimInviata = Object.assign({}, S.dim); aTutta({ tipo: "forma", pacco: p }); }
+  /* [Unita] ↗: lo stesso simulatore, a tutto schermo. Le bolle, le misure e i materiali restano quelli del sito; là si vedono
+     in più Aria, Dati, la scheda di ogni bolla e i corridoi. Esc o «Torna al sito» tornano qui. */
+  function tuttaAperta() { return document.body.classList.contains("simGrande"); }
   function apriTutta(si) {
-    const box = $("simTuttaBox");
-    if (si) {
-      if (!cur) return;
-      if (!tutta) { tutta = document.createElement("iframe"); tutta.id = "simTutta"; tutta.title = "L'Abbofficina completa, sulla bolla scelta"; tutta.src = "configuratore/index.html?incorporata=1&grande=1"; box.appendChild(tutta); }
-      box.hidden = false; document.body.classList.add("simGrande");
-      if (tuttaPronta) { aTutta({ tipo: "ricarica-prezzi" }); aTutta({ tipo: "materiali", D: PR.mat }); inviaTutta(); aTutta({ tipo: "grande", si: true }); }
-      tutta.focus();
-    } else {
-      if (box.hidden) return;
-      box.hidden = true; document.body.classList.remove("simGrande"); aTutta({ tipo: "grande", si: false });
-      if (vetrinaPronta) fr.contentWindow.postMessage({ tipo: "vetrina-ricarica-prezzi" }, "*");   // i prezzi scritti là valgono anche nella lista
-      $("simGrande").focus();
-    }
-  }
-  function daTutta(m) {   // la bolla legata è cambiata nell'Abbofficina: per la forma dell'Officina arriva l'ingrandimento k
-    if (m.tipoB !== "officina" || !m.d) return; const k = +(m.d.k || 1); if (!(k > 0) || Math.abs(k - 1) < 1e-3) return;
-    const b = PR.bolle.find(x => x.id === tuttaId); if (!b || !b.dim || !dimInviata) return;
-    b.dim = scalaDim(dimInviata, k); tuttaQuieta = Date.now() + 1500;   // k è rispetto alla bolla mandata: due ingrandimenti di fila non si sommano
-    if (b === S) { esito = null; cambiato(); } else { salva(); simulatore(); }
-  }
-  function materialiDaTutta(D) {   // le scelte cambiate nell'Abbofficina tornano nel sito (zip impermeabile e stagna restano là)
-    if (!D) return; let cambia = false;
-    for (const k of Object.keys(MAT_LAB)) { let v = D[k]; if (v == null) continue; if ((k === "porte" || k === "coll") && !["cerniera", "velcro"].includes(v)) continue; if (k === "adLati") v = v > 1 ? 2 : 1; if (PR.mat[k] !== v) { PR.mat[k] = v; cambia = true; } }
-    if (cambia) { salva(); rendiScelteMat(); rendiMateriali(); inviaMateriali(); }
+    if (si === tuttaAperta()) return;
+    if (si && !PR.bolle.some(conForma)) return;
+    document.body.classList.toggle("simGrande", si);
+    if (vetrinaPronta) fr.contentWindow.postMessage({ tipo: "vetrina-grande", si }, "*");
+    if (si) fr.focus(); else $("simGrande").focus();
   }
   $("simGrande").addEventListener("click", () => apriTutta(true));
-  $("simChiudi").addEventListener("click", () => apriTutta(false));
   document.addEventListener("keydown", e => { if (e.key === "Escape" && tuttaAperta()) { e.preventDefault(); apriTutta(false); } });
   addEventListener("message", e => {
-    if (!tutta || e.source !== tutta.contentWindow || !e.data || !e.data.bolle) return; const m = e.data;
-    if (m.tipo === "pronta") { tuttaPronta = true; aTutta({ tipo: "materiali", D: PR.mat }); inviaTutta(); aTutta({ tipo: "grande", si: tuttaAperta() }); }
-    else if (m.tipo === "misure") daTutta(m);
-    else if (m.tipo === "stato") materialiDaTutta(m.D);
-    else if (m.tipo === "esci") apriTutta(false);
+    if (e.source !== fr.contentWindow || !e.data) return; const M = e.data;
+    if (M.tipo === "vetrina-esci") apriTutta(false);
+    if (M.tipo === "vetrina-unioni") { PR.unioni = (M.unioni || []).filter(u => Array.isArray(u) && u.length === 2); salva(); }   // i corridoi tra le bolle, decisi nel simulatore
   });
 
   RENDI.progettazione = () => { rendiArea(); linguetta(S.shape ? S.tab : "forme"); rendiRisultato(); rendiScelteMat(); rendiMateriali(); };
 
   /* ===================== 2 · DIMA / MODELLINO ===================== */
   const A4 = { w: 190, h: 277, m: 5 };
-  function impagina(m, scala) {
+  /* [Unita] un pezzo più grande di un foglio non blocca più il cartamodello: si divide su più fogli («a pezzi»), che si
+     sovrappongono di SOV mm; le crocette sono nello stesso punto sui due fogli vicini. Con intero=true (per cercare la
+     scala in cui tutto sta su un foglio) si torna a null come prima. */
+  const SOV = 12, MAX_PARTI = 16;
+  function impagina(m, scala, intero) {
     const { placed, islands, tree, edgeFaces } = m.unf, k = 1000 / scala, HU = A4.h - 14;
     const box = (faces) => { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       faces.forEach(fi => placed[fi].pts.forEach(p => { x0 = Math.min(x0, p[0] * k); y0 = Math.min(y0, p[1] * k); x1 = Math.max(x1, p[0] * k); y1 = Math.max(y1, p[1] * k); }));
       return { x0, y0, w: x1 - x0, h: y1 - y0 }; };
     const entraF = (b) => (b.w <= A4.w && b.h <= HU) || (b.h <= A4.w && b.w <= HU);
-    const gruppo = new Array(m.F.length).fill(-1), gruppi = [];
+    const gruppo = new Array(m.F.length).fill(-1), gruppi = [], grandi = [];
     for (const isl of islands) for (const f0 of isl.faces) {
       if (gruppo[f0] >= 0) continue;
-      if (!entraF(box([f0]))) return null;
+      if (!entraF(box([f0]))) { if (intero) return null; gruppo[f0] = gruppi.length; grandi.push(gruppi.length); gruppi.push([f0]); continue; }   // da solo, sarà diviso
       const g = [f0], coda = [f0]; gruppo[f0] = gruppi.length;
       while (coda.length) { const fi = coda.shift(), f = m.F[fi];
         f.forEach((a, j) => { const key = ek(a, f[(j + 1) % f.length]); if (!tree.has(key)) return;
@@ -2066,13 +2043,29 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       gruppi.push(g);
     }
     const isole = gruppi.map((faces, gi) => { const b = box(faces); let w = b.w, h = b.h, giro = false; if (w > A4.w || h > HU) { giro = true; [w, h] = [h, w]; } return { gi, faces, x0: b.x0, y0: b.y0, w, h, giro }; });
-    const pagine = []; let pg = null, x = 0, y = 0, riga = 0;
-    for (const is of isole.slice().sort((a, b) => b.h - a.h)) {
+    // i pezzi grandi: girati come servono meno fogli, poi una griglia di parti; le parti vuote (fuori dal pezzo) si saltano
+    const pagine = [], divisi = [], sx = A4.w - SOV, sy = HU - SOV;
+    for (const gi of grandi) {
+      const is = isole[gi], fi = gruppi[gi][0], conta = (w, h) => [Math.max(1, Math.ceil((w - SOV) / sx)), Math.max(1, Math.ceil((h - SOV) / sy))];
+      const b = box([fi]), [na, ma] = conta(b.w, b.h), [nb, mb] = conta(b.h, b.w), giro = nb * mb < na * ma;
+      const w = giro ? b.h : b.w, h = giro ? b.w : b.h, [nx, ny] = giro ? [nb, mb] : [na, ma];
+      if (nx * ny > MAX_PARTI) return null;
+      // il pezzo come lo vedrà il foglio (stessa trasformazione di foglioSVG), per sapere quali parti sono vuote
+      const pts = placed[fi].pts.map(p => { const x = p[0] * k - b.x0, y = p[1] * k - b.y0; return giro ? [y, h - x] : [x, h - y]; });
+      const dentro = (px, py) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) c = !c; } return c; };
+      const piena = (i, j) => { const x0 = i * sx, y0 = j * sy; for (let a = 0; a <= 12; a++) for (let c = 0; c <= 12; c++) if (dentro(x0 + A4.w * a / 12, y0 + HU * c / 12)) return true; return pts.some(([x, y]) => x >= x0 && x <= x0 + A4.w && y >= y0 && y <= y0 + HU); };
+      const parti = []; for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) if (piena(i, j)) parti.push([i, j]);
+      const c = (i, j) => parti.some(([a, b2]) => a === i && b2 === j);
+      parti.forEach(([i, j], q) => pagine.push([{ ...is, w, h, giro, ox: -i * sx, oy: -j * sy, parte: { i, j, nx, ny, n: q + 1, tot: parti.length, dx: c(i + 1, j), sx: c(i - 1, j), giu: c(i, j + 1), su: c(i, j - 1) } }]));
+      divisi.push({ tipo: m.an.faceInfo[fi].type, parti: parti.length });
+    }
+    let pg = null, x = 0, y = 0, riga = 0;
+    for (const is of isole.filter(is => !grandi.includes(is.gi)).sort((a, b) => b.h - a.h)) {
       if (pg && x > 0 && x + is.w > A4.w) { x = 0; y += riga + A4.m; riga = 0; }
       if (!pg || y + is.h > HU) { pg = []; pagine.push(pg); x = 0; y = 0; riga = 0; }
       pg.push({ ...is, ox: x, oy: y }); x += is.w + A4.m; riga = Math.max(riga, is.h);
     }
-    return { scala, pagine, isole, gruppo };
+    return { scala, pagine, isole, gruppo, divisi };
   }
   const scalaDi = (b) => (b && b.scala >= 1 && b.scala <= 1000 ? Math.round(b.scala) : 20);   // [Unita] la scala del modellino di una bolla
   function sceltaScala(m) {
@@ -2080,7 +2073,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     let primo = null;
     for (const s of SC) {
       if (m.H * 1000 / s > 170 && s !== SC[SC.length - 1]) continue;
-      const r = impagina(m, s); if (!r) continue; if (!primo) primo = r;
+      const r = impagina(m, s, true); if (!r) continue; if (!primo) primo = r;
       if (r.pagine.length <= 8 || lmin * 1000 / s < 8) return r;
     }
     return primo;
@@ -2091,6 +2084,13 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const { placed, edgeFaces } = m.unf, k = 1000 / r.scala, an = m.an, tree = m.unf.tree;
     let s = "";
     pg.forEach(is => {
+      const pt = is.parte, cid = `parte${n}_${pt ? pt.n : 0}`;
+      if (pt) {   // [Unita] sotto il pezzo: la striscia grigia dove va sopra il foglio vicino
+        s += `<clipPath id="${cid}"><rect x="0" y="0" width="${A4.w}" height="${A4.h - 14}"/></clipPath>`;
+        if (pt.dx) s += `<rect x="${A4.w - SOV}" y="0" width="${SOV}" height="${A4.h - 14}" fill="#000" fill-opacity=".07"/>`;
+        if (pt.giu) s += `<rect x="0" y="${A4.h - 14 - SOV}" width="${A4.w}" height="${SOV}" fill="#000" fill-opacity=".07"/>`;
+        s += `<g clip-path="url(#${cid})">`;
+      }
       const P = (fi, i) => { const p = placed[fi].pts[i], x = p[0] * k - is.x0, y = p[1] * k - is.y0; return is.giro ? [is.ox + y, is.oy + (is.h - x)] : [is.ox + x, is.oy + (is.h - y)]; };
       const piegaTra = (key, fi) => tree.has(key) && edgeFaces.get(key).every(g => r.gruppo[g] === r.gruppo[fi]);
       is.faces.forEach(fi => {
@@ -2107,6 +2107,15 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
         const fz = Math.max(1.8, Math.min(4, lato * 0.16));
         s += `<text x="${c[0].toFixed(2)}" y="${c[1].toFixed(2)}" font-size="${fz.toFixed(2)}" fill="#111" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="IBM Plex Mono, monospace">${nomeDima(t.type)}</text>`;
       });
+      if (pt) {   // [Unita] le crocette (uguali sui due fogli vicini), la linea di taglio e il nome della parte
+        const HU = A4.h - 14, croce = (x, y) => `<path d="M${x - 3},${y}h6M${x},${y - 3}v6" stroke="#c22f57" stroke-width=".35"/><circle cx="${x}" cy="${y}" r="1.6" fill="none" stroke="#c22f57" stroke-width=".3"/>`;
+        [0.25, 0.75].forEach(u => { if (pt.dx) s += croce(A4.w - SOV / 2, HU * u); if (pt.sx) s += croce(SOV / 2, HU * u); if (pt.giu) s += croce(A4.w * u, HU - SOV / 2); if (pt.su) s += croce(A4.w * u, SOV / 2); });
+        s += `</g>`;
+        const taglio = 'stroke="#555" stroke-width=".3" stroke-dasharray="1.2 1"';
+        if (pt.sx) s += `<line x1="0" y1="0" x2="0" y2="${HU}" ${taglio}/><text x="1.2" y="4" font-size="2.4" fill="#555" font-family="IBM Plex Sans, sans-serif">✂ taglia il margine fin qui</text>`;
+        if (pt.su) s += `<line x1="0" y1="0" x2="${A4.w}" y2="0" ${taglio}/>${pt.sx ? "" : `<text x="1.2" y="4" font-size="2.4" fill="#555" font-family="IBM Plex Sans, sans-serif">✂ taglia il margine fin qui</text>`}`;
+        s += `<text x="0" y="${HU + 4.5}" font-size="2.7" font-weight="700" fill="#c22f57" font-family="IBM Plex Sans, sans-serif">${nomeDima(m.an.faceInfo[is.faces[0]].type)} è grande: parte ${pt.n} di ${pt.tot} (riga ${pt.j + 1}, colonna ${pt.i + 1}) · crocetta sopra crocetta</text>`;
+      }
     });
     s += `<line x1="0" y1="${A4.h - 6}" x2="50" y2="${A4.h - 6}" stroke="#111" stroke-width="0.5"/><line x1="0" y1="${A4.h - 8}" x2="0" y2="${A4.h - 4}" stroke="#111" stroke-width="0.5"/><line x1="50" y1="${A4.h - 8}" x2="50" y2="${A4.h - 4}" stroke="#111" stroke-width="0.5"/>`;
     s += `<text x="25" y="${A4.h - 1.5}" font-size="2.4" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" fill="#111">deve misurare 5 cm</text>`;
@@ -2116,9 +2125,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function rendiModellino() {
     if (!cur) return;
     const r = cur.stampa;
-    if (!r) { $("modelloRiass").textContent = cur.scalaBuona ? `A scala 1:${scalaDi(S)} alcuni pezzi non stanno su un foglio A4: scegli una scala più piccola, per esempio 1:${cur.scalaBuona} (Progettazione → Misure della bolla → Altre opzioni).` : "Questa forma ha pezzi troppo grandi per stare su un foglio A4, anche in piccolo: torna alla progettazione e falla più piccola."; $("fogli").innerHTML = ""; return; }
+    if (!r) { $("modelloRiass").textContent = cur.scalaBuona ? `A scala 1:${scalaDi(S)} un pezzo andrebbe diviso su più di ${MAX_PARTI} fogli A4: scegli una scala più piccola, per esempio 1:${cur.scalaBuona} (Progettazione → Misure della bolla → Altre opzioni).` : "Questa forma ha pezzi troppo grandi per stare su un foglio A4, anche in piccolo: torna alla progettazione e falla più piccola."; $("fogli").innerHTML = ""; return; }
     const testo = `${nomeForma(S.shape)} · scala 1:${r.scala}`;
-    $("modelloRiass").innerHTML = `<b>Scala 1:${r.scala}</b> (<button class="gl" data-g="scala">che cosa vuol dire</button>): il modellino è alto <b class="num">${cm(cur.H / r.scala)}</b>. Servono <b>${plural(r.pagine.length, "foglio A4", "fogli A4")}</b>, meglio se di cartoncino leggero.`;
+    const gr = new Map(); r.divisi.forEach(d => gr.set(d.tipo, (gr.get(d.tipo) || 0) + 1));   // [Unita] i pezzi grandi, per dima
+    const ps = [...new Set(r.divisi.map(d => d.parti))], nomi = [...gr].map(([t, n]) => `<b>${nomeDima(t)}</b>${n > 1 ? ` (${n} pezzi)` : ""}`).join(", ");
+    const div = r.divisi.length ? ` ${nomi} ${gr.size > 1 || r.divisi.length > 1 ? "sono più grandi" : "è più grande"} di un foglio: ${r.divisi.length > 1 ? "ogni pezzo è diviso" : "è diviso"} su ${ps.length === 1 ? ps[0] : "più"} fogli. Ritaglia il margine dove dice ✂, appoggia il foglio sopra la striscia grigia di quello accanto, crocetta sopra crocetta, e fissa con lo scotch.${cur.scalaBuona && cur.scalaBuona !== r.scala ? ` Con la scala 1:${cur.scalaBuona} starebbe tutto su fogli interi (Progettazione → Misure della bolla → Altre opzioni).` : ""}` : "";   // [Unita]
+    $("modelloRiass").innerHTML = `<b>Scala 1:${r.scala}</b> (<button class="gl" data-g="scala">che cosa vuol dire</button>): il modellino è alto <b class="num">${cm(cur.H / r.scala)}</b>. Servono <b>${plural(r.pagine.length, "foglio A4", "fogli A4")}</b>, meglio se di cartoncino leggero.${div}`;
     $("fogliTit").textContent = `L'anteprima dei fogli (${plural(r.pagine.length, "foglio", "fogli")}): linea nera = taglio, tratteggio verde = piega, numeri rossi = bordi da chiudere con lo scotch.`;
     $("fogli").innerHTML = r.pagine.map((pg, i) => `<div class="foglio">${foglioSVG(cur, r, pg, i + 1, r.pagine.length, testo)}</div>`).join("");
     $("okModello").checked = !!S.okModello;
@@ -2165,11 +2177,14 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const pts = C.map(p => ((p[0] - x0) * k + 4 + (56 - w * k) / 2).toFixed(1) + "," + (60 - ((p[1] - y0) * k + 4 + (56 - h * k) / 2)).toFixed(1)).join(" ");
     return `<svg class="sagoma" viewBox="0 0 64 64" aria-hidden="true"><polygon points="${pts}"/></svg>`;
   }
-  function dimaSVG(C, colore, stampa) {
+  /* [Unita] due modalità: «disegno», con le misure scritte accanto alle linee, e «tabella», per le dime con tanti angoli:
+     nel disegno restano le lettere, le misure di ogni punto vanno in una tabella. Si passa alla tabella quando
+     una misura non trova un posto libero (si sovrapporrebbe a un'altra o a un lato), anche sul foglio più grande, o quando gli angoli sono più di 8. */
+  function dimaDisegno(C, colore, stampa, tabella, grande) {
     const col = stampa ? { fondo: "#ffffff", griglia: "#e3e8e5", ink: "#111", muted: "#555", verde: "#2f8a68", rosso: "#c22f57" }
       : { fondo: "var(--paper)", griglia: "var(--line-strong)", ink: "var(--ink)", muted: "var(--muted)", verde: "var(--green)", rosso: "var(--cut)" };
     const xs = C.map(p => p[0]), ys = C.map(p => p[1]), x0 = Math.min(0, ...xs), x1 = Math.max(...xs), y0 = Math.min(0, ...ys), y1 = Math.max(...ys);
-    const W = 460, H = 404, padX = 50, padT = 46, padB = 144, k = Math.min((W - 2 * padX) / ((x1 - x0) || 1), (H - padT - padB) / ((y1 - y0) || 1));
+    const molti = C.length > 8, W = tabella ? (molti ? 680 : 540) : grande ? 580 : 460, H = Math.round(W * 404 / 460), padX = 50, padT = 46, padB = tabella ? 84 : 144, k = Math.min((W - 2 * padX) / ((x1 - x0) || 1), (H - padT - padB) / ((y1 - y0) || 1));
     const ox = padX + ((W - 2 * padX) - (x1 - x0) * k) / 2 - x0 * k, oy = H - padB + y0 * k - (((H - padT - padB) - (y1 - y0) * k) / 2) * 0;
     const P = (p) => [ox + p[0] * k, oy - p[1] * k];
     const pts = C.map(P), A = pts[0], B = pts[1], f = (v) => v.toFixed(1);
@@ -2187,11 +2202,12 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const incr = (a, b, c, e) => { const den = (b[0] - a[0]) * (e[1] - c[1]) - (b[1] - a[1]) * (e[0] - c[0]); if (Math.abs(den) < 1e-9) return false; const u = ((c[0] - a[0]) * (e[1] - c[1]) - (c[1] - a[1]) * (e[0] - c[0])) / den, v = ((c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0])) / den; return u >= 0 && u <= 1 && v >= 0 && v <= 1; };
     const tocca = (q) => occupati.some(o => q.x0 < o.x1 && q.x1 > o.x0 && q.y0 < o.y1 && q.y1 > o.y0) || q.x0 < 2 || q.x1 > W - 2 || q.y0 < 2 || q.y1 > H - 2
       || lati.some(([a, b]) => { const dentro = (p) => p[0] > q.x0 && p[0] < q.x1 && p[1] > q.y0 && p[1] < q.y1; return dentro(a) || dentro(b) || [[[q.x0, q.y0], [q.x1, q.y0]], [[q.x1, q.y0], [q.x1, q.y1]], [[q.x1, q.y1], [q.x0, q.y1]], [[q.x0, q.y1], [q.x0, q.y0]]].some(([c, e]) => incr(a, b, c, e)); });
-    const posto = (cands, w, h) => { for (const c of cands) { const q = scatola(c, w, h); if (!tocca(q)) { occupati.push(q); return c; } } const c = cands[0]; occupati.push(scatola(c, w, h)); return c; };
+    let forzate = 0;   // le misure che non hanno trovato un posto libero
+    const posto = (cands, w, h, conta) => { for (const c of cands) { const q = scatola(c, w, h); if (!tocca(q)) { occupati.push(q); return c; } } if (conta) forzate++; const c = cands[0]; occupati.push(scatola(c, w, h)); return c; };
     const largo = (t, fs) => t.length * fs * 0.62 + 8;   // con il bordo chiaro attorno alle lettere
     C.slice(2).forEach((c, j) => {
       const p = pts[j + 2], piede = [p[0], A[1]], su = c[1] >= 0 ? 1 : -1, q = 9;
-      s += `<line x1="${f(p[0])}" y1="${f(p[1])}" x2="${f(piede[0])}" y2="${f(piede[1])}" stroke="${col.verde}" stroke-width="1.8" stroke-dasharray="6 5"/>`;
+      s += `<line x1="${f(p[0])}" y1="${f(p[1])}" x2="${f(piede[0])}" y2="${f(piede[1])}" stroke="${col.verde}" stroke-width="1.8" stroke-dasharray="6 5"${tabella ? ' stroke-opacity=".45"' : ""}/>`;
       s += `<polyline points="${f(piede[0] + q)},${f(piede[1])} ${f(piede[0] + q)},${f(piede[1] - q * su)} ${f(piede[0])},${f(piede[1] - q * su)}" fill="none" stroke="${col.verde}" stroke-width="1.6"/>`;
       s += `<circle cx="${f(piede[0])}" cy="${f(piede[1])}" r="3.5" fill="${col.verde}"/>`;
     });
@@ -2199,7 +2215,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
     pts.forEach((p, i) => {
       const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1, base = i < 2;
-      s += `<circle cx="${f(p[0])}" cy="${f(p[1])}" r="6" fill="${base ? col.rosso : col.fondo}" stroke="${base ? col.rosso : col.ink}" stroke-width="2"/>`;
+      s += `<circle cx="${f(p[0])}" cy="${f(p[1])}" r="${molti ? 4.5 : 6}" fill="${base ? col.rosso : col.fondo}" stroke="${base ? col.rosso : col.ink}" stroke-width="2"/>`;
       lettere.push({ i, p, dx: dx / d, dy: dy / d, base });
     });
     // la misura della base A–B, sotto
@@ -2210,30 +2226,43 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const etAB0 = `AB ${misDima(len2(sub2(C[1], C[0])))}`; occupati.push(scatola({ x: (A[0] + B[0]) / 2, y: H - 14, a: "middle" }, largo(etAB0, 17), 22));
     // le lettere degli angoli, appena fuori dal pezzo
     lettere.forEach(({ i, p, dx, dy, base }) => {
-      const cands = [18, 26, 36, 48].map(r => base ? { x: p[0] + (i ? 10 : -10) * r / 18, y: p[1] + 20 * r / 18, a: "middle" } : { x: p[0] + dx * r, y: p[1] + dy * r, a: "middle" });
-      const c = posto(cands, 22, 26);
-      s += `<text x="${f(c.x)}" y="${f(c.y)}" font-size="19" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${lettera(i)}</text>`;
+      const fs = C.length > 16 ? 15 : molti ? 18 : 19, L = lettera(i), r0 = [18, 26, 36, 48, 62, 78];
+      const cands = r0.map(r => base ? { x: p[0] + (i ? 10 : -10) * r / 18, y: p[1] + 20 * r / 18, a: "middle" } : { x: p[0] + dx * r, y: p[1] + dy * r, a: "middle" })
+        .concat(base ? [] : r0.slice(1, 5).flatMap(r => [-0.5, 0.5, -1, 1].map(g => { const cg = Math.cos(g), sg = Math.sin(g); return { x: p[0] + (dx * cg - dy * sg) * r, y: p[1] + (dx * sg + dy * cg) * r, a: "middle" }; })));
+      const c = posto(cands, L.length * fs * 0.62 + 8, fs + 7);
+      if (tabella && Math.hypot(c.x - p[0], c.y - p[1]) > 30) s += `<line x1="${f(p[0])}" y1="${f(p[1])}" x2="${f(c.x - (c.x - p[0]) * 9 / Math.hypot(c.x - p[0], c.y - p[1]))}" y2="${f(c.y - (c.y - p[1]) * 9 / Math.hypot(c.x - p[0], c.y - p[1]))}" stroke="${col.muted}" stroke-width="1"/>`;
+      s += `<text x="${f(c.x)}" y="${f(c.y)}" font-size="${fs}" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${lettera(i)}</text>`;
     });
-    // le altezze, accanto alla loro linea tratteggiata
-    C.slice(2).forEach((c, j) => {
+    // le altezze, accanto alla loro linea tratteggiata (nella modalità tabella sono nella tabella)
+    if (!tabella) C.slice(2).forEach((c, j) => {
       if (Math.abs(c[1]) <= 1e-4) return;
       const p = pts[j + 2], py = A[1], t = misDima(Math.abs(c[1])), w = largo(t, 17), ys = [0.5, 0.3, 0.7, 0.15, 0.85].map(u => p[1] + (py - p[1]) * u);
       const sg = Math.sign(py - p[1] || 1), xmax = Math.max(...pts.map(q => q[0])), xmin = Math.min(...pts.map(q => q[0]));
       const cands = ys.flatMap(y => [{ x: p[0] + 8, y, a: "start" }, { x: p[0] - 8, y, a: "end" }])
         .concat([30, 50].flatMap(r => [{ x: p[0], y: p[1] - r * sg, a: "middle" }, { x: p[0] + 16, y: p[1] - r * sg, a: "start" }, { x: p[0] - 16, y: p[1] - r * sg, a: "end" }]))
         .concat(ys.slice(0, 3).flatMap(y => [{ x: xmax + 12, y, a: "start", filo: true }, { x: xmin - 12, y, a: "end", filo: true }]));   // fuori dal pezzo, con una linea fino alla sua misura
-      const q = posto(cands, w, 20);
+      const q = posto(cands, w, 24, true);   // [Unita] alta quanto le lettere vere
       if (q.filo) s += `<line x1="${f(p[0])}" y1="${f(q.y)}" x2="${f(q.x + (q.a === "start" ? -3 : 3))}" y2="${f(q.y)}" stroke="${col.verde}" stroke-width="1.2" stroke-dasharray="2 3"/>`;
       s += `<text x="${f(q.x)}" y="${f(q.y)}" font-size="17" font-weight="700" text-anchor="${q.a}" dominant-baseline="middle" fill="${col.verde}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5">${t}</text>`;
     });
     // i piedi, sotto la base, su più righe se servono
-    C.slice(2).forEach((c, j) => {
+    if (!tabella) C.slice(2).forEach((c, j) => {
       const p = pts[j + 2], t = misDima(c[0]), w = largo(t, 16), cands = [40, 60, 80, 100, 120].flatMap(dy => [0, 0.55, -0.55, 1.1, -1.1].map(u => ({ x: p[0] + u * w, y: A[1] + dy, a: "middle" })));
-      const q = posto(cands, w, 19);
+      const q = posto(cands, w, 23, true);
       s += `<text x="${f(q.x)}" y="${f(q.y)}" font-size="16" font-weight="700" text-anchor="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="5" dominant-baseline="middle">${t}</text>`;
     });
     s += `<text x="${f((A[0] + B[0]) / 2)}" y="${yb}" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="${col.ink}" font-family="IBM Plex Mono, monospace" paint-order="stroke" stroke="${col.fondo}" stroke-width="6">AB ${misDima(len2(sub2(C[1], C[0])))}</text>`;   // [Unita] la misura AB, in basso
-    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="La dima con la base A–B e, per ogni altro angolo, il piede lungo la base e l'altezza">${s}</svg>`;
+    return { forzate, svg: `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="La dima con la base A–B e, per ogni altro angolo, ${tabella ? "la sua lettera: le misure sono nella tabella dei punti" : "il piede lungo la base e l'altezza"}">${s}</svg>` };
+  }
+  function dima(C, colore, stampa) {   // [Unita] il disegno, la frase che lo spiega e, se serve, la tabella dei punti
+    let d = C.length <= 8 ? dimaDisegno(C, colore, stampa, false) : null;
+    if (d && d.forzate) d = dimaDisegno(C, colore, stampa, false, true);   // prima di passare alla tabella: un foglio più grande, con più spazio per le scritte
+    const tabella = !d || d.forzate > 0;
+    if (tabella) d = dimaDisegno(C, colore, stampa, true);
+    const punti = !tabella ? "" : `<table class="punti"><tr><th>Punto</th><th>Lungo A–B, da A</th><th>Su, a 90°</th></tr>${C.slice(2).map((c, j) => `<tr><td>${lettera(j + 2)}</td><td class="num">${misDima(c[0])}</td><td class="num">${misDima(Math.abs(c[1]))}${c[1] < -1e-4 ? " (sotto la base)" : ""}</td></tr>`).join("")}</table>`;
+    const nota = tabella ? "Tanti angoli: le misure di ogni punto sono nella tabella qui sotto. Da A vai lungo A–B quanto dice «Lungo A–B» (meno = a sinistra di A), poi sali dritto, a 90°, quanto dice «Su»."
+      : "Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.";
+    return { svg: d.svg, punti, nota, tabella };
   }
   const dimeAperte = new Set();   // [Unita] le schede aperte restano aperte quando si ridisegnano
   function spunteDima(i, n) { const f = fatte(); return [f.dime.includes(i) ? "✓ tracciata" : "", f.tagli.includes(i) ? `✓ ${n} tagliate` : ""].filter(Boolean).join(" · "); }
@@ -2242,8 +2271,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const lati = C.map((p, j) => `<tr><td>${lettera(j)}–${lettera((j + 1) % n)}</td><td class="num">${misDima(len2(sub2(C[(j + 1) % n], p)))}</td></tr>`).join("");
     const pav = t.floors > 0 ? " · è il pavimento" : "", spec = t.mirrorCount ? ` (${t.mirrorCount} girate al rovescio)` : "";
     const f = fatte();
-    const corpo = `${dimaSVG(C, colore, perStampa)}
-      <p class="hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.${PR.unita === "modellino" ? ` Misure del modellino in scala 1:${scalaDi(S)}.` : ""}</p>
+    const d = dima(C, colore, perStampa);
+    const corpo = `${d.svg}
+      <p class="hint">${d.nota}${PR.unita === "modellino" ? ` Misure del modellino in scala 1:${scalaDi(S)}.` : ""}</p>${d.punti}
       <table><tr><th>Controllo: lato</th><th>Lunghezza</th></tr>${lati}</table>`;
     if (perStampa) return `<div class="dima lastra" style="--c:${colore}"><div class="dima-t"><i></i><h3>${nomeDima(i)}</h3><span class="hint">ne servono <b>${t.faces.length}</b>${spec}${pav}</span></div>${corpo}</div>`;
     return `<details class="dima lastra" data-t="${i}" style="--c:${colore}"${dimeAperte.has(i) ? " open" : ""}><summary class="dima-t">${sagomaSvg(C)}<h3>${nomeDima(i)}</h3><span class="hint">× <b>${t.faces.length}</b>${spec}${pav}</span><span class="spunte">${spunteDima(i, t.faces.length)}</span></summary>
@@ -2367,7 +2397,8 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       const n = an.types.length, i = cant.i = Math.max(0, Math.min(n - 1, cant.i)), t = an.types[i], C = t.C, fatta = f.dime.includes(i);
       $("siteKind").textContent = `Modalità cantiere · dime · ${PR.unita === "modellino" ? "modellino 1:" + scalaDi(S) : "bolla vera"}`;
       $("siteTit").textContent = `${nomeDima(i)} · ne servono ${t.faces.length}`;
-      $("siteCorpo").innerHTML = `${dimaSVG(C, T8[i % 8], false)}<p class="site-testo hint">Sotto la base: quanto andare lungo A–B partendo da A. In verde: quanto salire dritto, a 90°.</p>
+      const d = dima(C, T8[i % 8], false);
+      $("siteCorpo").innerHTML = `${d.svg}<p class="site-testo hint">${d.nota}</p>${d.punti}
         <table><tr><th>Lato</th><th>Lunghezza</th></tr>${C.map((p, j) => `<tr><td>${lettera(j)}–${lettera((j + 1) % C.length)}</td><td class="num">${misDima(len2(sub2(C[(j + 1) % C.length], p)))}</td></tr>`).join("")}</table>`;
       $("siteFatto").textContent = fatta ? "Tracciata ✓" : "Fatta: tracciata";
       $("siteProg").textContent = `Dima ${i + 1} di ${n} · ${plural(f.dime.length, "tracciata", "tracciate")}`;
@@ -2449,6 +2480,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     const tra = (v, a, b, d) => Number.isFinite(+v) && +v >= a && +v <= b ? Math.round(+v) : d;
     P.mat.mat = ["PVC", "PE", "TPU"].includes(P.mat.mat) ? P.mat.mat : "PVC"; P.mat.gsm = tra(P.mat.gsm, 5, 800, 20); P.mat.adW = tra(P.mat.adW, 12, 100, 48); P.mat.adLati = +P.mat.adLati === 1 ? 1 : 2;
     P.unita = P.unita === "modellino" ? "modellino" : "bolla";
+    P.unioni = (Array.isArray(P.unioni) ? P.unioni : []).filter(u => Array.isArray(u) && u.length === 2 && u[0] !== u[1] && u.every(x => P.bolle.some(b => b.id === +x))).map(u => [+u[0], +u[1]]);   // [Unita] i corridoi tra le bolle
     return P;
   }
   function progettoFile() { return { v: "unita-1", app: "officina-delle-bolle", PR: JSON.parse(JSON.stringify(PR, function (k, v) { return k === "area" && this !== PR ? undefined : v; })), scenario: fileScenario ? "" : scenario }; }

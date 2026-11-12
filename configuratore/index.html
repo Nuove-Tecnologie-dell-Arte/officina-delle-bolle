@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Abbofficina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><!-- [Officina] gli stessi caratteri dell'Officina delle Bolle -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap">
 <style>
   :root {
     --bg: #e7eaed; --pan: #f8f9fa; --card: #ffffff; --fg: #161b21; --mut: #5d6772; --line: #d3d9df;
@@ -621,13 +621,20 @@
   details.aspetto > summary { display: flex; align-items: baseline; gap: 10px; cursor: pointer; list-style: none; }
   details.aspetto > summary::-webkit-details-marker { display: none; }
   details.aspetto > summary h2::before { content: '▸ '; } details.aspetto[open] > summary h2::before { content: '▾ '; }
-  /* [Officina] VETRINA (?vetrina): dentro il sito dell'Officina si vede solo la scena, senza pannelli né comandi */
-  html.vetrina body > header, html.vetrina aside, html.vetrina #manico, html.vetrina .linguetta,
-  html.vetrina #suggScena, html.vetrina #pannelloS, html.vetrina #povInfo, html.vetrina #pannelloSt,
-  html.vetrina .sinistra .storia, html.vetrina #bStanza, html.vetrina #bNotte, html.vetrina #guida, html.vetrina #cerca, html.vetrina dialog, html.vetrina .lampo, html.vetrina .menuProve, html.vetrina .menuComp { display: none !important; }
-  html.vetrina main, html.vetrina #vCostruisci { position: fixed; inset: 0; display: block; }
-  html.vetrina #scena { position: absolute; inset: 0; height: auto; }
+  /* [Officina] VETRINA (?vetrina): dentro il sito dell'Officina. A metà schermo solo la scena; con ↗ del sito (html.grande) la stessa scena
+     a tutto schermo, con la testata (Scena · Aria · Dati, Simulazione), la scheda della bolla a destra e la stanza da foto o GLB.
+     Bolle, forme e misure si fanno solo nel sito: qui niente «Aggiungi», niente «+», niente composizioni, niente Materiali (la lista è nel sito). */
+  html.vetrina aside.sx, html.vetrina #manico, html.vetrina .linguetta.sx, html.vetrina #suggScena, html.vetrina .sinistra .storia, html.vetrina #bNotte,
+  html.vetrina #guida, html.vetrina #cerca, html.vetrina dialog, html.vetrina .lampo, html.vetrina .menuComp, html.vetrina #chipBudget, html.vetrina header .app,
+  html.vetrina header .comp, html.vetrina #bFoto, html.vetrina #tabB, html.vetrina #vMateriali, html.vetrina #bGuida, html.vetrina #bCerca, html.vetrina .menuMenu,
+  html.vetrina #stPronte, html.vetrina .ripetuto { display: none !important; }
+  html.vetrina:not(.grande) body > header, html.vetrina:not(.grande) aside, html.vetrina:not(.grande) .linguetta, html.vetrina:not(.grande) #pannelloS,
+  html.vetrina:not(.grande) #povInfo, html.vetrina:not(.grande) #pannelloSt, html.vetrina:not(.grande) #bStanza, html.vetrina:not(.grande) .menuProve { display: none !important; }
+  html.vetrina:not(.grande) main, html.vetrina:not(.grande) #vCostruisci { position: fixed; inset: 0; display: block; }
+  html.vetrina:not(.grande) #scena { position: absolute; inset: 0; height: auto; }
   html.vetrina #sovra > :not(.eti):not(.etiArea):not(.ruota):not(.etiG), html.vetrina .eti .lnk { display: none !important; }
+  .tornaSito { display: none; } html.vetrina.grande .tornaSito { display: inline-flex; }
+  @media (min-width: 981px) { html.vetrina.grande #vCostruisci { grid-template-columns: minmax(0, 1fr) 300px; } html.vetrina.grande #vCostruisci > #scena { grid-column: 1; } html.vetrina.grande #vCostruisci > aside.dx { grid-column: 2; } }
   /* [Officina] prova unita, blocco J: in vetrina come nel riquadro della prova semplice: Costruisci | Prova, stato, materiali, pressione, Griglia, Oggetti 3D, gonfiatori.
      Restano spenti Annulla/Ripeti (le forme si cambiano nel sito) e Stanza (lo scenario si sceglie sotto il simulatore). */
   .ruota { position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; gap: 4px; }
@@ -637,6 +644,39 @@
   .etiArea.ko { background: rgba(255,93,112,.92); border-color: #b8434f; color: #fff; }
   body.spostaArea, body.spostaArea * { cursor: move !important; }
   html.vetrina #avviso { bottom: 14px; }   /* [Officina] in vetrina gli avvisi restano: dicono perché una stanza non arriva o una bolla è rossa */   /* [Officina] in vetrina sopra le bolle restano solo i nomi: un tocco sceglie la bolla */
+  /* [Officina] i colori del sito dentro il sito: carta grigia, rosso, Bebas Neue per i titoli e i pulsanti, Barlow per il testo */
+  html.vetrina {
+    --bg: #e7e5e1; --pan: #efeeeb; --card: #f7f6f3; --fg: #151515; --mut: #5b5853; --line: rgba(20,20,20,.15);
+    --acc: #e3101e; --ok: #2f6f4a; --mid: #b9771b; --ko: #b3261e; --gr: #a29f99;
+    --acc-soft: rgba(227,16,30,.10); --on-acc: #ffffff; --vetro: rgba(239,238,235,.93); --sez: #e4e2de;
+    --ombra: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.08);
+    --display: "Bebas Neue", "Oswald", "Arial Narrow", Impact, sans-serif; --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+    --s3d-a: #bdbab4; --s3d-b: #d6d4cf; --s3d-c: #e9e8e4; --pav3d: #d8d6d1;
+  }
+  html.vetrina body { font-family: var(--body); background: var(--bg); }
+  html.vetrina button.pri, html.vetrina .seg button[aria-pressed="true"] { background: var(--acc); border-color: var(--acc); color: #fff; }
+  html.vetrina header { background: var(--pan); }
+  html.vetrina header .tabs button, html.vetrina #bProve, html.vetrina .tornaSito, html.vetrina .modoScena button, html.vetrina #bGiro,
+  html.vetrina .titoloPezzo, html.vetrina .titoloSx, html.vetrina .cartaUnisci b { font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
+  html.vetrina header .tabs button, html.vetrina #bProve, html.vetrina .tornaSito { font-size: 19px; padding: 6px 14px 4px; }
+  html.vetrina header .tabs button[aria-pressed="true"] { background: var(--acc); border-color: var(--acc); color: #fff; }
+  html.vetrina .modoScena button, html.vetrina #bGiro { font-size: 17px; }
+  html.vetrina .titoloPezzo { font-size: 24px; } html.vetrina .titoloSx { font-size: 22px; }
+  html.vetrina h2.tSez { font: 400 26px/1 var(--display); letter-spacing: .03em; color: var(--acc); text-transform: none; }
+  html.vetrina .card > h2, html.vetrina .sez > h2, html.vetrina .avanzate summary h2, html.vetrina .dettagliBolle summary h2 { font: 400 17px/1.1 var(--display); letter-spacing: .05em; color: var(--fg); text-transform: none; }
+  html.vetrina .card b.n { font: 400 34px/1 var(--display); letter-spacing: .02em; }
+  html.vetrina .card, html.vetrina .consiglio, html.vetrina .gruppo, html.vetrina .barraScena, html.vetrina .chip, html.vetrina button { border-radius: 3px; }
+  html.vetrina .tornaSito { background: var(--fg); color: #fff; border-color: var(--fg); }
+  /* [Officina] la schedina per unire due bolle con un corridoio */
+  .cartaUnisci { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); z-index: 9; width: min(390px, calc(100% - 24px)); display: grid; gap: 8px;
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--acc); border-radius: 4px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.2); font: 14px/1.4 var(--body); }
+  .cartaUnisci[hidden] { display: none; }
+  .cartaUnisci b { font-size: 22px; line-height: 1.05; color: var(--acc); }
+  .cartaUnisci .bottoni { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* [Officina] Dati: la costruzione in numeri (erano in Materiali) e l'impatto ambientale */
+  .numeriCostr > .card { display: grid; gap: 6px; align-content: start; }
+  .numeriCostr .card b.n { font-size: 30px; }
+  .numeriCostr .nota2 { font-size: 11.5px; color: var(--mut); }
 </style>
 </head>
 <body>
@@ -690,6 +730,7 @@
   </div>
   <button id="bCerca" class="cercaBtn" aria-haspopup="dialog" title="Cerca un'opzione scrivendo con la tastiera"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg><span class="etH">Cerca</span><kbd id="cercaTasto">⌘K</kbd></button><!-- [Officina] barra di ricerca -->
   <button id="bGuida" aria-expanded="false" title="Come si usa">Guida</button>
+  <button id="bTornaSito" class="tornaSito" title="Torna al sito (Esc)">↙ Torna al sito</button><!-- [Officina] solo a tutto schermo dentro il sito -->
 </header>
 <dialog id="dlgFoto" class="dlgFoto" aria-labelledby="ffTit">
   <form method="dialog" class="ffForm">
@@ -888,10 +929,10 @@
 
   <section class="vista pagina" id="vDati" hidden>
     <div class="dash"><!-- [Officina] in alto il materiale del lab; i numeri in "Avanzate" e gli schemi, chiusi -->
-      <h2 class="tSez">Il materiale del lab <span>quello con cui si costruisce: si sceglie qui. Tutti i numeri sono in Avanzate, più sotto</span></h2>
+      <h2 class="tSez ripetuto">Il materiale del lab <span>quello con cui si costruisce: si sceglie qui. Tutti i numeri sono in Avanzate, più sotto</span></h2>
       <div class="griglia-dati lab">
-        <div class="card"><h2>Telo</h2><div class="riga">Materiale <select id="selMat"></select></div><p class="std" id="riassTelo" style="margin:0"></p></div>
-        <div class="card"><h2>Chiusure</h2>
+        <div class="card ripetuto"><h2>Telo</h2><div class="riga">Materiale <select id="selMat"></select></div><p class="std" id="riassTelo" style="margin:0"></p></div>
+        <div class="card ripetuto"><h2>Chiusure</h2>
           <div class="riga">Porte <select id="selPorte"></select></div>
           <p class="std" id="notaPorte" style="margin:0"></p>
           <div class="riga">Cornice dei collegamenti <select id="selColl"></select></div>
@@ -899,6 +940,13 @@
           <p class="std" id="riassNastro" style="margin:0"></p>
         </div>
         <div class="card"><h2>Gonfiatori del lab</h2><div id="riassGonf" class="riassGonf"></div><p class="std" style="margin:0">Portata e pressione sono stimate dalla targa: si correggono in Avanzate.</p></div>
+      </div>
+      <h2 class="tSez">La costruzione in numeri <span>peso, energia, plastica e impatto ambientale di tutte le bolle · la lista con i prezzi è nei Materiali del sito</span></h2><!-- [Officina] erano nella scheda Materiali -->
+      <div class="griglia-dati numeriCostr">
+        <div class="card"><h2>Peso da trasportare</h2><b class="n" id="dPeso">0</b><p class="std" id="dPesoNota" style="margin:0"></p></div>
+        <div class="card"><h2>Energia per la mostra</h2><b class="n" id="dEnergia">0</b><p class="std" id="dEnergiaNota" style="margin:0"></p></div>
+        <div class="card"><h2>Impatto ambientale</h2><b class="n" id="dCO2">0</b><p class="std" id="dCO2Nota" style="margin:0"></p><p class="nota2" id="dCO2Fonte" style="margin:0"></p></div>
+        <div class="card largo" style="overflow-x:auto"><h2>Per bolla</h2><table class="tabbom"><thead><tr><th>Bolla</th><th class="dx">Telo</th><th class="dx">Nastro</th><th class="dx">Gonfiatori</th><th class="dx">Plastica</th><th class="dx">CO₂</th></tr></thead><tbody id="dModuli"></tbody></table></div>
       </div>
       <details class="card avanzate" id="avanzate"><summary><h2>Avanzate</h2><span class="std">tutti i numeri della simulazione: gonfiatori, telo, nastro, chiusure, maniche</span></summary>
         <div class="avanzateCorpo">
@@ -1595,7 +1643,7 @@ function collega() {
       if (lungo < 0.2 || lungo > D.manMax + 3 || lat > 0.2) continue;
       if (staccati.some(m => stessaCoppia(m, A, ea, B, eb))) continue;   // staccato a mano: resta separato
       if (manicaDentro(ca.P, cb.P, 0.9, A, B)) continue;   // [Officina] la manica passerebbe dentro un'altra bolla
-      if (VETRINA) continue;   // [Officina] in vetrina le bolle restano separate, ognuna con il suo ingresso
+      if (VETRINA && !(VETRINA_AZ.unite && VETRINA_AZ.unite(A, B))) continue;   // [Officina] in vetrina le bolle restano separate, ognuna con il suo ingresso, se non sono unite da un corridoio
       cand.push({ A, B, ea, eb, ca, cb, d: lungo + lat });
     }
   }
@@ -1608,7 +1656,7 @@ function collega() {
     link.push({ a: c.A, b: c.B, ea: c.ea, eb: c.eb, Pa: c.ca.P, Pb: c.cb.P, n: c.ca.n, nb: c.cb.n, len, chiave, porta: vecchie.get(chiave) || nuovaPorta(D.porte) });
   }
   for (const l of link) l.aperta = true;   // moduli uniti: la porta tra loro resta sempre aperta
-  if (!caricando && prima.size) {   // [Officina] girando o spostando una bolla un collegamento si può perdere: si dice
+  if (!caricando && prima.size && !VETRINA) {   // [Officina] in vetrina lo dice la vetrina stessa   // [Officina] girando o spostando una bolla un collegamento si può perdere: si dice
     const ora = new Set(link.map(l => coppia(l.a, l.b))), persi = [...prima].filter(([k, [a, b]]) => !ora.has(k) && pezzi.includes(a) && pezzi.includes(b) && !staccati.some(m => (m.a === a && m.b === b) || (m.a === b && m.b === a)));
     if (persi.length) { const [a, b] = persi[0][1]; setTimeout(() => avviso(`${a.nome} e ${b.nome} non sono più collegate: le loro porte non si guardano più. Giratene una o collegatele a mano (Collega).`, 6000), 0); }
   }
@@ -3426,7 +3474,41 @@ function strutturaCambiata() {
   salvaPresto(); bottoneScoppio(); avvisoStanza();   // [Officina] avvisoStanza
 }
 let tabIsp = 'stato', ispAspetto = false;   // [Officina] Aspetto aperto o chiuso, tra un pezzo e l'altro
+// [Officina] a tutto schermo dentro il sito: la scheda della bolla senza misure, forme né «Elimina» (si fanno nel sito);
+// restano com'è adesso, gonfiatori, corridoi e le prove
+function ispettoreVetrina() {
+  const el = $('ispettore'), p = selezionato && pezzi.includes(selezionato) ? selezionato : null;
+  try { disegnaGonfiatori(); } catch (e) {}
+  $('vCostruisci').classList.add('conSel');
+  if (!p) {
+    el.innerHTML = `<h2 class="titoloSx">Bolla</h2><div class="vuotoIsp"><p><b>Nessuna bolla scelta.</b> Tocca una bolla nella scena, oppure sceglila qui:</p>
+      <div class="listaPezzi">${pezzi.map(q => `<button data-id="${q.id}"><span class="dot ${q.scoppio ? 'ko' : valuta(q).c}"></span><span>${esc(q.nome)}</span><small>${q.ingresso ? 'ingresso' : ''}</small></button>`).join('')}</div>
+      <p class="vuoto" style="margin:0">Le bolle e le loro misure si fanno nel sito. Qui: l'aria, i gonfiatori e i corridoi. Per unire due bolle avvicinane una all'altra.</p></div>`;
+    el.querySelectorAll('[data-id]').forEach(b => b.onclick = () => { const q = pezzi.find(x => x.id === +b.dataset.id); if (q && VETRINA_AZ.scelta) VETRINA_AZ.scelta(q); });
+    return;
+  }
+  const v = valuta(p), miei = link.filter(l => l.a && (l.a === p || l.b === p));
+  el.innerHTML = `<div class="ispTesta">
+      <p class="sistemaRiga">${miei.length ? 'Unita a ' + miei.map(l => esc((l.a === p ? l.b : l.a).nome)).join(', ') : 'Da sola'}${!p.porte.length ? ' · intera, senza porte' : p.ingresso ? ' · è l\'ingresso' : ''}</p>
+      <div class="titoloPezzo"><span class="dot ${p.scoppio ? 'ko' : v.c}"></span><span>${esc(p.nome)}</span></div>
+      ${p.scoppio ? `<div class="consiglio ko">Scoppiata · strappo di ${fmt(p.scoppio.Amax, 1)} m², i gonfiatori non bastano</div>` : `<div class="consiglio ${v.c}">${v.c === 'ok' ? 'Funziona' : v.azione ? `<span>${v.c === 'ko' ? 'Non funziona' : 'Da migliorare'}</span><button class="fix" id="iFix">${testoFix(v.azione)}</button>` : v.cons}</div>`}
+    </div>
+    <div class="scheda">
+      <section class="sez adesso ${p.scoppio ? 'ko' : v.c}"><h2>Com'è adesso</h2><p class="frase">${esc(frasiStato(p))}</p>
+        <p class="std" style="margin:0">Pressione adesso <b id="iP">0</b> Pa · <button type="button" class="link" id="iAria">Tutti i numeri in Aria ›</button></p></section>
+      <section class="sez"><h2>Gonfiatori</h2><div class="par" id="iGonf"></div></section>
+      <section class="sez"><h2>Corridoi</h2>${miei.length ? miei.map((l, i) => `<div class="orienta"><span>↔ ${esc((l.a === p ? l.b : l.a).nome)} · corridoio di ${fmt(l.len || 0, 1)} m</span><span class="bottoni"><button data-sep="${i}">Separa</button></span></div>`).join('') : '<p class="vuoto" style="margin:0">Non è unita a nessuna bolla.</p>'}
+        <p class="std" style="margin:0">Per unirla a un'altra bolla trascinala vicino a una porta di quella: il sito ti chiede se vuoi un corridoio.</p></section>
+      <section class="sez"><h2>Prove</h2><div class="bottoni"><button id="iScoppia" ${p.scoppio ? '' : 'class="del"'}>${p.scoppio ? 'Ripara lo strappo' : 'Fai scoppiare'}</button></div></section>
+    </div>`;
+  if ($('iFix')) $('iFix').onclick = () => applicaFix(p, v.azione);
+  $('iAria').onclick = () => mostra('p');
+  contaGonf($('iGonf'), p.f, () => strutturaCambiata());
+  $('iScoppia').onclick = () => p.scoppio ? ripara(p) : scoppia(p);
+  el.querySelectorAll('[data-sep]').forEach(b => b.onclick = () => { const l = miei[+b.dataset.sep]; if (l && VETRINA_AZ.separa) VETRINA_AZ.separa(l.a, l.b); });
+}
 function ispettore(nuovo) {
+  if (VETRINA) return ispettoreVetrina();   // [Officina]
   const el = $('ispettore'), p = selezionato;
   try { disegnaGonfiatori(); } catch (e) {}
   $('vCostruisci').classList.toggle('conSel', !!(p && pezzi.includes(p)));   // [Officina] un pannello solo: Aggiungi o Modifica
@@ -3706,7 +3788,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
     if (e.button !== 0 || pov) return;
     puntaMouse(e); const ogg = []; radice3 && radice3.traverse(o => { if (o.isMesh && o.userData.pezzo) ogg.push(o); });
     const hit = ray.intersectObjects(ogg, false)[0]; if (!hit) { presa = null; if (VETRINA_AZ.areaGiu) VETRINA_AZ.areaGiu(e); return; }   // fuori dalle bolle: il bordo dell'area di lavoro si trascina
-    const p = hit.object.userData.pezzo, v = suPiano(e); presa = { p, dx: v ? p.x - v.x : 0, dz: v ? p.z - v.z : 0, x0: e.clientX, y0: e.clientY, mosso: false }; ctrl.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); return;
+    const p = hit.object.userData.pezzo, v = suPiano(e); presa = { p, dx: v ? p.x - v.x : 0, dz: v ? p.z - v.z : 0, x0: e.clientX, y0: e.clientY, mosso: false, px: p.x, pz: p.z, gruppo: ((sistemi[p.sistema] || []).filter(q => q !== p)).map(q => ({ q, x: q.x, z: q.z })) }; ctrl.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); return;   // [Officina] gruppo: le bolle unite a lei la seguono
   }
   if (window.oggetti && window.oggetti.occupato()) return;   // sto usando la maniglia di un oggetto
   if (toccaOggetto(e)) return;   // [Officina] toccato un oggetto 3D: si sceglie quello
@@ -3725,14 +3807,15 @@ renderer.domElement.addEventListener('pointermove', e => {
     Object.assign(d.style, { left: Math.min(rett.x0, rett.x1) + 'px', top: Math.min(rett.y0, rett.y1) + 'px', width: Math.abs(rett.x1 - rett.x0) + 'px', height: Math.abs(rett.y1 - rett.y0) + 'px' }); return; }
   if (!presa || !presa.p) return;
   if (!presa.mosso && Math.hypot(e.clientX - presa.x0, e.clientY - presa.y0) < 5) return;
-  if (!presa.mosso) { presa.mosso = true; if (inGiro()) fermaTutti(); for (const l of link) if (l.a === presa.p || l.b === presa.p) l.grp.visible = false; }
+  if (!presa.mosso) { presa.mosso = true; if (inGiro()) fermaTutti(); const g = new Set([presa.p, ...(presa.gruppo || []).map(x => x.q)]); for (const l of link) if (g.has(l.a) || g.has(l.b)) l.grp.visible = false; }
   const v = suPiano(e); if (!v) return;
   // [Officina] con la stanza di sfondo la bolla non entra nelle pareti (se ci sta già dentro, si può spostare per tirarla fuori)
   let nx = v.x + presa.dx, nz = v.z + presa.dz; const S = pareteStanza();
   if (VETRINA_AZ.vincola) { const r = VETRINA_AZ.vincola(presa, nx, nz); if (!r) return; nx = r[0]; nz = r[1]; }   // [Officina] in vetrina: dentro l'area di lavoro (o la stanza) la bolla resta
   else if (S && !nelMuro(scafo(presa.p), S) && nelMuro(scafo({ ...presa.p, x: nx, z: nz }), S)) return;
   presa.p.x = nx; presa.p.z = nz; presa.p.g3.grp.position.set(presa.p.x, 0, presa.p.z);
-  { const sc = scafo(presa.p), q = pezzi.find(o => o !== presa.p && o.scafo && siToccano(o.scafo, sc));   // [Officina] compenetrazione: si vede subito, in rosso, con un avviso
+  if (presa.gruppo) for (const g of presa.gruppo) { g.q.x = g.x + presa.p.x - presa.px; g.q.z = g.z + presa.p.z - presa.pz; g.q.g3 && g.q.g3.grp.position.set(g.q.x, 0, g.q.z); }   // [Officina] in vetrina
+  { const sc = scafo(presa.p), q = pezzi.find(o => o !== presa.p && !(presa.gruppo || []).some(g => g.q === o) && o.scafo && siToccano(o.scafo, sc));   // [Officina] le bolle unite si spostano insieme: tra loro non si toccano   // [Officina] compenetrazione: si vede subito, in rosso, con un avviso
     segnaRosso(presa.p, !!q);
     if (q && presa.dentro !== q) avviso(`Compenetrazione: ${presa.p.nome} entra in ${q.nome}. Spostala più in là.`, 4000);
     else if (!q && presa.dentro) avviso('', 0);
@@ -4427,11 +4510,39 @@ function distinta() {
   return { righe, per, nG, W, kWh, teloLordo, kgTelo, nastro: (righe.find(r => r.id === 'nastro-adesivo') || { q: 0 }).q };
 }
 const prezzoDi = r => prezzi[r.id] != null && prezzi[r.id] !== '' ? +prezzi[r.id] : r.prezzoStd != null ? r.prezzoStd : null;
+// [Officina] impatto ambientale della plastica: kg di CO₂ equivalente per ogni kg di plastica prodotta (dalla materia prima al telo
+// o al nastro finito), valori medi di letteratura; l'energia dei gonfiatori a parte, con il mix elettrico italiano
+const CO2_KG = { PVC: 2.4, PE: 2.1, TPU: 4.5, nastro: 3.0, chiusure: 5.0 }, CO2_KWH = 0.26, CO2_KM = 0.15;
+const FINE_VITA = { PVC: 'Il PVC si ricicla poco: tenete il telo per altre bolle, o portatelo a chi ricicla il PVC.', PE: 'Il polietilene (simbolo 4, LDPE) si ricicla: a fine mostra non va nell\'indifferenziato.', TPU: 'Il TPU si ricicla con fatica: riusatelo il più possibile.' };
+function impatto(B) {
+  const kg = pre => B.righe.filter(r => r.id === pre || r.id.startsWith(pre + '-')).reduce((t, r) => t + (r.kg || 0), 0);
+  const telo = B.kgTelo, nastro = kg('nastro-adesivo') + kg('nastro'), chius = kg('cerniera') + kg('cursori') + kg('velcro');
+  const co2 = telo * (CO2_KG[D.mat] || 2.4) + nastro * CO2_KG.nastro + chius * CO2_KG.chiusure;
+  return { plastica: telo + nastro + chius, telo, nastro, chius, co2, co2En: B.kWh * CO2_KWH };
+}
+function numeriDati(B) {
+  if (!$('dPeso')) return;
+  const peso = B.righe.reduce((t, r) => t + (r.kg || 0), 0), I = impatto(B), m = MAT[D.mat] || { nome: D.mat };
+  $('dPeso').textContent = fmt(peso, 1) + ' kg';
+  $('dPesoNota').textContent = `telo ${fmt(I.telo, 1)} kg · nastro e chiusure ${fmt(I.nastro + I.chius, 1)} kg · gonfiatori ${fmt(Math.max(0, peso - I.plastica), 1)} kg`;
+  $('dEnergia').textContent = fmt(B.kWh, 0) + ' kWh';
+  $('dEnergiaNota').textContent = `${fmt(B.W, 0)} W di gonfiatori accesi ${BOM.ore} h al giorno per ${BOM.giorni} giorni · circa ${fmt(I.co2En, 0)} kg di CO₂`;
+  $('dCO2').textContent = fmt(I.co2, I.co2 < 10 ? 1 : 0) + ' kg di CO₂';
+  $('dCO2Nota').innerHTML = `per produrre <b>${fmt(I.plastica, 1)} kg di plastica</b>: ${m.nome} ${fmt(I.telo, 1)} kg, nastro ${fmt(I.nastro, 1)} kg${I.chius ? `, zip e velcro ${fmt(I.chius, 1)} kg` : ''}. È come fare circa <b>${fmt(I.co2 / CO2_KM, 0)} km</b> in auto. ${FINE_VITA[D.mat] || ''}`;
+  $('dCO2Fonte').textContent = `Stima con valori medi per produrre la plastica: ${fmt(CO2_KG[D.mat] || 2.4, 1)} kg di CO₂ per kg di ${m.nome}, ${fmt(CO2_KG.nastro, 1)} per il nastro, ${fmt(CO2_KG.chiusure, 1)} per zip e velcro; ${fmt(CO2_KWH, 2)} kg per kWh. Trasporto e smaltimento esclusi.`;
+  const ades = D.giunti === 'adesivo';
+  $('dModuli').innerHTML = pezzi.map(p => {
+    const c = B.per.get(p); if (!c) return '';
+    const telo = c.telo * (1 + BOM.sfrido / 100), nas = ades ? c.giunti / 2 * D.adLati * (1 + BOM.scorta / 100) : 0, kgT = telo / BOM.resa, kgN = nas * D.adW * 0.06 / 1000;
+    return `<tr><td><span class="dot ${valuta(p).c}" style="display:inline-block;width:9px;height:9px;margin-right:7px"></span>${esc(p.nome)}</td><td class="num dx">${fmt(telo, 1)} m²</td><td class="num dx">${ades ? fmt(nas, 0) + ' m' : '—'}</td><td class="num dx">${p.f.piccolo + p.f.grande}</td><td class="num dx">${fmt(kgT + kgN, 1)} kg</td><td class="num dx">${fmt(kgT * (CO2_KG[D.mat] || 2.4) + kgN * CO2_KG.nastro, 1)} kg</td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="dove">Nessuna bolla</td></tr>';
+}
 function aggiornaMateriali(forza) {
   const B = distinta(), vis = !$('vMateriali').hidden;
   let tot = 0, mancano = 0;
   for (const r of B.righe) { const pr = prezzoDi(r); r.tot = pr == null ? null : pr * r.q; if (r.tot == null) mancano++; else tot += r.tot; }
   $('chipBudget').textContent = tot > 0 && Object.values(prezzi).some(v => v !== '' && v != null) ? 'Budget ' + euro(tot) : 'Materiali · ' + fmt(B.teloLordo, 0) + ' m² di telo';
+  try { numeriDati(B); } catch (e) { console.error(e); }   // [Officina] i numeri in Dati
   if (!vis) return;
   $('bTot').textContent = euro(tot); $('bMancano').textContent = mancano ? mancano + (mancano > 1 ? ' voci senza prezzo' : ' voce senza prezzo') : 'tutte le voci hanno un prezzo';
   $('bTelo').textContent = fmt(B.kgTelo, 0) + ' kg'; $('bTeloM2').textContent = 'telo · ' + fmt(B.teloLordo, 0) + ' m²';
@@ -5715,7 +5826,11 @@ if (INCORPORATA) {
 // sceglie quella da modificare ('vetrina-scegli'). L'area di lavoro è un parallelepipedo tratteggiato (rosso se le bolle non ci stanno).
 // Quando cambia la forma di una bolla (non le misure) quella si rigonfia da zero. Con { tipo: 'vetrina-scenario', id | file } cambia la stanza di sfondo.
 if (VETRINA) {
-  addEventListener('keydown', e => e.stopImmediatePropagation(), true);   // nessuna scorciatoia: qui non si modifica niente
+  const grande = () => document.documentElement.classList.contains('grande');   // [Officina] a tutto schermo (↗ nel sito)
+  addEventListener('keydown', e => {   // nessuna scorciatoia: qui non si modifica niente; a tutto schermo Esc chiude quello che è aperto, poi torna al sito
+    if (e.key === 'Escape' && grande()) { e.preventDefault();
+      if (pov) esciPov(); else if (!$('menuProve').hidden) $('menuProve').hidden = true; else if (!carta.hidden) chiudiCarta(); else manda({ tipo: 'vetrina-esci' }); }
+    e.stopImmediatePropagation(); }, true);
   let tV = 0, attiva = null, chiaveG = '', ultime = new Map(), ultimeQ = new Map(), M_ultimo = null;
   const manda = m => { try { parent.postMessage(m, '*'); } catch (e) {} };
   const posizioni = () => manda({ tipo: 'vetrina-posizioni', pos: pezzi.map(p => ({ id: p.idOff, x: +p.x.toFixed(3), z: +p.z.toFixed(3), ang: +(p.ang || 0).toFixed(4), area: p.areaOff == null ? null : p.areaOff })) });
@@ -5871,7 +5986,7 @@ if (VETRINA) {
       if (qui) { x = qui[0]; z = qui[1]; }
       else if (!sta(x, z)) { avviso('Girata così non entra nello spazio di lavoro: rimpiccioliscila o allarga l\'area.', 4500); return; }
     }
-    p.ang = a1; p.x = x; p.z = z; strutturaCambiata(); mettiAree(M_ultimo); posizioni();
+    p.ang = a1; p.x = x; p.z = z; strutturaCambiata(); potaUnioni(); mettiAree(M_ultimo); posizioni();   // [Officina] girandola, un corridoio si può rompere
   });
 
   // ogni fotogramma: le etichette delle aree sull'angolo più vicino, i bottoni per girare sotto il nome della bolla scelta, e lo scenario
@@ -5895,14 +6010,96 @@ if (VETRINA) {
     }
   })();
 
+  // ---------- [Officina] i corridoi tra le bolle ----------
+  // Due bolle si uniscono con un corridoio (una manica di telo tra due porte) solo se si dice di sì nella schedina che compare
+  // quando se ne trascina una vicino a una porta dell'altra. Le coppie unite (id del sito) tornano al sito con 'vetrina-unioni'
+  // e il sito le rimanda in 'bolle-officina'. Spostando una bolla unita la seguono le altre; girandola o separandola il corridoio si toglie.
+  let unioni = [];
+  const perId = id => pezzi.find(p => p.idOff === id) || null;
+  const unite = (A, B) => unioni.some(([a, b]) => (a === A.idOff && b === B.idOff) || (a === B.idOff && b === A.idOff));
+  VETRINA_AZ.unite = unite; VETRINA_AZ.unioni = () => unioni.map(u => u.slice());
+  const collegate = (A, B) => link.some(l => l.a && ((l.a === A && l.b === B) || (l.a === B && l.b === A)));
+  const mandaUnioni = () => manda({ tipo: 'vetrina-unioni', unioni: unioni.map(u => u.slice()) });
+  const occupate = q => new Set(link.filter(l => l.a && (l.a === q || l.b === q)).map(l => l.a === q ? l.ea : l.eb));   // le porte già unite (l'ingresso no)
+  function vicinoPerUnire(P, O, max) {   // come aggancia, ma solo verso O: dove andrebbe P per unirsi a O con una manica
+    let meglio = null; const oo = occupate(O), op = occupate(P);
+    for (const eo of O.porte) { if (oo.has(eo)) continue;
+      for (const ep of P.porte) { if (op.has(ep)) continue;
+        const co = connMondo(O, eo), cp = connMondo(P, ep);
+        if (co.n[0] * cp.n[0] + co.n[1] * cp.n[1] > -0.5) continue;   // le due porte devono guardarsi
+        const lungo = (cp.P[0] - co.P[0]) * co.n[0] + (cp.P[1] - co.P[1]) * co.n[1];
+        if (lungo < -0.3 || lungo > D.manMax + 2.5) continue;
+        const lun = clamp(lungo - sporgenza(O.F, eo, P.F.Rc) - sporgenza(P.F, ep, O.F.Rc), D.manL * 0.5, D.manMax);
+        const st = piazzaCon(P, O, eo, ep, lun), d = Math.hypot(st.x - P.x, st.z - P.z);
+        if (d > max || (meglio && d >= meglio.d)) continue;
+        const sc = scafo({ ...P, ...st });
+        if (pezzi.some(q => q !== P && siToccano(q.scafo || scafo(q), sc)) || !ammesso(P, st.x, st.z, st.ang)) continue;
+        meglio = { s: st, d, lun };
+      } }
+    return meglio;
+  }
+  const carta = document.createElement('div'); carta.className = 'cartaUnisci'; carta.hidden = true; carta.setAttribute('role', 'dialog'); carta.setAttribute('aria-label', 'Unire due bolle');
+  $('scena').appendChild(carta);
+  carta.addEventListener('pointerdown', e => e.stopPropagation());
+  let proposta = null, rifiutata = '';
+  function chiudiCarta() { carta.hidden = true; proposta = null; }
+  VETRINA_AZ.vicino = vicinoPerUnire; VETRINA_AZ.proponi = p => proponiUnione(p);   // per le prove
+  function proponiUnione(p) {
+    chiudiCarta(); if (!p || !p.porte.length) return;
+    const sola = q => !link.some(l => l.a && (l.a === q || l.b === q));
+    let meglio = null;
+    for (const q of pezzi) {
+      if (q === p || !q.porte.length || unite(p, q) || p.sistema === q.sistema) continue;
+      const [mob, fis] = sola(p) ? [p, q] : sola(q) ? [q, p] : [null, null]; if (!mob) continue;   // si sposta quella che è da sola
+      const r = vicinoPerUnire(mob, fis, 2.5); if (r && (!meglio || r.d < meglio.d)) meglio = { ...r, mob, fis };
+    }
+    if (!meglio || rifiutata === meglio.mob.idOff + '|' + meglio.fis.idOff) return;
+    proposta = meglio;
+    carta.innerHTML = `<b>Unire ${esc(meglio.mob.nome)} e ${esc(meglio.fis.nome)}?</b><span>Un corridoio di telo tra due porte, lungo circa ${fmt(meglio.lun, 1)} m: si passa da una bolla all'altra e l'aria è una sola.</span>
+      <div class="bottoni"><button type="button" class="pri" data-si>Unisci con un corridoio</button><button type="button" data-no>No, lasciale separate</button></div>`;
+    carta.hidden = false;
+  }
+  carta.addEventListener('click', e => {
+    const P = proposta; if (!P) return;
+    if (e.target.closest('[data-no]')) { rifiutata = P.mob.idOff + '|' + P.fis.idOff; chiudiCarta(); return; }
+    if (!e.target.closest('[data-si]')) return;
+    chiudiCarta(); rifiutata = '';
+    const { mob: m, fis: f } = P, prima = { x: m.x, z: m.z, ang: m.ang };
+    Object.assign(m, P.s); unioni.push([m.idOff, f.idOff]); strutturaCambiata();
+    if (!collegate(m, f)) { Object.assign(m, prima); unioni.pop(); strutturaCambiata(); avviso(`${m.nome} e ${f.nome} non si riescono a unire lì: avvicina due porte che si guardano.`, 5000); return; }
+    mandaUnioni(); mettiAree(M_ultimo); posizioni(); selezionato = bollaAttiva(); ispettore();
+    avviso(`${m.nome} e ${f.nome} sono unite da un corridoio: l'aria è una sola.`, 4000);
+  });
+  function potaUnioni() {   // le unioni rotte spostando o girando una bolla: via, e lo si dice
+    const perse = unioni.filter(([a, b]) => { const A = perId(a), B = perId(b); return A && B && !collegate(A, B); });
+    if (!perse.length) return;
+    unioni = unioni.filter(u => !perse.includes(u)); mandaUnioni();
+    avviso(`${perId(perse[0][0]).nome} e ${perId(perse[0][1]).nome} non sono più unite: riavvicinale per rimettere il corridoio.`, 5000);
+  }
+  VETRINA_AZ.separa = (A, B) => {
+    unioni = unioni.filter(([a, b]) => !((a === A.idOff && b === B.idOff) || (a === B.idOff && b === A.idOff))); mandaUnioni();
+    strutturaCambiata(); mettiAree(M_ultimo); posizioni(); avviso(`${A.nome} e ${B.nome} ora sono separate.`, 4000);
+  };
+  function riunisci() {   // dopo un cambio nel sito: una coppia unita che non si tocca più (la forma è cambiata) si riavvicina; se non si può, il corridoio si toglie
+    const tolte = []; let mosse = false;
+    for (const u of unioni.slice()) { const A = perId(u[0]), B = perId(u[1]); if (!A || !B || collegate(A, B)) continue;
+      const r = vicinoPerUnire(B, A, 8), r2 = r ? null : vicinoPerUnire(A, B, 8);
+      if (r) Object.assign(B, r.s); else if (r2) Object.assign(A, r2.s);
+      if (r || r2) { mosse = true; strutturaCambiata(); }
+      if (!collegate(A, B)) { tolte.push([A, B]); unioni = unioni.filter(x => x !== u); }
+    }
+    if (tolte.length) { mandaUnioni(); avviso(`${tolte[0][0].nome} e ${tolte[0][1].nome} non si possono più unire con un corridoio: le loro porte non si guardano più.`, 6000); }
+    if (mosse) posizioni();
+  }
+
   // tutte le bolle del progetto, ognuna al suo posto (pos), separate tra loro; quella che si sta modificando (att) è scelta.
   // Una bolla nuova, senza posto, va nel primo posto libero (di un'area, della stanza, o accanto alle altre) e il posto torna al sito.
-  function mostra(M) {
+  function mostraBolle(M) {
     const L = (M.bolle || []).filter(B => B && B.mesh);
     attiva = M.att;
     const chiave = JSON.stringify([L.map(B => [B.id, B.nome, B.forma, B.dim, B.pos && [B.pos.x, B.pos.z, B.pos.ang]]), (M.aree || []).map(A => [A.id, A.nome, A.x, A.y, A.z])]);   // il posto delle aree lo tiene la vetrina
-    if (chiave === chiaveG && pezzi.length) { selezionato = bollaAttiva(); return; }   // è cambiata solo la bolla scelta
-    chiaveG = chiave;
+    if (chiave === chiaveG && pezzi.length) { selezionato = bollaAttiva(); if (grande()) ispettore(); return; }   // è cambiata solo la bolla scelta
+    chiaveG = chiave; unioni = (M.unioni || []).map(u => u.slice());   // [Officina] i corridoi del progetto
     if (!L.length) { carica({ ...fotografa(), pezzi: [], manuali: [], staccati: [] }, { storia: true }); ultime.clear(); ultimeQ.clear(); mettiAree(M); return; }
     const dati = [], ids = [], conPosto = [];
     const fPrima = new Map(pezzi.filter(p => p.idOff != null).map(p => [p.idOff, { f: { ...p.f }, forma: (ultimeQ.get(p.idOff) || {}).forma }]));
@@ -5919,6 +6116,7 @@ if (VETRINA) {
     const nuoveIds = ids.join() !== [...ultime.keys()].join();
     carica({ ...fotografa(), pezzi: dati, manuali: [], staccati: [] }, { storia: true, sel: ids.indexOf(attiva) });
     pezzi.forEach((p, i) => { p.idOff = ids[i]; });
+    if (unioni.length) { strutturaCambiata(); riunisci(); }   // [Officina] le bolle unite si ricollegano (prima non si sapeva quali fossero)
     const senza = pezzi.filter((p, i) => !conPosto[i]);
     if (senza.length) mettiAree(M);   // servono le aree per sapere dove metterle
     senza.forEach(p => { p._daPiazzare = true; });
@@ -5934,22 +6132,24 @@ if (VETRINA) {
     ultime = new Map(pezzi.map((p, i) => [p.idOff, dati[i].forma]));
     for (const p of pezzi) p.nRes = bassaPerSonny(p) ? 0 : clamp(Math.round(areaUtile(p) / 6), 1, 4);   // i Sonny dentro, come «Popola»
     syncResidenti();
-    clearInterval(mostra.t);
+    clearInterval(mostraBolle.t);
     if (daGonfiare.length) {   // una forma nuova si gonfia da zero, veloce; gonfie tutte, i Sonny tornano al passo normale
       if (pezzi.some(p => p.scoppio)) ripara();
       for (const p of daGonfiare) p.Va = 0;
       D.spento = false; try { bottoneBlack(); } catch (e) {}
       if (D.speed === 1) velocita(5);
-      mostra.t = setInterval(() => { if (pezzi.every(p => p.Va >= p.V0 * 0.97)) { clearInterval(mostra.t); velocita(1); } }, 400);
+      mostraBolle.t = setInterval(() => { if (pezzi.every(p => p.Va >= p.V0 * 0.97)) { clearInterval(mostraBolle.t); velocita(1); } }, 400);
     } else if (D.speed !== 1) velocita(1);
     if (nuoveIds || daGonfiare.length) inquadra.L = 0;
     if (!rettangoli().length && !(M.aree || []).length) inquadra();   // con le aree di lavoro la vista resta quella che le mostra
     mettiAree(M);
   }
   // spostata trascinandola: il nuovo posto torna al sito; toccata (o toccato il suo nome): il sito apre quella bolla
-  VETRINA_AZ.mossa = () => { selezionato = bollaAttiva(); mettiAree(M_ultimo); posizioni(); };   // le aree restano dove sono: cambia solo il colore
-  VETRINA_AZ.scelta = p => manda({ tipo: 'vetrina-scegli', id: p.idOff });
-  $('chipBudget').onclick = $('chipStato').onclick = () => manda({ tipo: 'vetrina-tutta' }); $('chipBudget').title = $('chipStato').title = "Apri l'Abbofficina completa (aria, materiali, dati)";   // [Officina] stato e materiali: si apre l'Abbofficina completa (↗ nel sito)
+  VETRINA_AZ.mossa = p => { selezionato = bollaAttiva(); potaUnioni(); mettiAree(M_ultimo); posizioni(); proponiUnione(p); if (grande()) ispettore(); };   // le aree restano dove sono: cambia solo il colore; vicino a un'altra bolla, la schedina per unirle
+  VETRINA_AZ.scelta = p => { manda({ tipo: 'vetrina-scegli', id: p.idOff }); if (grande()) { selezionato = p; ispettore(); } };
+  $('chipStato').onclick = () => grande() ? mostra('p') : manda({ tipo: 'vetrina-tutta' }); $('chipStato').title = 'Aria: la pressione di ogni bolla';   // [Officina] a metà schermo apre il tutto schermo, a tutto schermo la scheda Aria
+  $('bTornaSito').onclick = () => manda({ tipo: 'vetrina-esci' }); $('tabC').textContent = 'Scena';
+  setInterval(() => { const e = $('iP'); if (e && selezionato && pezzi.includes(selezionato)) e.textContent = fmt(pOf(selezionato), 1); }, 500);   // la pressione nella scheda della bolla
   $('sovra').addEventListener('click', e => { const el = e.target.closest && e.target.closest('.eti'); if (!el || !el._p) return; e.stopImmediatePropagation(); e.preventDefault(); VETRINA_AZ.scelta(el._p); }, true);
   // gli scenari: la stanza di sfondo (una pronta, una foto 360° o un modello GLB), come nell'Abbofficina
   function scenario(M) {
@@ -5959,7 +6159,8 @@ if (VETRINA) {
     if (S) { genStanza++; Object.assign(ST, base); stanzaPronta(S); } else togliStanza();
   }
   addEventListener('message', e => { const M = e.data; if (!M) return;
-    if (M.tipo === 'bolle-officina') { M_ultimo = M; clearTimeout(tV); tV = setTimeout(() => { mostra(M); mandaStato(); }, 200); }
+    if (M.tipo === 'bolle-officina') { M_ultimo = M; clearTimeout(tV); tV = setTimeout(() => { mostraBolle(M); mandaStato(); }, 200); }
+    if (M.tipo === 'vetrina-grande') { document.documentElement.classList.toggle('grande', !!M.si); if (!M.si) { mostra('c'); chiudiCarta(); $('menuProve').hidden = true; } selezionato = bollaAttiva(); ispettore(); requestAnimationFrame(() => dispatchEvent(new Event('resize'))); }   // [Officina] ↗ nel sito
     if (M.tipo === 'vetrina-materiali' && M.D) {   // [Officina] le scelte del lab fatte nel sito (prova unita)
       const x = M.D; if (x.mat && x.mat !== D.mat && MAT[x.mat]) D.sigma = MAT[x.mat].sigma;
       for (const k of ['mat', 'gsm', 'giunti', 'adW', 'adLati', 'porte', 'coll']) if (x[k] != null) D[k] = x[k];
@@ -5969,7 +6170,7 @@ if (VETRINA) {
     if (M.tipo === 'vetrina-scenario') scenario(M); });
   try { parent.postMessage({ tipo: 'vetrina-pronta' }, '*'); } catch (e) {}
 }
-window.cfg = { ST, caricaStanza, togliStanza, aggiornaStanza, FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
+window.cfg = { az: VETRINA_AZ, ST, caricaStanza, togliStanza, aggiornaStanza, FF, analizzaFoto, geometriaReale, fattibilita, apriSchedaFoto, misurePredefinite, collegaAMano, stacca, iniziaCollega, manuali: () => manuali, staccati: () => staccati, stimaSingola, standard, tempo: d => (tempo += d || 0), regia, animaPersona, entraPov, esciPov, aggiornaPov, syncResidenti, situazione: p => p._r, pov: () => pov, scena, renderer, camera, ctrl, connMondo, pezzi: () => pezzi, link: () => link, pOf, valuta, passoRete, passoPorta, candidati, aggiungi, strutturaCambiata, stimaRegime, D, persona,
   giro: () => faiEntrare(), GENTE, scoppia, ripara, comp: () => comp, fotografa, carica, apriComp, nuovaComp, persone: () => persone, unoAdesso, fermaTutti, eseguiCopione, muoviPersona, aggancia, liberaLati, collega, tipo: t => { tipoScelto = t; }, pLim, capTelo, tensione, simT: () => simT };
 })();
 </script>

@@ -296,3 +296,41 @@ Ogni correzione ha la sua prova (`u20.js` per la pagina, `u21.js` per l'Abboffic
   - i fogli del modellino hanno il nastro un po' storto, ognuno in modo diverso.
 - **Sul telefono** le strisce delle misure hanno meno margine interno, così «metri» ci sta.
 - **Il link al tema ha un numero di versione** (`tema/tema.css?v=3`), così i browser non tengono il tema vecchio. Va aumentato ogni volta che il tema cambia.
+- **Tolti i vecchi file del tema** che non servivano più: `plastica.svg`, `plastica.py`, `nastro.svg`, `nastro-oliva.svg`, `angolo-alto.svg` e `angolo-basso.svg`. `nastri.py` adesso fa solo il foglio giallo (`carta.svg`).
+
+## Dime: niente più scritte una sopra l'altra (12 novembre)
+
+- **Modalità cantiere:** il disegno della dima non finisce più sotto la frase e la tabella. Lo spazio del cantiere è più basso del contenuto, e la griglia schiacciava la riga del disegno (`.site-corpo` ha ora `grid-auto-rows: max-content`, quindi il cantiere scorre). Lo stesso vale per le giunzioni.
+- **Le dime con tanti angoli passano alla «modalità tabella».** Nel disegno restano le lettere dei punti, con le perpendicolari più chiare. Le misure di ogni punto vanno in una tabella sotto: «Lungo A–B, da A» e «Su, a 90°». Succede:
+  - quando il pezzo ha più di 8 angoli (i pavimenti di sfere, stella, pera…);
+  - quando una misura non trova un posto libero, nemmeno su un foglio più grande.
+- **Prima della tabella si prova un foglio più grande:** lo stesso disegno, con più spazio attorno per le scritte.
+- **I riquadri delle scritte sono alti quanto le lettere vere**, così due misure non si toccano più di pochi pixel senza che il sito se ne accorga.
+- **Le lettere degli angoli hanno più posti possibili** (più lontano e di lato), con un filo che le lega al loro punto quando sono lontane.
+- Controllo automatico su tutte le dime delle 28 forme: nessuna scritta sopra un'altra, sopra un lato o fuori dal disegno.
+
+## Cartamodello: i pezzi grandi su più fogli (12 novembre)
+
+- **Prima:** se a 1:20 un solo pezzo (quasi sempre il pavimento) non stava in un foglio A4, il cartamodello spariva del tutto: niente anteprima, niente stampa, niente schermo intero. Succedeva in 8 forme su 28: C, L, freccia, piramide, tronco di piramide, le due sfere e la stella.
+- **Ora il pezzo troppo grande si divide su più fogli A4**, e la scala resta quella scelta. Su ogni foglio:
+  - una **striscia grigia** di 12 mm a destra e/o in basso, dove va appoggiato il foglio accanto;
+  - le **crocette rosse**, nello stesso punto sui due fogli vicini: si attacca crocetta sopra crocetta;
+  - la linea **«✂ taglia il margine fin qui»** a sinistra e/o in alto, sul foglio che va sopra;
+  - in basso, **«P1 è grande: parte 2 di 4 (riga 1, colonna 2)»**.
+- Il pezzo si gira come servono meno fogli, e le parti dove il pezzo non arriva non si stampano.
+- La frase sopra i fogli dice quali pezzi sono divisi, come si attaccano e con quale scala starebbe tutto su fogli interi.
+- Se un pezzo andrebbe diviso su più di 16 fogli, il sito chiede di scegliere una scala più piccola, come prima.
+- Provato su tutte le 8 forme e a 1:10, con un pezzo su 6 fogli in due righe.
+
+## Abbofficina: una sola, senza doppioni, con i corridoi (12 novembre)
+
+- **↗ allarga lo stesso simulatore** a tutto schermo, invece di aprirne un secondo (`body.simGrande` mette `#simScena` sopra tutto). Prima a tutto schermo c'era solo la bolla scelta; ora ci sono tutte, con le loro posizioni, come a metà schermo. Esc o «↙ Torna al sito» tornano alla pagina.
+- **Le bolle si aggiungono e le misure si cambiano solo nel sito.** Nel simulatore sono spariti «Aggiungi», le forme, le misure, «Elimina», le composizioni e tutto quello che ripeteva il sito: la scheda Materiali, la pastiglia dei materiali e la scelta del materiale del lab.
+- **Restano i dati che il sito non ha:** l'aria e la pressione di ogni bolla (Aria), i gonfiatori, la modalità Prova con le persone, il menu Simulazione, i gonfiatori del lab e le Avanzate (Dati), la stanza da foto 360° o GLB.
+- **In Dati, la costruzione in numeri:** peso da trasportare, energia, una tabella per bolla e l'**impatto ambientale** della plastica, in kg di CO₂ e in km in auto, con come riciclare il telo.
+- **Corridoi tra le bolle.** Nel simulatore, trascinando una bolla vicino a una porta di un'altra, compare la schedina «Unire…? Unisci con un corridoio / No, lasciale separate». Le bolle unite:
+  - si salvano nel progetto (`PR.unioni`, anche nel file);
+  - si spostano insieme;
+  - si separano con «Separa» nella scheda della bolla;
+  - entrano nella lista dei materiali.
+- **I colori del sito anche nel simulatore:** rosso, grigi carta, Bebas Neue e Barlow.

@@ -451,3 +451,26 @@ Tutto segnato `[Officina]`.
 - **Terza parte, blocco E**: in vetrina una bolla con `chiusa: true` (la forma intera, senza taglio, che non si attraversa) entra senza ingresso e senza porte (`ingresso: false`, `porte: []`).
 - **Terza parte, blocco J**: in vetrina si vedono `.sinistra` (Costruisci | Prova, stato, materiali), `#pannelloP`, `#barraScena` (Griglia, Oggetti 3D), `#pannelloO` e le etichette `.etiG` dei gonfiatori. Restano nascosti `.storia` (Annulla/Ripeti), `#bStanza` e `#bNotte`. In vetrina `#chipBudget` e `#chipStato` mandano al sito `{ tipo: 'vetrina-tutta' }`, che apre l'Abbofficina completa.
 - **Correzioni della terza parte**: in vetrina i gonfiatori di una bolla restano quelli scelti qui finché la sua forma non cambia (`fPrima`). In `formaDallaPagina` un pacco con `chiusa` toglie porte e ingresso (e li rimette quando non è più chiusa). I titoli di `#chipBudget` e `#chipStato` in vetrina dicono che aprono l'Abbofficina completa.
+
+## L'Abbofficina dentro il sito, sistemata (12 novembre)
+
+- **Una sola Abbofficina.** Il ↗ del sito non apre più una seconda Abbofficina (`?incorporata`): allarga la stessa vetrina. Il sito manda `{ tipo: 'vetrina-grande', si }` e qui si mette o si toglie `html.grande`. Bolle, posizioni, gonfiatori, corridoi e prezzi sono così gli stessi a metà schermo e a tutto schermo.
+  - Esc (o «↙ Torna al sito» nella testata, `#bTornaSito`) manda `{ tipo: 'vetrina-esci' }`. Prima chiude quello che è aperto: Occhi di Sonny, il menu Simulazione, la schedina.
+  - Il modo `?incorporata` resta nel file ma il sito non lo usa più.
+- **Niente doppioni con il sito** (in vetrina, a metà schermo e a tutto schermo):
+  - via «Aggiungi» (bolle, corridoi, forme, «Da una foto della pianta», misure, «Metti a parte»), il menu delle composizioni, la scheda Materiali e la pastiglia «Materiali · m² di telo» (la lista con i prezzi è nel sito);
+  - in Dati via «Il materiale del lab» (telo, porte, giunti: si sceglie nel sito, classe `.ripetuto`);
+  - nella Stanza resta solo il caricamento di una foto 360° o di un modello GLB (lo Scenario del sito sceglie le stanze pronte);
+  - via Guida, Cerca e il menu dei pannelli.
+- **A tutto schermo restano:** Scena · Aria · Dati, il menu Simulazione (in Prova), la modalità Prova, Vista (Stanza da foto o GLB, Griglia, Oggetti 3D) e la scheda della bolla a destra (`ispettoreVetrina`): com'è adesso, la pressione, i gonfiatori, i corridoi con «Separa», «Fai scoppiare». Niente misure, forme, nome né «Elimina»: si fanno nel sito. «Scena» è la vecchia «Costruisci».
+- **Le bolle si aggiungono solo nel sito, e le misure si cambiano solo lì.** In vetrina non c'è nessun «+».
+- **I corridoi.** Trascinando una bolla vicino a una porta di un'altra compare una schedina: «Unire Bolla 2 e Bolla 1? Un corridoio di telo tra due porte…» con «Unisci con un corridoio» e «No, lasciale separate».
+  - Con «Unisci» la bolla che era da sola si avvicina alla porta (come `aggancia`, ma solo verso quella bolla: `vicinoPerUnire`) e nasce il collegamento (la manica) di sempre. In `collega()`, in vetrina, due bolle si collegano solo se sono unite (`VETRINA_AZ.unite`).
+  - Le coppie unite (id del sito) vanno al sito con `{ tipo: 'vetrina-unioni', unioni }` e tornano in `bolle-officina` (`M.unioni`). Dopo un cambio di forma nel sito la bolla unita si riavvicina (`riunisci`); se non si può, il corridoio si toglie e lo si dice.
+  - Trascinando una bolla unita la seguono le altre del suo gruppo. Girandola, il corridoio si può rompere: si toglie e lo si dice (`potaUnioni`).
+  - I corridoi entrano nella distinta (cornici dei collegamenti), quindi anche nella lista del sito.
+- **Dati: la costruzione in numeri** (era in Materiali): peso da trasportare, energia per la mostra, una tabella per bolla (telo, nastro, gonfiatori, plastica, CO₂) e l'**impatto ambientale** della plastica.
+  - Stima in kg di CO₂ equivalente per produrre la plastica: PVC 2,4, polietilene 2,1, TPU 4,5 kg di CO₂ per kg; nastro 3,0; zip e velcro 5,0. Valori medi, trasporto e smaltimento esclusi. L'energia dei gonfiatori a parte: 0,26 kg di CO₂ per kWh.
+  - Si dice a quanti km in auto corrisponde (0,15 kg di CO₂ per km) e come riciclare il telo.
+- **I colori del sito**: carta grigia, rosso `#e3101e`, Bebas Neue per titoli e pulsanti, Barlow per il testo, angoli quasi vivi. Si caricano Bebas Neue e Barlow da Google Fonts; i colori sono le variabili di `html.vetrina`.
+- **Per le prove**: `window.cfg.az` è `VETRINA_AZ` (con `vicino`, `proponi`, `unioni`).
