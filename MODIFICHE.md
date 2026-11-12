@@ -284,3 +284,15 @@ Ogni correzione ha la sua prova (`u20.js` per la pagina, `u21.js` per l'Abboffic
   - **Simulatore:** a destra il simulatore come prima, e lo Schema torna sotto la giunzione.
 - Nelle altre tappe la scelta non c'è: nella Progettazione lo Schema resta sopra le misure.
 - Nella Costruzione il titolo «Simulatore» si nasconde, perché lo dice già la scelta. La frase sotto il montaggio dice dove trovare lo Schema.
+
+## Sfondo di plastica vera e nastri di carta (12 novembre)
+
+- **Lo sfondo è una foto di cellophane stropicciato** (`tema/plastica.jpg`, 2000 × 1116 px, 240 KB), al posto della plastica disegnata (`plastica.svg`).
+- **I nastri di carta sono immagini nuove**, generate da `tema/nastri_carta.py`. Hanno la grana crespata di traverso, le estremità strappate con le fibre, qualche piega, un po' di trasparenza e un'ombra leggera. Dove due strisce si sovrappongono la carta è più fitta.
+- **Nessun nastro è uguale a un altro:**
+  - tre strisce per i campi X, Y, Z e per i fogli del modellino (`nastro-1/2/3.webp`), ognuna con un tono diverso (crema, paglia, pesca);
+  - una striscia larga sul foglio giallo dei materiali (`nastro-largo.webp`);
+  - tre coppie di angoli a L per i pannelli (`angolo-alto-1/2/3.webp`, `angolo-basso-1/2/3.webp`), che si alternano anche nella posizione;
+  - i fogli del modellino hanno il nastro un po' storto, ognuno in modo diverso.
+- **Sul telefono** le strisce delle misure hanno meno margine interno, così «metri» ci sta.
+- **Il link al tema ha un numero di versione** (`tema/tema.css?v=3`), così i browser non tengono il tema vecchio. Va aumentato ogni volta che il tema cambia.

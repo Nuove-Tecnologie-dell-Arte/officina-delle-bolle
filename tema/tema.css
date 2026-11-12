@@ -18,7 +18,8 @@
   color-scheme: light;
 }
 html { background: #e7e5e1; }
-body { background: #e7e5e1 url("plastica.svg") center / cover fixed; color: var(--nero); font: 400 17px/1.55 var(--body); }
+/* [Unita] lo sfondo è una foto di cellophane stropicciato (plastica.jpg) */
+body { background: #e7e5e1 url("plastica.jpg") center / cover fixed; color: var(--nero); font: 400 17px/1.55 var(--body); }
 h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: .01em; line-height: 1; }
 h1 { font-size: clamp(3.4rem, 8vw, 6.2rem); color: var(--rosso); }
 h2 { font-size: clamp(2.4rem, 5vw, 3.6rem); color: var(--rosso); }
@@ -46,8 +47,13 @@ input[type="number"], select { font: 500 1rem var(--body); background: rgba(255,
 /* il nastro di carta sugli angoli dei pannelli: a L in alto a destra e in basso a sinistra */
 .nastrato { position: relative; }
 .nastrato::before, .nastrato::after { content: ""; position: absolute; pointer-events: none; z-index: 2; background: no-repeat center / 100% 100%; }
-.nastrato::before { width: 72px; height: 132px; top: -14px; right: -26px; background-image: url("angolo-alto.svg"); }
-.nastrato::after { width: 72px; height: 132px; bottom: -16px; left: -26px; background-image: url("angolo-basso.svg"); }
+.nastrato::before { width: 72px; height: 132px; top: -14px; right: -26px; background-image: url("angolo-alto-1.webp"); }
+.nastrato::after { width: 72px; height: 132px; bottom: -16px; left: -26px; background-image: url("angolo-basso-1.webp"); }
+/* [Unita] nastri di carta veri (generati da nastri_carta.py): tre varianti, così due pannelli vicini non hanno lo stesso nastro */
+.nastrato:nth-child(3n+2)::before { background-image: url("angolo-alto-2.webp"); top: -18px; right: -22px; }
+.nastrato:nth-child(3n+2)::after { background-image: url("angolo-basso-2.webp"); bottom: -12px; left: -30px; }
+.nastrato:nth-child(3n)::before { background-image: url("angolo-alto-3.webp"); top: -10px; right: -28px; }
+.nastrato:nth-child(3n)::after { background-image: url("angolo-basso-3.webp"); bottom: -18px; left: -24px; }
 /* [Unita] i nastri sugli angoli escono un po' dai pannelli: sul bordo dello schermo si tagliano, invece di allargare la pagina */
 html, body { overflow-x: clip; }
 /* la riga tratteggiata in fondo ai pannelli */
@@ -86,7 +92,10 @@ html, body { overflow-x: clip; }
 
 /* prendi le misure: le strisce di nastro con la X, la Y e la Z rosse */
 .asse-campo { gap: 0 10px; }
-.asse-campo input { height: 64px; border: 0; border-radius: 0; box-shadow: none; padding: 4px 20px 0; background: url("nastro.svg") no-repeat center / 100% 100%; font: 400 2rem/1 var(--display); letter-spacing: .04em; color: var(--nero); }
+.asse-campo input { height: 64px; border: 0; border-radius: 0; box-shadow: none; padding: 4px 20px 0; background: url("nastro-1.webp") no-repeat center / 100% 100%; font: 400 2rem/1 var(--display); letter-spacing: .04em; color: var(--nero); }
+.asse-campo:nth-child(2) input { background-image: url("nastro-2.webp"); }   /* [Unita] ogni misura la sua striscia */
+.asse-campo:nth-child(3) input { background-image: url("nastro-3.webp"); }
+@media (max-width: 560px) { .asse-campo input { padding: 4px 6px 0; } }   /* [Unita] sul telefono «metri» ci sta nella striscia */
 .asse-campo input::placeholder { color: rgba(60, 45, 15, .45); }
 .asse-campo input:focus-visible { outline: 2px dashed var(--rosso); outline-offset: 3px; }
 .asse-campo b { font: 400 4rem/1 var(--display); color: var(--rosso); }
@@ -144,7 +153,7 @@ details.controlli summary { font: 400 1.35rem var(--display); letter-spacing: .0
 
 /* materiali: il foglio giallo strappato, con il nastro in alto */
 #bloccoMateriali { position: relative; background: url("carta.svg") no-repeat center / 100% 100%; filter: drop-shadow(10px 8px 10px rgba(0, 0, 0, .22)); padding: 64px clamp(22px, 5vw, 64px) 54px; margin-top: 30px; gap: 20px; }
-#bloccoMateriali::before { content: ""; position: absolute; top: -26px; left: 50%; width: 230px; height: 62px; transform: translateX(-50%) rotate(-1.5deg); background: url("nastro-oliva.svg") no-repeat center / 100% 100%; }
+#bloccoMateriali::before { content: ""; position: absolute; top: -26px; left: 50%; width: 230px; height: 62px; transform: translateX(-50%) rotate(-1.5deg); background: url("nastro-largo.webp") no-repeat center / 100% 100%; }
 #bloccoMateriali .titolone p { font-size: 1.2rem; }
 .materiali { gap: 22px 30px; }
 .mat, .mat.lastra { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0 0 14px; border-bottom: 2px dashed rgba(90, 75, 30, .3); border-radius: 0; }
@@ -157,7 +166,9 @@ details.controlli summary { font: 400 1.35rem var(--display); letter-spacing: .0
 .passi li::before { background: var(--rosso); color: #fff; font: 400 1.1rem/1 var(--display); }
 .passi li > div > b { font: 400 1.35rem/1.1 var(--display); letter-spacing: .03em; }
 .foglio { background: #fff; border-radius: 1px; box-shadow: 3px 4px 10px rgba(0, 0, 0, .14); position: relative; }
-.foglio::before { content: ""; position: absolute; top: -10px; left: 50%; width: 70px; height: 22px; transform: translateX(-50%) rotate(2deg); background: url("nastro.svg") no-repeat center / 100% 100%; opacity: .9; }
+.foglio::before { content: ""; position: absolute; top: -12px; left: 50%; width: 84px; height: 26px; transform: translateX(-50%) rotate(2deg); background: url("nastro-1.webp") no-repeat center / 100% 100%; }
+.foglio:nth-child(3n+2)::before { background-image: url("nastro-2.webp"); transform: translateX(-46%) rotate(-3deg); }
+.foglio:nth-child(3n)::before { background-image: url("nastro-3.webp"); transform: translateX(-55%) rotate(1deg); width: 76px; }
 .dima-t h3 { font-size: 2.2rem; color: var(--rosso); }
 .dima-t i { border-radius: 2px; }
 .dima th { font: 400 1rem var(--display); letter-spacing: .05em; }
@@ -181,7 +192,7 @@ details.info > summary i { background: var(--rosso); font: 400 1rem var(--displa
 
 /* il simulatore a destra: linguette come Forme / Misure, la scena in un pannello grigio con il nastro */
 .sim-scena { border-radius: 0 3px 3px 3px; background: var(--pannello); box-shadow: none; }
-.simpane::after { content: ""; position: absolute; top: 48px; right: -12px; width: 60px; height: 110px; background: url("angolo-alto.svg") no-repeat center / 100% 100%; pointer-events: none; z-index: 3; }
+.simpane::after { content: ""; position: absolute; top: 48px; right: -12px; width: 60px; height: 110px; background: url("angolo-alto-2.webp") no-repeat center / 100% 100%; pointer-events: none; z-index: 3; }
 .sim-stato .pill { font: 400 1.15rem/1 var(--display); letter-spacing: .03em; background: rgba(236, 235, 232, .78); border: 0; border-radius: 2px; padding: 5px 10px 3px; }
 .sim-stato .pill i { font: 400 .8rem/1 var(--display); }
 .scenario { font: 400 1.15rem var(--display); letter-spacing: .04em; color: #4a4741; }
