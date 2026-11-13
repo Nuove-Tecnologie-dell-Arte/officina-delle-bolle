@@ -10,7 +10,7 @@
 <style>
 /* Officina delle Bolle: tre tappe (Progettazione, Dima/Modellino, Costruzione) a sinistra, e a destra il simulatore, sempre in vista:
    l'Abbofficina in «vetrina» (configuratore/?vetrina), che riceve la bolla mentre la si progetta. Il motore delle forme è in motore.js,
-   la finestra «bolla da un'immagine» in immagine.js. Colori e caratteri: quelli dell'Officina. */
+   Colori e caratteri: quelli dell'Officina. [Unita] Nessun caricamento di file: niente si apre dal computer. */
 :root {
   --paper: #f3f6f4; --card: #ffffff; --mat: #dbe6df;
   --green: #23654f; --green-soft: rgba(35,101,79,.09); --line: rgba(35,101,79,.10); --line-strong: rgba(35,101,79,.24);
@@ -187,7 +187,6 @@ body.inModGrande { overflow: hidden; }
 .cercaPiede { margin: 0; padding: 8px 14px; border-top: 1px solid var(--rule); font-size: .76rem; color: var(--muted); }
 @media (max-width: 520px) { .cercaLista li { grid-template-columns: 1fr; gap: 0; } .cercaPiede { display: none; } }
 .trovato { outline: 3px solid var(--rosso, var(--green)) !important; outline-offset: 3px; }
-.notaFile { text-align: center; } .notaFile:empty { display: none; }
 /* [Unita] modalità cantiere: a schermo intero, una dima o una giunzione alla volta */
 .cantiere { position: fixed; inset: 0; z-index: 250; background: var(--paper, #f3f1ec); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; padding: 14px clamp(12px, 3vw, 28px) 16px; }
 .cantiere[hidden] { display: none; }
@@ -294,10 +293,6 @@ h3.sotto { font: 400 1.6rem/1 var(--display, inherit); letter-spacing: .03em; }
 .tessera b { font: 600 .82rem/1.25 var(--body); }
 .tessera small { font: 600 .66rem var(--mono); letter-spacing: .04em; text-transform: uppercase; }
 .tessera small.f { color: var(--green); } .tessera small.m { color: var(--amber); } .tessera small.i { color: var(--cut); }
-.dafoto { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: center; padding: 14px; border-radius: var(--r-m); border: 2px dashed color-mix(in srgb, var(--green) 55%, transparent); background: color-mix(in srgb, var(--green) 6%, var(--card)); }
-.dafoto.sopra { border-style: solid; background: color-mix(in srgb, var(--green) 14%, var(--card)); }
-.dafoto .ico { width: 46px; height: 46px; border-radius: 12px; background: var(--green); color: var(--card); display: grid; place-items: center; }
-.dafoto .btnrow { grid-column: 1 / -1; }
 /* le misure: Larghezza, Profondità, Altezza */
 .opzioni { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .altreOpz { margin-top: 4px; } .altreOpz > summary { cursor: pointer; font-weight: 700; padding: 6px 0; } .altreOpz > .opzioni { margin-top: 8px; }   /* [Unita] */
@@ -518,15 +513,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 
   <div class="blocco" id="bloccoProgetta">
     <header class="titolone piccolo"><h2>Progetta</h2><p>Scegli la forma, poi le misure: il simulatore le mostra in tempo reale.</p></header>
-    <div class="pannello lastra nastrato tratteggio" id="pForme"><!-- [Unita] la galleria compatta, poi l'immagine -->
+    <div class="pannello lastra nastrato tratteggio" id="pForme"><!-- [Unita] la galleria compatta -->
       <h3 class="sotto">Scegli la forma</h3>
       <div class="forme-scorri" id="forme"></div>
-        <div class="dafoto" id="daFoto">
-          <div class="ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="9" width="38" height="30" rx="5"/><path d="M5 33l10-10 8 8 6-6 14 14"/><circle cx="33" cy="18" r="3.5"/></svg></div>
-          <div><b>Hai già un'idea? Parti da un'immagine</b><p class="hint">Una foto, un disegno o uno schizzo: il sito trova il contorno e ne fa una bolla. Puoi anche trascinarla qui o incollarla (Ctrl+V).</p></div>
-          <div class="btnrow"><button type="button" class="btn primary" id="bImmagine">Carica un'immagine</button><button type="button" class="btn" id="bRitocca" hidden>Ritocca l'ultima</button></div>
-          <p class="warn" id="fErr" hidden style="grid-column:1/-1"></p>
-        </div>
     </div>
     <div class="pannello lastra nastrato tratteggio" id="rqMisure"><!-- [Unita] le misure, sempre in vista sotto la galleria -->
       <h3 class="sotto">Misure della bolla</h3>
@@ -565,11 +554,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     </div>
   </div>
 
-  <div class="blocco" id="bloccoFile"><!-- [Unita] salva e riapri il progetto su file -->
-    <header class="titolone"><h2>Salva e riapri</h2><p>Tutto il progetto in un file: per passarlo a un'altra persona o a un altro computer.</p></header>
-    <div class="btnrow" style="justify-content:center"><button type="button" class="btn primary" id="bSalvaFile">Salva su file</button><button type="button" class="btn" id="bApriFile">Apri da file</button><input type="file" id="fileApri" accept=".json,application/json" hidden></div>
-    <p class="hint notaFile" id="notaFile" role="status"></p>
-  </div>
 </section>
 
 <!-- 2 · Dima / Modellino -->
@@ -669,10 +653,9 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <div class="sim-vuoto sim-guasto" id="simGuasto" hidden><div><p id="simGuastoTesto"></p><button type="button" class="btn primary" id="bRiprovaSim">Riprova</button></div></div>
   </div>
   <div class="sim-piede">
-    <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option><option value="foto">La tua foto 360°…</option><option value="modello">Il tuo modello 3D (GLB)…</option></select></label>
+    <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option></select></label>
     <p class="sim-nota" id="simNota"></p>
   </div>
-  <input type="file" id="scenarioFile" hidden>
 </aside>
 </div>
 
@@ -731,7 +714,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
 </div>
 
 <script src="motore.js"></script>
-<script src="immagine.js"></script>
 <script>
 (function () {
   "use strict";
@@ -1125,21 +1107,16 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     fr.contentWindow.postMessage(msg, "*");
   }
   /* lo scenario del simulatore: la stanza di sfondo dell'Abbofficina (una pronta, o una foto 360° o un modello 3D vostri) */
-  let scenario = "", fileScenario = null;
+  let scenario = "";   // [Unita] solo gli scenari pronti: niente foto o modelli caricati dal computer
   try { scenario = localStorage.getItem("bolle|scenario") || ""; } catch (e) { /* */ }
   if (scenario !== "corridoio") scenario = "";
   $("scenario").value = scenario;
-  function inviaScenario() { if (vetrinaPronta && fr.contentWindow) fr.contentWindow.postMessage(fileScenario ? { tipo: "vetrina-scenario", file: fileScenario } : { tipo: "vetrina-scenario", id: scenario }, "*"); }
-  function opzioneTua() { let o = $("scenario").querySelector('option[value="tuo"]'); if (!fileScenario) { if (o) o.remove(); return; } if (!o) { o = document.createElement("option"); o.value = "tuo"; $("scenario").insertBefore(o, $("scenario").querySelector('option[value="foto"]')); } o.textContent = "La tua: " + fileScenario.name; }
+  function inviaScenario() { if (vetrinaPronta && fr.contentWindow) fr.contentWindow.postMessage({ tipo: "vetrina-scenario", id: scenario }, "*"); }
   $("scenario").addEventListener("change", e => {
     const v = e.target.value;
-    if (v === "foto" || v === "modello") {   // si sceglie il file; finché non arriva resta lo scenario di prima
-      $("scenarioFile").accept = v === "foto" ? ".jpg,.jpeg,.png,.webp,.hdr,image/*" : ".glb"; e.target.value = fileScenario ? "tuo" : scenario; $("scenarioFile").click(); return; }
-    if (v === "tuo") return;
-    scenario = v; fileScenario = null; opzioneTua(); try { localStorage.setItem("bolle|scenario", v); } catch (er) { /* */ }
+    scenario = v; try { localStorage.setItem("bolle|scenario", v); } catch (er) { /* */ }
     inviaScenario();
   });
-  $("scenarioFile").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return; fileScenario = f; opzioneTua(); $("scenario").value = "tuo"; inviaScenario(); });
   /* la finestra ha due linguette: Simulatore (l'Abbofficina) e Schema (la bolla disegnata pezzo per pezzo, colorata per dima).
      Nella Costruzione si apre da sola lo Schema, che mostra la bolla che cresce; nelle altre tappe torna la scelta di prima.
      Se l'Abbofficina non risponde (niente internet per three.js), resta lo Schema. */
@@ -1162,7 +1139,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   addEventListener("message", e => {
     if (e.source !== fr.contentWindow || !e.data) return; const M = e.data;
     if (M.tipo === "vetrina-errore" && !vetrinaPronta) guasto((M.rete ? "Il simulatore non si carica. " : "Il simulatore si è fermato: ") + M.msg + (M.rete ? " Prova «Riprova», o un'altra rete. Intanto c'è lo Schema." : ""), true);
-    if (M.tipo === "vetrina-pronta") { const tardi = vetrinaMorta; vetrinaPronta = true; vetrinaMorta = false; guasto(""); $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario || fileScenario) inviaScenario(); if (tuttaAperta()) fr.contentWindow.postMessage({ tipo: "vetrina-grande", si: true }, "*"); if (tardi) mostraTab(TAPPE[S.t] && TAPPE[S.t].id === "costruzione" ? "schema" : tabScelta); simulatore(); }   // arrivato in ritardo: torna da solo
+    if (M.tipo === "vetrina-pronta") { const tardi = vetrinaMorta; vetrinaPronta = true; vetrinaMorta = false; guasto(""); $("tabSim").textContent = "Simulatore"; ultimoInvio = ""; if (scenario) inviaScenario(); if (tuttaAperta()) fr.contentWindow.postMessage({ tipo: "vetrina-grande", si: true }, "*"); if (tardi) mostraTab(TAPPE[S.t] && TAPPE[S.t].id === "costruzione" ? "schema" : tabScelta); simulatore(); }   // arrivato in ritardo: torna da solo
     if (M.tipo === "vetrina-posizioni") {   // le bolle spostate (o girate) nel simulatore, e l'area in cui sono
       const prima = S.area;
       (M.pos || []).forEach(q => { const b = PR.bolle.find(x => x.id === q.id); if (!b) return; b.pos = { x: q.x, z: q.z, ang: q.ang || 0 }; if (q.area != null && PR.aree.some(a => a.id === q.area)) b.areaId = q.area; });
@@ -1396,7 +1373,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       setTimeout(passo, 0);
     };
     passo();
-    $("bRitocca").hidden = !ImmagineBolla.ultima();
   }
   function scegliForma(id) {
     if (id !== S.shape) {
@@ -1508,23 +1484,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     $("bPiantaX").addEventListener("click", chiudiPianta);
     $("pianta").addEventListener("cancel", e => { e.preventDefault(); chiudiPianta(); });
   })();
-
-  /* --- dalla tua immagine --- */
-  const opzFoto = {
-    disegna3d: (cv, m, v) => disegna(cv, m, { yaw: v.yaw, pitch: v.pitch, persona: true, quote: true }),
-    scala: () => 20,
-    errore: (t) => { $("fErr").textContent = t; $("fErr").hidden = !t; },
-    dopo: () => { $("bRitocca").hidden = false; },
-    onUsa: (vals) => { if (S.shape !== "foto") S.opt = null; S.shape = "foto"; S.base = vals; S.dim = dimIniziali("foto", vals, true); delete anteprime.foto; esito = null; S.okModello = false; salva(); costruisciForme(); rendiForme(); aggiornaBolla(true); rendiRisultato(); rendiMateriali(); fondo(); },
-  };
-  $("bImmagine").addEventListener("click", () => ImmagineBolla.scegli(opzFoto));
-  $("bRitocca").addEventListener("click", () => ImmagineBolla.riapri(opzFoto));
-  const conImmagine = (dt) => dt && [...(dt.items || [])].some(it => it.kind === "file" && /^image\//.test(it.type));
-  const quiForme = () => TAPPE[S.t].id === "progettazione";
-  document.addEventListener("dragover", e => { if (!conImmagine(e.dataTransfer) || !quiForme()) return; e.preventDefault(); $("daFoto").classList.add("sopra"); });
-  document.addEventListener("dragleave", e => { if (!e.relatedTarget) $("daFoto").classList.remove("sopra"); });
-  document.addEventListener("drop", e => { $("daFoto").classList.remove("sopra"); const f = e.dataTransfer && [...e.dataTransfer.files].find(x => /^image\//.test(x.type)); if (!f || !quiForme()) return; e.preventDefault(); ImmagineBolla.carica(f, opzFoto); });
-  document.addEventListener("paste", e => { if (!quiForme()) return; const it = e.clipboardData && [...e.clipboardData.items].find(x => x.kind === "file" && /^image\//.test(x.type)); if (!it) return; e.preventDefault(); ImmagineBolla.carica(it.getAsFile(), opzFoto); });
 
   /* --- le misure: Larghezza, Profondità, Altezza (X, Y, Z) e le opzioni della forma --- */
   const ASSI = [["x", "X", "larghezza"], ["y", "Y", "profondità"], ["z", "Z", "altezza"]];   // [Unita] come nella semplice
@@ -1671,7 +1630,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
       ${opz.length || tip.length ? `<div><h3 style="margin-bottom:8px">La forma</h3><div class="opzioni">${opz.map(campoOpz).join("")}${tip.map(campoTip).join("")}</div></div>` : ""}`;
     altre.innerHTML = `${tec.length ? `<p class="hint">Dettagli tecnici della forma: lati, spicchi, segmenti.</p><div class="opzioni" id="paramsTec">${tec.map(campoOpz).join("")}</div>` : `<p class="hint">Per questa forma non ci sono altre opzioni.</p>`}
       ${S.shape === "custom" ? `<div class="btnrow"><button type="button" class="btn" id="bRidisegna">✎ Ridisegna la pianta</button></div>` : ""}
-      ${S.shape === "foto" && ImmagineBolla.ultima() ? `<div class="btnrow"><button type="button" class="btn" id="bRitocca2">Ritocca l'immagine</button></div>` : ""}
       ${appoggioHtml()}
       <div class="scalaBox"><h3 style="margin-bottom:8px">Il modellino di carta</h3>
         <div class="opzioni"><div class="field"><label for="scalaMod">Scala del modellino (1 : …)</label><input type="number" id="scalaMod" min="1" max="1000" step="1" inputmode="numeric" value="${scalaDi(S)}"></div></div>
@@ -1805,7 +1763,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     });
     box.addEventListener("click", e => {
       if (e.target.closest("#bRidisegna")) apriPianta();
-      if (e.target.closest("#bRitocca2")) ImmagineBolla.riapri(opzFoto);
       const v = e.target.closest("[data-sc-vai]"); if (v) mostraScheda(v.dataset.scVai);
       if (e.target.closest("#bAnnullaMis")) annullaMis();
       if (e.target.closest("#bTrovaScala")) {   // [Unita] dalla misura sul modellino: scala = misura vera / misura sul modellino
@@ -2483,12 +2440,10 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     P.unioni = (Array.isArray(P.unioni) ? P.unioni : []).filter(u => Array.isArray(u) && u.length === 2 && u[0] !== u[1] && u.every(x => P.bolle.some(b => b.id === +x))).map(u => [+u[0], +u[1]]);   // [Unita] i corridoi tra le bolle
     return P;
   }
-  function progettoFile() { return { v: "unita-1", app: "officina-delle-bolle", PR: JSON.parse(JSON.stringify(PR, function (k, v) { return k === "area" && this !== PR ? undefined : v; })), scenario: fileScenario ? "" : scenario }; }
-  const notaFile = (t) => { $("notaFile").textContent = t; clearTimeout(notaFile.t); notaFile.t = setTimeout(() => { $("notaFile").textContent = ""; }, 7000); };
-  function apriProgetto(j) {
+  function apriProgetto(j) {   // [Unita] non si apre più da file: resta per le prove (window.unita)
     if (j && j.v === "unita-1" && j.PR && Array.isArray(j.PR.bolle)) {   // un progetto della prova unita: sostituisce quello di adesso
       PR = normalizzaPR(JSON.parse(JSON.stringify(j.PR))); S = PR.bolle[PR.att];
-      if (j.scenario === "" || j.scenario === "corridoio") { scenario = j.scenario; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
+      if (j.scenario === "" || j.scenario === "corridoio") { scenario = j.scenario; $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
       dimeAperte.clear(); ultimoInvio = ""; storia.length = 0; rendiBolle(); rendiScelteMat(); inviaMateriali(); apriBolla(PR.att); return true;
     }
     if (j && typeof j.shape === "string" && def(j.shape) && j.shape !== "foto" && j.params && typeof j.params === "object") {   // una forma salvata con la prova semplice: una bolla nuova
@@ -2499,19 +2454,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     return false;
   }
-  $("bSalvaFile").addEventListener("click", () => {
-    const nome = (PR.bolle[0] && PR.bolle[0].shape ? nomeForma(PR.bolle[0].shape) : "progetto").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "progetto";
-    const oggi = new Date(), data = `${oggi.getFullYear()}-${String(oggi.getMonth() + 1).padStart(2, "0")}-${String(oggi.getDate()).padStart(2, "0")}`;
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(progettoFile(), null, 1)], { type: "application/json" }));
-    a.download = `bolla-${nome}-${data}.json`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-    notaFile(`Salvato il file ${a.download}: ${plural(PR.bolle.length, "bolla", "bolle")}.`);
-  });
-  $("bApriFile").addEventListener("click", () => $("fileApri").click());
-  $("fileApri").addEventListener("change", async e => {
-    const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
-    let j = null; try { j = JSON.parse(await f.text()); } catch (er) { j = null; }
-    if (apriProgetto(j)) notaFile(`Aperto il file ${f.name}.`); else notaFile(`Il file ${f.name} non è un progetto delle bolle: non è cambiato niente.`);
-  });
 
   /* [Unita] la ricerca (dalla prova semplice): si trova e si apre ogni opzione scrivendo (lente, Ctrl K / ⌘K o /) */
   const normCerca = (t) => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -2542,8 +2484,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     }
     SCELTE_MAT.forEach(([id, k, t]) => add(t, "Materiali", inTappa("progettazione", () => evidenzia($(id))), "materiale"));
     add("Larghezza del rotolo", "Materiali · telo", inTappa("progettazione", () => evidenzia($("rotolo"))), "rotolo telo comprare");
-    add("Salva su file", "Salva e riapri", inTappa("progettazione", () => evidenzia($("bSalvaFile"))), "scarica json progetto");
-    add("Apri da file", "Salva e riapri", inTappa("progettazione", () => evidenzia($("bApriFile"))), "carica json progetto");
     add("Stampa il cartamodello", "Dima / Modellino", inTappa("dima", () => evidenzia($("bStampaModello"))), "stampa fogli modellino");
     add("Stampa le schede delle dime", "Dima / Modellino", inTappa("dima", () => evidenzia($("bStampaDime"))), "stampa dime");
     add("Bolla | Modellino", "Le dime", inTappa("dima", () => evidenzia($("unitaDime").querySelector('[aria-pressed="true"]'))), "misure scala cm");

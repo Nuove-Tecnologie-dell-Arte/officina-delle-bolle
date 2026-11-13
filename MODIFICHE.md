@@ -334,3 +334,13 @@ Ogni correzione ha la sua prova (`u20.js` per la pagina, `u21.js` per l'Abboffic
   - si separano con «Separa» nella scheda della bolla;
   - entrano nella lista dei materiali.
 - **I colori del sito anche nel simulatore:** rosso, grigi carta, Bebas Neue e Barlow.
+
+## Niente più caricamenti di file (13 novembre)
+
+- **Il sito non apre più nessun file dal computer.** Tolti:
+  - «Salva su file» e «Apri da file» (il blocco «Salva e riapri»): il progetto resta solo nella memoria del browser;
+  - «Hai già un'idea? Parti da un'immagine», con il trascinamento e l'incolla di un'immagine sulla pagina; il file `immagine.js` è stato tolto;
+  - nello Scenario «La tua foto 360°…» e «Il tuo modello 3D (GLB)…»: restano «Nessuno» e il Corridoio dell'Accademia;
+  - nel simulatore, la Stanza da foto o GLB e gli Oggetti 3D.
+- I progetti già salvati nel browser con una forma «La tua immagine» si aprono ancora, ma non se ne possono fare di nuove.
+- `apriProgetto` resta solo per le prove (`window.unita`), che controllano che un progetto con dentro codice HTML non lo esegua.

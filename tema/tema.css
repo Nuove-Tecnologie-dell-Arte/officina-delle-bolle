@@ -125,10 +125,6 @@ html, body { overflow-x: clip; }
 .tessera[aria-pressed="true"] { border-color: var(--rosso); background: var(--tessera); box-shadow: 0 0 0 2px rgba(227, 16, 30, .25); }
 .tessera canvas { max-width: 90px; }
 .tessera small, .tessera:not([aria-pressed="true"]) b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.dafoto { border: 0; background: rgba(236, 235, 232, .55); border-radius: 3px; }
-.dafoto.sopra { background: rgba(255, 255, 255, .8); outline: 2px dashed var(--rosso); }
-.dafoto .ico { background: var(--rosso); border-radius: 6px; }
-.dafoto b { font: 400 1.45rem/1.05 var(--display); letter-spacing: .03em; }
 /* le misure */
 .vuoto h3 { color: var(--rosso); font-size: 2rem; }
 

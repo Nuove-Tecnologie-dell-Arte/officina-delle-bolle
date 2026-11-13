@@ -629,7 +629,7 @@
   html.vetrina header .comp, html.vetrina #bFoto, html.vetrina #tabB, html.vetrina #vMateriali, html.vetrina #bGuida, html.vetrina #bCerca, html.vetrina .menuMenu,
   html.vetrina #stPronte, html.vetrina .ripetuto { display: none !important; }
   html.vetrina:not(.grande) body > header, html.vetrina:not(.grande) aside, html.vetrina:not(.grande) .linguetta, html.vetrina:not(.grande) #pannelloS,
-  html.vetrina:not(.grande) #povInfo, html.vetrina:not(.grande) #pannelloSt, html.vetrina:not(.grande) #bStanza, html.vetrina:not(.grande) .menuProve { display: none !important; }
+  html.vetrina:not(.grande) #povInfo, html.vetrina #pannelloSt, html.vetrina #bStanza, html.vetrina:not(.grande) .menuProve { display: none !important; }
   html.vetrina:not(.grande) main, html.vetrina:not(.grande) #vCostruisci { position: fixed; inset: 0; display: block; }
   html.vetrina:not(.grande) #scena { position: absolute; inset: 0; height: auto; }
   html.vetrina #sovra > :not(.eti):not(.etiArea):not(.ruota):not(.etiG), html.vetrina .eti .lnk { display: none !important; }
@@ -691,8 +691,7 @@
       <h2>Composizioni</h2>
       <div id="listaComp" class="listaComp"></div>
       <div class="bottoni"><button class="pri" id="cNuova">+ Nuova</button><button id="cDuplica">Duplica questa</button></div>
-      <div class="bottoni"><button id="cEsporta">Esporta file</button><button id="cImporta">Importa file</button><input type="file" id="cFile" accept=".json,application/json" hidden></div>
-      <p class="std" style="margin:0">Si salvano da sole in questo browser. Esporta un file per tenerle al sicuro o aprirle su un altro computer.</p>
+      <p class="std" style="margin:0">Si salvano da sole in questo browser.</p>
     </div>
   </div>
   <nav class="tabs" aria-label="Schermate">
@@ -702,7 +701,6 @@
     <button id="tabD" aria-pressed="false" title="Gonfiatori, telo, nastro, chiusure e schemi">Dati</button>
   </nav>
   <div class="spazio"></div>
-  <button id="bFoto" title="Carica la foto di una pianta e trasformala in una bolla"><svg viewBox="0 0 20 16" width="17" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 4h4l1.5-2h5L14 4h4v10H2z"/><circle cx="10" cy="9" r="3"/></svg><span class="etH">Forma da Foto</span></button><input type="file" id="fFoto" accept="image/*" hidden>
   <button id="bRipara" hidden>Ripara lo strappo</button>
   <button id="bRiacc" class="del" hidden>Riaccendi i gonfiatori</button>
   <div class="prove">
@@ -742,7 +740,6 @@
         <label class="ffRiga"><span>Dettaglio del contorno</span><input type="range" id="ffTol" min="0.004" max="0.05" step="0.002"></label>
         <label class="ffSpunta"><input type="checkbox" id="ffInv"> Inverti forma e sfondo</label>
         <p class="std" style="margin:0">Funziona meglio con la forma fotografata dall'alto, su uno sfondo uniforme.</p>
-        <button type="button" id="ffAltra" class="link">Carica un'altra foto</button>
       </div>
       <div class="ffDati">
         <section class="sez"><h2>Forma</h2><select id="ffTipo" aria-label="Tipo di forma"></select></section>
@@ -807,7 +804,7 @@
       <div class="corpoSx" id="aggForma">
         <p class="guidaRiga" id="guidaAgg">Scegli una forma e le misure, poi tocca un <span class="piuMini">+</span> nella scena.</p>
         <section class="sez"><h2>Forma</h2><div id="tipi"></div>
-          <button class="daFoto" id="bDaFoto" title="Carica la foto di una pianta e trasformala in una bolla"><svg viewBox="0 0 20 16" width="17" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 4h4l1.5-2h5L14 4h4v10H2z"/><circle cx="10" cy="9" r="3"/></svg>Da una foto della pianta…</button></section><!-- [Officina] prima era un'icona nell'intestazione -->
+</section><!-- [Officina] prima era un'icona nell'intestazione -->
         <section class="sez"><div class="sezTesta"><h2>Misure</h2><button id="bStd" class="link">Ripristina</button></div><div class="par" id="parNuovo"></div></section>
         <details class="piuOpz" id="piuOpz"><!-- [Officina] porte e gonfiatori: i valori di partenza vanno già bene -->
           <summary>Più opzioni<span>porte, verso e gonfiatori</span></summary>
@@ -848,15 +845,12 @@
       </div>
       <div id="povInfo" hidden><button id="povPrima" aria-label="Avatar precedente">‹</button><span><b>Occhi di Sonny</b> · trascina per guardarti intorno · rotella: zoom</span><button id="povDopo" aria-label="Avatar successivo">›</button><button id="povEsci">Esci · Esc</button></div>
       <div id="pannelloO" hidden><!-- [Officina] oggetti 3D: scansioni e modelli dentro la scena -->
-        <input type="file" id="oFile" accept=".glb,.obj,.stl,.ply" multiple hidden>
         <div id="oCorpo" class="oCorpo"></div>
       </div>
       <div id="pannelloSt" hidden>
         <h2>Stanza di sfondo</h2>
-        <p class="vuoto" style="margin:0">Mette le bolle dentro uno spazio vero. Si vedono solo le facce interne, quindi le pareti rivolte verso di te spariscono, come il backface culling del materiale in Blender.</p>
+        <p class="vuoto" style="margin:0">Mette le bolle dentro uno spazio vero, scelto tra quelli pronti. Si vedono solo le facce interne, quindi le pareti rivolte verso di te spariscono, come il backface culling del materiale in Blender.</p>
         <div class="stPronte" id="stPronte"></div>
-        <div class="bottoni"><button id="stFoto">Foto 360°…</button><button id="stModello">Modello GLB…</button></div><input type="file" id="stFile" hidden>
-        <p class="std" style="margin:0">Foto equirettangolare 2:1 (JPG, PNG, WebP o HDR): viene proiettata su una stanza a scatola dal punto in cui è stata scattata. Oppure un modello GLB con le texture dentro. Resta salvata in questo browser.</p>
         <div class="selNome" id="stNome" hidden></div>
         <div class="par" id="stCampi"></div>
         <label class="ffSpunta" hidden><input type="checkbox" id="stInterne" checked> Pareti vicine trasparenti</label>
@@ -866,7 +860,6 @@
       <div class="barraScena" id="barraScena" role="group" aria-label="Vista"><span class="gEt">Vista</span><button class="chip" id="bNotte" title="Luci basse: si vedono i fori del soffitto stellato" hidden><!-- [Officina] tolto dalla barra: la notte resta solo per "Guarda il soffitto da dentro" -->Notte</button>
         <button class="chip" id="bStanza" title="Una stanza vera (foto 360° o modello) intorno alle bolle">Stanza</button>
         <button class="chip" id="bGriglia" aria-pressed="true" title="Griglia sul pavimento: quadretti da 1 m, linee più marcate ogni 5 m">Griglia · 1 m</button><!-- [Officina] -->
-        <button class="chip" id="bOggetti" title="Scansioni 3D e modelli dentro la scena: GLB, OBJ, STL, PLY">Oggetti 3D</button><!-- [Officina] -->
         </div><!-- [Officina] la legenda dei gonfiatori non c'è più: ogni gonfiatore ha la sua etichetta nella scena -->
     </div>
 
@@ -3366,7 +3359,7 @@ const CAT = { bolle: ['stella', 'cubo', 'prisma', 'cilindro', 'piramide'], corri
 const ETI_TIPO = { corridoio: 'Dritto' };
 let catAgg = 'bolle'; const ultimoTipo = { bolle: 'cubo', corridoi: 'corridoio' };
 function sceltaCat(c) {
-  catAgg = c; $('schedeAgg').querySelectorAll('[data-cat]').forEach(b => b.setAttribute('aria-selected', b.dataset.cat === c)); $('bDaFoto').hidden = c !== 'bolle';
+  catAgg = c; $('schedeAgg').querySelectorAll('[data-cat]').forEach(b => b.setAttribute('aria-selected', b.dataset.cat === c));
   $('aggForma').hidden = c === 'gonf'; $('aggGonf').hidden = c !== 'gonf';
   if (c !== 'gonf' && !CAT[c].includes(tipoScelto)) { tipoScelto = ultimoTipo[c]; attNuovo = 0; dimNuovo = standard(tipoScelto); fNuovo = { ...TIPI[tipoScelto].f }; porteNuove = forma(tipoScelto, dimNuovo).conn.slice(); }
   if (c === 'gonf') disegnaGonfiatori(); else disegnaTipi();
@@ -4340,23 +4333,7 @@ document.addEventListener('keydown', e => {   // R: gira il pezzo selezionato
 });
 $('cNuova').onclick = () => { nuovaComp('Composizione ' + (comp.lista.length + 1), { ...fotografa(), pezzi: [], stanza: null, oggetti: [] }); disegnaComp(); menuComp(false); apriScelte(); };   // [Officina] una composizione nuova parte dalla scelta di materiale e chiusure   // [Officina] oggetti: []
 $('cDuplica').onclick = () => { const c = compAttiva(), d = fotografa(); if (d.stanza && c) d.stanza = { ...d.stanza, da: c.id }; nuovaComp((c ? c.nome : 'Composizione') + ' (copia)', d); disegnaComp(); };
-$('cEsporta').onclick = () => {
-  const c = compAttiva(); if (!c) return; c.dati = fotografa();
-  const blob = new Blob([JSON.stringify({ app: 'bolle', versione: 1, composizioni: [{ nome: c.nome, dati: c.dati }] }, null, 1)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bolle-' + c.nome.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.json';
-  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-};
-$('cImporta').onclick = () => $('cFile').click();
-$('cFile').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try {
-    const j = JSON.parse(await f.text());
-    const elenco = Array.isArray(j.composizioni) ? j.composizioni : j.dati ? [j] : j.pezzi ? [{ nome: f.name.replace(/\.json$/i, ''), dati: j }] : [];
-    if (!elenco.length) throw new Error('vuoto');
-    let ultima; for (const x of elenco) if (x.dati && Array.isArray(x.dati.pezzi)) { const c = { id: nuovoIdComp(), nome: x.nome || 'Importata', agg: Date.now(), dati: x.dati }; comp.lista.push(c); ultima = c; }
-    if (ultima) apriComp(ultima.id); salvaComp(); disegnaComp();
-  } catch (err) { $('compNome').textContent = 'File non valido'; setTimeout(disegnaComp, 2000); }
-};
+// [Officina] niente file: le composizioni restano solo in questo browser
 
 // --- colore di ogni bolla: tavolozza o ruota dei colori ---
 const TAVOLOZZA = [[null, 'Trasparente'], ['#bfe3f5', 'Ghiaccio'], ['#6fb3e8', 'Azzurro'], ['#2f5fb3', 'Blu'], ['#232f57', 'Blu notte'], ['#62c3b2', 'Verde acqua'],
@@ -4776,8 +4753,6 @@ requestAnimationFrame(anima);
 // =====================================================================
 const FF = { img: null, tol: 0.012, inv: false, auto: 'libera', tipo: 'libera', manuale: false, unita: 'cm', scala: 10, H: 2.2, f: { piccolo: 1, grande: 1 }, mis: {}, prop: true, raw: null, poli: null, st: null };
 const FF_TIPI = { rettangolo: 'Rettangolo', cerchio: 'Cerchio', ellisse: 'Ovale', triangolo: 'Triangolo', regolare: 'Poligono regolare', libera: 'Forma libera' };
-$('bFoto').onclick = () => $('fFoto').click(); $('bDaFoto').onclick = () => $('fFoto').click();
-$('fFoto').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) caricaFoto(f); };
 function caricaFoto(file) {
   const url = URL.createObjectURL(file), im = new Image();
   im.onload = () => { FF.img = im; FF.inv = false; FF.manuale = false; FF.fToccati = false; URL.revokeObjectURL(url); if (!analizzaFoto()) return; misurePredefinite(); apriSchedaFoto(); };
@@ -4996,7 +4971,6 @@ $('ffUnita').onchange = e => { const da = FF.unita, a = e.target.value, f = { mm
 $('ffScala').onchange = e => { if (e.target.value === 'altra') { $('ffScalaN').parentElement.hidden = false; $('ffScalaN').focus(); } else { FF.scala = +e.target.value; $('ffScalaN').parentElement.hidden = true; aggiornaSchedaFoto(); } };
 $('ffScalaN').oninput = e => { const v = parseFloat(e.target.value); if (v > 0) { FF.scala = v; aggiornaSchedaFoto(); } };
 $('ffH').oninput = e => { const v = parseFloat(e.target.value); if (v > 0.5 && v < 10) { FF.H = v; aggiornaSchedaFoto(); } };
-$('ffAltra').onclick = () => $('fFoto').click();
 $('ffOk').onclick = () => {
   const G = FF.G; if (!G) return;
   const p = nuovoPezzo(G.tipo, { ...standard(G.tipo), ...G.d }, { ...FF.f });
@@ -5332,11 +5306,6 @@ function disegnaStanza() {
 }
 function pannelloStanza(v) { $('pannelloSt').hidden = !v; $('bStanza').classList.toggle('attivo', v); if (v) { if (!$('pannelloO').hidden) pannelloOggetti(false); disegnaStanza(); } }   // [Officina] stanza e oggetti 3D non si aprono insieme
 $('bStanza').onclick = () => pannelloStanza($('pannelloSt').hidden);
-$('stFoto').onclick = () => { $('stFile').accept = '.jpg,.jpeg,.png,.webp,.hdr,image/*'; $('stFile').click(); };
-$('stModello').onclick = () => { $('stFile').accept = '.glb,.gltf'; $('stFile').click(); };
-$('stFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) { ST.pronta = null; ST.pianta = null;
-  const S = STANZE.find(S => /corridoio/i.test(f.name) && S.id === 'corridoio'); if (S) Object.assign(ST, S.par);   // la stessa foto del corridoio, anche in HDR: usa la pianta ricostruita
-  caricaStanza(f); } };
 $('stTogli').onclick = () => togliStanza();
 $('stInterne').onchange = e => { ST.interne = e.target.checked; aggiornaStanza(); salvaParStanza(); };
 addEventListener('load', () => {   // dopo il caricamento dei lettori GLB e HDR
@@ -5594,13 +5563,12 @@ function disegnaOggetti() {
       <div class="bottoni"><button class="pri" id="oRicarica">Scegli il file ${esc(o.fileNome || '')}…</button><button class="del" id="oTogli">Togli</button></div>`}
     </div>` : ''}`;
   $('oChiudi').onclick = () => pannelloOggetti(false);
-  $('oCarica').onclick = () => { OG.ricarica = null; $('oFile').click(); };
   el.querySelectorAll('[data-o]').forEach(b => b.onclick = () => selezionaOggetto(OG.lista.find(x => x.id === b.dataset.o)));
   OG.campi = null;
   if (!o) return;
   $('oNome').onchange = e => { o.nome = e.target.value.trim() || o.nome; disegnaOggetti(); salvaPresto(); };
   $('oTogli').onclick = () => togliOggetto(o);
-  if (!o.g) { $('oRicarica').onclick = () => { OG.ricarica = o; $('oFile').click(); }; return; }
+  if (!o.g) return;
   el.querySelectorAll('#oModo [data-m]').forEach(b => b.onclick = () => modoManiglie(b.dataset.m)); modoManiglie(OG.modo);
   const C = $('oCampi'), cambia = () => { posaOggetto(o); aggiornaCampiOgg(o); salvaPresto(); };
   OG.campi = {
@@ -5616,15 +5584,10 @@ function disegnaOggetti() {
   $('oDuplica').onclick = () => duplicaOggetto(o);
 }
 function pannelloOggetti(v) {
-  $('pannelloO').hidden = !v; $('bOggetti').classList.toggle('attivo', v);
+  $('pannelloO').hidden = !v;
   if (v) { if (!$('pannelloSt').hidden) pannelloStanza(false); disegnaOggetti(); lettore('TransformControls'); }
   else deselezionaOggetto();
 }
-$('bOggetti').onclick = () => pannelloOggetti($('pannelloO').hidden);
-$('oFile').onchange = e => {
-  const files = [...e.target.files]; e.target.value = ''; const dove = OG.ricarica; OG.ricarica = null;
-  if (dove && files[0]) caricaFileOggetto(files[0], dove); else files.forEach(f => caricaFileOggetto(f));
-};
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && OG.sel && !e.defaultPrevented && $('cerca').hidden) deselezionaOggetto(); });
 oggettiPronti = true; if (oggettiAttesi) avviaOggetti();
 // =====================================================================
@@ -5660,7 +5623,6 @@ function vociCerca() {
   // aggiungere
   for (const [cat, ks] of Object.entries(CAT)) for (const k of ks) if (TIPI[k])
     add('Aggiungi ' + (cat === 'corridoi' ? 'corridoio ' : '') + (ETI_TIPO[k] || TIPI[k].nome).toLowerCase(), cat === 'corridoi' ? 'Aggiungi · Corridoi' : 'Aggiungi · Bolle', conPannello(() => scegliForma(cat, k)), 'forma nuova bolla');
-  add('Forma da foto', 'Aggiungi', clicca('bDaFoto'), 'foto pianta disegno immagine contorno');
   add('Annulla', 'Modifica', clicca('bAnnulla'), 'indietro ctrl z errore');
   add('Ripeti', 'Modifica', clicca('bRipeti'), 'avanti ctrl y');
   add('Metti a parte', 'Aggiungi', conPannello(() => { selezionato = null; ispettore(); evidenzia($('bSeparato')); }), 'separata staccata nuova da sola non collegata');
@@ -5685,8 +5647,6 @@ function vociCerca() {
   add('Occhi di Sonny', 'Persone', inProva(() => evidenzia($('selPov'))), 'visuale prima persona avatar guarda');
   add((MENU.press ? 'Nascondi' : 'Mostra') + ' il riquadro della pressione', 'Prova', inProva(() => { MENU.press = !MENU.press; applicaMenu(); }), 'pressione pascal scena');
   add('Stanza di sfondo', 'Vista', conVista(() => pannelloStanza(true)), 'foto 360 corridoio accademia glb hdr ambiente');
-  add('Oggetti 3D', 'Vista', conVista(() => pannelloOggetti(true)), 'scansione scansioni modello modelli glb obj stl ply nuvola punti mobili');
-  add('Carica un modello 3D', 'Oggetti 3D', conVista(() => { pannelloOggetti(true); OG.ricarica = null; $('oFile').click(); }), 'scansione importa glb obj stl ply');
   for (const o of OG.lista) add(o.nome, 'Oggetto 3D', conVista(() => { pannelloOggetti(true); selezionaOggetto(o); }), 'oggetto modello scansione');
   add(MENU.sx ? 'Chiudi il pannello laterale' : 'Apri il pannello laterale', 'Vista', () => { mostra('c'); MENU.sx = !MENU.sx; applicaMenu(); }, 'scena grande schermo intero');
   add('Mostra o nascondi i menu', 'Vista', () => { mostra('c'); menuMenu(true); }, 'menu pannelli barre');
@@ -5695,8 +5655,6 @@ function vociCerca() {
   add('Elenco delle composizioni', 'Composizioni', () => menuComp(true), 'salvate progetti');
   add('Nuova composizione', 'Composizioni', clicca('cNuova'), 'progetto vuoto');
   add('Duplica questa composizione', 'Composizioni', clicca('cDuplica'), 'copia');
-  add('Esporta file', 'Composizioni', clicca('cEsporta'), 'salva json scarica');
-  add('Importa file', 'Composizioni', clicca('cImporta'), 'apri json carica');
   for (const c of comp.lista) if (c.id !== comp.attiva) add('Apri «' + c.nome + '»', 'Composizioni', () => { apriComp(c.id); disegnaComp(); }, 'composizione');
   // Aria
   add('Dettagli delle bolle', 'Aria', vaiScheda('p', apriSez('dettagliBolle')), 'tabella limite telo blackout persone gonfiatori');
@@ -6154,7 +6112,6 @@ if (VETRINA) {
   // gli scenari: la stanza di sfondo (una pronta, una foto 360° o un modello GLB), come nell'Abbofficina
   function scenario(M) {
     const base = { pronta: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true };
-    if (M.file) { genStanza++; Object.assign(ST, base); const S = STANZE.find(S => /corridoio/i.test(M.file.name || '') && S.id === 'corridoio'); if (S) Object.assign(ST, S.par); caricaStanza(M.file, true); return; }
     const S = STANZE.find(S => S.id === M.id);
     if (S) { genStanza++; Object.assign(ST, base); stanzaPronta(S); } else togliStanza();
   }
