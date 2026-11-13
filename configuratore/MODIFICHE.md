@@ -475,9 +475,14 @@ Tutto segnato `[Officina]`.
 - **I colori del sito**: carta grigia, rosso `#e3101e`, Bebas Neue per titoli e pulsanti, Barlow per il testo, angoli quasi vivi. Si caricano Bebas Neue e Barlow da Google Fonts; i colori sono le variabili di `html.vetrina`.
 - **Per le prove**: `window.cfg.az` è `VETRINA_AZ` (con `vicino`, `proponi`, `unioni`).
 
-## Niente più caricamenti di file (13 novembre)
+## Meno caricamenti di file (13 novembre)
 
-- Tolti tutti i campi file e i loro gestori: «Esporta file» e «Importa file» delle composizioni (`cFile`), «Forma da foto» (`bFoto`, `bDaFoto`, `fFoto`, `ffAltra`), nella Stanza «Foto 360°…» e «Modello GLB…» (`stFile`), gli Oggetti 3D (`bOggetti`, `oFile`) e le voci della ricerca che li aprivano.
-- La Stanza resta con le stanze pronte (il Corridoio). In vetrina, a metà schermo e a tutto schermo, non c'è più: lo sfondo lo sceglie lo Scenario del sito.
-- In vetrina `scenario()` non accetta più un file dal sito, solo l'id di una stanza pronta.
+- Tolti i campi file e i loro gestori:
+  - «Esporta file» e «Importa file» delle composizioni (`cFile`);
+  - «Forma da foto» (`bFoto`, `bDaFoto`, `fFoto`, `ffAltra`);
+  - nella Stanza «Foto 360°…» e «Modello GLB…» (`stFile`);
+  - gli Oggetti 3D (`bOggetti`, `oFile`);
+  - le voci della ricerca che li aprivano.
+- La Stanza dell'Abbofficina da sola resta con le stanze pronte (il Corridoio). In vetrina non c'è: lo sfondo lo sceglie lo Scenario del sito.
+- In vetrina `scenario()` accetta ancora una foto 360° mandata dal sito (`M.file`), oltre all'id di una stanza pronta.
 - Il codice che legge una foto o un modello resta nel file, ma niente lo chiama più.

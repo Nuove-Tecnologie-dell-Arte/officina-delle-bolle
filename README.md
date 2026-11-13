@@ -1,6 +1,6 @@
 # Officina delle Bolle
 
-Un sito per progettare e costruire bolle gonfiabili in plastica fatte di pannelli piatti: icosaedro, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, toro, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera), e piante disegnate a mano.
+Un sito per progettare e costruire bolle gonfiabili in plastica fatte di pannelli piatti: icosaedro, cubo, prismi, piramidi, forme a L e a C, tunnel, barca, toro, figure (balena, fungo, razzo, tartaruga…), frutti (banana, ananas, pera), piante disegnate a mano e forme ricavate da un'immagine.
 
 ## Il sito (prova unita)
 
@@ -34,7 +34,7 @@ A destra c'è sempre una finestra con due linguette.
 - **1 · Progettazione**
   - **Prendi le misure:** X, Y, Z dell'area di lavoro, in metri. Vuote vuol dire nessun limite.
   - **Progetta**, con due linguette:
-    - **Forme:** le forme del motore per famiglia, con il loro nome geometrico (Icosaedro, Icosaedro troncato, Esacisicosaedro…), più «Disegnala tu».
+    - **Forme:** le forme del motore per famiglia, con il loro nome geometrico (Icosaedro, Icosaedro troncato, Esacisicosaedro…), più «Parti da un'immagine» e «Disegnala tu».
     - **Misure:** tre cursori verticali X, Y, Z con «Mantieni le proporzioni» (la forma si allunga fino a quelle misure, con le facce piane, come `opt.size` del motore). Sotto, le **misure tipiche** della forma in % (raggio interno della stella, picciolo della banana…). In «Altre opzioni» le misure tecniche: lati, spicchi, segmenti.
     - Poi il verdetto con **Risolvi**, l'altezza, l'ingombro e la lista dei controlli.
     - Una forma appena scelta parte con le misure di base del motore, rimpicciolita se non sta nell'area. Il sito non conta le persone.
@@ -42,7 +42,7 @@ A destra c'è sempre una finestra con due linguette.
     - prima **le scelte del lab**, le stesse per tutte le bolle: telo e grammatura, pezzi uniti con nastro adesivo da 48 mm dentro e fuori (o saldatura, zip, velcro), porte e collegamenti con zip o velcro;
     - poi il resoconto: telo e metri di rotolo, nastro, zip della porta, ventilatore, dime, tempo, attrezzi;
     - infine la **lista materiali e prezzi** del simulatore, per tutte le bolle: i prezzi scritti qui valgono anche là, e il totale è «Totale materiali».
-  - **Il progetto** resta salvato in questo browser. Il sito non apre e non carica nessun file dal computer: niente progetti da file, immagini, foto 360°, modelli 3D o oggetti 3D.
+  - **Il progetto** resta salvato in questo browser: non si salva né si apre da file. Dal computer si aprono solo un'immagine (per «Parti da un'immagine») e una foto 360° (per lo Scenario).
 - **2 · Dima / Modellino**
   - **Il modellino di carta:** scala scelta da sola e fogli A4 al 100%; «Stampa il cartamodello» stampa solo i fogli.
   - **Le dime**, P1, P2, P3…:
@@ -70,10 +70,37 @@ A destra c'è sempre una finestra con due linguette.
 **I file:**
 - `index.html`: il sito;
 - `motore.js`: il motore delle forme, usato anche dall'Abbofficina;
+- `immagine.js`: la finestra «bolla da un'immagine»;
 - `guida.html`: rimanda a `index.html`;
 - `configuratore/`: l'Abbofficina, da sola, in vetrina e incorporata.
 
 **Senza server:** il sito si apre anche così, basta aprire `index.html` nel browser. L'Abbofficina vera, aperta da sola, legge il motore con una richiesta, quindi vuole il sito pubblicato o un server locale.
+
+## Bolla da un'immagine
+
+In Progettazione, nella linguetta Forme, c'è il riquadro **Parti da un'immagine**. Si carica una foto, un disegno, uno schizzo o una sagoma: si può anche trascinare l'immagine sulla pagina o incollarla con Ctrl+V. Tutto succede nel browser, senza server.
+- **La sagoma**, in tre modi:
+  - **Intelligente** (si parte da qui): un modello di intelligenza artificiale riconosce il soggetto, senza ombra e sfondo. È SAM («Segment Anything», di Meta, licenza Apache 2.0), nella versione leggera SlimSAM, eseguito nel browser con Transformers.js (`@xenova/transformers@2.17.2` da jsdelivr, modello `Xenova/slimsam-77-uniform` da Hugging Face).
+    - Si scarica solo la prima volta (circa 13 MB), poi resta nel browser.
+    - Gira in un worker, così la pagina non si blocca; se il browser non lo permette, gira nella pagina.
+    - Il modello tocca da solo il punto più interno del soggetto. Ogni tocco «+ È soggetto» o «− È sfondo» (anche col tasto destro o con Maiusc) corregge la sagoma in mezzo secondo.
+    - Senza internet il pulsante si spegne e la pagina passa ad Automatico.
+  - **Automatico**, senza internet: uno scontorno sul modello di GrabCut, scritto dentro la pagina.
+    - Soggetto e sfondo hanno ciascuno un modello dei colori, così uno sfondo a puntini come il sughero conta come un unico sfondo.
+    - La luce pesa poco, così un'ombra è sfondo più scuro e non un oggetto.
+    - I pixel vicini e simili stanno dalla stessa parte, e una chiusura leggera toglie le fessure lungo il bordo.
+    - Per aiutarlo si trascina un riquadro attorno al soggetto e si usano gli stessi tocchi «+» e «−». Con un PNG trasparente il contorno viene dalla trasparenza.
+  - **Punti a mano**, per quando serve la massima precisione (vedi sotto).
+- **Punti a mano:** per le foto difficili (oggetti lucidi, sfondi pieni di cose, ombre) il contorno lo mettete voi. Si tocca l'immagine attorno alla forma, un punto dopo l'altro; toccando vicino a un lato il punto va lì. I punti si trascinano, e con doppio clic (o il dito tenuto premuto) si tolgono; ci sono Annulla e Ricomincia da zero. «Parti dal contorno automatico» trasforma il contorno trovato in punti da correggere, e «Specchia» copia la metà sinistra da quella destra, per gli oggetti simmetrici.
+- **Forme geometriche:** cerchi, ovali, rettangoli, poligoni regolari e stelle vengono resi precisi, così i pezzi sono di pochi tipi.
+- **Come la legge**, scelto da sola e cambiabile con un clic:
+  - **oggetto tondo** visto di lato (vaso, fungo, pera): gira attorno all'asse, a fasce di trapezi uguali;
+  - **sagoma con spessore** vista di lato (animale, lettera);
+  - **pianta** vista dall'alto, con pareti e tetto piatto, a punta o a cupola.
+
+  Se la lettura scelta non si può costruire, la pagina ne propone un'altra.
+- **Anteprima e giudizio** si aggiornano a ogni ritocco: il modellino 3D con le quote e una persona per la scala, e un giudizio «Si può fare / con qualche accorgimento (o «con molti accorgimenti», se sono almeno 4) / Così non si può fare» (l'esito si legge anche in fondo alla finestra, senza scorrere) che guarda porta da 1,80 m, pavimento, tipi di pezzo, lati troppo corti, punte strette, stabilità, modellino, telo e giunzioni.
+- **Usa questa forma** la mette nel progetto come «La tua immagine»: misure, modellino, dime e montaggio come per le altre forme. L'ultima immagine resta in questo browser per «Ritocca l'ultima».
 
 ## Sfera geodetica
 
@@ -108,5 +135,5 @@ Nella cartella `configuratore/` c'è l'**Abbofficina** (prima si chiamava Config
 - Si passa da una parte all'altra con il selettore **Officina | Abbofficina** in alto, nella stessa scheda: l'Officina ricorda l'ultima forma e l'Abbofficina l'ultima composizione. Il pulsante "Porta la forma nell'Abbofficina" dell'Officina la manda nell'Abbofficina; da lì, "Officina" riporta a quella forma con le sue misure, e rimandandola dopo un ritocco si aggiorna la stessa composizione. Con "Aggiungi alla composizione aperta" la forma va invece nell'ultima composizione su cui si stava lavorando, accanto alle altre bolle, così se ne mettono insieme più di una. Se l'Abbofficina ingrandisce la forma per avere porte da 1,80 m, tornando all'Officina un avviso dice di quanto. Le composizioni dell'Abbofficina si passano con Esporta / Importa.
 - Si apre anche da `configuratore/` sullo stesso sito: la cartella e l'indirizzo hanno tenuto il nome di prima, così i link già condivisi funzionano ancora. Il pulsante passa la forma con le sue misure, e **tutte le forme** arrivano montate così come sono: quelle che l'Abbofficina ha già (cubo, prisma, piramide, stella, piante dritte) con i suoi tipi, le altre (cupola, tubi, figure…) come forma vera in 3D.
 - Nella scheda "Bolle" dell'Abbofficina ci sono anche le forme dell'Officina che non aveva (cupola, sfera geodetica, sfera di triangoli uguali, pallone, dodecaedro, L, C, freccia, tubi, figure e frutti…), con le loro misure. L'Abbofficina le costruisce con il motore dell'Officina, letto da `motore.js` tra `// ENGINE START` e `// ENGINE END`: non cambiate quei due segnaposto.
-- **Stanza di sfondo** (barra Vista → Stanza, solo nell'Abbofficina da sola): mette le bolle dentro una delle stanze pronte, come il Corridoio dell'Accademia. Si vedono solo le facce interne, così le pareti verso di voi spariscono. Non si caricano foto 360° o modelli dal computer.
+- **Stanza di sfondo** (barra Vista → Stanza, nell'Abbofficina da sola): mette le bolle dentro una delle stanze pronte, come il Corridoio dell'Accademia. Si vedono solo le facce interne, così le pareti verso di voi spariscono. Nel sito la foto 360° si sceglie nello Scenario, sotto il simulatore.
 - Per aggiornarla con una loro nuova versione: si sostituisce `configuratore/index.html` con il loro file unico e si riaggiungono le parti segnate `[Officina]`. L'elenco è in `configuratore/MODIFICHE.md`.

@@ -6112,6 +6112,8 @@ if (VETRINA) {
   // gli scenari: la stanza di sfondo (una pronta, una foto 360° o un modello GLB), come nell'Abbofficina
   function scenario(M) {
     const base = { pronta: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true };
+    if (M.file) {   // [Officina] la foto 360° scelta nello Scenario del sito
+      genStanza++; Object.assign(ST, base); const S = STANZE.find(S => /corridoio/i.test(M.file.name || '') && S.id === 'corridoio'); if (S) Object.assign(ST, S.par); caricaStanza(M.file, true); return; }
     const S = STANZE.find(S => S.id === M.id);
     if (S) { genStanza++; Object.assign(ST, base); stanzaPronta(S); } else togliStanza();
   }
