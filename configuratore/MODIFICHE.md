@@ -486,3 +486,18 @@ Tutto segnato `[Officina]`.
 - La Stanza dell'Abbofficina da sola resta con le stanze pronte (il Corridoio). In vetrina non c'è: lo sfondo lo sceglie lo Scenario del sito.
 - In vetrina `scenario()` accetta ancora una foto 360° mandata dal sito (`M.file`), oltre all'id di una stanza pronta.
 - Il codice che legge una foto o un modello resta nel file, ma niente lo chiama più.
+
+## Lo splat del chiostro come scenario (14 novembre)
+
+- **Scenario nuovo «Corridoio dell'Accademia (splat)»** (`id: 'corridoio-splat'` in `STANZE`): una scansione 3D a gaussiane (`stanze/corridoio.sog`, SOG v2, in metri, pavimento a y=0) al posto della foto 360°. La foto resta com'era; lo splat si scarica solo se lo si sceglie.
+- **Come si disegna** (`splat-stanza.js`, modulo ES caricato con `import()`):
+  - Spark (three.js recente) disegna lo splat in un canvas **dietro** quello del simulatore (three.js r128), che ha `alpha: true` e sfondo nullo;
+  - la camera dello splat copia a ogni fotogramma quella del simulatore, compreso `setViewOffset`;
+  - la importmap (`three`, `three/addons/`, Spark) si scrive al primo uso, con le versioni in `SPLAT_LIB`;
+  - non funziona da `file://`: serve un server HTTP.
+- **Pianta con buchi:** la stanza ha `pianta` (il contorno esterno) e `buchi` (il cortile del chiostro). `pareteStanza()` li dà in coordinate del mondo, `dentroStanza()` dice se un punto sta nella stanza, `nelMuro()` controlla anche gli anelli dei buchi. `togliStanza()` azzera `ST.buchi`.
+- **Pareti viste da dietro** (come il backface culling della foto): `splatMuri()` calcola le pareti e quali nascondere; `splat-stanza.js` le rende trasparenti con una scatola (`SplatEditSdf BOX`) per parete. Si nasconde una parete solo se la camera è fuori dalla stanza, dal suo lato esterno, senza altre pareti in mezzo. Il riquadro «Si vedono solo le facce interne» lo accende e spegne.
+- **Dati di uno scenario con splat:** `splat` (il file), `par.pianta`, `par.buchi`, `par.H`, `vista` (dove si mette la camera). La forma della stanza viene sempre dallo scenario, non da una composizione salvata.
+- **Limite:** lo splat non copre le bolle (le due scene non condividono la profondità).
+- `prova-splat.html`: pagina per confrontare qualità e scala (griglia da 2,95 m) e provare le impostazioni di Spark.
+- Nel sito (`index.html`): una voce in più nel menu Scenario, e il valore salvato e i progetti riaperti la accettano.

@@ -663,7 +663,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <div class="sim-vuoto sim-guasto" id="simGuasto" hidden><div><p id="simGuastoTesto"></p><button type="button" class="btn primary" id="bRiprovaSim">Riprova</button></div></div>
   </div>
   <div class="sim-piede">
-    <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option><option value="foto">La tua foto 360°…</option></select></label>
+    <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option><option value="corridoio-splat">Corridoio dell'Accademia (splat 3D)</option><option value="foto">La tua foto 360°…</option></select></label>
     <p class="sim-nota" id="simNota"></p>
   </div>
   <input type="file" id="scenarioFile" accept=".jpg,.jpeg,.png,.webp,.hdr,image/*" hidden>
@@ -1121,7 +1121,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* lo scenario del simulatore: la stanza di sfondo dell'Abbofficina (una pronta, o una foto 360° o un modello 3D vostri) */
   let scenario = "", fileScenario = null;
   try { scenario = localStorage.getItem("bolle|scenario") || ""; } catch (e) { /* */ }
-  if (scenario !== "corridoio") scenario = "";
+  if (scenario !== "corridoio" && scenario !== "corridoio-splat") scenario = "";   // [Officina] lo splat 3D del corridoio è uno scenario in più (si scarica solo se scelto)
   $("scenario").value = scenario;
   function inviaScenario() { if (vetrinaPronta && fr.contentWindow) fr.contentWindow.postMessage(fileScenario ? { tipo: "vetrina-scenario", file: fileScenario } : { tipo: "vetrina-scenario", id: scenario }, "*"); }
   function opzioneTua() { let o = $("scenario").querySelector('option[value="tuo"]'); if (!fileScenario) { if (o) o.remove(); return; } if (!o) { o = document.createElement("option"); o.value = "tuo"; $("scenario").insertBefore(o, $("scenario").querySelector('option[value="foto"]')); } o.textContent = "La tua: " + fileScenario.name; }
@@ -2480,7 +2480,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function apriProgetto(j) {   // [Unita] i progetti non si aprono più da file: resta per le prove (window.unita)
     if (j && j.v === "unita-1" && j.PR && Array.isArray(j.PR.bolle)) {   // un progetto della prova unita: sostituisce quello di adesso
       PR = normalizzaPR(JSON.parse(JSON.stringify(j.PR))); S = PR.bolle[PR.att];
-      if (j.scenario === "" || j.scenario === "corridoio") { scenario = j.scenario; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
+      if (j.scenario === "" || j.scenario === "corridoio" || j.scenario === "corridoio-splat") { scenario = j.scenario; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
       dimeAperte.clear(); ultimoInvio = ""; storia.length = 0; rendiBolle(); rendiScelteMat(); inviaMateriali(); apriBolla(PR.att); return true;
     }
     if (j && typeof j.shape === "string" && def(j.shape) && j.shape !== "foto" && j.params && typeof j.params === "object") {   // una forma salvata con la prova semplice: una bolla nuova

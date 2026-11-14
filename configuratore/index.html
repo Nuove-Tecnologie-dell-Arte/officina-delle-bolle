@@ -1565,17 +1565,26 @@ function pareteStanza() {
     loc = ST.pianta.map(([a, b]) => { const x = a * k, z = b * k; return [ST.fx + cr * x + sr * z, ST.fz - sr * x + cr * z]; }); }
   else loc = [[-ST.W / 2, -ST.P / 2], [ST.W / 2, -ST.P / 2], [ST.W / 2, ST.P / 2], [-ST.W / 2, ST.P / 2]];
   const t = ST.rot * Math.PI / 180, c = Math.cos(t), sn = Math.sin(t);   // come rotation.y del gruppo della stanza
-  return { P: loc.map(([x, z]) => [ST.x + x * c + z * sn, ST.z - x * sn + z * c]), H: ST.H };
+  const mondo = poly => poly.map(([x, z]) => [ST.x + x * c + z * sn, ST.z - x * sn + z * c]);
+  // [Officina] buchi: anelli dentro la pianta dove non si sta (il cortile di un chiostro), con le stesse unità e posizioni della pianta
+  let buchi = null;
+  if (ST.pianta && ST.buchi && ST.buchi.length) { const r = ST.frot * Math.PI / 180, cr = Math.cos(r), sr = Math.sin(r), k = ST.fy;
+    buchi = ST.buchi.map(B => mondo(B.map(([a, b]) => { const x = a * k, z = b * k; return [ST.fx + cr * x + sr * z, ST.fz - sr * x + cr * z]; }))); }
+  return { P: mondo(loc), H: ST.H, buchi };
+}
+function dentroStanza(S, x, z) {   // il punto (x, z) del mondo sta nella pianta e non in un buco
+  const inP = P => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > z) !== (P[j][1] > z) && x < (P[j][0] - P[i][0]) * (z - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
+  return inP(S.P) && !(S.buchi || []).some(inP);
 }
 function nelMuro(sc, S) {   // l'impronta sc (convessa, nel mondo) esce dalla pianta della stanza o attraversa una parete
   S = S === undefined ? pareteStanza() : S; if (!S) return false;
-  const P = S.P, dentro = (x, z) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > z) !== (P[j][1] > z) && x < (P[j][0] - P[i][0]) * (z - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
+  const anelli = [S.P, ...(S.buchi || [])], dentro = (x, z) => dentroStanza(S, x, z);   // [Officina] la pianta e i suoi buchi
   if (sc.some(q => !dentro(q[0], q[1]))) return true;
   const lato = (a, b, q) => (b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0]);
   const inSc = q => { const s0 = sc.map((a, i) => lato(a, sc[(i + 1) % sc.length], q)); return s0.every(v => v > 0.02) || s0.every(v => v < -0.02); };
-  if (P.some(inSc)) return true;   // uno spigolo della stanza (il pilastro del corridoio) dentro la bolla
+  if (anelli.some(R => R.some(inSc))) return true;   // uno spigolo della stanza (il pilastro del corridoio) dentro la bolla
   const taglia = (a, b, c, d) => Math.sign(lato(a, b, c)) * Math.sign(lato(a, b, d)) < 0 && Math.sign(lato(c, d, a)) * Math.sign(lato(c, d, b)) < 0;
-  for (let i = 0; i < P.length; i++) for (let j = 0; j < sc.length; j++) if (taglia(P[i], P[(i + 1) % P.length], sc[j], sc[(j + 1) % sc.length])) return true;
+  for (const P of anelli) for (let i = 0; i < P.length; i++) for (let j = 0; j < sc.length; j++) if (taglia(P[i], P[(i + 1) % P.length], sc[j], sc[(j + 1) % sc.length])) return true;
   return false;
 }
 function postoLibero(p) {   // il posto libero più vicino: non sopra altre bolle e non nelle pareti (passi di 50 cm, fino a 20 m)
@@ -1810,7 +1819,7 @@ function statoGlobale() {
 const box = $('scena');
 const scena = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(36, 1, 0.05, 400);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });   // [Officina] alpha: con uno splat di sfondo il canvas è trasparente (sfondo null); senza, lo sfondo disegnato lo copre tutto
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
 box.prepend(renderer.domElement);
@@ -4372,7 +4381,7 @@ function esciDaDentro() { if (!dentro) return; dentro = false; ctrl.minDistance 
 function vistaNotte(on) {
   if (!on) esciDaDentro();
   notte = on; sole.intensity = on ? 0.1 : 1.25; emisfero.intensity = on ? 0.06 : 0.45; renderer.toneMappingExposure = on ? 0.6 : 1.0;
-  scena.background = on ? coloreNotte : sfondoGiorno; scena.environment = on ? null : ambienteGiorno;
+  scena.background = splatAttivo() ? null : on ? coloreNotte : sfondoGiorno; scena.environment = on ? null : ambienteGiorno;   // [Officina] con lo splat di sfondo il canvas resta trasparente
   $('bNotte').classList.toggle('attivo', on); $('bNotte').textContent = on ? 'Giorno' : 'Notte';
 }
 
@@ -4739,8 +4748,8 @@ function anima(ora) {
     for (const p of pezzi) aggiornaPezzo(p);
     for (const l of link) aggiornaLink(l);
     animaPersona(dtr); if (pov) aggiornaPov(); else ctrl.update(); etichette(); aggiornaFrammenti(dtr);
-    if (scossa > 0) { scossa -= dtr; const k = scossa * 0.45, s0 = camera.position.clone(); camera.position.x += (Math.random() - 0.5) * k; camera.position.y += (Math.random() - 0.5) * k; renderer.render(scena, camera); camera.position.copy(s0); }
-    else renderer.render(scena, camera);
+    if (scossa > 0) { scossa -= dtr; const k = scossa * 0.45, s0 = camera.position.clone(); camera.position.x += (Math.random() - 0.5) * k; camera.position.y += (Math.random() - 0.5) * k; renderer.render(scena, camera); splatDisegna(); camera.position.copy(s0); }
+    else { renderer.render(scena, camera); splatDisegna(); }
   }
   tUI += dtr; if (tUI > 0.12) { tUI = 0; if (!$('vCostruisci').hidden) pannelloPressione(); aggiornaRighe(); aggiornaManometri(); aggiornaSchemi(); tBom = (tBom || 0) + 1; if (tBom > 4) { tBom = 0; aggiornaMateriali(); } const iP = $('iP'); if (iP && selezionato) iP.textContent = fmt(pOf(selezionato), 1); }
 }
@@ -5086,6 +5095,8 @@ caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bo
 //  quindi le pareti rivolte verso la camera spariscono e si vede dentro.
 // =====================================================================
 const ST = { tipo: null, nome: '', file: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true,
+  splat: null,   // [Officina] l'indirizzo dello splat di sfondo, se la stanza è uno splat
+  buchi: null,   // [Officina] anelli dove non si sta, dentro la pianta (il cortile di un chiostro)
   grp: null, mats: [], uCentro: { value: new THREE.Vector3() }, uRot: { value: 0 }, uMis: { value: new THREE.Vector3(8, 4, 6) } };
 pavimento.material.polygonOffset = true; pavimento.material.polygonOffsetFactor = 2; pavimento.material.polygonOffsetUnits = 4;   // il pavimento della stanza vince sul grigio
 function matEquirett(tex) {   // la foto 360° proiettata dal punto in cui è stata scattata, con la stessa formula di Blender
@@ -5130,6 +5141,8 @@ function geoPianta(pt, k, H, cx, cz, rotF) {
   return { g, o };
 }
 function togliStanza(salva) {
+  splatGiu();   // [Officina] se la stanza era uno splat, il suo canvas si spegne e lo sfondo torna
+  ST.buchi = null;
   if (ST.grp) { scena.remove(ST.grp); ST.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
   ST.grp = null; ST.mats = []; ST.tipo = null; ST.file = null; ST.nome = ''; if (salva !== false) ST.pronta = null;
   if (salva !== false) { stanzaDB('del'); stanzaAttesa = null; genStanza++; salvaPresto(); } disegnaStanza();
@@ -5186,8 +5199,89 @@ function stanzaDaModello(gltf, nome) {
 // Il corridoio è ricostruito dalla foto: l'angolo del chiostro con due bracci, letto dal bordo tra pavimento e pareti
 // (porta verde a destra, porta aperta e il pilastro d'angolo con le finestre). Misure in multipli dell'altezza di scatto.
 const STANZE = [{ id: 'corridoio', nome: 'Corridoio dell\'Accademia', file: 'stanze/corridoio.jpg', js: 'stanze/corridoio.js', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · ricostruito in 3D',
-  par: { pianta: [[2.6, 2.2], [-34, 2.2], [-34, -1.8], [-1.75, -1.8], [-1.75, -34], [2.6, -34]], W: 12, P: 12, H: 8, fy: 0.9, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
+  par: { pianta: [[2.6, 2.2], [-34, 2.2], [-34, -1.8], [-1.75, -1.8], [-1.75, -34], [2.6, -34]], W: 12, P: 12, H: 8, fy: 0.9, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true } },
+  // [Officina] Il chiostro dell'Accademia come scansione 3D (splat, SOG v2, in metri con il pavimento a y=0): un corridoio ad anello di quattro bracci larghi ~4,7 m
+  // attorno a un cortile. Pareti ricavate dagli splat (14 nov 2026), con l'origine nel mezzo del braccio superiore (che corre lungo x):
+  //   esterne x = ±26,7, z da −2,4 a 55,6 · interne (il cortile) x da −22,1 a 21,9, z da 2,4 a 51,0. Si lascia 5 cm dai muri. Il soffitto a volta arriva a ~7 m: 5,5 è prudente.
+  // pianta = il contorno esterno, buchi = il cortile (dove le bolle non possono stare). vista = dove si mette la camera quando lo si sceglie.
+  { id: 'corridoio-splat', nome: 'Corridoio dell\'Accademia (splat)', splat: 'stanze/corridoio.sog', mini: 'stanze/corridoio-mini.jpg', sotto: 'Belle Arti di Napoli · chiostro in 3D, circa 30 MB',
+    vista: { cam: [-9, 2.4, 1.4], mira: [0, 1.1, 0] },
+    par: { pianta: [[-26.65, -2.35], [26.65, -2.35], [26.65, 55.55], [-26.65, 55.55]], buchi: [[[-22.15, 2.35], [21.95, 2.35], [21.95, 51.05], [-22.15, 51.05]]],
+      W: 53, P: 58, H: 5.5, fy: 1, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true } }];
+
+// ---- [Officina] scenario con splat: lo disegna Spark in un canvas dietro a questo (modulo splat-stanza.js, three.js recente) ----
+let splatM = null, splatModulo = null;   // splatM: il modulo, quando è arrivato
+const SPLAT_LIB = { three: '0.180.0', spark: '2.4.0' };
+function splatAttivo() { try { return !!ST.splat; } catch (e) { return false; } }   // ST è dichiarata più su di dove si chiama, ma all'avvio può non esserci ancora
+function caricaModuloSplat() {
+  if (splatModulo) return splatModulo;
+  if (location.protocol === 'file:') return Promise.reject(new Error('file'));   // i moduli ES non si leggono da file://: serve il sito pubblicato o un server locale
+  if (!document.querySelector('script[type="importmap"]')) {   // la importmap va scritta prima del primo modulo
+    const m = document.createElement('script'); m.type = 'importmap';
+    m.textContent = JSON.stringify({ imports: {
+      'three': `https://cdn.jsdelivr.net/npm/three@${SPLAT_LIB.three}/build/three.module.js`,
+      'three/addons/': `https://cdn.jsdelivr.net/npm/three@${SPLAT_LIB.three}/examples/jsm/`,   // Spark importa anche three/addons/…
+      '@sparkjsdev/spark': `https://sparkjs.dev/releases/spark/${SPLAT_LIB.spark}/spark.module.js` } });
+    document.head.appendChild(m);
+  }
+  splatModulo = import('./splat-stanza.js').then(M => (splatM = M), e => { splatModulo = null; throw e; });
+  return splatModulo;
+}
+// Il «backface culling» dello splat: ogni parete della pianta (e dei buchi) è un tratto con la sua normale verso l'esterno dello spazio dove si sta.
+// Una parete si nasconde (acceso) solo se: la camera è fuori dalla stanza, dal lato esterno di quella parete, e tra la camera e la parete non c'è
+// un'altra parete (così si toglie sempre e solo quella davanti: dal cortile le quattro interne, da fuori la esterna più vicina, e non si buca tutto).
+function splatMuri() {
+  const S = pareteStanza(); if (!S) return null;
+  const cx = camera.position.x, cz = camera.position.z, fuoriStanza = !dentroStanza(S, cx, cz);
+  const bordi = []; for (const R of [S.P, ...(S.buchi || [])]) for (let i = 0; i < R.length; i++) bordi.push([R[i], R[(i + 1) % R.length]]);
+  const lato = (a, b, q) => (b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0]);
+  const taglia = (a, b, c, d) => lato(a, b, c) * lato(a, b, d) < 0 && lato(c, d, a) * lato(c, d, b) < 0;
+  const muri = [];
+  for (const e of bordi) {
+    const [a, b] = e, dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz); if (L < 0.3) continue;
+    let nx = dz / L, nz = -dx / L; const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
+    if (dentroStanza(S, mx + nx * 0.1, mz + nz * 0.1)) { nx = -nx; nz = -nz; }   // la normale guarda dove non si sta
+    let acceso = false;
+    if (fuoriStanza && (cx - mx) * nx + (cz - mz) * nz > 0.05) {
+      const q = [mx + nx * 0.05, mz + nz * 0.05];
+      acceso = !bordi.some(f => f !== e && taglia([cx, cz], q, f[0], f[1]));
+    }
+    muri.push({ mx, mz, nx, nz, L, acceso });
+  }
+  return { muri, H: S.H };
+}
+function splatDisegna() {   // dopo ogni fotogramma del simulatore: lo splat copia la camera e si disegna dietro
+  if (!splatM || !ST.splat) return;
+  splatM.disegnaSplat(camera, { x: ST.x, z: ST.z, rot: ST.rot, luce: ST.luce, w: box.clientWidth, h: box.clientHeight, muri: splatMuri(), nascondiMuri: ST.interne });
+}
+function splatGiu() {   // via lo splat: il canvas si spegne, tornano il cielo e il pavimento
+  if (!splatM || !ST.splat) return;
+  try { splatM.togliSplat(); } catch (e) {}
+  ST.splat = null; scena.background = notte ? coloreNotte : sfondoGiorno; pavimento.visible = true;
+}
+async function stanzaDaSplat(S, par, nuova) {   // nuova: scelta dall'utente (si porta la camera dentro il corridoio); altrimenti ripristinata da una composizione
+  const g0 = genStanza;
+  avviso('Carico lo splat del corridoio (circa 29 MB)…', 0);
+  try {
+    const M = await caricaModuloSplat(), mesh = await M.caricaSplat(S.splat);
+    if (g0 !== genStanza) { M.scartaSplat(mesh); return; }   // nel frattempo la stanza è cambiata
+    togliStanza(false); Object.assign(ST, S.par, par || {}, { pianta: S.par.pianta, buchi: S.par.buchi }); ST.pronta = S.id;   // la forma della stanza è sempre quella dello scenario, non una vecchia salvata
+    const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
+    const muri = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat); muri.visible = false;   // la pianta c'è (per i controlli e l'ombra) ma le pareti non si vedono: i muri li fa lo splat
+    const om = ombraStanza(); g.add(muri, om); g.userData = { box: muri, ombra: om };
+    ST.grp = g; ST.mats = [mat]; ST.tipo = 'foto'; ST.nome = S.nome; ST.splat = S.splat; scena.add(g);
+    M.mettiSplat(mesh, box, renderer.domElement);
+    scena.background = null; pavimento.visible = false;
+    if (nuova) { const v = S.vista || { cam: [0.3, 2.4, 9], mira: [0, 1.1, 0] }; camera.position.set(...v.cam); ctrl.target.set(...v.mira); ctrl.update(); }
+    stanzaAttesa = null; avviso(''); aggiornaStanza(); disegnaStanza(); salvaPresto();
+  } catch (e) {
+    if (g0 !== genStanza) return;
+    stanzaAttesa = null;
+    avviso(e && e.message === 'file' ? 'Lo splat si apre solo dal sito pubblicato o da un server locale (non come file sul computer).' : 'Non riesco a caricare lo splat: ' + ((e && e.message) || e) + '. Serve internet per three.js e Spark (CDN).', 8000);
+  }
+}
 function stanzaPronta(S, par) {   // [Officina] par: le misure salvate nella composizione, sopra quelle della stanza pronta
+  if (S.splat) { stanzaDaSplat(S, par, !par); return; }
   const g0 = genStanza;
   const usa = b => { if (g0 !== genStanza) return; Object.assign(ST, S.par, par || {}); const f = new File([b], S.file.split('/').pop(), { type: b.type || 'image/jpeg' }); ST.pronta = S.id; caricaStanza(f); };
   fetch(S.file).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(usa)
@@ -5293,9 +5387,11 @@ function disegnaStanza() {
   const c = $('stCampi'); c.innerHTML = '';
   $('stNome').hidden = !ST.tipo; $('stTogli').hidden = !ST.tipo; $('stInterne').closest('label').hidden = !ST.tipo;
   if (!ST.tipo) { $('stNome').textContent = ''; return; }
-  $('stNome').textContent = (ST.tipo === 'foto' ? (ST.pianta ? 'Foto 360° in 3D · ' : 'Foto 360° · ') : 'Modello · ') + ST.nome; $('stInterne').checked = ST.interne;
+  $('stNome').textContent = (ST.splat ? 'Splat 3D · ' : ST.tipo === 'foto' ? (ST.pianta ? 'Foto 360° in 3D · ' : 'Foto 360° · ') : 'Modello · ') + ST.nome; $('stInterne').checked = ST.interne;
   const k = (chi, lab, mn, mx, pa, u, dec) => campo(c, lab, ST[chi], mn, mx, pa, u, v => { ST[chi] = v; aggiornaStanza(); salvaParStanza(); }, dec);
-  if (ST.tipo === 'foto' && ST.pianta) {
+  if (ST.splat) {   // [Officina] lo splat è già in metri: niente «altezza della fotocamera»; l'altezza del soffitto serve ai controlli sulle bolle
+    k('H', 'Altezza del soffitto (per i controlli)', 2, 12, 0.05, 'm', 2);
+  } else if (ST.tipo === 'foto' && ST.pianta) {
     k('fy', 'Altezza della fotocamera (ingrandisce la stanza)', 0.3, 3, 0.01, 'm', 2); k('H', 'Altezza del soffitto', 2, 20, 0.05, 'm', 2);
   } else if (ST.tipo === 'foto') {
     k('W', 'Larghezza', 1, 60, 0.05, 'm', 2); k('P', 'Profondità', 1, 60, 0.05, 'm', 2); k('H', 'Altezza', 1.5, 20, 0.05, 'm', 2);
