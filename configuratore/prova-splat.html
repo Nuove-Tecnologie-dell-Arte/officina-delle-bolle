@@ -7,7 +7,7 @@
 <!-- [Officina] Pagina di prova: lo splat del corridoio (SOG) disegnato con Spark sopra three.js recente, separato dal simulatore (three r128).
      Serve a controllare scala (griglia di quadrati da 2,95 m), orientamento e peso del file. Si apre con un server locale:
        cd configuratore && python3 -m http.server 8000   →   http://localhost:8000/prova-splat.html
-     Opzioni nell'indirizzo: ?f=ply (PLY non compresso, solo in locale), ?spark=VERSIONE, ?fov=, ?focal=, ?pre=, ?blur=, ?std=. -->
+     Opzioni nell'indirizzo: ?file=stanze/NOME.sog, ?spark=VERSIONE, ?fov=, ?focal=, ?pre=, ?blur=, ?std=. -->
 <style>
   html, body { margin: 0; height: 100%; background: #0b0d10; color: #e8ecef; font: 14px/1.4 system-ui, sans-serif; overflow: hidden; }
   canvas { display: block; }
@@ -44,8 +44,7 @@ import { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
 const stato = document.getElementById('stato');
 const dice = (t, err) => { stato.textContent = t; stato.classList.toggle('err', !!err); };
 const Q = new URLSearchParams(location.search);
-// ?f=ply carica il PLY non compresso (stanze/_prova/corridoio.ply, solo in locale): serve a capire se la qualità persa è del formato SOG o del visualizzatore.
-const file = Q.get('f') === 'ply' ? 'stanze/_prova/corridoio.ply' : 'stanze/corridoio.sog';   // SOG v2: nei confronti (14 nov 2026) si vede come il PLY; il v3 in Spark ha bordi striati
+const file = Q.get('file') || 'stanze/corridoio.sog';   // ?file=stanze/NOME.sog per provare uno splat nuovo (SOG v2: si vede come il PLY; il v3 in Spark ha bordi striati)
 // Regolazioni di Spark per la qualità, provabili dall'indirizzo: ?pre=0.3 (sfoca di più, per scene senza antialias), ?blur=0.3, ?focal=2 (splat più netti), ?std=3
 const num = (k, d) => Q.has(k) ? +Q.get(k) : d;
 
@@ -57,9 +56,9 @@ document.body.appendChild(renderer.domElement);
 const scena = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(num('fov', 75), innerWidth / innerHeight, 0.05, 400);   // 75° come SuperSplat
 // Il corridoio, con l'alto sull'asse y (la conversione ha ruotato lo splat di −90° attorno a x): pavimento a y=0, soffitto a ~7 m.
-// Si parte nel mezzo dello splat (mediana dei punti: x≈−1,3, z≈3,7), all'altezza degli occhi.
-const centro = new THREE.Vector3(-1.3, 1.6, 3.7);
-camera.position.copy(centro).add(new THREE.Vector3(0, 0.3, 3));
+// Si parte 9 m indietro lungo l'asse x, all'altezza degli occhi.
+const centro = new THREE.Vector3(0, 1.4, 0);   // l'origine: lo splat convertito con splat-pianta.py ha il mezzo di un corridoio qui
+camera.position.set(-9, 2.4, 1.4);
 const ctrl = new OrbitControls(camera, renderer.domElement);
 ctrl.target.copy(centro); ctrl.enableDamping = true; ctrl.maxPolarAngle = Math.PI * 0.95;
 
