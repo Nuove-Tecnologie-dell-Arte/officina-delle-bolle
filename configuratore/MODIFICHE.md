@@ -501,3 +501,9 @@ Tutto segnato `[Officina]`.
 - **Limite:** lo splat non copre le bolle (le due scene non condividono la profondità).
 - `prova-splat.html`: pagina per confrontare qualità e scala (griglia da 2,95 m) e provare le impostazioni di Spark.
 - Nel sito (`index.html`): una voce in più nel menu Scenario, e il valore salvato e i progetti riaperti la accettano.
+
+## Il tuo splat nel sito (14 novembre)
+- **Menu Scenario → «Il tuo splat 3D…»**: apre `misura-splat.html` sopra il sito (iframe). Passi: apri il file (.sog, .ply, .spz), metti l'alto in alto, scala con due punti e una distanza nota, pavimento a zero, pianta (rettangolo automatico che si corregge trascinando i vertici o scrivendo i valori), «Usa nel simulatore».
+- Lo splat e le misure restano nel browser (IndexedDB, `splat-utente.js`): non vanno su nessun server. Uno solo alla volta; compare nel menu come «Il tuo splat: NOME».
+- Nel simulatore `stanzaUtente()` lo legge e lo passa a `stanzaDaSplat`; `splat-stanza.js` applica `misura` (`alto`, `scala`, `alza`) alla mesh. Il taglio delle pareti da fuori con la scala diversa da 1 non è ancora verificato.
+- Limiti: pianta fatta a mano per forme complicate (cortili); pagina non ottimizzata per il telefono.

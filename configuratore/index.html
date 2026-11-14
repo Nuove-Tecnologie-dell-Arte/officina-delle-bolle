@@ -983,6 +983,7 @@ if (/[?&]vetrina(=|&|$)/.test(location.search) && window.parent !== window) {
 }
 </script>
 <!-- [Officina] three.js da tre CDN: se la prima non risponde (rete lenta o bloccata) si prova la seconda, poi la terza -->
+<script src="splat-utente.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>window.THREE || document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');</script>
 <script>window.THREE || document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');</script>
@@ -5096,6 +5097,7 @@ caricaMotoreOfficina();   // [Officina] le forme dell'Officina nella griglia "Bo
 // =====================================================================
 const ST = { tipo: null, nome: '', file: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true,
   splat: null,   // [Officina] l'indirizzo dello splat di sfondo, se la stanza è uno splat
+  misura: null,  // [Officina] lo splat «tuo»: { alto, scala, alza } da misura-splat.html
   buchi: null,   // [Officina] anelli dove non si sta, dentro la pianta (il cortile di un chiostro)
   grp: null, mats: [], uCentro: { value: new THREE.Vector3() }, uRot: { value: 0 }, uMis: { value: new THREE.Vector3(8, 4, 6) } };
 pavimento.material.polygonOffset = true; pavimento.material.polygonOffsetFactor = 2; pavimento.material.polygonOffsetUnits = 4;   // il pavimento della stanza vince sul grigio
@@ -5252,7 +5254,7 @@ function splatMuri() {
 }
 function splatDisegna() {   // dopo ogni fotogramma del simulatore: lo splat copia la camera e si disegna dietro
   if (!splatM || !ST.splat) return;
-  splatM.disegnaSplat(camera, { x: ST.x, z: ST.z, rot: ST.rot, luce: ST.luce, w: box.clientWidth, h: box.clientHeight, muri: splatMuri(), nascondiMuri: ST.interne });
+  splatM.disegnaSplat(camera, { x: ST.x, z: ST.z, rot: ST.rot, misura: ST.misura, luce: ST.luce, w: box.clientWidth, h: box.clientHeight, muri: splatMuri(), nascondiMuri: ST.interne });
 }
 function splatGiu() {   // via lo splat: il canvas si spegne, tornano il cielo e il pavimento
   if (!splatM || !ST.splat) return;
@@ -5261,11 +5263,11 @@ function splatGiu() {   // via lo splat: il canvas si spegne, tornano il cielo e
 }
 async function stanzaDaSplat(S, par, nuova) {   // nuova: scelta dall'utente (si porta la camera dentro il corridoio); altrimenti ripristinata da una composizione
   const g0 = genStanza;
-  avviso('Carico lo splat del corridoio (circa 29 MB)…', 0);
+  avviso('Carico lo splat «' + S.nome + '»…', 0);
   try {
     const M = await caricaModuloSplat(), mesh = await M.caricaSplat(S.splat);
     if (g0 !== genStanza) { M.scartaSplat(mesh); return; }   // nel frattempo la stanza è cambiata
-    togliStanza(false); Object.assign(ST, S.par, par || {}, { pianta: S.par.pianta, buchi: S.par.buchi }); ST.pronta = S.id;   // la forma della stanza è sempre quella dello scenario, non una vecchia salvata
+    togliStanza(false); Object.assign(ST, S.par, par || {}, { pianta: S.par.pianta, buchi: S.par.buchi, misura: S.par.misura || null }); ST.pronta = S.id;   // la forma della stanza è sempre quella dello scenario, non una vecchia salvata
     const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
     const muri = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat); muri.visible = false;   // la pianta c'è (per i controlli e l'ombra) ma le pareti non si vedono: i muri li fa lo splat
     const om = ombraStanza(); g.add(muri, om); g.userData = { box: muri, ombra: om };
@@ -5279,6 +5281,10 @@ async function stanzaDaSplat(S, par, nuova) {   // nuova: scelta dall'utente (si
     stanzaAttesa = null;
     avviso(e && e.message === 'file' ? 'Lo splat si apre solo dal sito pubblicato o da un server locale (non come file sul computer).' : 'Non riesco a caricare lo splat: ' + ((e && e.message) || e) + '. Serve internet per three.js e Spark (CDN).', 8000);
   }
+}
+async function stanzaUtente() {   // [Officina] lo splat «tuo», salvato nel browser da misura-splat.html (mai su un server)
+  const d = window.SplatUtente && await window.SplatUtente.leggi(); if (!d) return null;
+  return { id: 'splat-utente', nome: 'Il tuo splat: ' + d.nome, splat: { bytes: await d.blob.arrayBuffer(), nome: d.nome }, vista: d.vista, par: Object.assign({}, d.par, { misura: d.misura }) };
 }
 function stanzaPronta(S, par) {   // [Officina] par: le misure salvate nella composizione, sopra quelle della stanza pronta
   if (S.splat) { stanzaDaSplat(S, par, !par); return; }
@@ -5376,6 +5382,7 @@ function applicaStanza() {
     stanzaAttesa = s;
     const S = s.pronta && STANZE.find(S => S.id === s.pronta);
     if (S) stanzaPronta(S, s.par);
+    else if (s.pronta === 'splat-utente') { const g0 = genStanza; stanzaUtente().then(U => { if (U && g0 === genStanza) stanzaPronta(U, s.par); }); }
     else { Object.assign(ST, s.par); stanzaDB('get', v.id, s.da); }
   }
   if (cera) aggiornaStanza();
@@ -6210,6 +6217,7 @@ if (VETRINA) {
     const base = { pronta: null, pianta: null, W: 8, P: 6, H: 4, fy: 1.6, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, scala: 1, luce: 1, interne: true };
     if (M.file) {   // [Officina] la foto 360° scelta nello Scenario del sito
       genStanza++; Object.assign(ST, base); const S = STANZE.find(S => /corridoio/i.test(M.file.name || '') && S.id === 'corridoio'); if (S) Object.assign(ST, S.par); caricaStanza(M.file, true); return; }
+    if (M.id === 'splat-utente') { genStanza++; const g0 = genStanza; Object.assign(ST, base); stanzaUtente().then(U => { if (g0 !== genStanza) return; if (U) stanzaPronta(U); else togliStanza(); }); return; }
     const S = STANZE.find(S => S.id === M.id);
     if (S) { genStanza++; Object.assign(ST, base); stanzaPronta(S); } else togliStanza();
   }

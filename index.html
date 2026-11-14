@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="it">
 <head>
+<script src="configuratore/splat-utente.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Costruiamo una bolla · Officina delle Bolle</title>
@@ -663,7 +664,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     <div class="sim-vuoto sim-guasto" id="simGuasto" hidden><div><p id="simGuastoTesto"></p><button type="button" class="btn primary" id="bRiprovaSim">Riprova</button></div></div>
   </div>
   <div class="sim-piede">
-    <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option><option value="corridoio-splat">Corridoio dell'Accademia (splat 3D)</option><option value="foto">La tua foto 360°…</option></select></label>
+    <label class="scenario" id="scenarioBox"><span>Scenario</span><select id="scenario"><option value="">Nessuno</option><option value="corridoio">Corridoio dell'Accademia</option><option value="corridoio-splat">Corridoio dell'Accademia (splat 3D)</option><option value="splat-nuovo">Il tuo splat 3D…</option><option value="foto">La tua foto 360°…</option></select></label>
     <p class="sim-nota" id="simNota"></p>
   </div>
   <input type="file" id="scenarioFile" accept=".jpg,.jpeg,.png,.webp,.hdr,image/*" hidden>
@@ -1121,6 +1122,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   /* lo scenario del simulatore: la stanza di sfondo dell'Abbofficina (una pronta, o una foto 360° o un modello 3D vostri) */
   let scenario = "", fileScenario = null;
   try { scenario = localStorage.getItem("bolle|scenario") || ""; } catch (e) { /* */ }
+  const scenarioSalvato = scenario;   // [Officina] «splat-utente» si ripristina solo dopo aver visto che lo splat c'è ancora nel browser
   if (scenario !== "corridoio" && scenario !== "corridoio-splat") scenario = "";   // [Officina] lo splat 3D del corridoio è uno scenario in più (si scarica solo se scelto)
   $("scenario").value = scenario;
   function inviaScenario() { if (vetrinaPronta && fr.contentWindow) fr.contentWindow.postMessage(fileScenario ? { tipo: "vetrina-scenario", file: fileScenario } : { tipo: "vetrina-scenario", id: scenario }, "*"); }
@@ -1130,9 +1132,28 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
     if (v === "foto") {   // si sceglie la foto; finché non arriva resta lo scenario di prima   [Unita] niente modelli 3D
       $("scenarioFile").accept = ".jpg,.jpeg,.png,.webp,.hdr,image/*"; e.target.value = fileScenario ? "tuo" : scenario; $("scenarioFile").click(); return; }
     if (v === "tuo") return;
+    if (v === "splat-nuovo") { e.target.value = scenario; apriSplat(); return; }   // [Officina] il tuo splat: si apre la pagina di misura
     scenario = v; fileScenario = null; opzioneTua(); try { localStorage.setItem("bolle|scenario", v); } catch (er) { /* */ }
     inviaScenario();
   });
+  /* [Officina] lo splat «tuo»: misura-splat.html si apre sopra il sito (iframe, così il lavoro non si perde), salva nel browser e avvisa */
+  function opzioneSplat(d) {
+    let o = $("scenario").querySelector('option[value="splat-utente"]');
+    if (!d) { if (o) o.remove(); return; }
+    if (!o) { o = document.createElement("option"); o.value = "splat-utente"; $("scenario").insertBefore(o, $("scenario").querySelector('option[value="splat-nuovo"]')); }
+    o.textContent = "Il tuo splat: " + d.nome;
+  }
+  function apriSplat() { $("splatFr").src = "configuratore/misura-splat.html?da=sito"; $("splatOv").hidden = false; }
+  function chiudiSplat() { $("splatOv").hidden = true; $("splatFr").src = "about:blank"; }
+  addEventListener("message", e => {
+    if (e.origin !== location.origin || !e.data) return;
+    if (e.data.tipo === "splat-chiudi") chiudiSplat();
+    if (e.data.tipo === "splat-pronto") {
+      chiudiSplat();
+      window.SplatUtente.leggi().then(d => { if (!d) return; opzioneSplat(d); scenario = "splat-utente"; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (er) { /* */ } ultimoInvio = ""; inviaScenario(); });
+    }
+  });
+  window.SplatUtente && window.SplatUtente.leggi().then(d => { opzioneSplat(d); if (d && scenarioSalvato === "splat-utente") { scenario = "splat-utente"; $("scenario").value = scenario; inviaScenario(); } });
   $("scenarioFile").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f || !(/^image\//.test(f.type) || /\.(jpe?g|png|webp|hdr)$/i.test(f.name))) return; fileScenario = f; opzioneTua(); $("scenario").value = "tuo"; inviaScenario(); });   // [Unita] solo foto
   /* la finestra ha due linguette: Simulatore (l'Abbofficina) e Schema (la bolla disegnata pezzo per pezzo, colorata per dima).
      Nella Costruzione si apre da sola lo Schema, che mostra la bolla che cresce; nelle altre tappe torna la scelta di prima.
@@ -2480,7 +2501,7 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   function apriProgetto(j) {   // [Unita] i progetti non si aprono più da file: resta per le prove (window.unita)
     if (j && j.v === "unita-1" && j.PR && Array.isArray(j.PR.bolle)) {   // un progetto della prova unita: sostituisce quello di adesso
       PR = normalizzaPR(JSON.parse(JSON.stringify(j.PR))); S = PR.bolle[PR.att];
-      if (j.scenario === "" || j.scenario === "corridoio" || j.scenario === "corridoio-splat") { scenario = j.scenario; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
+      if (j.scenario === "" || j.scenario === "corridoio" || j.scenario === "corridoio-splat" || (j.scenario === "splat-utente" && $("scenario").querySelector('option[value="splat-utente"]'))) { scenario = j.scenario; fileScenario = null; opzioneTua(); $("scenario").value = scenario; try { localStorage.setItem("bolle|scenario", scenario); } catch (e) { /* */ } inviaScenario(); }
       dimeAperte.clear(); ultimoInvio = ""; storia.length = 0; rendiBolle(); rendiScelteMat(); inviaMateriali(); apriBolla(PR.att); return true;
     }
     if (j && typeof j.shape === "string" && def(j.shape) && j.shape !== "foto" && j.params && typeof j.params === "object") {   // una forma salvata con la prova semplice: una bolla nuova
@@ -2625,5 +2646,6 @@ dialog.parole::backdrop { background: rgba(10, 20, 16, .5); }
   vai(S.t || 0, true);
 })();
 </script>
+<div id="splatOv" hidden style="position:fixed;inset:0;z-index:9999;background:#0b0d10"><iframe id="splatFr" title="Misura il tuo splat" style="width:100%;height:100%;border:0"></iframe></div>
 </body>
 </html>

@@ -20,6 +20,7 @@ let largo = 0, alto = 0;
 // vanno quindi lontanissimo (distanza sempre molto positiva), altrimenti vincerebbero su quelle accese.
 const N_MURI = 12, INSET = 0.3, PROF = 3, ALTO_SCATOLA = 10;
 let modifica = null, scatole = [], soffitto = null;
+const RX = { 'y': 0, 'z': -Math.PI / 2, '-z': Math.PI / 2, '-y': Math.PI }, eTmp = new THREE.Euler();
 const vTmp = new THREE.Vector3(), mTmp = new THREE.Matrix4(), ASSE_Z = new THREE.Vector3(0, 0, 1);
 function preparaMuri(m) {
   modifica = new SplatEdit({ rgbaBlendMode: SplatEditRgbaBlendMode.MULTIPLY, sdfSmooth: 0, softEdge: 0 });
@@ -52,8 +53,8 @@ function aggiornaMuri(cam, muri) {
   } else { soffitto.position.set(0, -1e5, 0); soffitto.quaternion.setFromUnitVectors(ASSE_Z, vTmp.set(0, 1, 0)); soffitto.opacity = 1; }
 }
 
-export async function caricaSplat(url) {   // scarica e prepara lo splat, senza ancora mostrarlo (resta qui finché non è pronto)
-  const m = new SplatMesh({ url });
+export async function caricaSplat(src) {   // scarica e prepara lo splat, senza ancora mostrarlo (resta qui finché non è pronto). src: un indirizzo, oppure { bytes, nome } (lo splat «tuo», dal browser)
+  const m = new SplatMesh(typeof src === 'string' ? { url: src } : { fileBytes: src.bytes, fileName: src.nome });
   await m.initialized;
   return m;
 }
@@ -100,7 +101,11 @@ export function disegnaSplat(cam, p) {
   const v = cam.view;
   if (v && v.enabled) camera.setViewOffset(v.fullWidth, v.fullHeight, v.offsetX, v.offsetY, v.width, v.height); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
-  mesh.position.set(p.x, 0, p.z); mesh.rotation.y = p.rot * Math.PI / 180;   // come il gruppo della stanza nel simulatore
+  // Come il gruppo della stanza nel simulatore. p.misura (lo splat «tuo», da misura-splat.html): prima l'alto va su y (rotazione attorno a x), poi la scala, poi si alza/abbassa il pavimento.
+  const ms = p.misura || { alto: 'y', scala: 1, alza: 0 };
+  mesh.position.set(p.x, ms.alza || 0, p.z);
+  mesh.scale.setScalar(ms.scala || 1);
+  mesh.quaternion.setFromEuler(eTmp.set(RX[ms.alto] || 0, p.rot * Math.PI / 180, 0, 'YXZ'));   // ordine YXZ: prima x (alto), poi la rotazione della stanza attorno a y
   aggiornaMuri(camera, p.nascondiMuri === false ? null : (p.muri || null));   // nascondiMuri === false: pareti sempre visibili (per i confronti)
   const f = p.luce === 1 ? '' : `brightness(${p.luce})`;
   if (renderer.domElement.style.filter !== f) renderer.domElement.style.filter = f;

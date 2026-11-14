@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Misura splat</title>
+<!-- [Officina] PROTOTIPO: pagina guidata per mettere in scala e in piedi uno splat (SOG, PLY, SPZ) senza programmi esterni.
+     Passi: 1 apri il file · 2 orienta (alto = y) · 3 misura due punti su una distanza nota → fattore di scala · 4 clicca il pavimento → altezza zero · 5 copia i valori.
+     Si apre con un server dalla radice del repo:  python3 -m http.server 8000  →  http://localhost:8000/configuratore/misura-splat.html
+     Dal sito (idea): misura-splat.html?file=stanze/NOME.sog&nome=Titolo   carica subito quel file (sono gli stessi parametri che userà la voce di STANZE).
+     Il clic sullo splat usa il raycast di Spark [da verificare su file grandi]. -->
+<style>
+  :root { --bg:#0b0d10; --pan:rgba(15,18,22,.9); --li:#2c333b; --tx:#e8ecef; --dim:#aab3bb; --ac:#7fd1ae; --er:#ff8a80; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--tx); font:14px/1.45 system-ui,sans-serif; overflow:hidden; }
+  canvas { display:block; }
+  #pan { position:fixed; top:10px; left:10px; bottom:10px; width:330px; overflow:auto; background:var(--pan); border:1px solid var(--li); border-radius:8px; padding:12px 14px; box-sizing:border-box; }
+  #pan h1 { font-size:16px; margin:0 0 2px; color:var(--ac); }
+  #pan .sotto { color:var(--dim); font-size:12px; margin-bottom:8px; }
+  .passo { border-top:1px solid var(--li); padding:8px 0; }
+  .passo h2 { font-size:13px; margin:0 0 4px; }
+  .passo.fatto h2::after { content:' ✓'; color:var(--ac); }
+  .passo.chiuso > .corpo { opacity:.4; pointer-events:none; }
+  button, select, input[type=number] { background:#1b2229; color:var(--tx); border:1px solid #39424c; border-radius:5px; padding:4px 8px; font:inherit; }
+  button { cursor:pointer; } button:hover { border-color:var(--ac); }
+  button.on { background:#1f4a3a; border-color:var(--ac); }
+  input[type=number] { width:80px; }
+  .riga { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:4px 0; }
+  .nota { color:var(--dim); font-size:12px; }
+  #stato { color:var(--dim); font-size:12px; white-space:pre-line; margin-top:6px; }
+  #stato.err { color:var(--er); }
+  pre { background:#12171c; border:1px solid var(--li); border-radius:6px; padding:8px; font-size:12px; white-space:pre-wrap; word-break:break-all; margin:4px 0; }
+  #zona { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; color:var(--dim); font-size:18px; text-align:center; padding-left:350px; }
+  #zona.sopra { background:rgba(127,209,174,.12); outline:3px dashed var(--ac); outline-offset:-12px; }
+  #mirino { position:fixed; pointer-events:none; width:0; height:0; }
+  @media (max-width: 700px) { #pan { width:auto; right:10px; bottom:auto; max-height:55%; } #zona { padding-left:0; } }
+</style>
+<script>
+{ const sv = new URLSearchParams(location.search).get('spark') || '2.4.0';
+  const m = document.createElement('script'); m.type = 'importmap';
+  m.textContent = JSON.stringify({ imports: {
+    'three': 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js',
+    'three/addons/': 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/',
+    '@sparkjsdev/spark': `https://sparkjs.dev/releases/spark/${sv}/spark.module.js` } });
+  document.head.appendChild(m); }
+</script>
+</head>
+<body>
+<script src="splat-utente.js"></script>
+<div id="pan">
+  <h1>Misura splat</h1>
+  <div class="sotto" id="titolo">Mette in scala e in piedi il tuo splat, senza altri programmi.</div>
+
+  <div class="passo" id="p1"><h2>1 · Apri lo splat</h2><div class="corpo">
+    <div class="riga"><input type="file" id="fFile" accept=".sog,.ply,.spz,.splat,.ksplat,.zip"></div>
+    <div class="nota">Oppure trascinalo nella pagina. Meglio un <b>.sog</b> (leggero); un .ply da centinaia di MB può essere troppo per il browser.</div>
+    <div id="stato">Nessun file.</div>
+  </div></div>
+
+  <div class="passo chiuso" id="p2"><h2>2 · Metti l'alto in alto</h2><div class="corpo">
+    <div class="nota">Se lo splat è sdraiato o capovolto, scegli come è stato fatto. Spirula ha l'alto sull'asse z.</div>
+    <div class="riga">
+      <select id="sAlto">
+        <option value="y">Già in piedi (alto = y)</option>
+        <option value="z">Da Spirula (alto = z)</option>
+        <option value="-z">Alto = −z</option>
+        <option value="-y">Capovolto (alto = −y)</option>
+      </select>
+    </div>
+  </div></div>
+
+  <div class="passo chiuso" id="p3"><h2>3 · Scala: due punti, una misura</h2><div class="corpo">
+    <div class="nota">Clicca due punti di cui conosci la distanza (per esempio i due lati di un quadrato del pavimento, o la larghezza di una porta). Trascina per girare, rotella per zoomare, clic per segnare.</div>
+    <div class="riga"><button id="bPunti">Segna i due punti</button><button id="bAzzP">Azzera</button></div>
+    <div class="riga">Distanza vera <input type="number" id="nDist" value="2.95" step="0.01" min="0.01"> m <button id="bScala">Applica</button></div>
+    <div class="nota" id="infoScala">Non ancora misurato.</div>
+  </div></div>
+
+  <div class="passo chiuso" id="p4"><h2>4 · Pavimento a zero</h2><div class="corpo">
+    <div class="nota">Clicca un punto del pavimento: da lì lo splat viene abbassato in modo che il pavimento sia a 0. Una griglia da 1 m ti aiuta a controllare.</div>
+    <div class="riga"><button id="bPav">Segna il pavimento</button><button id="bAzzPav">Azzera</button></div>
+    <div class="riga">Fine: <input type="range" id="rPav" min="-1" max="1" step="0.01" value="0" style="width:130px"> <span id="vPav">0,00</span> m</div>
+  </div></div>
+
+  <div class="passo chiuso" id="p5"><h2>5 · La pianta della stanza</h2><div class="corpo">
+    <div class="nota">Serve al simulatore per tenere le bolle dentro le pareti e per nascondere i muri visti da fuori. Il programma cerca da solo il rettangolo che contiene la stanza; tu puoi correggerlo. Va bene per stanze e corridoi dritti; una forma a L o con un cortile si fa a mano nel repo.</div>
+    <div class="riga"><button id="bPianta">Calcola la pianta</button></div>
+    <div class="riga"><button id="mMuovi" class="on">Sposta</button><button id="mAgg">Aggiungi vertice</button><button id="mTogli">Togli vertice</button></div>
+    <canvas id="cvPianta" width="640" height="480" style="width:100%;background:#12171c;border:1px solid var(--li);border-radius:6px;touch-action:none"></canvas>
+    <div class="nota" id="aiuto">Trascina i punti verdi sulle pareti. «Aggiungi» e poi tocca un lato per farci un angolo in più (stanze a L); «Togli» e poi tocca un punto per eliminarlo.</div>
+    <details><summary class="nota">Valori precisi</summary>
+      <div class="riga nota">Altezza <input type="number" id="nH" step="0.1" min="2" style="width:64px"> m</div>
+      <div id="listaV"></div>
+      <div class="nota">Rettangolo automatico (rifà la pianta da capo):</div>
+      <div class="riga nota">Angolo <input type="number" id="nAng" step="1" style="width:56px"> °</div>
+      <div class="riga nota">Lato <input type="number" id="nU0" step="0.05" style="width:60px"> → <input type="number" id="nU1" step="0.05" style="width:60px"> m</div>
+      <div class="riga nota">Altro lato <input type="number" id="nV0" step="0.05" style="width:60px"> → <input type="number" id="nV1" step="0.05" style="width:60px"> m</div>
+    </details>
+    <div class="nota" id="infoPianta"></div>
+  </div></div>
+
+  <div class="passo chiuso" id="p6"><h2>6 · Usalo nel simulatore</h2><div class="corpo">
+    <div class="nota">Lo splat resta nel tuo browser: non viene caricato su nessun server.</div>
+    <div class="riga"><button id="bUsa" class="on">Usa nel simulatore</button> <button id="bChiudi" hidden>Chiudi</button></div>
+    <div class="nota" id="infoUsa"></div>
+    <details><summary class="nota">Valori per chi vuole aggiungere lo splat al sito</summary>
+      <pre id="out">—</pre>
+      <div class="riga"><button id="bCopia">Copia</button><button id="bGriglia" class="on">Griglia</button></div>
+    </details>
+  </div></div>
+</div>
+<div id="zona">Trascina qui lo splat (.sog, .ply, .spz)</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
+
+const $ = id => document.getElementById(id);
+const Q = new URLSearchParams(location.search);
+const fmt = (v, d = 2) => v.toFixed(d).replace('.', ',');
+
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+const scena = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.02, 2000);
+camera.position.set(0, 2, 8);
+const ctrl = new OrbitControls(camera, renderer.domElement);
+ctrl.enableDamping = true;
+scena.add(new SparkRenderer({ renderer }));
+
+const griglia = new THREE.GridHelper(40, 40, 0x00ffaa, 0x00ffaa);
+griglia.material.transparent = true; griglia.material.opacity = .4; griglia.material.depthTest = false; griglia.renderOrder = 10;
+scena.add(griglia);
+
+// Stato: tutto quello che l'utente decide. Si riscrive sullo splat con applica().
+const S = { alto: 'y', fattore: 1, pavLocale: null, pavFine: 0, pA: null, pB: null, modo: null, nome: '' };
+let splat = null;
+
+// Rotazione per portare l'alto scelto sull'asse y del mondo (rotazione attorno a x o z).
+const ROT = { 'y': [0, 0], 'z': [-Math.PI / 2, 0], '-z': [Math.PI / 2, 0], '-y': [Math.PI, 0] };
+
+function applica() {
+  if (!splat) return;
+  P.x = null; fatto(5, false);   // misure cambiate: la pianta va ricalcolata
+  const [rx] = ROT[S.alto];
+  splat.rotation.set(rx, 0, 0);
+  splat.scale.setScalar(S.fattore);
+  splat.position.set(0, 0, 0);
+  splat.updateMatrixWorld(true);
+  // Il pavimento (punto in coordinate dello splat) va a y = 0, più la regolazione fine.
+  if (S.pavLocale) {
+    const w = S.pavLocale.clone().applyMatrix4(splat.matrixWorld);
+    splat.position.y = -w.y;
+  }
+  splat.position.y -= S.pavFine;
+  splat.updateMatrixWorld(true);
+  marca();
+  scriviUscita();
+}
+
+// Segni dei punti: sferette sempre visibili.
+const segni = new THREE.Group(); scena.add(segni);
+const linea = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffd54a, depthTest: false })); linea.renderOrder = 21; segni.add(linea);
+const palla = (c) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), new THREE.MeshBasicMaterial({ color: c, depthTest: false })); m.renderOrder = 20; return m; };
+const sA = palla(0xffd54a), sB = palla(0xffd54a), sP = palla(0x5ac8ff);
+[sA, sB, sP].forEach(m => { m.visible = false; segni.add(m); });
+function marca() {
+  const raggio = Math.max(0.03, camera.position.distanceTo(ctrl.target) * 0.012);
+  const mondo = p => p.clone().applyMatrix4(splat.matrixWorld);
+  [[sA, S.pA], [sB, S.pB], [sP, S.pavLocale]].forEach(([m, p]) => { m.visible = !!p; if (p) { m.position.copy(mondo(p)); m.scale.setScalar(raggio); } });
+  if (S.pA && S.pB) { linea.geometry.setFromPoints([mondo(S.pA), mondo(S.pB)]); linea.visible = true; } else linea.visible = false;
+}
+
+function passi(n) { // quali passi sono aperti
+  for (let i = 1; i <= 6; i++) $('p' + i).classList.toggle('chiuso', i > n);
+}
+function fatto(i, v = true) { $('p' + i).classList.toggle('fatto', v); }
+
+async function carica(sorgente, nome) {
+  if (splat) { scena.remove(splat); splat.dispose?.(); splat = null; }
+  Object.assign(S, { fattore: 1, pavLocale: null, pavFine: 0, pA: null, pB: null, modo: null, blob: null, rett: null });
+  $('zona').style.display = 'none';
+  $('stato').classList.remove('err'); $('stato').textContent = 'Carico ' + nome + '…';
+  const t0 = performance.now();
+  try {
+    let blob = sorgente;
+    if (typeof sorgente === 'string') { const r = await fetch(sorgente); if (!r.ok) throw new Error('non trovo il file (' + r.status + ')'); blob = await r.blob(); }
+    S.blob = blob;
+    splat = new SplatMesh({ fileBytes: await blob.arrayBuffer(), fileName: nome });
+    scena.add(splat);
+    await splat.initialized;
+  } catch (e) {
+    $('stato').classList.add('err'); $('stato').textContent = 'Non riesco ad aprire ' + nome + ':\n' + (e && e.message || e);
+    splat = null; return;
+  }
+  const n = splat.numSplats ?? splat.packedSplats?.numSplats;
+  $('stato').textContent = `${nome}\n${n ? (n / 1e6).toFixed(2).replace('.', ',') + ' milioni di splat · ' : ''}caricato in ${((performance.now() - t0) / 1000).toFixed(1).replace('.', ',')} s`;
+  S.nome = nome; fatto(1); passi(6);
+  $('sAlto').value = S.alto = nome.toLowerCase().endsWith('.ply') ? 'z' : 'y';   // un .ply di Spirula ha l'alto su z; un .sog arriva spesso già convertito
+  inquadra(); applica();
+}
+
+// Mette la camera davanti allo splat (riquadro dei centri, se Spark lo sa dare).
+function inquadra() {
+  splat.updateMatrixWorld(true);
+  let c = new THREE.Vector3(0, 0, 0), r = 5;
+  try {
+    const b = splat.getBoundingBox(true);
+    if (b && !b.isEmpty()) { c = b.getCenter(new THREE.Vector3()); r = b.getSize(new THREE.Vector3()).length() / 2; }
+  } catch (e) { /* senza riquadro: vista di partenza */ }
+  c.applyMatrix4(splat.matrixWorld);
+  ctrl.target.copy(c); camera.position.set(c.x, c.y + r * 0.3, c.z + Math.min(r * 1.2, 30)); ctrl.update();
+}
+
+// Clic: distingue il clic dal trascinamento e lancia un raggio sullo splat.
+const rc = new THREE.Raycaster();
+let giu = null;
+renderer.domElement.addEventListener('pointerdown', e => giu = { x: e.clientX, y: e.clientY });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!giu || !splat || !S.modo) return;
+  if (Math.hypot(e.clientX - giu.x, e.clientY - giu.y) > 4) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  rc.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+  let hit = null;
+  try { hit = rc.intersectObject(splat, false)[0]; } catch (err) { console.warn(err); }
+  if (!hit) { $('infoScala').textContent = 'Il clic non ha colpito lo splat: prova su una parte più piena.'; return; }
+  const p = splat.worldToLocal(hit.point.clone());
+  if (S.modo === 'pav') { S.pavLocale = p; S.pavFine = 0; $('rPav').value = 0; $('vPav').textContent = '0,00'; esciModo(); fatto(4); applica(); }
+  else if (S.modo === 'A') { S.pA = p; S.pB = null; S.modo = 'B'; $('bPunti').textContent = 'Ora il secondo punto…'; marca(); }
+  else if (S.modo === 'B') { S.pB = p; esciModo(); marca(); aggiornaInfoScala(); }
+});
+function esciModo() { S.modo = null; $('bPunti').textContent = 'Segna i due punti'; $('bPunti').classList.remove('on'); $('bPav').textContent = 'Segna il pavimento'; $('bPav').classList.remove('on'); renderer.domElement.style.cursor = ''; }
+function entraModo(m) { S.modo = m; renderer.domElement.style.cursor = 'crosshair'; }
+
+$('bPunti').onclick = () => { esciModo(); S.pA = S.pB = null; entraModo('A'); $('bPunti').classList.add('on'); $('bPunti').textContent = 'Clicca il primo punto…'; marca(); };
+$('bAzzP').onclick = () => { esciModo(); S.pA = S.pB = null; fatto(3, false); $('infoScala').textContent = 'Non ancora misurato.'; marca(); };
+$('bPav').onclick = () => { esciModo(); entraModo('pav'); $('bPav').classList.add('on'); $('bPav').textContent = 'Clicca il pavimento…'; };
+$('bAzzPav').onclick = () => { esciModo(); S.pavLocale = null; S.pavFine = 0; $('rPav').value = 0; $('vPav').textContent = '0,00'; fatto(4, false); applica(); };
+$('rPav').oninput = e => { S.pavFine = +e.target.value; $('vPav').textContent = fmt(S.pavFine); applica(); };
+$('sAlto').onchange = e => { S.alto = e.target.value; S.pavLocale = null; applica(); fatto(2); };
+
+// Distanza tra i due punti nelle unità dello splat (senza fattore): il fattore è distanza vera / distanza dello splat.
+function distLocale() { return S.pA && S.pB ? S.pA.distanceTo(S.pB) : null; }
+function aggiornaInfoScala() {
+  const d = distLocale(); if (!d) return;
+  const vera = +$('nDist').value;
+  $('infoScala').textContent = `Ora i due punti distano ${fmt(d * S.fattore)} m. Se in realtà sono ${fmt(vera)} m, il fattore è ${fmt(vera / d, 4)}.`;
+}
+$('nDist').oninput = aggiornaInfoScala;
+$('bScala').onclick = () => {
+  const d = distLocale(), vera = +$('nDist').value;
+  if (!d || !(vera > 0)) { $('infoScala').textContent = 'Segna prima i due punti e scrivi la distanza vera.'; return; }
+  S.fattore = vera / d; fatto(3); applica();
+  $('infoScala').textContent = `Fatto: fattore ${fmt(S.fattore, 4)}. Controlla con la griglia da 1 m.`;
+};
+$('bGriglia').onclick = e => { griglia.visible = !griglia.visible; e.target.classList.toggle('on', griglia.visible); };
+
+function valori() {
+  const alza = splat ? splat.position.y : 0;
+  return { alto: S.alto, scala: +S.fattore.toFixed(4), alza: +alza.toFixed(3) };
+}
+function scriviUscita() {
+  const v = valori();
+  const rot = { 'y': '', 'z': ' -r 90,0,0', '-z': ' -r -90,0,0', '-y': ' -r 180,0,0' }[v.alto];
+  const cmd = `splat-transform -w --sog-version 2 ${S.nome || 'splat.ply'}${v.scala !== 1 ? ' -s ' + v.scala : ''}${rot} nuovo.sog`;
+  $('out').textContent = `// Nella voce dello scenario (STANZE):\nsplat: 'stanze/${(S.nome || 'splat').replace(/\.[^.]+$/, '')}.sog',\nmisura: { alto: '${v.alto}', scala: ${v.scala}, alza: ${v.alza} },\n\n// Per un file nuovo (l'alza va aggiunta con -t, vedi nota):\n${cmd}`;
+}
+$('bCopia').onclick = () => navigator.clipboard?.writeText($('out').textContent);
+
+
+// ---- La pianta: il rettangolo (anche ruotato) che contiene la stanza ----
+// Dai centri degli splat, già nel mondo (alto = y, pavimento a 0), tra 0,3 e 2,2 m di altezza (le pareti, non il pavimento né il soffitto):
+// si prova ogni angolo da 0° a 89° e si tiene il rettangolo più piccolo che contiene dal 1° al 99° percentile dei punti.
+const P = { x: null, z: null, y: null };
+function raccogli() {
+  splat.updateMatrixWorld(true);
+  const M = splat.matrixWorld, v = new THREE.Vector3(), n = splat.numSplats ?? splat.packedSplats?.numSplats ?? 1e6, passo = Math.max(1, Math.floor(n / 80000));
+  const xs = [], ys = [], zs = [];
+  splat.forEachSplat((i, c, sc, q, op) => { if (i % passo || op < 0.3) return; v.copy(c).applyMatrix4(M); xs.push(v.x); ys.push(v.y); zs.push(v.z); });
+  P.x = Float32Array.from(xs); P.y = Float32Array.from(ys); P.z = Float32Array.from(zs);
+}
+const perc = (a, q) => { const b = Float32Array.from(a).sort(); return b[Math.min(b.length - 1, Math.max(0, Math.floor(q * (b.length - 1))))]; };
+function trovaRett() {
+  const sel = []; for (let i = 0; i < P.x.length; i++) if (P.y[i] > 0.3 && P.y[i] < 2.2) sel.push(i);
+  if (sel.length < 200) throw new Error('Troppo pochi punti tra 0,3 e 2,2 m: controlla alto e pavimento.');
+  const u = new Float32Array(sel.length), w = new Float32Array(sel.length);
+  let best = null;
+  for (let g = 0; g < 90; g++) {
+    const a = g * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    for (let k = 0; k < sel.length; k++) { const x = P.x[sel[k]], z = P.z[sel[k]]; u[k] = x * c + z * s; w[k] = -x * s + z * c; }
+    const u0 = perc(u, 0.01), u1 = perc(u, 0.99), v0 = perc(w, 0.01), v1 = perc(w, 0.99), A = (u1 - u0) * (v1 - v0);
+    if (!best || A < best.A) best = { A, ang: g, u0, u1, v0, v1 };
+  }
+  const m = 0.05;   // 5 cm dai muri
+  return { ang: best.ang, u0: best.u0 + m, u1: best.u1 - m, v0: best.v0 + m, v1: best.v1 - m, sel };
+}
+function altezzaStanza(R) {   // il soffitto: 99,5° percentile dell'altezza dei punti dentro il rettangolo, meno 30 cm
+  const a = R.ang * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), alt = [];
+  for (let i = 0; i < P.x.length; i++) { const u = P.x[i] * c + P.z[i] * s, w = -P.x[i] * s + P.z[i] * c; if (u > R.u0 && u < R.u1 && w > R.v0 && w < R.v1) alt.push(P.y[i]); }
+  return alt.length ? Math.min(12, Math.max(2, perc(alt, 0.995) - 0.3)) : 3;
+}
+const nn = id => +$(id).value;
+// La pianta è un poligono (x, z) nel mondo: parte da un rettangolo e si modifica trascinando i vertici o scrivendo i valori.
+let poly = [], vista = null, mPianta = 'muovi', preso = -1;
+function rettDaCampi() { return { ang: nn('nAng'), u0: nn('nU0'), u1: nn('nU1'), v0: nn('nV0'), v1: nn('nV1') }; }
+function scriviRett(R) { $('nAng').value = R.ang; $('nU0').value = R.u0.toFixed(2); $('nU1').value = R.u1.toFixed(2); $('nV0').value = R.v0.toFixed(2); $('nV1').value = R.v1.toFixed(2); }
+function angoli(R) { const a = R.ang * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), q = (u, w) => [+(u * c - w * s).toFixed(3), +(u * s + w * c).toFixed(3)]; return [q(R.u0, R.v0), q(R.u1, R.v0), q(R.u1, R.v1), q(R.u0, R.v1)]; }
+function inquadraPianta() {   // la vista fissa della mappa: tutti i punti e il poligono, una volta (così trascinando nulla salta)
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  const dentro = (x, z) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); };
+  poly.forEach(([x, z]) => dentro(x, z)); for (let i = 0; i < P.x.length; i += 2) if (P.y[i] > 0.3 && P.y[i] < 2.2) dentro(P.x[i], P.z[i]);
+  const m = Math.max(x1 - x0, z1 - z0) * 0.08 + 0.5; x0 -= m; x1 += m; z0 -= m; z1 += m;
+  const cv = $('cvPianta'), k = Math.min(cv.width / (x1 - x0), cv.height / (z1 - z0));
+  vista = { x0: x0 - (cv.width / k - (x1 - x0)) / 2, z0: z0 - (cv.height / k - (z1 - z0)) / 2, k };
+}
+const sX = x => (x - vista.x0) * vista.k, sZ = z => (z - vista.z0) * vista.k;
+function disegnaPianta() {
+  const cv = $('cvPianta'), g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
+  if (!P.x || !vista || !poly.length) return;
+  g.fillStyle = 'rgba(200,210,220,.35)';
+  for (let i = 0; i < P.x.length; i++) if (P.y[i] > 0.3 && P.y[i] < 2.2) g.fillRect(sX(P.x[i]), sZ(P.z[i]), 2, 2);
+  g.strokeStyle = '#7fd1ae'; g.lineWidth = 3; g.fillStyle = 'rgba(127,209,174,.08)'; g.beginPath(); poly.forEach(([x, z], i) => i ? g.lineTo(sX(x), sZ(z)) : g.moveTo(sX(x), sZ(z))); g.closePath(); g.fill(); g.stroke();
+  g.font = '18px system-ui'; g.textAlign = 'center'; g.fillStyle = '#e8ecef';
+  poly.forEach((a, i) => { const b = poly[(i + 1) % poly.length]; g.fillText(fmt(Math.hypot(b[0] - a[0], b[1] - a[1])) + ' m', sX((a[0] + b[0]) / 2), sZ((a[1] + b[1]) / 2) - 8); });
+  poly.forEach(([x, z], i) => { g.beginPath(); g.arc(sX(x), sZ(z), 10, 0, 7); g.fillStyle = i === preso ? '#ffd54a' : '#7fd1ae'; g.fill(); g.strokeStyle = '#0b0d10'; g.lineWidth = 2; g.stroke(); });
+  const xs = poly.map(p => p[0]), zs = poly.map(p => p[1]);
+  $('infoPianta').textContent = `${poly.length} pareti, ingombro ${fmt(Math.max(...xs) - Math.min(...xs))} × ${fmt(Math.max(...zs) - Math.min(...zs))} m, alta ${fmt(nn('nH'), 1)} m. Punti: lo splat visto dall'alto.`;
+}
+function listaVertici() {   // un rigo x, z per vertice, per le correzioni precise
+  const el = $('listaV'); el.innerHTML = '';
+  poly.forEach((p, i) => {
+    const r = document.createElement('div'); r.className = 'riga nota'; r.append('Punto ' + (i + 1) + '  x ');
+    [0, 1].forEach(k => { if (k) r.append('  z '); const n = document.createElement('input'); n.type = 'number'; n.step = '0.05'; n.style.width = '70px'; n.value = p[k].toFixed(2);
+      n.oninput = () => { if (n.value !== '' && isFinite(+n.value)) { poly[i][k] = +n.value; disegnaPianta(); } }; r.append(n); });
+    el.append(r);
+  });
+}
+function nuovaPianta(R, H) { scriviRett(R); poly = angoli(R); $('nH').value = H.toFixed(1); inquadraPianta(); disegnaPianta(); listaVertici(); fatto(5); }
+$('bPianta').onclick = () => {
+  if (!splat) return;
+  $('infoPianta').textContent = 'Calcolo…';
+  setTimeout(() => {   // dopo aver mostrato «Calcolo…»
+    try { raccogli(); const R = trovaRett(); nuovaPianta(R, altezzaStanza(R)); }
+    catch (e) { $('infoPianta').textContent = 'Non riesco a calcolarla: ' + (e && e.message || e); }
+  }, 30);
+};
+['nAng', 'nU0', 'nU1', 'nV0', 'nV1'].forEach(id => $(id).oninput = () => { if (!P.x) return; poly = angoli(rettDaCampi()); inquadraPianta(); disegnaPianta(); listaVertici(); });
+$('nH').oninput = disegnaPianta;
+// Mouse e dito sulla mappa
+const cvP = $('cvPianta');
+const puntoCv = e => { const r = cvP.getBoundingClientRect(); return [(e.clientX - r.left) * cvP.width / r.width, (e.clientY - r.top) * cvP.height / r.height]; };
+const mondoCv = ([cx, cz]) => [vista.x0 + cx / vista.k, vista.z0 + cz / vista.k];
+const piuVicino = (cx, cz, raggio) => { let b = -1, bd = raggio; poly.forEach(([x, z], i) => { const d = Math.hypot(sX(x) - cx, sZ(z) - cz); if (d < bd) { bd = d; b = i; } }); return b; };
+function modo(m) { mPianta = m; for (const [id, v] of [['mMuovi', 'muovi'], ['mAgg', 'agg'], ['mTogli', 'togli']]) $(id).classList.toggle('on', v === m); }
+$('mMuovi').onclick = () => modo('muovi'); $('mAgg').onclick = () => modo('agg'); $('mTogli').onclick = () => modo('togli');
+cvP.addEventListener('pointerdown', e => {
+  if (!poly.length) return; const [cx, cz] = puntoCv(e);
+  if (mPianta === 'muovi') { const i = piuVicino(cx, cz, 28); if (i >= 0) { preso = i; cvP.setPointerCapture(e.pointerId); disegnaPianta(); } }
+  else if (mPianta === 'togli') { const i = piuVicino(cx, cz, 28); if (i >= 0 && poly.length > 3) { poly.splice(i, 1); disegnaPianta(); listaVertici(); } }
+  else {   // aggiungi: sul lato più vicino al tocco, nel punto toccato (proiettato sul lato)
+    let bi = -1, bd = 30, bp = null;
+    poly.forEach((a, i) => { const b = poly[(i + 1) % poly.length], ax = sX(a[0]), az = sZ(a[1]), dx = sX(b[0]) - ax, dz = sZ(b[1]) - az, L2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((cx - ax) * dx + (cz - az) * dz) / L2)), px = ax + t * dx, pz = az + t * dz, d = Math.hypot(cx - px, cz - pz); if (d < bd) { bd = d; bi = i; bp = [px, pz]; } });
+    if (bi >= 0) { poly.splice(bi + 1, 0, mondoCv(bp).map(v => +v.toFixed(3))); preso = bi + 1; modo('muovi'); disegnaPianta(); listaVertici(); }
+  }
+});
+cvP.addEventListener('pointermove', e => { if (preso < 0 || mPianta !== 'muovi') return; const [x, z] = mondoCv(puntoCv(e)); poly[preso] = [+x.toFixed(3), +z.toFixed(3)]; disegnaPianta(); });
+const rilascia = () => { if (preso >= 0) { preso = -1; disegnaPianta(); listaVertici(); } };
+cvP.addEventListener('pointerup', rilascia); cvP.addEventListener('pointercancel', rilascia);
+
+// ---- Usalo nel simulatore: salva nel browser; dentro il sito (iframe) avvisa la pagina che lo ha aperto ----
+const INCORPORATA = window.parent !== window;
+if (INCORPORATA) $('bChiudi').hidden = false;
+$('bChiudi').onclick = () => parent.postMessage({ tipo: 'splat-chiudi' }, location.origin);
+$('bUsa').onclick = async () => {
+  const info = $('infoUsa'); info.classList.remove('err');
+  if (!splat || !S.blob) { info.textContent = 'Apri prima uno splat.'; return; }
+  if (!P.x || poly.length < 3) { info.textContent = 'Calcola prima la pianta (passo 5).'; return; }
+  const v = valori(), H = Math.max(2, nn('nH') || 3);
+  // vista di partenza: dal lato lungo, al 35% dal centro, all'altezza degli occhi
+  const cen = poly.reduce((s, p) => [s[0] + p[0] / poly.length, s[1] + p[1] / poly.length], [0, 0]);
+  let lun = [1, 0], Lm = 0; poly.forEach((a, i) => { const b = poly[(i + 1) % poly.length], l = Math.hypot(b[0] - a[0], b[1] - a[1]); if (l > Lm) { Lm = l; lun = [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; } });
+  const prj = poly.map(p => (p[0] - cen[0]) * lun[0] + (p[1] - cen[1]) * lun[1]), L = Math.max(...prj) - Math.min(...prj);
+  const perp = poly.map(p => -(p[0] - cen[0]) * lun[1] + (p[1] - cen[1]) * lun[0]), W = Math.max(...perp) - Math.min(...perp);
+  const cam = [cen[0] - lun[0] * L * 0.35, cen[1] - lun[1] * L * 0.35];
+  const d = { nome: S.nome, blob: S.blob, misura: { alto: v.alto, scala: v.scala, alza: v.alza },
+    par: { pianta: poly.map(p => [+p[0].toFixed(3), +p[1].toFixed(3)]), W: +L.toFixed(2), P: +W.toFixed(2), H: +H.toFixed(2), fy: 1, fx: 0, fz: 0, frot: 0, rot: 0, x: 0, z: 0, luce: 1, interne: true },
+    vista: { cam: [+cam[0].toFixed(2), 1.7, +cam[1].toFixed(2)], mira: [+cen[0].toFixed(2), 1.1, +cen[1].toFixed(2)] } };
+  try { await window.SplatUtente.salva(d); }
+  catch (e) { info.classList.add('err'); info.textContent = 'Non riesco a salvarlo nel browser: ' + (e && e.message || e); return; }
+  if (INCORPORATA) parent.postMessage({ tipo: 'splat-pronto' }, location.origin);
+  else info.textContent = 'Salvato. Nel sito, in Scenario, scegli «Il tuo splat».';
+  fatto(6);
+};
+
+// File: dalla scelta, dal trascinamento, o dall'indirizzo (?file=...).
+$('fFile').onchange = async e => { const f = e.target.files[0]; if (f) carica(f, f.name); };
+addEventListener('dragover', e => { e.preventDefault(); $('zona').classList.add('sopra'); });
+addEventListener('dragleave', () => $('zona').classList.remove('sopra'));
+addEventListener('drop', async e => { e.preventDefault(); $('zona').classList.remove('sopra'); const f = e.dataTransfer.files[0]; if (f) carica(f, f.name); });
+if (Q.get('nome')) $('titolo').textContent = Q.get('nome');
+if (Q.get('file')) carica(Q.get('file'), Q.get('file').split('/').pop());
+passi(1);
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+renderer.setAnimationLoop(() => { ctrl.update(); if (splat && (S.pA || S.pB || S.pavLocale)) marca(); renderer.render(scena, camera); });
+window.__misura = { S, valori };   // per prove da console
+</script>
+</body>
+</html>
