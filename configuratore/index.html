@@ -5265,7 +5265,14 @@ async function stanzaDaSplat(S, par, nuova) {   // nuova: scelta dall'utente (si
   const g0 = genStanza;
   avviso('Carico lo splat «' + S.nome + '»…', 0);
   try {
-    const M = await caricaModuloSplat(), mesh = await M.caricaSplat(S.splat);
+    const M = await caricaModuloSplat();
+    let ultimo = -1;   // percentuale di scaricamento nell'avviso (si riscrive solo quando cambia)
+    const mesh = await M.caricaSplat(S.splat, (n, tot) => {
+      const p = tot ? Math.floor(100 * n / tot) : -1; if (p === ultimo && tot) return; ultimo = p;
+      if (g0 !== genStanza) return;
+      if (tot && n >= tot) avviso('Preparo lo splat «' + S.nome + '»… (scaricato, ora si decodifica)', 0);   // arrivato tutto: poi Spark lo decodifica, e ci vuole un po'
+      else avviso('Carico lo splat «' + S.nome + '»… ' + (tot ? p + '% (' + (n / 1048576).toFixed(0) + ' di ' + (tot / 1048576).toFixed(0) + ' MB)' : (n / 1048576).toFixed(0) + ' MB'), 0);
+    });
     if (g0 !== genStanza) { M.scartaSplat(mesh); return; }   // nel frattempo la stanza è cambiata
     togliStanza(false); Object.assign(ST, S.par, par || {}, { pianta: S.par.pianta, buchi: S.par.buchi, misura: S.par.misura || null }); ST.pronta = S.id;   // la forma della stanza è sempre quella dello scenario, non una vecchia salvata
     const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });

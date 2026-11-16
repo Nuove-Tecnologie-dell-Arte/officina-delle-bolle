@@ -53,8 +53,25 @@ function aggiornaMuri(cam, muri) {
   } else { soffitto.position.set(0, -1e5, 0); soffitto.quaternion.setFromUnitVectors(ASSE_Z, vTmp.set(0, 1, 0)); soffitto.opacity = 1; }
 }
 
-export async function caricaSplat(src) {   // scarica e prepara lo splat, senza ancora mostrarlo (resta qui finché non è pronto). src: un indirizzo, oppure { bytes, nome } (lo splat «tuo», dal browser)
-  const m = new SplatMesh(typeof src === 'string' ? { url: src } : { fileBytes: src.bytes, fileName: src.nome });
+// Scarica un indirizzo a pezzi, dicendo a che punto è (avanza(caricati, totale), totale = 0 se il server non lo dice). Se qualcosa non va → null (si ricade sul caricamento di Spark)
+async function scaricaConAvanzamento(url, avanza) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok || !r.body) return null;
+    const totale = +r.headers.get('content-length') || 0, lettore = r.body.getReader(), pezzi = []; let n = 0;
+    for (;;) { const { done, value } = await lettore.read(); if (done) break; pezzi.push(value); n += value.length; try { avanza(n, totale); } catch (e) {} }
+    const tutto = new Uint8Array(n); let o = 0; for (const p of pezzi) { tutto.set(p, o); o += p.length; }
+    return tutto.buffer;
+  } catch (e) { return null; }
+}
+export async function caricaSplat(src, avanza) {   // scarica e prepara lo splat, senza ancora mostrarlo (resta qui finché non è pronto). src: un indirizzo, oppure { bytes, nome } (lo splat «tuo», dal browser). avanza(caricati, totale): facoltativa, per la percentuale
+  let opz = null;
+  if (typeof src === 'string') {
+    const bytes = avanza ? await scaricaConAvanzamento(src, avanza) : null;
+    if (bytes) opz = { fileBytes: bytes, fileName: src.split('?')[0].split('/').pop() };   // il nome serve a Spark per capire il formato (.sog, .ply, …)
+    else opz = { url: src };
+  } else opz = { fileBytes: src.bytes, fileName: src.nome };
+  const m = new SplatMesh(opz);
   await m.initialized;
   return m;
 }
