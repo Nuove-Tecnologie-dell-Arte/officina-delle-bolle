@@ -937,9 +937,10 @@
       <h2 class="tSez">La costruzione in numeri <span>peso, energia, plastica e impatto ambientale di tutte le bolle · la lista con i prezzi è nei Materiali del sito</span></h2><!-- [Officina] erano nella scheda Materiali -->
       <div class="griglia-dati numeriCostr">
         <div class="card"><h2>Peso da trasportare</h2><b class="n" id="dPeso">0</b><p class="std" id="dPesoNota" style="margin:0"></p></div>
+        <div class="card"><h2>Peso bolle gonfiate</h2><b class="n" id="dPesoGonf">0</b><p class="std" id="dPesoGonfNota" style="margin:0"></p></div><!-- [Officina] telo + nastro + aria dentro -->
         <div class="card"><h2>Energia per la mostra</h2><b class="n" id="dEnergia">0</b><p class="std" id="dEnergiaNota" style="margin:0"></p></div>
         <div class="card"><h2>Impatto ambientale</h2><b class="n" id="dCO2">0</b><p class="std" id="dCO2Nota" style="margin:0"></p><p class="nota2" id="dCO2Fonte" style="margin:0"></p></div>
-        <div class="card largo" style="overflow-x:auto"><h2>Per bolla</h2><table class="tabbom"><thead><tr><th>Bolla</th><th class="dx">Telo</th><th class="dx">Nastro</th><th class="dx">Gonfiatori</th><th class="dx">Plastica</th><th class="dx">CO₂</th></tr></thead><tbody id="dModuli"></tbody></table></div>
+        <div class="card largo" style="overflow-x:auto"><h2>Per bolla</h2><table class="tabbom"><thead><tr><th>Bolla</th><th class="dx">Telo</th><th class="dx">Nastro</th><th class="dx">Gonfiatori</th><th class="dx">Plastica</th><th class="dx">Peso gonfiata</th><th class="dx">CO₂</th></tr></thead><tbody id="dModuli"></tbody></table></div>
       </div>
       <details class="card avanzate" id="avanzate"><summary><h2>Avanzate</h2><span class="std">tutti i numeri della simulazione: gonfiatori, telo, nastro, chiusure, maniche</span></summary>
         <div class="avanzateCorpo">
@@ -4518,11 +4519,20 @@ function numeriDati(B) {
   $('dCO2Nota').innerHTML = `per produrre <b>${fmt(I.plastica, 1)} kg di plastica</b>: ${m.nome} ${fmt(I.telo, 1)} kg, nastro ${fmt(I.nastro, 1)} kg${I.chius ? `, zip e velcro ${fmt(I.chius, 1)} kg` : ''}. È come fare circa <b>${fmt(I.co2 / CO2_KM, 0)} km</b> in auto. ${FINE_VITA[D.mat] || ''}`;
   $('dCO2Fonte').textContent = `Stima con valori medi per produrre la plastica: ${fmt(CO2_KG[D.mat] || 2.4, 1)} kg di CO₂ per kg di ${m.nome}, ${fmt(CO2_KG.nastro, 1)} per il nastro, ${fmt(CO2_KG.chiusure, 1)} per zip e velcro; ${fmt(CO2_KWH, 2)} kg per kWh. Trasporto e smaltimento esclusi.`;
   const ades = D.giunti === 'adesivo';
+  let kgPlastiche = 0, kgZip = 0, kgAria = 0;   // [Officina] somma delle righe della tabella: la card «Peso bolle gonfiate» e la colonna dicono sempre lo stesso numero
   $('dModuli').innerHTML = pezzi.map(p => {
     const c = B.per.get(p); if (!c) return '';
     const telo = c.telo * (1 + BOM.sfrido / 100), nas = ades ? c.giunti / 2 * D.adLati * (1 + BOM.scorta / 100) : 0, kgT = telo / BOM.resa, kgN = nas * D.adW * 0.06 / 1000;
-    return `<tr><td><span class="dot ${valuta(p).c}" style="display:inline-block;width:9px;height:9px;margin-right:7px"></span>${esc(p.nome)}</td><td class="num dx">${fmt(telo, 1)} m²</td><td class="num dx">${ades ? fmt(nas, 0) + ' m' : '—'}</td><td class="num dx">${p.f.piccolo + p.f.grande}</td><td class="num dx">${fmt(kgT + kgN, 1)} kg</td><td class="num dx">${fmt(kgT * (CO2_KG[D.mat] || 2.4) + kgN * CO2_KG.nastro, 1)} kg</td></tr>`;
-  }).join('') || '<tr><td colspan="6" class="dove">Nessuna bolla</td></tr>';
+    // zip della bolla: metri di cerniera (0,04 kg/m, con la scorta) + cursori (0,01 kg l'uno), con gli stessi conti della distinta; il velcro non conta
+    const zc = { giunti: D.giunti, cornici: D.coll, porte: D.porte }, zip = k => famiglia(zc[k]) === 'cerniera';
+    const mZip = ['giunti', 'cornici', 'porte'].reduce((s, k) => s + (zip(k) ? c[k] / 2 : 0), 0) * (1 + BOM.scorta / 100);
+    const nCurs = (zip('porte') ? c.nPorte : 0) + (zip('cornici') ? c.nCornici : 0) + (zip('giunti') ? p.F.E.length * (p.F.apex ? 1 : 2) + p.F.V.length : 0), kgZ = mZip * 0.04 + nCurs * 0.01;
+    kgPlastiche += kgT + kgN; kgZip += kgZ; kgAria += (p.V0 || 0) * RHO;
+    return `<tr><td><span class="dot ${valuta(p).c}" style="display:inline-block;width:9px;height:9px;margin-right:7px"></span>${esc(p.nome)}</td><td class="num dx">${fmt(telo, 1)} m²</td><td class="num dx">${ades ? fmt(nas, 0) + ' m' : '—'}</td><td class="num dx">${p.f.piccolo + p.f.grande}</td><td class="num dx">${fmt(kgT + kgN, 1)} kg</td><td class="num dx">${fmt(kgT + kgN + kgZ + (p.V0 || 0) * RHO, 1)} kg</td><td class="num dx">${fmt(kgT * (CO2_KG[D.mat] || 2.4) + kgN * CO2_KG.nastro, 1)} kg</td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="dove">Nessuna bolla</td></tr>';
+  // peso delle bolle gonfiate = telo + nastro + l'aria che contengono (volume × densità dell'aria); gonfiatori e chiusure non contano
+  $('dPesoGonf').textContent = fmt(kgPlastiche + kgZip + kgAria, 1) + ' kg';
+  $('dPesoGonfNota').textContent = `telo e nastro ${fmt(kgPlastiche, 1)} kg · zip ${fmt(kgZip, 1)} kg · aria dentro ${fmt(kgAria, 1)} kg (${fmt(kgAria / RHO, 0)} m³ a ${fmt(RHO, 1)} kg/m³) · senza gonfiatori e velcro`;
 }
 function aggiornaMateriali(forza) {
   const B = distinta(), vis = !$('vMateriali').hidden;
